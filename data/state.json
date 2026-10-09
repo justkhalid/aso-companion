@@ -1,7 +1,7 @@
 {
   "v": 1,
   "settings": {
-    "theme": "light",
+    "theme": "dark",
     "coordinator": "Khalid",
     "institute": "American Space Oujda",
     "year": "2026-2027",
@@ -19360,5 +19360,5 @@
   ],
   "reports": [],
   "libraryPins": [],
-  "_rev": 1791554802471
+  "_rev": 1791554802482
 }
