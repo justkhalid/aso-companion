@@ -131,9 +131,6 @@ export const LP_STAGES_TEENS = {
   st: '1:28-1:30',
 } as const
 
-/* ---- cloud state source ---- */
-export const CLOUD_STATE_URL =
-  'https://raw.githubusercontent.com/justkhalid/aso-companion/main/data/state.json'
-
+/* ---- local storage keys ---- */
 export const LS_KEY = 'aso-companion-v1'
 export const ROLE_KEY = 'aso-role' // 'admin' | 'pub'

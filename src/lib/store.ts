@@ -3,7 +3,7 @@
 import { create } from 'zustand'
 import type { State, View, Side, Theme } from './types'
 import { seedState } from './seed'
-import { CLOUD_STATE_URL, LS_KEY, ROLE_KEY } from './constants'
+import { LS_KEY, ROLE_KEY } from './constants'
 
 export type BootStatus = 'idle' | 'loading' | 'loaded' | 'error'
 
@@ -200,17 +200,12 @@ export const useStore = create<UIStore>((set, get) => ({
     if (role === 'admin') set({ admin: true })
 
     // 2. fetch cloud state and compare _rev
-    // v2.25: try the server-side /api/state proxy first (works on Vercel,
-    //        no CORS issues), fall back to direct raw.githubusercontent.com
-    //        (works in dev or static export).
+    // v4.6: single data path through /api/state (Vercel Blob primary,
+    //        GitHub only as server-side fallback). No direct client-side
+    //        GitHub fetches anymore: one source of truth, one route.
     try {
-      let res: Response
-      try {
-        res = await fetch('/api/state', { cache: 'no-store' })
-        if (!res.ok) throw new Error('HTTP ' + res.status)
-      } catch {
-        res = await fetch(CLOUD_STATE_URL, { cache: 'no-store' })
-      }
+      const res = await fetch('/api/state', { cache: 'no-store' })
+      if (!res.ok) throw new Error('HTTP ' + res.status)
       const cloud = (await res.json()) as State
       if (!cloud || cloud.v !== 1) throw new Error('bad state version')
       // preserve local token/lastSync
@@ -230,6 +225,12 @@ export const useStore = create<UIStore>((set, get) => ({
           /* ignore */
         }
       }
+      // convergence: if this device was strictly newer (e.g. an edit made
+      // while offline), push it up so the cloud copy catches up instead of
+      // devices staying diverged forever.
+      if (merged === current && (current._rev || 0) > (cloud._rev || 0)) {
+        void get().saveToCloud().catch(() => {})
+      }
       set({ boot: 'loaded' })
     } catch (e) {
       // offline / network error: keep the local/seed state
@@ -243,17 +244,11 @@ export const useStore = create<UIStore>((set, get) => ({
   loadFromCloud: async () => {
     set({ syncing: true })
     try {
-      /* v2.25: use the server-side /api/state proxy instead of raw.githubusercontent.com directly.
-         This works on Vercel (server-side fetch, no CORS issues) and falls back to
-         the direct URL if the API route isn't available (e.g. static export). */
-      let res: Response
-      try {
-        res = await fetch('/api/state', { cache: 'no-store' })
-        if (!res.ok) throw new Error('HTTP ' + res.status)
-      } catch {
-        /* fallback to direct fetch (works in dev or static export) */
-        res = await fetch(CLOUD_STATE_URL, { cache: 'no-store' })
-      }
+      /* v4.6: single data path through the server-side /api/state route.
+         The storage provider (Vercel Blob or legacy GitHub fallback) is
+         resolved on the server; the client never talks to GitHub. */
+      const res = await fetch('/api/state', { cache: 'no-store' })
+      if (!res.ok) throw new Error('HTTP ' + res.status)
       const cloud = (await res.json()) as State
       if (!cloud || cloud.v !== 1) throw new Error('bad state version')
       /* preserve local token/lastSync (these never come from the repo) */
@@ -275,10 +270,10 @@ export const useStore = create<UIStore>((set, get) => ({
 
   saveToCloud: async () => {
     const s = get().state
-    /* v2.25: use the server-side /api/sync proxy. The PAT lives in the
-       GITHUB_PAT environment variable on Vercel, NOT in the browser.
-       Fallback to client-side direct GitHub API if the server route is
-       not available (e.g. static export or dev without env vars). */
+    /* v4.6: single save path through the server-side /api/sync route.
+       The PAT lives in Vercel environment variables, NOT in the browser.
+       With Vercel Blob connected this never touches GitHub; without it,
+       the server falls back to the legacy GitHub commit mechanism. */
     set({ syncing: true })
     try {
       /* strip the token + lastSync from the saved JSON (security: PAT never
@@ -290,60 +285,19 @@ export const useStore = create<UIStore>((set, get) => ({
       }
       const content = JSON.stringify(saveState, null, 2)
 
-      /* try the server-side proxy first */
+      /* v4.6: single save path through the server-side /api/sync route.
+         With Vercel Blob connected this never touches GitHub; without it,
+         the server falls back to the legacy GitHub commit mechanism. */
       let ok = false
       let msg = ''
-      try {
-        const res = await fetch('/api/sync', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ content }),
-        })
-        const result = await res.json()
-        ok = result.ok
-        msg = result.msg || ''
-      } catch {
-        /* fallback: client-side direct GitHub API (for dev or static export) */
-        const st = s.settings
-        const token = st.ghToken
-        const repo = st.ghRepo
-        const branch = st.ghBranch || 'main'
-        const path = st.ghPath || 'data/state.json'
-        if (!token || !repo) {
-          set({ syncing: false })
-          return { ok: false, msg: 'Set the GitHub repo and token in Settings first (or add GITHUB_PAT env var on Vercel)' }
-        }
-        const [owner, name] = repo.split('/')
-        const metaUrl = `https://api.github.com/repos/${owner}/${name}/contents/${path}?ref=${encodeURIComponent(branch)}`
-        const metaRes = await fetch(metaUrl, {
-          headers: { Authorization: `Bearer ${token}`, Accept: 'application/vnd.github+json' },
-        })
-        let sha: string | undefined
-        if (metaRes.ok) {
-          const meta = await metaRes.json()
-          sha = meta.sha
-        }
-        const encoded = btoa(unescape(encodeURIComponent(content)))
-        const putRes = await fetch(
-          `https://api.github.com/repos/${owner}/${name}/contents/${path}`,
-          {
-            method: 'PUT',
-            headers: {
-              Authorization: `Bearer ${token}`,
-              Accept: 'application/vnd.github+json',
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-              message: `aso-companion: save state (rev ${s._rev})`,
-              branch,
-              content: encoded,
-              ...(sha ? { sha } : {}),
-            }),
-          },
-        )
-        ok = putRes.ok
-        msg = ok ? 'Saved to GitHub' : await putRes.text().then((t) => t.slice(0, 200))
-      }
+      const res = await fetch('/api/sync', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ content }),
+      })
+      const result = await res.json()
+      ok = !!result.ok
+      msg = result.msg || ''
 
       if (ok) {
         const draft = deepClone(get().state)
@@ -351,7 +305,7 @@ export const useStore = create<UIStore>((set, get) => ({
         draft._rev = (draft._rev || 0) + 1
         set({ state: draft, lastSync: draft.settings.ghLastSync, syncing: false })
         lsSet(LS_KEY, JSON.stringify(draft))
-        return { ok: true, msg: msg || 'Saved to GitHub' }
+        return { ok: true, msg: msg || 'Saved to cloud' }
       } else {
         set({ syncing: false })
         return { ok: false, msg: msg || 'save failed' }

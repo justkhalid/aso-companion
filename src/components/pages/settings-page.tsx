@@ -15,6 +15,8 @@ import {
   GraduationCap,
   Database,
   Plus,
+  CheckCircle2,
+  AlertTriangle,
 } from 'lucide-react'
 import { useStore } from '@/lib/store'
 import { useTheme } from 'next-themes'
@@ -62,6 +64,25 @@ export function SettingsPage() {
   const fileRef = React.useRef<HTMLInputElement>(null)
   const [newNoteWeek, setNewNoteWeek] = React.useState('')
   const [newNoteText, setNewNoteText] = React.useState('')
+  const [storage, setStorage] = React.useState<{
+    provider: string
+    label: string
+    detail: string
+    blobConfigured: boolean
+  } | null>(null)
+
+  React.useEffect(() => {
+    let alive = true
+    fetch('/api/storage-status', { cache: 'no-store' })
+      .then((r) => r.json())
+      .then((d) => {
+        if (alive) setStorage(d)
+      })
+      .catch(() => {})
+    return () => {
+      alive = false
+    }
+  }, [])
 
   const s = state.settings
 
@@ -123,7 +144,7 @@ export function SettingsPage() {
 
   return (
     <div className="mx-auto max-w-2xl px-4 py-6 sm:py-8">
-      <PageHead title="Settings" subtitle="Appearance, profile, academic year, access and cloud sync." />
+      <PageHead title="Settings" subtitle="Appearance, profile, academic year, access and cloud storage." />
 
       {/* appearance */}
       <Section title="Appearance" icon={<Sun className="h-4 w-4" />}>
@@ -222,13 +243,31 @@ export function SettingsPage() {
         </div>
       </Section>
 
-      {/* cloud sync */}
-      <Section title="Cloud sync (GitHub)" icon={<Cloud className="h-4 w-4" />}>
-        <div className="grid gap-3 sm:grid-cols-2">
-          <FieldText label="Repo (owner/name)" value={s.ghRepo || ''} onChange={(v) => setSettings((x) => { x.ghRepo = v })} placeholder="justkhalid/aso-companion" />
-          <FieldText label="Branch" value={s.ghBranch || ''} onChange={(v) => setSettings((x) => { x.ghBranch = v })} placeholder="main" />
-          <FieldText label="File path" value={s.ghPath || ''} onChange={(v) => setSettings((x) => { x.ghPath = v })} placeholder="data/state.json" />
-          <FieldText label="Personal access token (PAT)" value={s.ghToken || ''} onChange={(v) => setSettings((x) => { x.ghToken = v })} placeholder="ghp_..." type="password" />
+      {/* cloud storage */}
+      <Section title="Cloud storage" icon={<Cloud className="h-4 w-4" />}>
+        <div
+          className={cn(
+            'flex items-start gap-3 rounded-lg border p-3',
+            storage?.blobConfigured
+              ? 'border-emerald-500/30 bg-emerald-500/5'
+              : 'border-amber-500/30 bg-amber-500/5',
+          )}
+        >
+          {storage?.blobConfigured ? (
+            <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-emerald-600" />
+          ) : (
+            <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-amber-600" />
+          )}
+          <div className="min-w-0">
+            <div className="text-sm font-bold">
+              {storage ? storage.label : 'Checking storage…'}
+            </div>
+            <div className="mt-0.5 text-xs leading-relaxed text-muted-foreground">
+              {storage
+                ? storage.detail
+                : 'Asking the server where your data lives.'}
+            </div>
+          </div>
         </div>
 
         <div className="mt-3 flex flex-col gap-2">
@@ -287,7 +326,7 @@ export function SettingsPage() {
               <AlertDialogHeader>
                 <AlertDialogTitle>Reset all data?</AlertDialogTitle>
                 <AlertDialogDescription>
-                  This wipes the local data and restores the sample seed state. The cloud copy on GitHub is not affected. This cannot be undone.
+                  This wipes the local data and restores the sample seed state. The cloud copy is not affected. This cannot be undone.
                 </AlertDialogDescription>
               </AlertDialogHeader>
               <AlertDialogFooter>
