@@ -18466,14 +18466,14 @@
     },
     {
       "id": "c3",
-      "code": "ASO-K3",
+      "code": "ASO-K6",
       "level": "Kids · Beginners",
+      "teacher": "Nadia",
+      "room": "Room 2",
       "days": [
         "Sat"
       ],
-      "time": "14:00-16:00",
-      "room": "Room 1",
-      "teacher": "Nadia"
+      "time": "14:00-16:00"
     },
     {
       "id": "c4",
@@ -18488,14 +18488,14 @@
     },
     {
       "id": "c5",
-      "code": "ASO-T1",
+      "code": "ASO-T3",
       "level": "Teens · Beginners",
+      "teacher": "Wafae",
+      "room": "Room 1",
       "days": [
         "Sat"
       ],
-      "time": "14:00-16:00",
-      "room": "Room 2",
-      "teacher": "Wafae"
+      "time": "14:00-16:00"
     },
     {
       "id": "c6",
@@ -19378,5 +19378,5 @@
   ],
   "reports": [],
   "libraryPins": [],
-  "_rev": 1791554802512
+  "_rev": 1791554802515
 }
