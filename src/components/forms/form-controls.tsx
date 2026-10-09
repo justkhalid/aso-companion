@@ -1,11 +1,12 @@
 'use client'
 
 import * as React from 'react'
-import { Clock, ImagePlus, Loader2, Trash2 } from 'lucide-react'
+import { Clock, ImagePlus, List, Loader2, PenLine, Trash2 } from 'lucide-react'
 import { DAY_KEYS, TIME_OPTIONS } from '@/lib/constants'
 import { CLUB_ICONS, clubIcon } from '@/lib/icons'
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
 import {
   Select,
   SelectContent,
@@ -146,6 +147,104 @@ function padTime(t: string): string {
   const m = String(t || '').match(/^(\d{1,2}):(\d{2})$/)
   if (!m) return t
   return `${m[1].padStart(2, '0')}:${m[2]}`
+}
+
+/* ---------- pick from a list, or type your own ---------- */
+
+const NONE = '__aso_none__'
+const CUSTOM = '__aso_custom__'
+
+/**
+ * A select menu whose options come from the app (rooms, team names, ...)
+ * plus an optional "no X yet" empty choice and a "type your own" escape
+ * that swaps the select for a free-text input.
+ */
+export function PickOrType({
+  id,
+  value,
+  onChange,
+  options,
+  placeholder = 'Pick one',
+  emptyLabel,
+  customLabel = 'Type your own...',
+  backLabel = 'Back to the list',
+}: {
+  id?: string
+  value: string
+  onChange: (v: string) => void
+  options: string[]
+  placeholder?: string
+  emptyLabel?: string
+  customLabel?: string
+  backLabel?: string
+}) {
+  const [customMode, setCustomMode] = React.useState(false)
+
+  // a value that exists in the list always brings the select back
+  React.useEffect(() => {
+    if (value && options.includes(value)) setCustomMode(false)
+  }, [value, options])
+
+  if (customMode) {
+    return (
+      <div className="flex items-center gap-1.5">
+        <Input
+          id={id}
+          value={value}
+          onChange={(e) => onChange(e.target.value)}
+          placeholder="Type it here"
+          className="flex-1"
+          autoFocus
+        />
+        <Button
+          type="button"
+          variant="ghost"
+          size="icon"
+          title={backLabel}
+          aria-label={backLabel}
+          className="shrink-0 rounded-lg text-muted-foreground"
+          onClick={() => {
+            setCustomMode(false)
+            onChange('')
+          }}
+        >
+          <List className="h-4 w-4" />
+        </Button>
+      </div>
+    )
+  }
+
+  return (
+    <Select
+      value={value || NONE}
+      onValueChange={(v) => {
+        if (v === CUSTOM) {
+          setCustomMode(true)
+        } else if (v === NONE) {
+          onChange('')
+        } else {
+          onChange(v)
+        }
+      }}
+    >
+      <SelectTrigger id={id} className="w-full rounded-lg font-semibold">
+        <SelectValue placeholder={placeholder} />
+      </SelectTrigger>
+      <SelectContent className="max-h-64 scroll-thin rounded-lg">
+        {emptyLabel && <SelectItem value={NONE}>{emptyLabel}</SelectItem>}
+        {options.map((o) => (
+          <SelectItem key={o} value={o}>
+            {o}
+          </SelectItem>
+        ))}
+        <SelectItem value={CUSTOM} className="text-primary">
+          <span className="inline-flex items-center gap-1.5">
+            <PenLine className="h-3.5 w-3.5" /> {customLabel}
+          </span>
+        </SelectItem>
+      </SelectContent>
+    </Select>
+  )
 }
 
 /* ---------- Lucide icon picker (for club / event chips) ---------- */

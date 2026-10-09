@@ -19,9 +19,10 @@ import {
   IconPicker,
   PosterUploader,
   IconPreview,
+  PickOrType,
 } from '@/components/forms/form-controls'
 import { useStore } from '@/lib/store'
-import { uid } from '@/lib/app-utils'
+import { uid, roomOptionsFor } from '@/lib/app-utils'
 import type { Club } from '@/lib/types'
 
 export function ClubDialog({
@@ -62,6 +63,17 @@ export function ClubDialog({
     setIcon(club?.icon)
     setPoster(club?.poster)
   }, [open, club])
+
+  const roomOptions = React.useMemo(() => roomOptionsFor(state), [state])
+  const leadNames = React.useMemo(
+    () =>
+      Array.from(
+        new Set(
+          [...state.volunteers.map((v) => v.name), ...state.team.map((t) => t.name)].filter(Boolean),
+        ),
+      ),
+    [state.volunteers, state.team],
+  )
 
   const save = () => {
     if (!name.trim()) {
@@ -124,20 +136,26 @@ export function ClubDialog({
 
           <div className="flex flex-col gap-1.5">
             <Label htmlFor="cl-room">Room</Label>
-            <Input id="cl-room" value={room} onChange={(e) => setRoom(e.target.value)} placeholder="Main Hall" />
+            <PickOrType
+              id="cl-room"
+              value={room}
+              onChange={setRoom}
+              options={roomOptions}
+              placeholder="Pick a room"
+              emptyLabel="No room yet"
+            />
           </div>
 
           <div className="flex flex-col gap-1.5">
             <Label htmlFor="cl-lead">Lead</Label>
-            <Input id="cl-lead" value={lead} onChange={(e) => setLead(e.target.value)} list="vol-names" placeholder="No lead yet" />
-            <datalist id="vol-names">
-              {state.volunteers.map((v) => (
-                <option key={v.id} value={v.name} />
-              ))}
-              {state.team.map((t) => (
-                <option key={t.id} value={t.name} />
-              ))}
-            </datalist>
+            <PickOrType
+              id="cl-lead"
+              value={lead}
+              onChange={setLead}
+              options={leadNames}
+              placeholder="Pick a lead"
+              emptyLabel="No lead yet"
+            />
           </div>
 
           <div className="flex flex-col gap-1.5">

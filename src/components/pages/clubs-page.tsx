@@ -3,7 +3,6 @@
 import * as React from 'react'
 import {
   Plus,
-  Download,
   Pencil,
   Trash2,
   ChevronDown,
@@ -27,10 +26,9 @@ import { clubIcon } from '@/lib/icons'
 import { WeeklyGrid, type GridItem, type LegendEntry } from '@/components/weekly-grid'
 import { ClubDialog } from '@/components/dialogs/club-dialog'
 import { EventDialog } from '@/components/dialogs/event-dialog'
+import { CalendarExportMenu } from '@/components/calendar-export'
 import { PageHead, LinkButton, Chip, EmptyState } from '@/components/ui-bits'
 import { Button } from '@/components/ui/button'
-import { useCanvasPngPreview, PngPreviewSheet } from '@/components/png-preview-sheet'
-import type { ExportOptions } from '@/lib/export-canvas'
 import { cn } from '@/lib/utils'
 import type { Club, EventEntry } from '@/lib/types'
 
@@ -44,7 +42,6 @@ export function ClubsPage({ admin }: { admin: boolean }) {
   const [eventDialog, setEventDialog] = React.useState<{ open: boolean; event: EventEntry | null }>({ open: false, event: null })
 
   const gridRef = React.useRef<HTMLDivElement>(null)
-  const png = useCanvasPngPreview()
 
   const clubItems: GridItem[] = (state.clubs || [])
     .filter((c) => (c.days || []).length && c.time)
@@ -64,6 +61,14 @@ export function ClubsPage({ admin }: { admin: boolean }) {
     tone: toneClassForClub(state, c.id),
   }))
 
+  const exportYear = (state.settings.year || 'export').replace(/\//g, '-')
+  const buildClubOpts = () => ({
+    title: 'ASO - Clubs & Events',
+    subtitle: (state.settings.institute || '') + ' - ' + (state.settings.year || '') + ' - ' + (state.clubs || []).length + ' clubs',
+    items: clubItems,
+    legend: clubLegend,
+  })
+
   const upcoming = (state.events || [])
     .map((e) => ({ e, d: nextOccurrence(e) }))
     .filter((x) => x.d)
@@ -80,21 +85,6 @@ export function ClubsPage({ admin }: { admin: boolean }) {
       draft.events = draft.events.filter((x) => x.id !== e.id)
     })
     toast('Event removed')
-  }
-
-  const onExport = async () => {
-    try {
-      const opts: ExportOptions = {
-        title: 'ASO - Clubs & Events',
-        subtitle: (state.settings.institute || '') + ' - ' + (state.settings.year || '') + ' - ' + (state.clubs || []).length + ' clubs',
-        items: clubItems,
-        legend: clubLegend,
-      }
-      const year = (state.settings.year || 'export').replace(/\//g, '-')
-      await png.preview(opts, 'ASO_Clubs_Events_Weekly_' + year + '_HD.png')
-    } catch {
-      toast('PNG export failed', false)
-    }
   }
 
   return (
@@ -114,9 +104,10 @@ export function ClubsPage({ admin }: { admin: boolean }) {
                 <Plus className="h-4 w-4" /> Add event
               </Button>
             )}
-            <Button size="sm" variant="outline" onClick={onExport}>
-              <Download className="h-4 w-4" /> Export PNG
-            </Button>
+            <CalendarExportMenu
+              buildOpts={buildClubOpts}
+              baseName={'ASO_Clubs_Events_Weekly_' + exportYear}
+            />
           </div>
         }
       />
@@ -180,7 +171,6 @@ export function ClubsPage({ admin }: { admin: boolean }) {
 
       <ClubDialog open={clubDialog.open} onOpenChange={(v) => setClubDialog((s) => ({ ...s, open: v }))} club={clubDialog.club} />
       <EventDialog open={eventDialog.open} onOpenChange={(v) => setEventDialog((s) => ({ ...s, open: v }))} event={eventDialog.event} />
-      <PngPreviewSheet state={png.state} onOpenChange={png.setOpen} busy={png.busy} />
     </div>
   )
 }

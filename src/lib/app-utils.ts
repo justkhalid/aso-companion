@@ -1,5 +1,5 @@
 /* ASO Companion - pure helper functions (no React) */
-import { DAY_KEYS, DAY_FULL } from './constants'
+import { DAY_KEYS, DAY_FULL, ROOM_OPTIONS } from './constants'
 import type { State, Level, EventEntry } from './types'
 
 export function parseISO(iso: string): Date {
@@ -191,6 +191,37 @@ export function fmtEventWhen(e: EventEntry): string {
 /* ---- misc ---- */
 export function uid(): string {
   return 'x' + Date.now().toString(36) + Math.random().toString(36).slice(2, 7)
+}
+
+/* ---- class codes ---- */
+
+/* band prefix used in class codes: ASO-K1, ASO-T2, ASO-A3 */
+const BAND_LETTER: Record<string, string> = { kids: 'K', teens: 'T', adults: 'A' }
+
+/**
+ * Suggest the next free class code for a level, e.g. "Kids · Intermediate"
+ * with existing ASO-K1..K4 -> "ASO-K5". Uses the level's band for the letter.
+ */
+export function suggestClassCode(classes: { code?: string }[], levelLabel: string): string {
+  const band = String(levelLabel || '').split('·')[0].trim().toLowerCase()
+  const letter = BAND_LETTER[band] || (String(levelLabel || 'X').trim()[0] || 'X').toUpperCase()
+  const prefix = 'ASO-' + letter
+  const used = new Set(classes.map((c) => String(c.code || '').trim()).filter(Boolean))
+  let n = 1
+  while (used.has(prefix + n)) n++
+  return prefix + n
+}
+
+/**
+ * Room dropdown options: the canonical rooms first, then every room / place
+ * already in use anywhere in the state (so nothing ever disappears).
+ */
+export function roomOptionsFor(state: Pick<State, 'classes' | 'clubs' | 'events'>): string[] {
+  const set = new Set<string>(ROOM_OPTIONS as readonly string[])
+  ;(state.classes || []).forEach((c) => c.room && set.add(c.room))
+  ;(state.clubs || []).forEach((c) => c.room && set.add(c.room))
+  ;(state.events || []).forEach((e) => e.place && set.add(e.place))
+  return Array.from(set)
 }
 
 export function initials(name: string): string {

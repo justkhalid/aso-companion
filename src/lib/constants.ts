@@ -71,6 +71,10 @@ export const LEVEL_ORDER = [
 
 export const BANDS = ['Kids', 'Teens', 'Adults'] as const
 
+/* canonical rooms/spaces offered in the room dropdowns (rooms already in use
+   are added to the list dynamically - see roomOptionsFor) */
+export const ROOM_OPTIONS = ['Room 1', 'Room 2', 'Room 3', 'Main Hall'] as const
+
 /* ---- reporting guide ---- */
 export const REPORT_SYSTEM_URL =
   'https://sites.google.com/view/espaceamericainoujda/accueil/teacher-volunteer-intern-trainer'

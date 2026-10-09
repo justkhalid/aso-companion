@@ -13,9 +13,9 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
-import { DayPills, TimeRangeSelect } from '@/components/forms/form-controls'
+import { DayPills, TimeRangeSelect, PickOrType } from '@/components/forms/form-controls'
 import { useStore } from '@/lib/store'
-import { uid } from '@/lib/app-utils'
+import { uid, roomOptionsFor } from '@/lib/app-utils'
 import type { EventEntry, EventRecur } from '@/lib/types'
 
 export function EventDialog({
@@ -29,6 +29,7 @@ export function EventDialog({
 }) {
   const patch = useStore((s) => s.patch)
   const toast = useStore((s) => s.toast)
+  const state = useStore((s) => s.state)
   const isNew = !event
 
   const [title, setTitle] = React.useState('')
@@ -49,6 +50,8 @@ export function EventDialog({
     setTime(event?.time || '')
     setPlace(event?.place || '')
   }, [open, event])
+
+  const roomOptions = React.useMemo(() => roomOptionsFor(state), [state])
 
   const save = () => {
     if (!title.trim()) {
@@ -135,7 +138,14 @@ export function EventDialog({
 
           <div className="flex flex-col gap-1.5">
             <Label htmlFor="ev-place">Place</Label>
-            <Input id="ev-place" value={place} onChange={(e) => setPlace(e.target.value)} />
+            <PickOrType
+              id="ev-place"
+              value={place}
+              onChange={setPlace}
+              options={roomOptions}
+              placeholder="Pick a place"
+              emptyLabel="No place set"
+            />
           </div>
         </div>
         <DialogFooter className="gap-2">

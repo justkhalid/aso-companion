@@ -72,10 +72,7 @@ export function EltasoPage() {
                       {w ? 'This week' : 'Next up'} · W{showWi + 1} · {sw.theme}
                     </div>
                   )}
-                  <div className="line-clamp-3 text-sm text-muted-foreground">
-                    {l.desc || 'No description set yet.'}
-                  </div>
-                  <div className="mt-1 flex items-center gap-1 text-xs font-bold text-primary">
+                  <div className="mt-auto flex items-center gap-1 pt-1 text-xs font-bold text-primary">
                     Open <ArrowRight className="h-3.5 w-3.5" />
                   </div>
                 </button>

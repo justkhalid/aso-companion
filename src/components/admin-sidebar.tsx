@@ -21,7 +21,6 @@ import type { View, Side } from '@/lib/types'
 import { termStatus } from '@/lib/app-utils'
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
-import { ScrollArea } from '@/components/ui/scroll-area'
 
 interface NavGroup {
   label: string
@@ -150,7 +149,9 @@ function SidebarBody({ onNavigate }: { onNavigate?: () => void }) {
         </button>
       </div>
 
-      <ScrollArea className="flex-1 px-2">
+      {/* min-h-0 is what lets this shrink inside the flex column so the
+          menu actually scrolls on short screens */}
+      <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain scroll-thin px-2">
         <nav className="flex flex-col gap-4 py-2">
           {groups.map((g) => (
             <div key={g.label}>
@@ -183,7 +184,7 @@ function SidebarBody({ onNavigate }: { onNavigate?: () => void }) {
             </div>
           ))}
         </nav>
-      </ScrollArea>
+      </div>
 
       <div className="border-t border-border p-2">
         <div className="flex flex-col gap-0.5">

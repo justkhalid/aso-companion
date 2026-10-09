@@ -1,10 +1,10 @@
 'use client'
 
 import type { GridItem, LegendEntry } from '@/components/weekly-grid'
-import { DAY_KEYS } from './constants'
+import { DAY_KEYS, DAY_FULL } from './constants'
 
-/* Tones matching the old vanilla JS export */
-const TONE_RGB: { bg: string; line: string; txt: string }[] = [
+/* Tones matching the old vanilla JS export (also reused by the Word exports) */
+export const TONE_RGB: { bg: string; line: string; txt: string }[] = [
   { bg: 'rgba(11,92,230,.12)',  line: 'rgba(11,92,230,.30)',  txt: '#0A54C4' },
   { bg: 'rgba(255,149,0,.16)',  line: 'rgba(255,149,0,.34)',  txt: '#A85700' },
   { bg: 'rgba(52,199,89,.16)',  line: 'rgba(52,199,89,.32)',  txt: '#1E7A3A' },
@@ -16,7 +16,7 @@ const TONE_RGB: { bg: string; line: string; txt: string }[] = [
   { bg: 'rgba(120,120,128,.16)',line: 'rgba(120,120,128,.30)',txt: '#5A5A66' },
 ]
 
-function toneIdx(tone: string): number {
+export function toneIdx(tone: string): number {
   const m = /tone-(\d+)/.exec(tone || '')
   return m ? Math.min(8, parseInt(m[1], 10)) : 0
 }
@@ -56,9 +56,66 @@ export interface ExportOptions {
   rooms?: string
 }
 
+/* ---------- shared parsing helpers ---------- */
+
+export type ParsedExport = { item: GridItem; startMin: number; endMin: number; label: string }
+
+export function parseExportItems(items: GridItem[]): ParsedExport[] {
+  const parsed: ParsedExport[] = []
+  for (const it of items) {
+    const r = parseRange(it.slot)
+    if (!r) continue
+    parsed.push({ item: it, startMin: r.startMin, endMin: r.endMin, label: r.label })
+  }
+  return parsed
+}
+
+export function groupByDay(parsed: ParsedExport[]): Record<string, ParsedExport[]> {
+  const byDay: Record<string, ParsedExport[]> = {}
+  for (const p of parsed) {
+    for (const d of p.item.days) {
+      ;(byDay[d] ||= []).push(p)
+    }
+  }
+  return byDay
+}
+
+function loadLogo(): Promise<HTMLImageElement | null> {
+  return new Promise<HTMLImageElement | null>((res) => {
+    const im = new Image()
+    im.onload = () => res(im)
+    im.onerror = () => res(null)
+    im.src = '/aso-logo.png'
+  })
+}
+
+function drawHeader(ctx: CanvasRenderingContext2D, o: ExportOptions, logo: HTMLImageElement | null, W: number, PAD: number, titleSize = 28, subSize = 14): number {
+  /* returns the y where the header ends */
+  let x = PAD
+  if (logo) {
+    const h = 56
+    const w = h * (logo.width / logo.height)
+    ctx.drawImage(logo, x, 26, w, h)
+    x += w + 22
+  } else x += 8
+  ctx.fillStyle = '#1C1C1E'
+  ctx.font = '800 ' + titleSize + 'px ' + FONT
+  ctx.fillText(clipTo(ctx, o.title, W - PAD - x), x, 60)
+  ctx.fillStyle = '#66666E'
+  ctx.font = '500 ' + subSize + 'px ' + FONT
+  ctx.fillText(clipTo(ctx, o.subtitle, W - PAD - x), x, 60 + titleSize + 8)
+  return 118
+}
+
+function drawFooterRule(ctx: CanvasRenderingContext2D, W: number, PAD: number, y: number): void {
+  ctx.strokeStyle = 'rgba(60,60,67,.12)'
+  ctx.beginPath(); ctx.moveTo(PAD, y + .5); ctx.lineTo(W - PAD, y + .5); ctx.stroke()
+  ctx.fillStyle = '#8A8A90'
+  ctx.font = '500 11px ' + FONT
+}
+
 /**
  * Canvas-based PNG export matching the old vanilla JS design:
- * - Logo + title + subtitle at the top
  * - Days on the LEFT (rows), hours on the TOP (columns) - flipped
  * - Colored chips with level, hours · room, teacher
  * - Legend at the bottom
@@ -282,6 +339,236 @@ export async function renderTimetablePNG(o: ExportOptions): Promise<Blob | null>
   }
 
   return new Promise(res => cv.toBlob(res, 'image/png'))
+}
+
+/* ---------- shared legend painter for the poster / list variants ---------- */
+function drawLegendRow(
+  ctx: CanvasRenderingContext2D,
+  legend: LegendEntry[],
+  y: number,
+  PAD: number,
+  W: number,
+): void {
+  ctx.font = '600 12px ' + FONT
+  let lx = PAD
+  ctx.textAlign = 'left'
+  for (const l of legend) {
+    const tone = TONE_RGB[toneIdx(l.tone)]
+    if (lx > W - PAD - 60) break // never overflow the right margin
+    ctx.fillStyle = tone.txt
+    ctx.beginPath(); ctx.arc(lx + 4, y - 4, 4.5, 0, 7); ctx.fill()
+    const label = clipTo(ctx, l.label, 200)
+    ctx.fillStyle = '#66666E'
+    ctx.fillText(label, lx + 14, y)
+    lx += 20 + ctx.measureText(label).width + 24
+  }
+}
+
+/**
+ * Poster variant: A4-portrait session blocks grouped by day. Bold, wall-ready.
+ */
+export async function renderPosterPNG(o: ExportOptions): Promise<Blob | null> {
+  const logo = await loadLogo()
+  const parsed = parseExportItems(o.items)
+  const byDay = groupByDay(parsed)
+
+  const W = 1240
+  const PAD = 64
+  const BLOCK_H = 46
+  const BLOCK_GAP = 8
+  const DAY_HEAD_H = 30
+  const DAY_GAP = 26
+
+  const days = DAY_KEYS.map((d) => ({
+    d,
+    evs: (byDay[d] || []).slice().sort((a, b) => a.startMin - b.startMin),
+  }))
+
+  // measure
+  let H = 118 + 18
+  for (const day of days) H += DAY_HEAD_H + Math.max(1, day.evs.length) * (BLOCK_H + BLOCK_GAP) + DAY_GAP - BLOCK_GAP
+  H += 58 + (o.legend.length ? 34 : 0)
+
+  const SCALE = 2
+  const cv = document.createElement('canvas')
+  cv.width = W * SCALE
+  cv.height = H * SCALE
+  const ctx = cv.getContext('2d')!
+  ctx.scale(SCALE, SCALE)
+  ctx.fillStyle = '#FFFFFF'
+  ctx.fillRect(0, 0, W, H)
+
+  const headEnd = drawHeader(ctx, o, logo, W, PAD, 30, 15)
+  ctx.strokeStyle = 'rgba(60,60,67,.14)'
+  ctx.beginPath(); ctx.moveTo(PAD, headEnd + 2); ctx.lineTo(W - PAD, headEnd + 2); ctx.stroke()
+
+  let y = headEnd + 18
+  for (const day of days) {
+    // day head
+    ctx.fillStyle = '#1C1C1E'
+    ctx.font = '800 16px ' + FONT
+    ctx.fillText(day.d.toUpperCase(), PAD, y + 14)
+    ctx.fillStyle = '#A6A6AD'
+    ctx.font = '600 11px ' + FONT
+    const countTxt = day.evs.length ? day.evs.length + (day.evs.length === 1 ? ' session' : ' sessions') : ''
+    ctx.textAlign = 'right'
+    ctx.fillText(countTxt, W - PAD, y + 14)
+    ctx.textAlign = 'left'
+    y += DAY_HEAD_H
+
+    if (!day.evs.length) {
+      ctx.fillStyle = '#B9B9C0'
+      ctx.font = '600 12px ' + FONT
+      ctx.fillText('No sessions', PAD + 4, y + 14)
+      y += BLOCK_H
+    } else {
+      for (const e of day.evs) {
+        const tone = TONE_RGB[toneIdx(e.item.tone)] || TONE_RGB[0]
+        ctx.fillStyle = tone.bg
+        rrPath(ctx, PAD, y, W - PAD * 2, BLOCK_H, 10)
+        ctx.fill()
+        ctx.strokeStyle = tone.line
+        ctx.lineWidth = 1
+        rrPath(ctx, PAD, y, W - PAD * 2, BLOCK_H, 10)
+        ctx.stroke()
+
+        // accent bar
+        ctx.save()
+        rrPath(ctx, PAD, y, W - PAD * 2, BLOCK_H, 10)
+        ctx.clip()
+        ctx.globalAlpha = .5
+        ctx.fillStyle = tone.txt
+        ctx.fillRect(PAD, y + 6, 4, BLOCK_H - 12)
+        ctx.restore()
+        ctx.globalAlpha = 1
+
+        // time | name | room · lead
+        const cy = y + BLOCK_H / 2
+        ctx.fillStyle = tone.txt
+        ctx.font = '800 13px ' + FONT
+        ctx.fillText(e.label, PAD + 20, cy + 4.5)
+
+        const nx = PAD + 20 + 165
+        ctx.fillStyle = '#1C1C1E'
+        ctx.font = '800 14px ' + FONT
+        ctx.fillText(clipTo(ctx, e.item.code, W - PAD * 2 - 320), nx, cy + 5)
+
+
+        ctx.fillStyle = '#66666E'
+        ctx.font = '600 11.5px ' + FONT
+        ctx.textAlign = 'right'
+        const meta = [e.item.room, e.item.lead].filter(Boolean).join(' · ')
+        ctx.fillText(clipTo(ctx, meta, 300), W - PAD - 16, cy + 4.5)
+        ctx.textAlign = 'left'
+        y += BLOCK_H + BLOCK_GAP
+      }
+      y -= BLOCK_GAP
+    }
+    y += DAY_GAP
+  }
+
+  // footer: legend + credit
+  if (o.legend.length) {
+    drawLegendRow(ctx, o.legend, y + 8, PAD, W)
+    y += 34
+  }
+  drawFooterRule(ctx, W, PAD, y + 4)
+  ctx.fillStyle = '#8A8A90'
+  ctx.font = '500 11px ' + FONT
+  ctx.fillText([o.rooms, 'Made with ASO Companion'].filter(Boolean).join('  ·  '), PAD, y + 24)
+
+  return new Promise((res) => cv.toBlob(res, 'image/png'))
+}
+
+/**
+ * Agenda-list variant: minimal day-by-day list, print-friendly and calm.
+ */
+export async function renderListPNG(o: ExportOptions): Promise<Blob | null> {
+  const logo = await loadLogo()
+  const parsed = parseExportItems(o.items)
+  const byDay = groupByDay(parsed)
+
+  const W = 1240
+  const PAD = 72
+  const ROW_H = 30
+  const DAY_HEAD_H = 34
+  const DAY_GAP = 16
+
+  const days = DAY_KEYS.map((d) => ({
+    d,
+    evs: (byDay[d] || []).slice().sort((a, b) => a.startMin - b.startMin),
+  }))
+
+  let H = 108 + 16
+  for (const day of days) H += DAY_HEAD_H + Math.max(1, day.evs.length) * ROW_H
+  H += DAY_GAP + 52 + (o.legend.length ? 30 : 0)
+
+  const SCALE = 2
+  const cv = document.createElement('canvas')
+  cv.width = W * SCALE
+  cv.height = H * SCALE
+  const ctx = cv.getContext('2d')!
+  ctx.scale(SCALE, SCALE)
+  ctx.fillStyle = '#FFFFFF'
+  ctx.fillRect(0, 0, W, H)
+
+  const headEnd = drawHeader(ctx, o, logo, W, PAD, 26, 14)
+
+  let y = headEnd + 16
+  for (const day of days) {
+    ctx.fillStyle = '#1C1C1E'
+    ctx.font = '800 14px ' + FONT
+    ctx.fillText(DAY_FULL[day.d] || day.d, PAD, y + 13)
+    // day underline
+    ctx.strokeStyle = 'rgba(60,60,67,.16)'
+    ctx.beginPath(); ctx.moveTo(PAD, y + 20); ctx.lineTo(W - PAD, y + 20); ctx.stroke()
+    y += DAY_HEAD_H
+
+    if (!day.evs.length) {
+      ctx.fillStyle = '#B9B9C0'
+      ctx.font = '500 12px ' + FONT
+      ctx.fillText('No sessions', PAD + 2, y + 14)
+      y += ROW_H
+    } else {
+      for (const e of day.evs) {
+        const tone = TONE_RGB[toneIdx(e.item.tone)] || TONE_RGB[0]
+        const cy = y + ROW_H / 2
+        // time
+        ctx.fillStyle = tone.txt
+        ctx.font = '800 12.5px ' + FONT
+        ctx.fillText(e.label, PAD + 2, cy + 4)
+        // tone dot + name
+        ctx.fillStyle = tone.txt
+        ctx.beginPath(); ctx.arc(PAD + 178, cy - 1, 4, 0, 7); ctx.fill()
+        ctx.fillStyle = '#1C1C1E'
+        ctx.font = '700 13px ' + FONT
+        ctx.fillText(clipTo(ctx, e.item.code, 560), PAD + 192, cy + 4)
+        // room · lead right
+        ctx.fillStyle = '#8A8A90'
+        ctx.font = '600 11.5px ' + FONT
+        ctx.textAlign = 'right'
+        const meta = [e.item.room, e.item.lead].filter(Boolean).join(' · ')
+        ctx.fillText(clipTo(ctx, meta, 300), W - PAD - 2, cy + 4)
+        ctx.textAlign = 'left'
+        // hairline
+        ctx.strokeStyle = 'rgba(60,60,67,.06)'
+        ctx.beginPath(); ctx.moveTo(PAD, y + ROW_H - 6); ctx.lineTo(W - PAD, y + ROW_H - 6); ctx.stroke()
+        y += ROW_H
+      }
+    }
+    y += DAY_GAP
+  }
+
+  if (o.legend.length) {
+    drawLegendRow(ctx, o.legend, y + 6, PAD, W)
+    y += 30
+  }
+  drawFooterRule(ctx, W, PAD, y + 2)
+  ctx.fillStyle = '#8A8A90'
+  ctx.font = '500 11px ' + FONT
+  ctx.fillText([o.rooms, 'Made with ASO Companion'].filter(Boolean).join('  ·  '), PAD, y + 22)
+
+  return new Promise((res) => cv.toBlob(res, 'image/png'))
 }
 
 export function downloadBlob(blob: Blob, name: string) {

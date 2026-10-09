@@ -229,3 +229,180 @@ export async function exportLessonPlanDoc(level: Level, weekIndex: number) {
   a.remove()
   setTimeout(() => URL.revokeObjectURL(url), 5000)
 }
+
+/* ==========================================================================
+   Calendar exports (Word) - two extra editable versions of the timetable
+   ========================================================================== */
+
+import { TONE_RGB, toneIdx, parseExportItems, groupByDay, type ExportOptions } from './export-canvas'
+import { DAY_KEYS, DAY_FULL } from './constants'
+
+async function loadLogoB64(): Promise<string> {
+  try {
+    const res = await fetch('/aso-logo.png')
+    const blob = await res.blob()
+    return await new Promise<string>((resolve) => {
+      const reader = new FileReader()
+      reader.onloadend = () => resolve(reader.result as string)
+      reader.readAsDataURL(blob)
+    })
+  } catch {
+    return ''
+  }
+}
+
+/* blend a #RRGGBB tone onto white at the given strength (Word-safe solid fill) */
+function lightHex(hex: string, strength: number): string {
+  const m = /^#?([0-9a-f]{6})$/i.exec(hex || '')
+  if (!m) return '#FFFFFF'
+  const n = parseInt(m[1], 16)
+  const r = Math.round(255 + (((n >> 16) & 255) - 255) * strength)
+  const g = Math.round(255 + (((n >> 8) & 255) - 255) * strength)
+  const b = Math.round(255 + ((n & 255) - 255) * strength)
+  return '#' + [r, g, b].map((v) => v.toString(16).padStart(2, '0')).join('')
+}
+
+function docHeaderBlock(logoB64: string, title: string, sub: string): string {
+  return '<table style="border-collapse:collapse;width:100%;margin-bottom:6pt;"><tr>' +
+    '<td style="border:none;width:130px;padding:0;">' + (logoB64 ? '<img src="' + logoB64 + '" width="118" alt="ASO logo">' : '') + '</td>' +
+    '<td style="border:none;vertical-align:middle;padding:0 0 0 10px;"><h1>' + title + '</h1>' +
+    '<p class="sub">' + sub + '</p></td></tr></table>'
+}
+
+function triggerDocDownload(html: string, filename: string): void {
+  const blob = new Blob(['\ufeff' + html], { type: 'application/msword' })
+  const url = URL.createObjectURL(blob)
+  const a = document.createElement('a')
+  a.href = url
+  a.download = filename
+  document.body.appendChild(a)
+  a.click()
+  a.remove()
+  setTimeout(() => URL.revokeObjectURL(url), 5000)
+}
+
+const GRID_START = 9 // 09:00
+const GRID_END = 18 // 18:00 boundary
+const GRID_COLS = GRID_END - GRID_START
+
+/**
+ * Word table version of the weekly timetable: landscape A4, one row per day,
+ * hour columns; each session is a colored cell spanning its time slot.
+ * Fully editable in Word / Google Docs.
+ */
+export async function exportCalendarGridDoc(o: ExportOptions, filename: string) {
+  const logoB64 = await loadLogoB64()
+  const esc = (s: string) => String(s || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+
+  const th = 'style="background:#1B2A55;color:white;font-size:9pt;padding:4px 5px;border:1px solid #1B2A55;text-align:center;"'
+  const dayTh = 'style="background:#1B2A55;color:white;font-size:9pt;padding:4px 6px;border:1px solid #1B2A55;text-align:left;width:78px;"'
+  const tdEmpty = 'style="border:1px solid #E3E3EA;padding:4px;font-size:8pt;"'
+  const pad2 = (n: number) => String(n).padStart(2, '0')
+
+  const parsed = parseExportItems(o.items)
+  const byDay = groupByDay(parsed)
+
+  const hourHead = '<th ' + dayTh + '>Day</th>' +
+    Array.from({ length: GRID_COLS }, (_, i) => '<th ' + th + '>' + pad2(GRID_START + i) + ':00</th>').join('')
+
+  const rows = DAY_KEYS.map((d) => {
+    const evs = (byDay[d] || []).slice().sort((a, b) => a.startMin - b.startMin)
+    /* build the row: cell HTML strings, gaps filled with empty <td>s */
+    const cells: string[] = []
+    let col = 0
+    for (const e of evs) {
+      const sCol = Math.max(col, Math.min(GRID_COLS - 1, Math.floor((e.startMin - GRID_START * 60) / 60)))
+      const eCol = Math.max(sCol + 1, Math.min(GRID_COLS, Math.ceil((e.endMin - GRID_START * 60) / 60)))
+      for (; col < sCol; col++) cells.push('<td ' + tdEmpty + '>&nbsp;</td>')
+      const tone = TONE_RGB[toneIdx(e.item.tone)] || TONE_RGB[0]
+      const fill = lightHex(tone.txt, 0.14)
+      const border = lightHex(tone.txt, 0.4)
+      const meta = [e.item.room, e.item.lead].filter(Boolean).map((x) => esc(x || '')).join(' · ')
+      cells.push(
+        '<td colspan="' + (eCol - sCol) + '" style="background:' + fill + ';border:1px solid ' + border + ';padding:4px 5px;font-size:8pt;vertical-align:top;">' +
+        '<b style="color:' + tone.txt + ';">' + esc(e.item.code) + '</b><br>' +
+        '<span style="color:#3C3C43;">' + e.label + '</span>' +
+        (meta ? '<br><span style="color:#6E6E73;">' + meta + '</span>' : '') +
+        '</td>',
+      )
+      col = eCol
+    }
+    for (; col < GRID_COLS; col++) cells.push('<td ' + tdEmpty + '>&nbsp;</td>')
+
+    const dayLabel = '<tr><th ' + dayTh + '>' + (DAY_FULL[d] || d) + '</th>' + cells.join('') + '</tr>'
+    return dayLabel
+  }).join('')
+
+  const html = '<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:w="urn:schemas-microsoft-com:office:word"><head>' +
+    '<meta charset="utf-8"><title>' + esc(o.title) + '</title>' +
+    '<!--[if gte mso 9]><xml><w:WordDocument><w:View>Print</w:View><w:Zoom>100</w:Zoom></w:WordDocument></xml><![endif]-->' +
+    '<style>' +
+    '@page Section1 {size:29.7cm 21.0cm; margin:1.2cm; mso-page-orientation:landscape;}' +
+    'div.Section1 {page:Section1;}' +
+    'body{font-family:Calibri,Arial,sans-serif;font-size:9.5pt;color:#1C1C1E;}' +
+    'h1{color:#1B2A55;font-size:18pt;margin:0 0 2pt 0;}' +
+    '.sub{color:#6E6E73;font-size:10pt;margin:0 0 8pt 0;}' +
+    'table.plan{border-collapse:collapse;width:100%;}' +
+    '</style></head><body><div class="Section1">' +
+    docHeaderBlock(logoB64, esc(o.title), esc(o.subtitle)) +
+    '<table class="plan"><tr>' + hourHead + '</tr>' + rows + '</table>' +
+    (o.rooms ? '<p class="sub" style="margin-top:6pt;">' + esc(o.rooms) + '</p>' : '') +
+    '</div></body></html>'
+
+  triggerDocDownload(html, filename)
+}
+
+/**
+ * Word handout version: portrait A4, one compact table per day
+ * (time / session / room / led by). Calm and print-friendly.
+ */
+export async function exportCalendarListDoc(o: ExportOptions, filename: string) {
+  const logoB64 = await loadLogoB64()
+  const esc = (s: string) => String(s || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+
+  const th = 'style="background:#1B2A55;color:white;font-size:9.5pt;padding:4px 6px;border:1px solid #1B2A55;text-align:left;"'
+  const td = 'style="border:1px solid #D9D9E0;padding:4px 6px;font-size:9.5pt;vertical-align:top;"'
+  const tdTime = (color: string) =>
+    'style="border:1px solid #D9D9E0;padding:4px 6px;font-size:9.5pt;vertical-align:top;white-space:nowrap;font-weight:bold;color:' + color + ';"'
+
+  const parsed = parseExportItems(o.items)
+  const byDay = groupByDay(parsed)
+
+  const sections = DAY_KEYS.map((d) => {
+    const evs = (byDay[d] || []).slice().sort((a, b) => a.startMin - b.startMin)
+    if (!evs.length) return ''
+    const rows = evs.map((e) => {
+      const tone = TONE_RGB[toneIdx(e.item.tone)] || TONE_RGB[0]
+      return '<tr>' +
+        '<td ' + tdTime(tone.txt) + '>' + e.label + '</td>' +
+        '<td ' + td + ' style="border:1px solid #D9D9E0;padding:4px 6px;font-size:9.5pt;vertical-align:top;font-weight:bold;">' + esc(e.item.code) + '</td>' +
+        '<td ' + td + '>' + esc(e.item.room || '-') + '</td>' +
+        '<td ' + td + '>' + esc(e.item.lead || '-') + '</td>' +
+        '</tr>'
+    }).join('')
+    return '<h2>' + (DAY_FULL[d] || d) + '</h2>' +
+      '<table class="plan"><tr>' +
+      '<th ' + th + ' style="width:19%;">Time</th><th ' + th + ' style="width:37%;">Session</th>' +
+      '<th ' + th + ' style="width:18%;">Room</th><th ' + th + ' style="width:26%;">Led by</th>' +
+      '</tr>' + rows + '</table>'
+  }).filter(Boolean).join('')
+
+  const html = '<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:w="urn:schemas-microsoft-com:office:word"><head>' +
+    '<meta charset="utf-8"><title>' + esc(o.title) + '</title>' +
+    '<!--[if gte mso 9]><xml><w:WordDocument><w:View>Print</w:View><w:Zoom>100</w:Zoom></w:WordDocument></xml><![endif]-->' +
+    '<style>' +
+    '@page Section1 {size:21.0cm 29.7cm; margin:1.6cm;}' +
+    'div.Section1 {page:Section1;}' +
+    'body{font-family:Calibri,Arial,sans-serif;font-size:10pt;color:#1C1C1E;}' +
+    'h1{color:#1B2A55;font-size:18pt;margin:0 0 2pt 0;}' +
+    'h2{color:#C1272D;font-size:12pt;margin:12pt 0 4pt 0;}' +
+    '.sub{color:#6E6E73;font-size:10pt;margin:0 0 8pt 0;}' +
+    'table.plan{border-collapse:collapse;width:100%;margin-bottom:4pt;}' +
+    '</style></head><body><div class="Section1">' +
+    docHeaderBlock(logoB64, esc(o.title), esc(o.subtitle)) +
+    (sections || '<p class="sub">No sessions scheduled yet.</p>') +
+    (o.rooms ? '<p class="sub" style="margin-top:8pt;">' + esc(o.rooms) + '</p>' : '') +
+    '</div></body></html>'
+
+  triggerDocDownload(html, filename)
+}

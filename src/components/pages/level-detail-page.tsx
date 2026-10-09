@@ -136,7 +136,12 @@ export function LevelDetailPage({ admin }: { admin: boolean }) {
             {level.label}
             <Chip tone="primary">{level.cefr}</Chip>
           </h1>
-          <p className="mt-1 text-sm text-muted-foreground">
+          {level.desc && (
+            <p className="mt-2 max-w-2xl text-[14.5px] leading-relaxed text-foreground/90">
+              {level.desc}
+            </p>
+          )}
+          <p className="mt-1.5 text-sm text-muted-foreground">
             {total} weeks · {state.settings.year} · all four skills weekly · tap a week to open it
           </p>
         </div>

@@ -11,7 +11,6 @@ import {
 } from '@/components/ui/sheet'
 import { Button } from '@/components/ui/button'
 import { downloadBlob, openBlobInNewTab, renderTimetablePNG, type ExportOptions } from '@/lib/export-canvas'
-import type { GridItem, LegendEntry } from '@/components/weekly-grid'
 
 export function PngPreviewSheet({
   state,
@@ -79,23 +78,30 @@ export function useCanvasPngPreview() {
   })
   const [busy, setBusy] = React.useState(false)
 
-  const preview = React.useCallback(async (opts: ExportOptions, filename: string) => {
-    setBusy(true)
-    setState({ open: true, blob: null, filename })
-    try {
-      const blob = await renderTimetablePNG(opts)
-      if (blob) {
-        setState({ open: true, blob, filename })
-      } else {
+  const preview = React.useCallback(
+    async (
+      opts: ExportOptions,
+      filename: string,
+      renderer: (o: ExportOptions) => Promise<Blob | null> = renderTimetablePNG,
+    ) => {
+      setBusy(true)
+      setState({ open: true, blob: null, filename })
+      try {
+        const blob = await renderer(opts)
+        if (blob) {
+          setState({ open: true, blob, filename })
+        } else {
+          setState({ open: false, blob: null, filename })
+        }
+      } catch (e) {
+        console.error('PNG export failed:', e)
         setState({ open: false, blob: null, filename })
+      } finally {
+        setBusy(false)
       }
-    } catch (e) {
-      console.error('PNG export failed:', e)
-      setState({ open: false, blob: null, filename })
-    } finally {
-      setBusy(false)
-    }
-  }, [])
+    },
+    [],
+  )
 
   const setOpen = React.useCallback((open: boolean) => {
     setState((s) => ({ ...s, open }))

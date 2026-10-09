@@ -3,7 +3,6 @@
 import * as React from 'react'
 import {
   Plus,
-  Download,
   CalendarDays,
   BookOpen,
   Sparkles,
@@ -26,15 +25,13 @@ import {
 import { DAY_FULL } from '@/lib/constants'
 import { WeeklyGrid, type GridItem, type LegendEntry } from '@/components/weekly-grid'
 import { ClassDialog } from '@/components/dialogs/class-dialog'
+import { CalendarExportMenu } from '@/components/calendar-export'
 import { SectionHeader, LinkButton, Chip, EmptyState } from '@/components/ui-bits'
-import { useCanvasPngPreview, PngPreviewSheet } from '@/components/png-preview-sheet'
-import type { ExportOptions } from '@/lib/export-canvas'
 import type { ClassEntry } from '@/lib/types'
 
 export function HomePage({ admin }: { admin: boolean }) {
   const state = useStore((s) => s.state)
   const setView = useStore((s) => s.setView)
-  const toast = useStore((s) => s.toast)
 
   const [classDialog, setClassDialog] = React.useState<{ open: boolean; cls: ClassEntry | null }>({
     open: false,
@@ -141,33 +138,14 @@ export function HomePage({ admin }: { admin: boolean }) {
 
   const gridRef = React.useRef<HTMLDivElement>(null)
   const clubGridRef = React.useRef<HTMLDivElement>(null)
-  const png = useCanvasPngPreview()
 
-  const exportClasses = async () => {
-    try {
-      const opts: ExportOptions = {
-        title: 'ELTASO - Weekly Program',
-        subtitle: (state.settings.institute || '') + ' - ' + (state.settings.year || '') + ' - ' + (state.classes || []).length + ' classes',
-        items: classItems,
-        legend: classLegend,
-      }
-      const year = (state.settings.year || 'export').replace(/\//g, '-')
-      await png.preview(opts, 'ELTASO_Weekly_Program_' + year + '_HD.png')
-    } catch { toast('PNG export failed', false) }
-  }
-
-  const exportClubs = async () => {
-    try {
-      const opts: ExportOptions = {
-        title: 'ASO - Clubs & Events',
-        subtitle: (state.settings.institute || '') + ' - ' + (state.settings.year || '') + ' - ' + (state.clubs || []).length + ' clubs',
-        items: clubItems,
-        legend: clubLegend,
-      }
-      const year = (state.settings.year || 'export').replace(/\//g, '-')
-      await png.preview(opts, 'ASO_Clubs_Events_Weekly_' + year + '_HD.png')
-    } catch { toast('PNG export failed', false) }
-  }
+  const exportYear = (state.settings.year || 'export').replace(/\//g, '-')
+  const buildClassOpts = () => ({
+    title: 'ELTASO - Weekly Program',
+    subtitle: (state.settings.institute || '') + ' - ' + (state.settings.year || '') + ' - ' + (state.classes || []).length + ' classes',
+    items: classItems,
+    legend: classLegend,
+  })
 
   return (
     <div className="mx-auto max-w-5xl px-4 py-6 sm:py-8">
@@ -246,12 +224,11 @@ export function HomePage({ admin }: { admin: boolean }) {
                 Add class
               </LinkButton>
             )}
-            <LinkButton
-              icon={<Download className="h-3.5 w-3.5" />}
-              onClick={() => exportClasses()}
-            >
-              Export PNG
-            </LinkButton>
+            <CalendarExportMenu
+              buildOpts={buildClassOpts}
+              baseName={'ELTASO_Weekly_Program_' + exportYear}
+              variant="pill"
+            />
           </>
         }
       />
@@ -361,7 +338,6 @@ export function HomePage({ admin }: { admin: boolean }) {
       {admin && <AdminHomeExtra />}
 
       <ClassDialog open={classDialog.open} onOpenChange={(v) => setClassDialog((s) => ({ ...s, open: v }))} cls={classDialog.cls} />
-      <PngPreviewSheet state={png.state} onOpenChange={png.setOpen} busy={png.busy} />
     </div>
   )
 }

@@ -19,9 +19,9 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import { DayPills, TimeRangeSelect } from '@/components/forms/form-controls'
+import { DayPills, TimeRangeSelect, PickOrType } from '@/components/forms/form-controls'
 import { useStore } from '@/lib/store'
-import { uid } from '@/lib/app-utils'
+import { uid, suggestClassCode, roomOptionsFor } from '@/lib/app-utils'
 import type { ClassEntry } from '@/lib/types'
 
 export function ClassDialog({
@@ -39,21 +39,46 @@ export function ClassDialog({
   const isNew = !cls
 
   const [code, setCode] = React.useState('')
+  const [codeTouched, setCodeTouched] = React.useState(false)
   const [level, setLevel] = React.useState('')
   const [teacher, setTeacher] = React.useState('')
   const [room, setRoom] = React.useState('')
   const [days, setDays] = React.useState<string[]>([])
   const [time, setTime] = React.useState('')
 
+  /* remembers the level the code was loaded with, so the code only
+     re-generates when the user actually switches level */
+  const prevLevel = React.useRef<string | null>(null)
+
   React.useEffect(() => {
-    if (!open) return
-    setCode(cls?.code || '')
-    setLevel(cls?.level || (state.levels[0]?.label || ''))
+    if (!open) {
+      prevLevel.current = null
+      return
+    }
+    const lvl = cls?.level || (state.levels[0]?.label || '')
+    setCodeTouched(false)
+    prevLevel.current = lvl
+    setLevel(lvl)
     setTeacher(cls?.teacher || '')
     setRoom(cls?.room || '')
     setDays(cls?.days || [])
     setTime(cls?.time || '')
-  }, [open, cls, state.levels])
+    setCode(cls?.code || suggestClassCode(state.classes, lvl))
+  }, [open, cls, state.levels, state.classes])
+
+  /* level switched and the code hasn't been typed by hand -> new suggestion */
+  React.useEffect(() => {
+    if (!open) return
+    if (prevLevel.current === null || prevLevel.current === level) return
+    prevLevel.current = level
+    if (!codeTouched) setCode(suggestClassCode(state.classes, level))
+  }, [level, open, codeTouched, state.classes])
+
+  const roomOptions = React.useMemo(() => roomOptionsFor(state), [state])
+  const teacherNames = React.useMemo(
+    () => state.team.map((t) => t.name).filter(Boolean),
+    [state.team],
+  )
 
   const save = () => {
     if (!code.trim()) {
@@ -97,17 +122,25 @@ export function ClassDialog({
               <Input
                 id="cls-code"
                 value={code}
-                onChange={(e) => setCode(e.target.value)}
+                onChange={(e) => {
+                  setCodeTouched(true)
+                  setCode(e.target.value)
+                }}
                 placeholder="ASO-K1"
               />
+              <span className="text-[11px] leading-tight text-muted-foreground">
+                Auto from the level · you can type your own
+              </span>
             </div>
             <div className="flex flex-col gap-1.5">
               <Label htmlFor="cls-room">Room / space</Label>
-              <Input
+              <PickOrType
                 id="cls-room"
                 value={room}
-                onChange={(e) => setRoom(e.target.value)}
-                placeholder="Room 1"
+                onChange={setRoom}
+                options={roomOptions}
+                placeholder="Pick a room"
+                emptyLabel="No room yet"
               />
             </div>
           </div>
@@ -140,18 +173,14 @@ export function ClassDialog({
 
           <div className="flex flex-col gap-1.5">
             <Label htmlFor="cls-teacher">Teacher</Label>
-            <Input
+            <PickOrType
               id="cls-teacher"
               value={teacher}
-              onChange={(e) => setTeacher(e.target.value)}
-              placeholder="Name"
-              list="team-names"
+              onChange={setTeacher}
+              options={teacherNames}
+              placeholder="Pick a teacher"
+              emptyLabel="No teacher yet"
             />
-            <datalist id="team-names">
-              {state.team.map((t) => (
-                <option key={t.id} value={t.name} />
-              ))}
-            </datalist>
           </div>
         </div>
         <DialogFooter className="gap-2">
