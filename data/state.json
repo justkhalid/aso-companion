@@ -18551,6 +18551,17 @@
         "Sat"
       ],
       "time": "16:00-18:00"
+    },
+    {
+      "id": "xmv0wq10bwo9oq",
+      "code": "ASO-A4",
+      "level": "Kids · Beginners",
+      "teacher": "",
+      "room": "",
+      "days": [
+        "Sat"
+      ],
+      "time": "16:00-18:00"
     }
   ],
   "team": [
@@ -19307,5 +19318,5 @@
   "events": [],
   "reports": [],
   "libraryPins": [],
-  "_rev": 1791508285420
+  "_rev": 1791508285422
 }
