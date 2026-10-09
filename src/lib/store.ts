@@ -199,6 +199,12 @@ export const useStore = create<UIStore>((set, get) => ({
     const role = lsGet(ROLE_KEY)
     if (role === 'admin') set({ admin: true })
 
+    // v4.7: returning visitors (data already in localStorage) render right
+    // away and the cloud copy still merges in below. Fresh visitors stay on
+    // the boot splash until the cloud copy arrives, so the sample seed data
+    // never flashes on the screen.
+    if (localState && localState.v === 1) set({ boot: 'loaded' })
+
     // 2. fetch cloud state and compare _rev
     // v4.6: single data path through /api/state (Vercel Blob primary,
     //        GitHub only as server-side fallback). No direct client-side

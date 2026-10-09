@@ -82,7 +82,11 @@ export async function renderTimetablePNG(o: ExportOptions): Promise<Blob | null>
   const DAY_LABEL_W = 80
   const HEADER_H = 118
   const HOUR_HEAD_H = 48
-  const DAY_ROW_H = 88
+  /* v4.7: compact chips stacked vertically when simultaneous (matches the web grid) */
+  const CHIP_H = 46
+  const CHIP_GAP = 4
+  const ROW_PAD = 6
+  const ROW_H_EMPTY = 44
   const START_HOUR = 9
   const END_HOUR = 18
   const hours: number[] = []
@@ -109,7 +113,36 @@ export async function renderTimetablePNG(o: ExportOptions): Promise<Blob | null>
 
   const legendH = 30
   const roomsH = o.rooms ? 30 : 0
-  const gridH = DAY_KEYS.length * DAY_ROW_H
+
+  /* First pass: lane packing per day (same algorithm as the web grid), so
+     rows can be sized exactly to the number of stacked layers. */
+  type DayLayout = { evs: Parsed[]; laneOf: Map<string, number>; lanes: number; rowH: number; y: number }
+  const dayLayouts: DayLayout[] = []
+  let cursorY = HEADER_H + HOUR_HEAD_H
+  for (const d of DAY_KEYS) {
+    const evs = (byDay[d] || []).slice().sort((a, b) => a.startMin - b.startMin)
+    const layers: Parsed[][] = []
+    const layerEnds: number[] = []
+    const laneOf = new Map<string, number>()
+    for (const e of evs) {
+      let li = layerEnds.findIndex((end) => end <= e.startMin)
+      if (li < 0) {
+        li = layers.length
+        layers.push([])
+        layerEnds.push(0)
+      }
+      layers[li].push(e)
+      layerEnds[li] = e.endMin
+      laneOf.set(e.item.id, li)
+    }
+    const laneCount = Math.max(1, layers.length)
+    const rowH = evs.length
+      ? ROW_PAD * 2 + laneCount * CHIP_H + (laneCount - 1) * CHIP_GAP
+      : ROW_H_EMPTY
+    dayLayouts.push({ evs, laneOf, lanes: laneCount, rowH, y: cursorY })
+    cursorY += rowH
+  }
+  const gridH = cursorY - (HEADER_H + HOUR_HEAD_H)
   const H = HEADER_H + HOUR_HEAD_H + gridH + legendH + roomsH + 40
 
   const cv = document.createElement('canvas')
@@ -151,7 +184,9 @@ export async function renderTimetablePNG(o: ExportOptions): Promise<Blob | null>
 
   // Day rows
   DAY_KEYS.forEach((d, di) => {
-    const y = ty + HOUR_HEAD_H + di * DAY_ROW_H
+    const lay = dayLayouts[di]
+    const y = lay.y
+    const rowH = lay.rowH
     // Row border
     if (di > 0) {
       ctx.strokeStyle = 'rgba(60,60,67,.07)'
@@ -161,82 +196,72 @@ export async function renderTimetablePNG(o: ExportOptions): Promise<Blob | null>
     ctx.fillStyle = '#1C1C1E'
     ctx.font = '700 14px ' + FONT
     ctx.textAlign = 'center'
-    ctx.fillText(d.toUpperCase(), PAD + DAY_LABEL_W / 2, y + DAY_ROW_H / 2 + 5)
+    ctx.fillText(d.toUpperCase(), PAD + DAY_LABEL_W / 2, y + rowH / 2 + 5)
     ctx.textAlign = 'left'
     // Vertical line after day label
     ctx.strokeStyle = 'rgba(60,60,67,.12)'
-    ctx.beginPath(); ctx.moveTo(PAD + DAY_LABEL_W + .5, y); ctx.lineTo(PAD + DAY_LABEL_W + .5, y + DAY_ROW_H); ctx.stroke()
+    ctx.beginPath(); ctx.moveTo(PAD + DAY_LABEL_W + .5, y); ctx.lineTo(PAD + DAY_LABEL_W + .5, y + rowH); ctx.stroke()
     // Vertical hour lines
     hours.forEach((_, i) => {
       if (i > 0) {
         const lx = PAD + DAY_LABEL_W + i * HOUR_W
         ctx.strokeStyle = 'rgba(60,60,67,.05)'
-        ctx.beginPath(); ctx.moveTo(lx + .5, y); ctx.lineTo(lx + .5, y + DAY_ROW_H); ctx.stroke()
+        ctx.beginPath(); ctx.moveTo(lx + .5, y); ctx.lineTo(lx + .5, y + rowH); ctx.stroke()
       }
     })
 
-    // Event chips
-    const evs = (byDay[d] || []).slice().sort((a, b) => a.startMin - b.startMin)
-    // Lane packing for overlaps
-    const cols: Parsed[][] = []
-    const colEnds: number[] = []
-    for (const e of evs) {
-      let placed = false
-      for (let i = 0; i < colEnds.length; i++) {
-        if (colEnds[i] <= e.startMin) { cols[i].push(e); colEnds[i] = e.endMin; placed = true; break }
-      }
-      if (!placed) { cols.push([e]); colEnds.push(e.endMin) }
-    }
+    // Event chips: each event uses the FULL width of its time span;
+    // simultaneous events stack one on top of the other (per layer).
+    for (const e of lay.evs) {
+      const lane = lay.laneOf.get(e.item.id) || 0
+      const startOffset = e.startMin - START_HOUR * 60
+      const duration = e.endMin - e.startMin
+      const chipLeft = PAD + DAY_LABEL_W + (startOffset / 60) * HOUR_W
+      const chipW = (duration / 60) * HOUR_W
+      const cx = chipLeft + 3
+      const cw = chipW - 6
+      const cy = y + ROW_PAD + lane * (CHIP_H + CHIP_GAP)
+      const ch = CHIP_H
 
-    for (let ci = 0; ci < cols.length; ci++) {
-      for (const e of cols[ci]) {
-        let maxOverlap = 0
-        for (let k = 0; k < cols.length; k++) {
-          for (const other of cols[k]) {
-            if (other.startMin < e.endMin && other.endMin > e.startMin) { maxOverlap = Math.max(maxOverlap, k + 1); break }
-          }
-        }
-        const startOffset = e.startMin - START_HOUR * 60
-        const duration = e.endMin - e.startMin
-        const chipLeft = PAD + DAY_LABEL_W + (startOffset / 60) * HOUR_W
-        const chipW = (duration / 60) * HOUR_W
-        const colW = chipW / maxOverlap
-        const cx = chipLeft + ci * colW + 3
-        const cw = colW - 6
-        const cy = y + 6
-        const ch = DAY_ROW_H - 12
+      const tone = TONE_RGB[toneIdx(e.item.tone)] || TONE_RGB[0]
+      ctx.fillStyle = tone.bg
+      rrPath(ctx, cx, cy, cw, ch, 8)
+      ctx.fill()
+      ctx.strokeStyle = tone.line
+      ctx.lineWidth = 1
+      rrPath(ctx, cx, cy, cw, ch, 8)
+      ctx.stroke()
 
-        const tone = TONE_RGB[toneIdx(e.item.tone)] || TONE_RGB[0]
-        ctx.fillStyle = tone.bg
-        rrPath(ctx, cx, cy, cw, ch, Math.min(8, ch / 2))
-        ctx.fill()
-        ctx.strokeStyle = tone.line
-        ctx.lineWidth = 1
-        rrPath(ctx, cx, cy, cw, ch, Math.min(8, ch / 2))
-        ctx.stroke()
-        ctx.lineWidth = 1
+      /* slim accent bar on the left edge, clipped to the chip */
+      ctx.save()
+      rrPath(ctx, cx, cy, cw, ch, 8)
+      ctx.clip()
+      ctx.globalAlpha = .45
+      ctx.fillStyle = tone.txt
+      ctx.fillRect(cx, cy + 5, 4, ch - 10)
+      ctx.restore()
+      ctx.globalAlpha = 1
 
-        ctx.fillStyle = tone.txt
-        // Line 1: level/club name
-        ctx.font = '800 12px ' + FONT
-        ctx.fillText(clipTo(ctx, e.item.code, cw - 16), cx + 8, cy + 16)
-        // Line 2: hours · room
+      ctx.fillStyle = tone.txt
+      // Line 1: level/club name
+      ctx.font = '800 12px ' + FONT
+      ctx.fillText(clipTo(ctx, e.item.code, cw - 24), cx + 13, cy + 16)
+      // Line 2: hours · room
+      ctx.font = '600 10px ' + FONT
+      const hoursRoom = e.label + (e.item.room ? ' · ' + e.item.room : '')
+      ctx.fillText(clipTo(ctx, hoursRoom, cw - 24), cx + 13, cy + 29)
+      // Line 3: teacher/lead
+      if (e.item.lead) {
         ctx.font = '600 10px ' + FONT
-        const hoursRoom = e.label + (e.item.room ? ' · ' + e.item.room : '')
-        ctx.fillText(clipTo(ctx, hoursRoom, cw - 16), cx + 8, cy + 30)
-        // Line 3: teacher/lead
-        if (e.item.lead) {
-          ctx.font = '600 10px ' + FONT
-          ctx.globalAlpha = .8
-          ctx.fillText(clipTo(ctx, e.item.lead, cw - 16), cx + 8, cy + 44)
-          ctx.globalAlpha = 1
-        }
+        ctx.globalAlpha = .8
+        ctx.fillText(clipTo(ctx, e.item.lead, cw - 24), cx + 13, cy + 42)
+        ctx.globalAlpha = 1
       }
     }
   })
 
   // Legend
-  const legendY = ty + HOUR_HEAD_H + DAY_KEYS.length * DAY_ROW_H + 20
+  const legendY = ty + HOUR_HEAD_H + gridH + 20
   ctx.font = '600 12px ' + FONT
   let lx = PAD
   ctx.textAlign = 'left'

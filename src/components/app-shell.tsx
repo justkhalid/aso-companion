@@ -25,6 +25,7 @@ import type { View } from '@/lib/types'
 
 export function AppShell() {
   const bootApp = useStore((s) => s.bootApp)
+  const boot = useStore((s) => s.boot)
   const admin = useStore((s) => s.admin)
   const pubView = useStore((s) => s.pubView)
   const view = useStore((s) => s.view)
@@ -33,11 +34,17 @@ export function AppShell() {
   const [mobileNav, setMobileNav] = React.useState(false)
 
   // boot the app once on mount (fetches cloud state in the background).
-  // The UI renders right away with localStorage/seed data; the cloud
-  // state merges in when it arrives.
   React.useEffect(() => {
     void bootApp()
   }, [bootApp])
+
+  // v4.7 boot splash: until the app state is ready, show a branded splash
+  // instead of rendering anything. This kills the split-second flash of the
+  // sample seed timetable on refresh (server HTML + first client paint are
+  // both the splash; real content appears once localStorage/cloud is in).
+  if (boot !== 'loaded') {
+    return <BootSplash />
+  }
 
   const ev: View = computeView(view, admin, pubView)
 
@@ -89,6 +96,21 @@ export function AppShell() {
         </main>
       </div>
       <AppToaster />
+    </div>
+  )
+}
+
+/* Minimal branded boot splash shown while the cloud state loads.
+   Prevents the sample seed timetable from flashing on first paint. */
+function BootSplash() {
+  return (
+    <div className="flex min-h-screen flex-col items-center justify-center gap-5 bg-background">
+      <Logo size={44} />
+      <div className="flex items-center gap-1.5" aria-label="Loading">
+        <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-primary/70 [animation-delay:0ms]" />
+        <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-primary/70 [animation-delay:120ms]" />
+        <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-primary/70 [animation-delay:240ms]" />
+      </div>
     </div>
   )
 }

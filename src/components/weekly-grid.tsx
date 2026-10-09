@@ -35,8 +35,13 @@ const START_HOUR = 9
 const END_HOUR = 18
 const HOUR_WIDTH = 90
 const DAY_LABEL_W = 72
-const ROW_H = 88
-const ROW_H_EMPTY = 44 // empty days get half the normal row height
+
+/* v4.7 compact chip metrics: chips are content-height (no dead space) and
+   simultaneous events stack vertically, one on top of the other. */
+const CHIP_H = 52
+const CHIP_GAP = 4
+const ROW_PAD = 6
+const ROW_H_EMPTY = 44 // empty days keep a slim half-height row
 
 function parseRange(t: string): { startMin: number; endMin: number; label: string } | null {
   const s = String(t || '').replace(/\s/g, '')
@@ -49,9 +54,6 @@ function parseRange(t: string): { startMin: number; endMin: number; label: strin
     label: `${pad(+m[1])}:${pad(+m[2])}-${pad(+m[3])}:${pad(+m[4])}`,
   }
 }
-
-const overlaps = (a: { startMin: number; endMin: number }, b: { startMin: number; endMin: number }) =>
-  a.startMin < b.endMin && b.startMin < a.endMin
 
 export function WeeklyGrid({
   items,
@@ -117,33 +119,31 @@ export function WeeklyGrid({
           {DAY_KEYS.map((d, di) => {
             const evs = (byDay[d] || []).slice().sort((a, b) => a.startMin - b.startMin)
             const isEmpty = evs.length === 0
-            const rowH = isEmpty ? ROW_H_EMPTY : ROW_H
             const isToday = di === tday
             const dd = weekMonday ? addDays(weekMonday, di) : null
 
-            // Lane assignment: each event goes into the first lane free at
-            // its start time. An event's column count is how many sessions
-            // overlap it (itself included), so side-by-side chips split the
-            // horizontal space cleanly.
-            const lanes: Parsed[][] = []
-            const laneEnds: number[] = []
-            const laneOf = new Map<string, number>()
+            // Layer assignment: each event goes into the first layer free at
+            // its start time. Simultaneous (overlapping) events end up in
+            // different layers and stack one on top of the other, each using
+            // the full width of its time span.
+            const layers: Parsed[][] = []
+            const layerEnds: number[] = []
+            const layerOf = new Map<string, number>()
             for (const e of evs) {
-              let li = laneEnds.findIndex((end) => end <= e.startMin)
+              let li = layerEnds.findIndex((end) => end <= e.startMin)
               if (li < 0) {
-                li = lanes.length
-                lanes.push([])
-                laneEnds.push(0)
+                li = layers.length
+                layers.push([])
+                layerEnds.push(0)
               }
-              lanes[li].push(e)
-              laneEnds[li] = e.endMin
-              laneOf.set(e.item.id, li)
+              layers[li].push(e)
+              layerEnds[li] = e.endMin
+              layerOf.set(e.item.id, li)
             }
-            const stacks = evs.map((e) => ({
-              p: e,
-              lane: laneOf.get(e.item.id) || 0,
-              cols: evs.filter((o) => overlaps(e, o)).length,
-            }))
+            const laneCount = Math.max(1, layers.length)
+            const rowH = isEmpty
+              ? ROW_H_EMPTY
+              : ROW_PAD * 2 + laneCount * CHIP_H + (laneCount - 1) * CHIP_GAP
 
             return (
               <div key={d} className="flex border-b border-border/60" style={{ height: rowH, position: 'relative' }}>
@@ -165,39 +165,46 @@ export function WeeklyGrid({
                     <div key={i} className="absolute top-0 bottom-0 border-l border-border/40" style={{ left: i * HOUR_WIDTH }} />
                   ))}
 
-                  {/* Event chips, positioned by their real start and end time */}
-                  {stacks.map((s) => {
-                    const startOffset = s.p.startMin - START_HOUR * 60
-                    const duration = s.p.endMin - s.p.startMin
+                  {/* Event chips, positioned by their real start and end time.
+                      Overlapping events stack vertically (one per layer). */}
+                  {evs.map((e) => {
+                    const lane = layerOf.get(e.item.id) || 0
+                    const startOffset = e.startMin - START_HOUR * 60
+                    const duration = e.endMin - e.startMin
                     const leftPx = (startOffset / 60) * HOUR_WIDTH
                     const widthPx = (duration / 60) * HOUR_WIDTH
 
-                    const colWidth = widthPx / s.cols
-                    const chipLeft = leftPx + s.lane * colWidth + 2
-                    const chipWidth = colWidth - 4
+                    const chipLeft = leftPx + 2
+                    const chipWidth = widthPx - 4
+                    const chipTop = ROW_PAD + lane * (CHIP_H + CHIP_GAP)
 
-                    const Icon = clubIcon(s.p.item.icon)?.Icon
+                    const Icon = clubIcon(e.item.icon)?.Icon
                     const Comp: React.ElementType = onCellClick ? 'button' : 'div'
                     return (
                       <div
-                        key={s.p.item.id + s.lane}
+                        key={e.item.id + lane}
                         className="absolute"
-                        style={{ left: chipLeft, width: chipWidth, top: 5, height: rowH - 10, zIndex: 10 + s.lane }}
+                        style={{ left: chipLeft, width: chipWidth, top: chipTop, height: CHIP_H, zIndex: 10 + lane }}
                       >
                         <Comp
-                          onClick={onCellClick ? () => onCellClick(s.p.item) : undefined}
-                          className={`flex h-full w-full flex-col items-start gap-0.5 rounded-lg border px-2 py-1 text-left transition ${s.p.item.tone} ${
+                          onClick={onCellClick ? () => onCellClick(e.item) : undefined}
+                          className={`relative flex h-full w-full flex-col justify-center gap-[3px] overflow-hidden rounded-lg border px-2 py-1 pl-[13px] text-left transition ${e.item.tone} ${
                             onCellClick ? 'hover:brightness-[1.04] hover:shadow-md' : ''
                           }`}
                           style={{
                             background: 'var(--tone-bg)',
                             borderColor: 'var(--tone-line)',
                             color: 'var(--tone-txt)',
-                            overflow: 'hidden',
                           }}
                         >
+                          {/* slim accent bar on the left edge */}
                           <span
-                            className="flex w-full items-center gap-1 text-[11px] font-bold leading-tight"
+                            aria-hidden
+                            className="absolute left-[3px] top-1 bottom-1 w-[3px] rounded-full"
+                            style={{ background: 'var(--tone-txt)', opacity: 0.45 }}
+                          />
+                          <span
+                            className="flex w-full items-center gap-1 text-[11px] font-bold leading-[13px]"
                             style={{ color: 'var(--tone-txt)' }}
                           >
                             {Icon ? (
@@ -205,15 +212,21 @@ export function WeeklyGrid({
                             ) : (
                               <i className="inline-block h-1.5 w-1.5 shrink-0 rounded-full" style={{ background: 'var(--tone-txt)' }} />
                             )}
-                            <span className="truncate">{s.p.item.code}</span>
+                            <span className="truncate">{e.item.code}</span>
                           </span>
-                          <span className="text-[9.5px] font-semibold leading-tight tabular-nums" style={{ color: 'var(--tone-txt)' }}>
-                            {s.p.label}
-                            {s.p.item.room ? ` · ${s.p.item.room}` : ''}
+                          <span
+                            className="truncate text-[10px] font-semibold leading-[12px] tabular-nums"
+                            style={{ color: 'var(--tone-txt)', opacity: 0.92 }}
+                          >
+                            {e.label}
+                            {e.item.room ? ` · ${e.item.room}` : ''}
                           </span>
-                          {s.p.item.lead && (
-                            <span className="truncate text-[9.5px] font-medium leading-tight" style={{ color: 'var(--tone-txt)' }}>
-                              {s.p.item.lead}
+                          {e.item.lead && (
+                            <span
+                              className="truncate text-[10px] font-medium leading-[12px]"
+                              style={{ color: 'var(--tone-txt)', opacity: 0.75 }}
+                            >
+                              {e.item.lead}
                             </span>
                           )}
                         </Comp>
