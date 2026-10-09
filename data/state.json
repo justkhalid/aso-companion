@@ -18562,6 +18562,17 @@
         "Sat"
       ],
       "time": "16:00-18:00"
+    },
+    {
+      "id": "xmv1az6wewqgf1",
+      "code": "ASO-A3",
+      "level": "Adults · Intermediate",
+      "teacher": "",
+      "room": "Room 1",
+      "days": [
+        "Fri"
+      ],
+      "time": "15:00-17:00"
     }
   ],
   "team": [
@@ -19360,5 +19371,5 @@
   ],
   "reports": [],
   "libraryPins": [],
-  "_rev": 1791554802486
+  "_rev": 1791554802500
 }
