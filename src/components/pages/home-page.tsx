@@ -25,6 +25,7 @@ import {
   parseISO,
 } from '@/lib/app-utils'
 import { DAY_FULL, DAY_KEYS, ROOM_LEGEND } from '@/lib/constants'
+import { buildDocLinks } from '@/lib/export-word'
 import { WeeklyGrid, CalendarListView, CalViewSwitcher, readCalView, writeCalView, type GridItem, type LegendEntry, type CalendarView } from '@/components/weekly-grid'
 import { ClassDialog } from '@/components/dialogs/class-dialog'
 import { CalendarExportMenu } from '@/components/calendar-export'
@@ -184,6 +185,8 @@ export function HomePage({ admin }: { admin: boolean }) {
     items: classItems,
     legend: classLegend,
     rooms: ROOM_LEGEND,
+    libraryLinks: buildDocLinks(state),
+    appUrl: window.location.origin,
   })
 
   return (

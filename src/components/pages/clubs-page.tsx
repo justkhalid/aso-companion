@@ -38,6 +38,7 @@ import {
   isOnceEvent,
 } from '@/lib/app-utils'
 import { ROOM_LEGEND, DAY_KEYS } from '@/lib/constants'
+import { buildDocLinks } from '@/lib/export-word'
 import { clubIcon } from '@/lib/icons'
 import { WeeklyGrid, CalendarListView, CalViewSwitcher, readCalView, writeCalView, type GridItem, type LegendEntry, type CalendarView } from '@/components/weekly-grid'
 import { ClubDialog } from '@/components/dialogs/club-dialog'
@@ -134,6 +135,8 @@ export function ClubsPage({ admin }: { admin: boolean }) {
     items: calItems,
     legend: calLegend,
     rooms: ROOM_LEGEND,
+    libraryLinks: buildDocLinks(state),
+    appUrl: window.location.origin,
   })
 
   const upcoming = (state.events || [])

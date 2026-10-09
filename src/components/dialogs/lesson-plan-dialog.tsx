@@ -81,6 +81,7 @@ export function LessonPlanDialog({
   weekIndex: number
 }) {
   const toast = useStore((s) => s.toast)
+  const state = useStore((s) => s.state)
 
   if (!level || !open) return null
   const w = level.weeks[weekIndex]
@@ -305,8 +306,11 @@ export function LessonPlanDialog({
               className="flex-1 rounded-lg"
               onClick={async () => {
                 try {
-                  const { exportLessonPlanDoc } = await import('@/lib/export-word')
-                  await exportLessonPlanDoc(level, weekIndex)
+                  const { exportLessonPlanDoc, buildDocLinks } = await import('@/lib/export-word')
+                  await exportLessonPlanDoc(level, weekIndex, {
+                    libraryLinks: buildDocLinks(state),
+                    appUrl: window.location.origin,
+                  })
                   toast('Word document exported')
                 } catch (e) {
                   toast('Export failed: ' + (e instanceof Error ? e.message : 'unknown'), false)

@@ -49,12 +49,21 @@ function rrPath(ctx: CanvasRenderingContext2D, x: number, y: number, w: number, 
   ctx.closePath()
 }
 
+export interface DocLink {
+  name: string
+  desc?: string
+  url: string
+}
+
 export interface ExportOptions {
   title: string
   subtitle: string
   items: GridItem[]
   legend: LegendEntry[]
   rooms?: string
+  /* Word docs only: library / drive links shown at the end of the document */
+  libraryLinks?: DocLink[]
+  appUrl?: string
 }
 
 /* ---------- shared parsing helpers ---------- */
