@@ -570,6 +570,9 @@ function ClubExpandOverlay({
   if (!club) return null
   const vol = (club.vol || []).join(', ')
   const Icon = clubIcon(club.icon)?.Icon || Sparkles
+  const range = fmtRange(club.from, club.until)
+  const showFreq = Boolean(club.freq && club.freq !== 'weekly')
+  const showChips = Boolean(club.placeholder || showFreq || range)
 
   return (
     <div
@@ -580,84 +583,121 @@ function ClubExpandOverlay({
       aria-label={club.name}
     >
       <div
-        className="relative flex max-h-[92vh] w-full max-w-sm flex-col items-center gap-3.5 overflow-y-auto scroll-thin rounded-[28px] border border-border bg-card px-6 py-7 text-center shadow-2xl"
+        className="relative flex max-h-[92vh] w-full max-w-3xl flex-col overflow-hidden rounded-[28px] border border-border bg-card shadow-2xl md:max-h-[86vh] md:flex-row"
         onClick={(e) => e.stopPropagation()}
       >
+        {/* LEFT — the poster, full height, the visual anchor of the card */}
+        <div className="relative aspect-[848/1200] w-full shrink-0 overflow-hidden md:aspect-auto md:w-[300px] md:min-h-[424px]">
+          {club.poster ? (
+            <img src={club.poster} alt={`${club.name} poster`} className="absolute inset-0 h-full w-full object-cover" />
+          ) : (
+            <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 bg-gradient-to-br from-secondary to-background px-6 text-center">
+              <div className="flex h-14 w-14 items-center justify-center rounded-full bg-primary/10 text-primary">
+                <Icon className="h-7 w-7" />
+              </div>
+              <div className="text-[13px] font-extrabold leading-tight text-foreground/80" dir="auto">{club.name}</div>
+            </div>
+          )}
+        </div>
+
+        {/* RIGHT — the details, one calm balanced column */}
+        <div className="relative flex min-w-0 flex-1 flex-col">
+          <div className="flex flex-1 flex-col overflow-y-auto scroll-thin px-6 pb-4 pt-5 md:px-7">
+            <div className="my-auto flex flex-col gap-4">
+              {/* title + badges */}
+              <div className="flex flex-col gap-2 pr-9">
+                <h3 className="text-[22px] font-extrabold leading-tight" dir="auto">{club.name}</h3>
+                {showChips && (
+                  <div className="flex flex-wrap items-center gap-1.5">
+                    {club.placeholder && <Chip tone="gold">placeholder</Chip>}
+                    {showFreq && (
+                      <Chip tone="gold">
+                        <Repeat2 className="h-3 w-3" /> {fmtFreq(club.freq)}
+                      </Chip>
+                    )}
+                    {range && <Chip tone="gold">{range}</Chip>}
+                  </div>
+                )}
+              </div>
+
+              {/* meta tiles, a calm symmetric grid */}
+              <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+                <MetaCell icon={CalendarDays} label="Day" value={(club.days || []).length ? club.days.join(' / ') : 'Not set'} />
+                <MetaCell icon={Clock} label="Time" value={club.time || 'Not set'} />
+                <MetaCell icon={MapPin} label="Room" value={club.room || 'Not set'} />
+                <MetaCell icon={User} label="Lead" value={club.lead || 'Not set'} />
+              </div>
+
+              {/* about */}
+              {club.desc && (
+                <div className="rounded-2xl bg-secondary/60 px-4 py-3">
+                  <div className="mb-1 text-[10.5px] font-bold uppercase tracking-wider text-muted-foreground">About</div>
+                  <p className="text-[13px] leading-relaxed text-foreground" dir="auto">{club.desc}</p>
+                </div>
+              )}
+
+              {/* volunteers */}
+              {vol && (
+                <div className="flex items-start gap-2.5 rounded-2xl bg-secondary/50 px-3.5 py-2.5">
+                  <HeartHandshake className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
+                  <div className="min-w-0">
+                    <div className="mb-0.5 text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Volunteers</div>
+                    <div className="text-[13px] font-semibold leading-snug text-foreground" dir="auto">{vol}</div>
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* actions, pinned to the bottom edge */}
+          {(admin || club.url) && (
+            <div className="flex flex-wrap items-center justify-end gap-2 border-t border-border/60 bg-secondary/30 px-6 py-3.5 md:px-7">
+              {admin && (
+                <Button variant="outline" size="sm" onClick={() => onEdit(club)}>
+                  <Pencil className="h-3.5 w-3.5" /> Edit club
+                </Button>
+              )}
+              {club.url && (
+                <a href={club.url} target="_blank" rel="noopener">
+                  <Button size="sm">
+                    <ExternalLink className="h-3.5 w-3.5" /> Open link
+                  </Button>
+                </a>
+              )}
+            </div>
+          )}
+        </div>
+
         {/* X to go back, top right */}
         <button
           onClick={onClose}
           aria-label="Close"
           title="Close"
-          className="absolute right-3.5 top-3.5 flex h-8 w-8 items-center justify-center rounded-full bg-secondary/80 text-muted-foreground transition hover:bg-secondary hover:text-foreground active:scale-95"
+          className="absolute right-3.5 top-3.5 z-10 flex h-8 w-8 items-center justify-center rounded-full border border-border/60 bg-background/85 text-muted-foreground shadow-sm backdrop-blur transition hover:text-foreground active:scale-95"
         >
           <X className="h-4 w-4" />
         </button>
+      </div>
+    </div>
+  )
+}
 
-        {/* poster, centered */}
-        <div className="w-36 overflow-hidden rounded-2xl shadow-md">
-          {club.poster ? (
-            <img src={club.poster} alt={`${club.name} poster`} className="aspect-[848/1200] w-full object-cover" />
-          ) : (
-            <div className="flex aspect-[848/1200] w-full flex-col items-center justify-center gap-3 bg-gradient-to-br from-secondary to-background text-center">
-              <div className="flex h-14 w-14 items-center justify-center rounded-full bg-primary/10 text-primary">
-                <Icon className="h-7 w-7" />
-              </div>
-              <div className="px-3 text-[13px] font-extrabold leading-tight text-foreground/80" dir="auto">{club.name}</div>
-            </div>
-          )}
-        </div>
-
-        {/* name */}
-        <div className="flex flex-col items-center gap-1.5">
-          <h3 className="text-xl font-extrabold leading-tight" dir="auto">{club.name}</h3>
-          {club.placeholder && <Chip tone="gold">placeholder</Chip>}
-        </div>
-
-        {/* meta rows, one calm line each */}
-        <div className="flex flex-col items-center gap-1.5 text-[13px] font-semibold text-muted-foreground">
-          <span className="inline-flex items-center gap-1.5"><CalendarDays className="h-4 w-4 text-primary" /> {(club.days || []).length ? club.days.join(' / ') : 'no day set'}</span>
-          <span className="inline-flex items-center gap-1.5"><Clock className="h-4 w-4 text-primary" /> {club.time || 'no time set'}</span>
-          {club.room && <span className="inline-flex items-center gap-1.5"><MapPin className="h-4 w-4 text-primary" /> {club.room}</span>}
-          {club.lead && <span className="inline-flex items-center gap-1.5"><User className="h-4 w-4 text-primary" /> Lead: {club.lead}</span>}
-          {club.freq !== 'weekly' && (
-            <span className="inline-flex items-center gap-1.5 text-[var(--aso-gold)]"><Repeat2 className="h-4 w-4" /> {fmtFreq(club.freq)}</span>
-          )}
-          {fmtRange(club.from, club.until) && (
-            <span className="inline-flex items-center gap-1.5 text-[var(--aso-gold)]"><CalendarDays className="h-4 w-4" /> {fmtRange(club.from, club.until)}</span>
-          )}
-        </div>
-
-        {/* about */}
-        {club.desc && (
-          <div className="w-full rounded-2xl bg-secondary/60 px-4 py-3">
-            <div className="mb-1 text-[10.5px] font-bold uppercase tracking-wider text-muted-foreground">About</div>
-            <p className="text-[13px] leading-relaxed text-foreground" dir="auto">{club.desc}</p>
-          </div>
-        )}
-
-        {/* volunteers */}
-        {vol && (
-          <div className="text-[12.5px]" dir="auto">
-            <span className="font-bold text-muted-foreground">Volunteers: </span>
-            <span className="font-semibold text-foreground">{vol}</span>
-          </div>
-        )}
-
-        {/* actions */}
-        <div className="mt-0.5 flex flex-wrap items-center justify-center gap-2">
-          {admin && (
-            <Button variant="outline" size="sm" onClick={() => onEdit(club)}>
-              <Pencil className="h-3.5 w-3.5" /> Edit club
-            </Button>
-          )}
-          {club.url && (
-            <a href={club.url} target="_blank" rel="noopener">
-              <Button size="sm" variant={admin ? 'ghost' : 'outline'}>
-                <ExternalLink className="h-3.5 w-3.5" /> Open link
-              </Button>
-            </a>
-          )}
-        </div>
+/* one quiet tile of the meta grid: small icon + tiny uppercase label + value */
+function MetaCell({
+  icon: Icon,
+  label,
+  value,
+}: {
+  icon: React.ComponentType<{ className?: string }>
+  label: string
+  value: string
+}) {
+  return (
+    <div className="flex items-start gap-2.5 rounded-xl bg-secondary/50 px-3 py-2">
+      <Icon className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
+      <div className="min-w-0">
+        <div className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">{label}</div>
+        <div className="truncate text-[13px] font-semibold text-foreground" dir="auto" title={value}>{value}</div>
       </div>
     </div>
   )
