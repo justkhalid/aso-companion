@@ -116,9 +116,9 @@ function BootSplash() {
 }
 
 function computeView(view: View, admin: boolean, pubView: boolean): View {
-  const allowedPublic: View[] = ['home', 'eltaso', 'level-detail', 'clubs', 'resources', 'login']
+  const allowedPublic: View[] = ['home', 'eltaso', 'level-detail', 'clubs', 'resources', 'reports', 'login']
   if (!admin) return allowedPublic.includes(view) ? view : 'home'
-  if (pubView) return ['home', 'eltaso', 'level-detail', 'clubs', 'resources'].includes(view) ? view : 'home'
+  if (pubView) return ['home', 'eltaso', 'level-detail', 'clubs', 'resources', 'reports'].includes(view) ? view : 'home'
   return view
 }
 
@@ -143,7 +143,7 @@ function PageBody({ view, admin }: { view: View; admin: boolean }) {
     case 'library':
       return admin ? <LibraryPage /> : <ResourcesPage />
     case 'reports':
-      return admin ? <ReportsPage /> : <ResourcesPage />
+      return <ReportsPage />
     case 'intern':
       return admin ? <InternOverview /> : <HomePage admin={false} />
     case 'intern-clubs':

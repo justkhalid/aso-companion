@@ -89,11 +89,11 @@ function loadLogo(): Promise<HTMLImageElement | null> {
   })
 }
 
-function drawHeader(ctx: CanvasRenderingContext2D, o: ExportOptions, logo: HTMLImageElement | null, W: number, PAD: number, titleSize = 28, subSize = 14): number {
+function drawHeader(ctx: CanvasRenderingContext2D, o: ExportOptions, logo: HTMLImageElement | null, W: number, PAD: number, titleSize = 28, subSize = 14, logoH = 56): number {
   /* returns the y where the header ends */
   let x = PAD
   if (logo) {
-    const h = 56
+    const h = logoH
     const w = h * (logo.width / logo.height)
     ctx.drawImage(logo, x, 26, w, h)
     x += w + 22
@@ -104,14 +104,14 @@ function drawHeader(ctx: CanvasRenderingContext2D, o: ExportOptions, logo: HTMLI
   ctx.fillStyle = '#66666E'
   ctx.font = '500 ' + subSize + 'px ' + FONT
   ctx.fillText(clipTo(ctx, o.subtitle, W - PAD - x), x, 60 + titleSize + 8)
-  return 118
+  return Math.max(118, 60 + titleSize + 8 + 16)
 }
 
 function drawFooterRule(ctx: CanvasRenderingContext2D, W: number, PAD: number, y: number): void {
   ctx.strokeStyle = 'rgba(60,60,67,.12)'
   ctx.beginPath(); ctx.moveTo(PAD, y + .5); ctx.lineTo(W - PAD, y + .5); ctx.stroke()
   ctx.fillStyle = '#8A8A90'
-  ctx.font = '500 11px ' + FONT
+  ctx.font = '500 12px ' + FONT
 }
 
 /**
@@ -119,7 +119,12 @@ function drawFooterRule(ctx: CanvasRenderingContext2D, W: number, PAD: number, y
  * - Days on the LEFT (rows), hours on the TOP (columns) - flipped
  * - Colored chips with level, hours · room, teacher
  * - Legend at the bottom
- * - 2x HD resolution (3508px wide)
+ * - 2x HD resolution
+ *
+ * v4.9: the hour axis now trims to the actual session window (rounded out
+ * to whole hours, min 6 hours) so rows no longer stretch across empty
+ * morning hours; the canvas is narrower and every text size is up, so the
+ * export reads dense and close-up instead of zoomed out.
  */
 export async function renderTimetablePNG(o: ExportOptions): Promise<Blob | null> {
   // Load logo
@@ -134,18 +139,29 @@ export async function renderTimetablePNG(o: ExportOptions): Promise<Blob | null>
   } catch { /* logo optional */ }
 
   const SCALE = 2
-  const W = 1754
-  const PAD = 56
-  const DAY_LABEL_W = 80
+  const W = 1320
+  const PAD = 48
+  const DAY_LABEL_W = 72
   const HEADER_H = 118
   const HOUR_HEAD_H = 48
   /* v4.7: compact chips stacked vertically when simultaneous (matches the web grid) */
-  const CHIP_H = 46
+  const CHIP_H = 56
   const CHIP_GAP = 4
   const ROW_PAD = 6
   const ROW_H_EMPTY = 44
-  const START_HOUR = 9
-  const END_HOUR = 18
+  /* v4.9: hour window trims to the sessions that actually exist; if the
+     natural window is under 6 hours it grows downward, never past the
+     last session into empty evening hours */
+  const parsed0 = o.items.map((it) => ({ it, r: parseRange(it.slot) })).filter((x) => x.r)
+  let START_HOUR = 9
+  let END_HOUR = 18
+  if (parsed0.length) {
+    const minStart = Math.min(...parsed0.map((x) => x.r!.startMin))
+    const maxEnd = Math.max(...parsed0.map((x) => x.r!.endMin))
+    START_HOUR = Math.max(0, Math.floor(minStart / 60))
+    END_HOUR = Math.min(21, Math.ceil(maxEnd / 60))
+    if (END_HOUR - START_HOUR < 6) START_HOUR = Math.max(0, END_HOUR - 6)
+  }
   const hours: number[] = []
   for (let h = START_HOUR; h <= END_HOUR; h++) hours.push(h)
   const HOUR_W = (W - PAD * 2 - DAY_LABEL_W) / hours.length
@@ -213,25 +229,25 @@ export async function renderTimetablePNG(o: ExportOptions): Promise<Blob | null>
   // Header
   let x = PAD
   if (logo) {
-    const h = 56
+    const h = 60
     const w = h * (logo.width / logo.height)
-    ctx.drawImage(logo, x, 26, w, h)
+    ctx.drawImage(logo, x, 24, w, h)
     x += w + 22
   } else x += 8
   ctx.fillStyle = '#1C1C1E'
-  ctx.font = '800 28px ' + FONT
+  ctx.font = '800 30px ' + FONT
   ctx.fillText(o.title, x, 60)
   ctx.fillStyle = '#66666E'
-  ctx.font = '500 14px ' + FONT
-  ctx.fillText(o.subtitle, x, 84)
+  ctx.font = '500 15px ' + FONT
+  ctx.fillText(o.subtitle, x, 86)
 
   // Hour header row
   const ty = HEADER_H
   ctx.fillStyle = '#1C1C1E'
-  ctx.font = '700 15px ' + FONT
+  ctx.font = '700 16px ' + FONT
   ctx.textAlign = 'center'
   hours.forEach((h, i) => {
-    ctx.fillText(pad2(h) + ':00', PAD + DAY_LABEL_W + i * HOUR_W + HOUR_W / 2, ty + HOUR_HEAD_H / 2 + 5)
+    ctx.fillText(pad2(h) + ':00', PAD + DAY_LABEL_W + i * HOUR_W + HOUR_W / 2, ty + HOUR_HEAD_H / 2 + 6)
   })
   ctx.textAlign = 'left'
   // Header borders
@@ -251,7 +267,7 @@ export async function renderTimetablePNG(o: ExportOptions): Promise<Blob | null>
     }
     // Day label: generic day name, no date numbers
     ctx.fillStyle = '#1C1C1E'
-    ctx.font = '700 14px ' + FONT
+    ctx.font = '700 15px ' + FONT
     ctx.textAlign = 'center'
     ctx.fillText(d.toUpperCase(), PAD + DAY_LABEL_W / 2, y + rowH / 2 + 5)
     ctx.textAlign = 'left'
@@ -301,41 +317,41 @@ export async function renderTimetablePNG(o: ExportOptions): Promise<Blob | null>
 
       ctx.fillStyle = tone.txt
       // Line 1: level/club name
-      ctx.font = '800 12px ' + FONT
-      ctx.fillText(clipTo(ctx, e.item.code, cw - 24), cx + 13, cy + 16)
+      ctx.font = '800 13.5px ' + FONT
+      ctx.fillText(clipTo(ctx, e.item.code, cw - 26), cx + 15, cy + 20)
       // Line 2: hours · room
-      ctx.font = '600 10px ' + FONT
+      ctx.font = '600 11px ' + FONT
       const hoursRoom = e.label + (e.item.room ? ' · ' + e.item.room : '')
-      ctx.fillText(clipTo(ctx, hoursRoom, cw - 24), cx + 13, cy + 29)
+      ctx.fillText(clipTo(ctx, hoursRoom, cw - 26), cx + 15, cy + 35)
       // Line 3: teacher/lead
       if (e.item.lead) {
-        ctx.font = '600 10px ' + FONT
+        ctx.font = '500 11px ' + FONT
         ctx.globalAlpha = .8
-        ctx.fillText(clipTo(ctx, e.item.lead, cw - 24), cx + 13, cy + 42)
+        ctx.fillText(clipTo(ctx, e.item.lead, cw - 26), cx + 15, cy + 49)
         ctx.globalAlpha = 1
       }
     }
   })
 
   // Legend
-  const legendY = ty + HOUR_HEAD_H + gridH + 20
-  ctx.font = '600 12px ' + FONT
+  const legendY = ty + HOUR_HEAD_H + gridH + 22
+  ctx.font = '600 13px ' + FONT
   let lx = PAD
   ctx.textAlign = 'left'
   o.legend.forEach(l => {
     const tone = TONE_RGB[toneIdx(l.tone)]
     ctx.fillStyle = tone.txt
-    ctx.beginPath(); ctx.arc(lx + 4, legendY - 4, 4.5, 0, 7); ctx.fill()
+    ctx.beginPath(); ctx.arc(lx + 5, legendY - 4, 5, 0, 7); ctx.fill()
     ctx.fillStyle = '#66666E'
-    ctx.fillText(clipTo(ctx, l.label, 200), lx + 14, legendY)
-    lx += 20 + ctx.measureText(clipTo(ctx, l.label, 200)).width + 24
+    ctx.fillText(clipTo(ctx, l.label, 200), lx + 16, legendY)
+    lx += 22 + ctx.measureText(clipTo(ctx, l.label, 200)).width + 26
   })
 
   // Rooms line
   if (o.rooms) {
     ctx.fillStyle = '#A6A6AD'
-    ctx.font = '500 11px ' + FONT
-    ctx.fillText(o.rooms, PAD, legendY + 24)
+    ctx.font = '500 12px ' + FONT
+    ctx.fillText(o.rooms, PAD, legendY + 26)
   }
 
   return new Promise(res => cv.toBlob(res, 'image/png'))
@@ -349,23 +365,24 @@ function drawLegendRow(
   PAD: number,
   W: number,
 ): void {
-  ctx.font = '600 12px ' + FONT
+  ctx.font = '600 13.5px ' + FONT
   let lx = PAD
   ctx.textAlign = 'left'
   for (const l of legend) {
     const tone = TONE_RGB[toneIdx(l.tone)]
     if (lx > W - PAD - 60) break // never overflow the right margin
     ctx.fillStyle = tone.txt
-    ctx.beginPath(); ctx.arc(lx + 4, y - 4, 4.5, 0, 7); ctx.fill()
+    ctx.beginPath(); ctx.arc(lx + 5, y - 4, 5, 0, 7); ctx.fill()
     const label = clipTo(ctx, l.label, 200)
     ctx.fillStyle = '#66666E'
-    ctx.fillText(label, lx + 14, y)
-    lx += 20 + ctx.measureText(label).width + 24
+    ctx.fillText(label, lx + 16, y)
+    lx += 22 + ctx.measureText(label).width + 26
   }
 }
 
 /**
  * Poster variant: A4-portrait session blocks grouped by day. Bold, wall-ready.
+ * v4.9: larger blocks and type so it reads close-up, not zoomed out.
  */
 export async function renderPosterPNG(o: ExportOptions): Promise<Blob | null> {
   const logo = await loadLogo()
@@ -373,11 +390,11 @@ export async function renderPosterPNG(o: ExportOptions): Promise<Blob | null> {
   const byDay = groupByDay(parsed)
 
   const W = 1240
-  const PAD = 64
-  const BLOCK_H = 46
-  const BLOCK_GAP = 8
-  const DAY_HEAD_H = 30
-  const DAY_GAP = 26
+  const PAD = 56
+  const BLOCK_H = 64
+  const BLOCK_GAP = 10
+  const DAY_HEAD_H = 38
+  const DAY_GAP = 30
 
   const days = DAY_KEYS.map((d) => ({
     d,
@@ -385,9 +402,9 @@ export async function renderPosterPNG(o: ExportOptions): Promise<Blob | null> {
   }))
 
   // measure
-  let H = 118 + 18
+  let H = 118 + 20
   for (const day of days) H += DAY_HEAD_H + Math.max(1, day.evs.length) * (BLOCK_H + BLOCK_GAP) + DAY_GAP - BLOCK_GAP
-  H += 58 + (o.legend.length ? 34 : 0)
+  H += 62 + (o.legend.length ? 36 : 0)
 
   const SCALE = 2
   const cv = document.createElement('canvas')
@@ -398,67 +415,66 @@ export async function renderPosterPNG(o: ExportOptions): Promise<Blob | null> {
   ctx.fillStyle = '#FFFFFF'
   ctx.fillRect(0, 0, W, H)
 
-  const headEnd = drawHeader(ctx, o, logo, W, PAD, 30, 15)
+  const headEnd = drawHeader(ctx, o, logo, W, PAD, 34, 16, 64)
   ctx.strokeStyle = 'rgba(60,60,67,.14)'
   ctx.beginPath(); ctx.moveTo(PAD, headEnd + 2); ctx.lineTo(W - PAD, headEnd + 2); ctx.stroke()
 
-  let y = headEnd + 18
+  let y = headEnd + 20
   for (const day of days) {
     // day head
     ctx.fillStyle = '#1C1C1E'
-    ctx.font = '800 16px ' + FONT
-    ctx.fillText(day.d.toUpperCase(), PAD, y + 14)
+    ctx.font = '800 19px ' + FONT
+    ctx.fillText(day.d.toUpperCase(), PAD, y + 16)
     ctx.fillStyle = '#A6A6AD'
-    ctx.font = '600 11px ' + FONT
+    ctx.font = '600 13px ' + FONT
     const countTxt = day.evs.length ? day.evs.length + (day.evs.length === 1 ? ' session' : ' sessions') : ''
     ctx.textAlign = 'right'
-    ctx.fillText(countTxt, W - PAD, y + 14)
+    ctx.fillText(countTxt, W - PAD, y + 16)
     ctx.textAlign = 'left'
     y += DAY_HEAD_H
 
     if (!day.evs.length) {
       ctx.fillStyle = '#B9B9C0'
-      ctx.font = '600 12px ' + FONT
-      ctx.fillText('No sessions', PAD + 4, y + 14)
+      ctx.font = '600 14px ' + FONT
+      ctx.fillText('No sessions', PAD + 4, y + 20)
       y += BLOCK_H
     } else {
       for (const e of day.evs) {
         const tone = TONE_RGB[toneIdx(e.item.tone)] || TONE_RGB[0]
         ctx.fillStyle = tone.bg
-        rrPath(ctx, PAD, y, W - PAD * 2, BLOCK_H, 10)
+        rrPath(ctx, PAD, y, W - PAD * 2, BLOCK_H, 12)
         ctx.fill()
         ctx.strokeStyle = tone.line
         ctx.lineWidth = 1
-        rrPath(ctx, PAD, y, W - PAD * 2, BLOCK_H, 10)
+        rrPath(ctx, PAD, y, W - PAD * 2, BLOCK_H, 12)
         ctx.stroke()
 
         // accent bar
         ctx.save()
-        rrPath(ctx, PAD, y, W - PAD * 2, BLOCK_H, 10)
+        rrPath(ctx, PAD, y, W - PAD * 2, BLOCK_H, 12)
         ctx.clip()
         ctx.globalAlpha = .5
         ctx.fillStyle = tone.txt
-        ctx.fillRect(PAD, y + 6, 4, BLOCK_H - 12)
+        ctx.fillRect(PAD, y + 8, 5, BLOCK_H - 16)
         ctx.restore()
         ctx.globalAlpha = 1
 
         // time | name | room · lead
         const cy = y + BLOCK_H / 2
         ctx.fillStyle = tone.txt
-        ctx.font = '800 13px ' + FONT
-        ctx.fillText(e.label, PAD + 20, cy + 4.5)
+        ctx.font = '800 15px ' + FONT
+        ctx.fillText(e.label, PAD + 22, cy + 5)
 
-        const nx = PAD + 20 + 165
+        const nx = PAD + 22 + 190
         ctx.fillStyle = '#1C1C1E'
-        ctx.font = '800 14px ' + FONT
-        ctx.fillText(clipTo(ctx, e.item.code, W - PAD * 2 - 320), nx, cy + 5)
-
+        ctx.font = '800 17px ' + FONT
+        ctx.fillText(clipTo(ctx, e.item.code, W - PAD * 2 - 400), nx, cy + 6)
 
         ctx.fillStyle = '#66666E'
-        ctx.font = '600 11.5px ' + FONT
+        ctx.font = '600 13.5px ' + FONT
         ctx.textAlign = 'right'
         const meta = [e.item.room, e.item.lead].filter(Boolean).join(' · ')
-        ctx.fillText(clipTo(ctx, meta, 300), W - PAD - 16, cy + 4.5)
+        ctx.fillText(clipTo(ctx, meta, 340), W - PAD - 18, cy + 5)
         ctx.textAlign = 'left'
         y += BLOCK_H + BLOCK_GAP
       }
@@ -469,19 +485,20 @@ export async function renderPosterPNG(o: ExportOptions): Promise<Blob | null> {
 
   // footer: legend + credit
   if (o.legend.length) {
-    drawLegendRow(ctx, o.legend, y + 8, PAD, W)
-    y += 34
+    drawLegendRow(ctx, o.legend, y + 10, PAD, W)
+    y += 36
   }
   drawFooterRule(ctx, W, PAD, y + 4)
   ctx.fillStyle = '#8A8A90'
-  ctx.font = '500 11px ' + FONT
-  ctx.fillText([o.rooms, 'Made with ASO Companion'].filter(Boolean).join('  ·  '), PAD, y + 24)
+  ctx.font = '500 12.5px ' + FONT
+  ctx.fillText([o.rooms, 'Made with ASO Companion'].filter(Boolean).join('  ·  '), PAD, y + 26)
 
   return new Promise((res) => cv.toBlob(res, 'image/png'))
 }
 
 /**
  * Agenda-list variant: minimal day-by-day list, print-friendly and calm.
+ * v4.9: larger rows and type so it reads close-up, not zoomed out.
  */
 export async function renderListPNG(o: ExportOptions): Promise<Blob | null> {
   const logo = await loadLogo()
@@ -489,19 +506,19 @@ export async function renderListPNG(o: ExportOptions): Promise<Blob | null> {
   const byDay = groupByDay(parsed)
 
   const W = 1240
-  const PAD = 72
-  const ROW_H = 30
-  const DAY_HEAD_H = 34
-  const DAY_GAP = 16
+  const PAD = 60
+  const ROW_H = 38
+  const DAY_HEAD_H = 42
+  const DAY_GAP = 18
 
   const days = DAY_KEYS.map((d) => ({
     d,
     evs: (byDay[d] || []).slice().sort((a, b) => a.startMin - b.startMin),
   }))
 
-  let H = 108 + 16
+  let H = 118 + 18
   for (const day of days) H += DAY_HEAD_H + Math.max(1, day.evs.length) * ROW_H
-  H += DAY_GAP + 52 + (o.legend.length ? 30 : 0)
+  H += DAY_GAP + 56 + (o.legend.length ? 34 : 0)
 
   const SCALE = 2
   const cv = document.createElement('canvas')
@@ -512,22 +529,22 @@ export async function renderListPNG(o: ExportOptions): Promise<Blob | null> {
   ctx.fillStyle = '#FFFFFF'
   ctx.fillRect(0, 0, W, H)
 
-  const headEnd = drawHeader(ctx, o, logo, W, PAD, 26, 14)
+  const headEnd = drawHeader(ctx, o, logo, W, PAD, 30, 15, 60)
 
-  let y = headEnd + 16
+  let y = headEnd + 18
   for (const day of days) {
     ctx.fillStyle = '#1C1C1E'
-    ctx.font = '800 14px ' + FONT
-    ctx.fillText(DAY_FULL[day.d] || day.d, PAD, y + 13)
+    ctx.font = '800 17px ' + FONT
+    ctx.fillText(DAY_FULL[day.d] || day.d, PAD, y + 15)
     // day underline
     ctx.strokeStyle = 'rgba(60,60,67,.16)'
-    ctx.beginPath(); ctx.moveTo(PAD, y + 20); ctx.lineTo(W - PAD, y + 20); ctx.stroke()
+    ctx.beginPath(); ctx.moveTo(PAD, y + 24); ctx.lineTo(W - PAD, y + 24); ctx.stroke()
     y += DAY_HEAD_H
 
     if (!day.evs.length) {
       ctx.fillStyle = '#B9B9C0'
-      ctx.font = '500 12px ' + FONT
-      ctx.fillText('No sessions', PAD + 2, y + 14)
+      ctx.font = '500 13.5px ' + FONT
+      ctx.fillText('No sessions', PAD + 2, y + 18)
       y += ROW_H
     } else {
       for (const e of day.evs) {
@@ -535,24 +552,24 @@ export async function renderListPNG(o: ExportOptions): Promise<Blob | null> {
         const cy = y + ROW_H / 2
         // time
         ctx.fillStyle = tone.txt
-        ctx.font = '800 12.5px ' + FONT
-        ctx.fillText(e.label, PAD + 2, cy + 4)
+        ctx.font = '800 14.5px ' + FONT
+        ctx.fillText(e.label, PAD + 2, cy + 5)
         // tone dot + name
         ctx.fillStyle = tone.txt
-        ctx.beginPath(); ctx.arc(PAD + 178, cy - 1, 4, 0, 7); ctx.fill()
+        ctx.beginPath(); ctx.arc(PAD + 196, cy - 1, 4.5, 0, 7); ctx.fill()
         ctx.fillStyle = '#1C1C1E'
-        ctx.font = '700 13px ' + FONT
-        ctx.fillText(clipTo(ctx, e.item.code, 560), PAD + 192, cy + 4)
+        ctx.font = '700 15.5px ' + FONT
+        ctx.fillText(clipTo(ctx, e.item.code, 600), PAD + 212, cy + 5)
         // room · lead right
         ctx.fillStyle = '#8A8A90'
-        ctx.font = '600 11.5px ' + FONT
+        ctx.font = '600 13px ' + FONT
         ctx.textAlign = 'right'
         const meta = [e.item.room, e.item.lead].filter(Boolean).join(' · ')
-        ctx.fillText(clipTo(ctx, meta, 300), W - PAD - 2, cy + 4)
+        ctx.fillText(clipTo(ctx, meta, 340), W - PAD - 2, cy + 5)
         ctx.textAlign = 'left'
         // hairline
         ctx.strokeStyle = 'rgba(60,60,67,.06)'
-        ctx.beginPath(); ctx.moveTo(PAD, y + ROW_H - 6); ctx.lineTo(W - PAD, y + ROW_H - 6); ctx.stroke()
+        ctx.beginPath(); ctx.moveTo(PAD, y + ROW_H - 7); ctx.lineTo(W - PAD, y + ROW_H - 7); ctx.stroke()
         y += ROW_H
       }
     }
@@ -560,13 +577,13 @@ export async function renderListPNG(o: ExportOptions): Promise<Blob | null> {
   }
 
   if (o.legend.length) {
-    drawLegendRow(ctx, o.legend, y + 6, PAD, W)
-    y += 30
+    drawLegendRow(ctx, o.legend, y + 8, PAD, W)
+    y += 34
   }
   drawFooterRule(ctx, W, PAD, y + 2)
   ctx.fillStyle = '#8A8A90'
-  ctx.font = '500 11px ' + FONT
-  ctx.fillText([o.rooms, 'Made with ASO Companion'].filter(Boolean).join('  ·  '), PAD, y + 22)
+  ctx.font = '500 12.5px ' + FONT
+  ctx.fillText([o.rooms, 'Made with ASO Companion'].filter(Boolean).join('  ·  '), PAD, y + 25)
 
   return new Promise((res) => cv.toBlob(res, 'image/png'))
 }

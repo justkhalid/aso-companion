@@ -1,7 +1,7 @@
 'use client'
 
 import * as React from 'react'
-import { GraduationCap, BookOpen, ArrowRight } from 'lucide-react'
+import { GraduationCap, BookOpen, ArrowRight, ClipboardList } from 'lucide-react'
 import { useStore } from '@/lib/store'
 import { termStatus } from '@/lib/app-utils'
 import { BANDS } from '@/lib/constants'
@@ -10,6 +10,9 @@ import { Chip, PageHead } from '@/components/ui-bits'
 export function EltasoPage() {
   const state = useStore((s) => s.state)
   const openLevel = useStore((s) => s.openLevel)
+  const setView = useStore((s) => s.setView)
+  const admin = useStore((s) => s.admin)
+  const pubView = useStore((s) => s.pubView)
   const st = termStatus(state)
   const inSession = st.mode === 's1' || st.mode === 's2'
   const wi = inSession ? (st.week || 1) - 1 : -1
@@ -82,25 +85,33 @@ export function EltasoPage() {
         </div>
       ))}
 
-      {/* library + reports quick links */}
+      {/* library + reports quick links: full-card buttons that navigate */}
       <div className="mb-2 mt-2 text-[15px] font-extrabold tracking-tight">More</div>
       <div className="grid gap-3 sm:grid-cols-2">
-        <div className="rounded-2xl border border-border bg-card p-5">
+        <button
+          onClick={() => setView(admin && !pubView ? 'library' : 'resources')}
+          className="group rounded-2xl border border-border bg-card p-5 text-left shadow-sm transition hover:border-primary/40 hover:shadow-md"
+        >
           <div className="flex items-center gap-2 font-bold">
             <BookOpen className="h-4 w-4 text-primary" /> Library
+            <ArrowRight className="ml-auto h-4 w-4 text-primary opacity-0 transition group-hover:translate-x-0.5 group-hover:opacity-100" />
           </div>
           <div className="mt-1 text-sm text-muted-foreground">
             {state.library.length} Drive folders, grouped by category and tagged by skill.
           </div>
-        </div>
-        <div className="rounded-2xl border border-border bg-card p-5">
+        </button>
+        <button
+          onClick={() => setView('reports')}
+          className="group rounded-2xl border border-border bg-card p-5 text-left shadow-sm transition hover:border-primary/40 hover:shadow-md"
+        >
           <div className="flex items-center gap-2 font-bold">
-            <BookOpen className="h-4 w-4 text-primary" /> Reports
+            <ClipboardList className="h-4 w-4 text-primary" /> Reports
+            <ArrowRight className="ml-auto h-4 w-4 text-primary opacity-0 transition group-hover:translate-x-0.5 group-hover:opacity-100" />
           </div>
           <div className="mt-1 text-sm text-muted-foreground">
             How reporting works at ASO: the official system, the form, and one example.
           </div>
-        </div>
+        </button>
       </div>
     </div>
   )

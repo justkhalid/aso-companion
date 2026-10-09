@@ -13,7 +13,15 @@ import {
   AlertTriangle,
   ExternalLink,
   Sparkles,
-  Star,
+  List,
+  LayoutGrid,
+  Images,
+  Palette,
+  Camera,
+  FileText,
+  Send,
+  HeartHandshake,
+  ArrowRight,
 } from 'lucide-react'
 import { useStore } from '@/lib/store'
 import {
@@ -27,10 +35,13 @@ import { WeeklyGrid, type GridItem, type LegendEntry } from '@/components/weekly
 import { ClubDialog } from '@/components/dialogs/club-dialog'
 import { EventDialog } from '@/components/dialogs/event-dialog'
 import { CalendarExportMenu } from '@/components/calendar-export'
-import { PageHead, LinkButton, Chip, EmptyState } from '@/components/ui-bits'
+import { PageHead, SectionHeader, LinkButton, Chip, EmptyState } from '@/components/ui-bits'
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
 import type { Club, EventEntry } from '@/lib/types'
+
+type ClubView = 'list' | 'grid' | 'posters'
+const CLUB_VIEW_KEY = 'aso-clubs-view'
 
 export function ClubsPage({ admin }: { admin: boolean }) {
   const state = useStore((s) => s.state)
@@ -40,6 +51,14 @@ export function ClubsPage({ admin }: { admin: boolean }) {
 
   const [clubDialog, setClubDialog] = React.useState<{ open: boolean; club: Club | null }>({ open: false, club: null })
   const [eventDialog, setEventDialog] = React.useState<{ open: boolean; event: EventEntry | null }>({ open: false, event: null })
+  const [clubView, setClubView] = React.useState<ClubView>(() => {
+    if (typeof window === 'undefined') return 'list'
+    const v = window.localStorage.getItem(CLUB_VIEW_KEY)
+    return v === 'grid' || v === 'posters' ? v : 'list'
+  })
+  React.useEffect(() => {
+    try { window.localStorage.setItem(CLUB_VIEW_KEY, clubView) } catch { /* private mode */ }
+  }, [clubView])
 
   const gridRef = React.useRef<HTMLDivElement>(null)
 
@@ -144,30 +163,65 @@ export function ClubsPage({ admin }: { admin: boolean }) {
         )}
       </div>
 
-      {/* all clubs */}
+      {/* all clubs, in three display modes */}
       <div className="mt-7">
-        <div className="mb-3 flex items-center gap-2">
+        <div className="mb-3 flex flex-wrap items-center gap-x-2 gap-y-2">
           <h2 className="text-[15px] font-extrabold tracking-tight">All clubs</h2>
-          <span className="ml-auto text-xs font-semibold text-muted-foreground">
+          <span className="text-xs font-semibold text-muted-foreground">
             {state.clubs.length} clubs · {state.clubs.reduce((n, c) => n + (c.days || []).length, 0)} sessions / week
           </span>
-        </div>
-        {state.clubs.length ? (
-          <div className="grid gap-3">
-            {state.clubs.map((c) => (
-              <ClubCard
-                key={c.id}
-                club={c}
-                admin={admin}
-                onEdit={() => setClubDialog({ open: true, club: c })}
-                onDelete={() => deleteClub(c)}
-              />
-            ))}
+          <div className="ml-auto flex items-center gap-0.5 rounded-full border border-border bg-secondary/70 p-0.5" role="group" aria-label="Club display mode">
+            <ViewModeButton active={clubView === 'list'} onClick={() => setClubView('list')} label="List view">
+              <List className="h-3.5 w-3.5" />
+            </ViewModeButton>
+            <ViewModeButton active={clubView === 'grid'} onClick={() => setClubView('grid')} label="Grid view">
+              <LayoutGrid className="h-3.5 w-3.5" />
+            </ViewModeButton>
+            <ViewModeButton active={clubView === 'posters'} onClick={() => setClubView('posters')} label="Posters view">
+              <Images className="h-3.5 w-3.5" />
+            </ViewModeButton>
           </div>
+        </div>
+
+        {state.clubs.length ? (
+          clubView === 'list' ? (
+            <div className="grid gap-3">
+              {state.clubs.map((c) => (
+                <ClubListCard
+                  key={c.id}
+                  club={c}
+                  admin={admin}
+                  onEdit={() => setClubDialog({ open: true, club: c })}
+                  onDelete={() => deleteClub(c)}
+                />
+              ))}
+            </div>
+          ) : clubView === 'grid' ? (
+            <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+              {state.clubs.map((c) => (
+                <ClubGridCard
+                  key={c.id}
+                  club={c}
+                  admin={admin}
+                  onEdit={() => setClubDialog({ open: true, club: c })}
+                  onDelete={() => deleteClub(c)}
+                />
+              ))}
+            </div>
+          ) : (
+            <div className="columns-2 gap-3 lg:columns-3">
+              {state.clubs.map((c) => (
+                <ClubPosterTile key={c.id} club={c} />
+              ))}
+            </div>
+          )
         ) : (
           <EmptyState icon={<Sparkles className="h-5 w-5" />} title="No clubs yet" hint="Add your first club with the button above." />
         )}
       </div>
+
+      {/* volunteer responsibilities + path to the report section */}
+      <Responsibilities onReports={() => setView('reports')} />
 
       <ClubDialog open={clubDialog.open} onOpenChange={(v) => setClubDialog((s) => ({ ...s, open: v }))} club={clubDialog.club} />
       <EventDialog open={eventDialog.open} onOpenChange={(v) => setEventDialog((s) => ({ ...s, open: v }))} event={eventDialog.event} />
@@ -175,7 +229,47 @@ export function ClubsPage({ admin }: { admin: boolean }) {
   )
 }
 
-function ClubCard({
+function ViewModeButton({
+  active,
+  onClick,
+  label,
+  children,
+}: {
+  active: boolean
+  onClick: () => void
+  label: string
+  children: React.ReactNode
+}) {
+  return (
+    <button
+      onClick={onClick}
+      aria-label={label}
+      aria-pressed={active}
+      title={label}
+      className={cn(
+        'flex h-7 w-8 items-center justify-center rounded-full transition',
+        active ? 'bg-primary text-primary-foreground shadow-sm' : 'text-muted-foreground hover:bg-secondary hover:text-foreground',
+      )}
+    >
+      {children}
+    </button>
+  )
+}
+
+/* poster fallback shared by all modes: the chosen club icon on a soft tile */
+function PosterFallback({ club, compact }: { club: Club; compact?: boolean }) {
+  const Icon = clubIcon(club.icon)?.Icon || Sparkles
+  return (
+    <div className="flex h-full w-full flex-col items-center justify-center gap-3 bg-gradient-to-br from-secondary to-background p-4 text-center">
+      <div className={cn('flex items-center justify-center rounded-full bg-primary/10 text-primary', compact ? 'h-12 w-12' : 'h-16 w-16')}>
+        <Icon className={compact ? 'h-6 w-6' : 'h-8 w-8'} />
+      </div>
+      {!compact && <div className="px-2 text-sm font-extrabold leading-tight text-foreground/80">{club.name}</div>}
+    </div>
+  )
+}
+
+function ClubListCard({
   club,
   admin,
   onEdit,
@@ -194,23 +288,18 @@ function ClubCard({
 
   return (
     <div className="overflow-hidden rounded-2xl border border-border bg-card shadow-sm">
-      <div className="flex flex-col sm:flex-row">
-        {/* poster on the left (170px) */}
-        <div className="flex h-44 shrink-0 items-center justify-center bg-secondary sm:h-auto sm:w-[170px]">
+      <div className="flex">
+        {/* poster: natural A4 ratio, stretches to fill taller rows */}
+        <div className="flex w-[96px] shrink-0 bg-secondary sm:w-[144px]">
           {club.poster ? (
-            <img src={club.poster} alt={`${club.name} poster`} className="h-full w-full object-cover" />
+            <img src={club.poster} alt={`${club.name} poster`} className="aspect-[848/1200] min-h-full w-full object-cover" />
           ) : (
-            <div className="flex h-14 w-14 items-center justify-center rounded-full bg-primary/10 text-primary">
-              {(() => {
-                const Icon = clubIcon(club.icon)?.Icon || Sparkles
-                return <Icon className="h-7 w-7" />
-              })()}
-            </div>
+            <PosterFallback club={club} compact />
           )}
         </div>
 
         {/* content on the right */}
-        <div className="flex flex-1 flex-col gap-2 p-4">
+        <div className="flex min-w-0 flex-1 flex-col justify-center gap-2 p-4">
           <div className="flex flex-wrap items-center gap-2">
             <h3 className="font-bold">{club.name}</h3>
             {club.placeholder && <Chip tone="gold">placeholder</Chip>}
@@ -285,6 +374,223 @@ function ClubCard({
               )
             )}
           </div>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+function ClubGridCard({
+  club,
+  admin,
+  onEdit,
+  onDelete,
+}: {
+  club: Club
+  admin: boolean
+  onEdit: () => void
+  onDelete: () => void
+}) {
+  const [open, setOpen] = React.useState(false)
+  const days = (club.days || []).length ? club.days.join(' / ') : 'no day set'
+  const time = club.time || 'no time set'
+  const vol = (club.vol || []).join(', ')
+
+  return (
+    <div className="flex h-full flex-col overflow-hidden rounded-2xl border border-border bg-card shadow-sm">
+      {/* poster at its true A4 ratio, zero crop */}
+      <div className="aspect-[848/1200] w-full bg-secondary">
+        {club.poster ? (
+          <img src={club.poster} alt={`${club.name} poster`} className="h-full w-full object-cover" />
+        ) : (
+          <PosterFallback club={club} />
+        )}
+      </div>
+
+      <div className="flex flex-1 flex-col gap-2 p-4">
+        <div className="flex flex-wrap items-center gap-2">
+          <h3 className="font-bold leading-tight">{club.name}</h3>
+          {club.placeholder && <Chip tone="gold">placeholder</Chip>}
+        </div>
+        <div className="flex flex-wrap gap-x-3 gap-y-1 text-xs font-semibold text-muted-foreground">
+          <span className="inline-flex items-center gap-1"><CalendarDays className="h-3.5 w-3.5" /> {days}</span>
+          <span className="inline-flex items-center gap-1"><Clock className="h-3.5 w-3.5" /> {time}</span>
+          {club.room && <span className="inline-flex items-center gap-1"><MapPin className="h-3.5 w-3.5" /> {club.room}</span>}
+        </div>
+        <div className="text-xs">
+          {club.lead ? (
+            <span className="inline-flex items-center gap-1 font-semibold text-foreground">
+              <User className="h-3.5 w-3.5" /> Lead: {club.lead}
+            </span>
+          ) : (
+            <span className="inline-flex items-center gap-1 font-semibold text-[var(--aso-gold)]">
+              <AlertTriangle className="h-3.5 w-3.5" /> Needs a lead
+            </span>
+          )}
+        </div>
+
+        {club.desc && <p className="line-clamp-2 text-[13px] text-muted-foreground">{club.desc}</p>}
+
+        {(vol || club.url) && (
+          <div>
+            <button
+              onClick={() => setOpen((o) => !o)}
+              className="inline-flex items-center gap-1 text-xs font-bold text-primary"
+            >
+              <ChevronDown className={cn('h-3.5 w-3.5 transition', open && 'rotate-180')} />
+              {open ? 'Hide' : 'Learn more'}
+            </button>
+            {open && (
+              <div className="mt-2 flex flex-col gap-1.5 border-t border-border pt-2 text-[13px]">
+                {vol && (
+                  <div><span className="font-bold text-muted-foreground">Volunteers:</span> {vol}</div>
+                )}
+                {club.url && (
+                  <div>
+                    <span className="font-bold text-muted-foreground">Link:</span>{' '}
+                    <a href={club.url} target="_blank" rel="noopener" className="font-semibold text-primary hover:underline">
+                      {club.url}
+                    </a>
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* actions pinned to the bottom so rows stay symmetric */}
+        <div className="mt-auto flex items-center gap-2 pt-1">
+          {admin ? (
+            <>
+              <Button variant="outline" size="sm" onClick={onEdit}>
+                <Pencil className="h-3.5 w-3.5" /> Edit
+              </Button>
+              <Button variant="ghost" size="sm" className="text-destructive" onClick={onDelete}>
+                <Trash2 className="h-3.5 w-3.5" /> Delete
+              </Button>
+            </>
+          ) : (
+            club.url && (
+              <a href={club.url} target="_blank" rel="noopener">
+                <Button variant="outline" size="sm">
+                  <ExternalLink className="h-3.5 w-3.5" /> Open link
+                </Button>
+              </a>
+            )
+          )}
+        </div>
+      </div>
+    </div>
+  )
+}
+
+function ClubPosterTile({ club }: { club: Club }) {
+  const days = (club.days || []).length ? club.days.join(' / ') : 'no day set'
+  const time = club.time || ''
+  const Icon = clubIcon(club.icon)?.Icon || Sparkles
+
+  return (
+    <div className="mb-3 break-inside-avoid overflow-hidden rounded-2xl border border-border bg-card shadow-sm">
+      <div className="relative aspect-[848/1200] w-full bg-secondary">
+        {club.poster ? (
+          <img src={club.poster} alt={`${club.name} poster`} className="h-full w-full object-cover" />
+        ) : (
+          <PosterFallback club={club} />
+        )}
+        {/* bottom info bar over the poster */}
+        <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/80 via-black/45 to-transparent px-3 pb-3 pt-10 text-white">
+          <div className="flex items-center gap-1.5">
+            <Icon className="h-3.5 w-3.5 shrink-0" />
+            <span className="truncate text-[13px] font-extrabold leading-tight">{club.name}</span>
+          </div>
+          <div className="mt-0.5 truncate text-[11px] font-semibold text-white/85">
+            {days}{time ? ` · ${time}` : ''}{club.room ? ` · ${club.room}` : ''}
+          </div>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+/* -------------------------------------------------------------------------
+   Volunteer responsibilities: the full club cycle and where everything goes
+   ------------------------------------------------------------------------- */
+function Responsibilities({ onReports }: { onReports: () => void }) {
+  const steps = [
+    {
+      icon: Palette,
+      n: 1,
+      title: 'Before the club',
+      text: 'Create the poster and write the description of your club, then send both to the lead coordinator.',
+    },
+    {
+      icon: Camera,
+      n: 2,
+      title: 'During the club',
+      text: 'Count attendance at every session and take pictures of the club in action.',
+    },
+    {
+      icon: FileText,
+      n: 3,
+      title: 'After the club',
+      text: 'Write the report and submit it on the official reporting platform, the same one used for class reports.',
+    },
+  ]
+
+  return (
+    <div className="mt-7">
+      <SectionHeader
+        title={
+          <span className="inline-flex items-center gap-2">
+            <HeartHandshake className="h-4 w-4 text-primary" /> Volunteer responsibilities
+          </span>
+        }
+        right={
+          <LinkButton icon={<ArrowRight className="h-3.5 w-3.5" />} onClick={onReports}>
+            Report guide
+          </LinkButton>
+        }
+      />
+      <p className="mb-3 max-w-2xl text-sm text-muted-foreground">
+        Every club volunteer owns their club from the first poster to the final report. Here is the cycle and where everything goes.
+      </p>
+
+      <div className="grid gap-3 sm:grid-cols-3">
+        {steps.map((s) => (
+          <div key={s.n} className="rounded-2xl border border-border bg-card p-4 shadow-sm">
+            <div className="flex items-center gap-2.5">
+              <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary">
+                <s.icon className="h-4.5 w-4.5" />
+              </div>
+              <div className="text-[13.5px] font-extrabold leading-tight">{s.title}</div>
+            </div>
+            <p className="mt-2.5 text-[13px] leading-relaxed text-muted-foreground">{s.text}</p>
+          </div>
+        ))}
+      </div>
+
+      <div className="mt-3 rounded-2xl border border-[var(--aso-gold-tint)] bg-card p-4 shadow-sm sm:p-5">
+        <div className="flex items-center gap-2 font-extrabold">
+          <Send className="h-4 w-4 text-[var(--aso-gold)]" /> Where everything goes
+        </div>
+        <ul className="mt-2.5 flex flex-col gap-1.5 text-[13px] leading-relaxed text-muted-foreground">
+          <li className="flex gap-2">
+            <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-[var(--aso-gold)]" />
+            <span><b className="text-foreground">The report</b> is submitted on the official reporting platform, under your own ASO account.</span>
+          </li>
+          <li className="flex gap-2">
+            <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-[var(--aso-gold)]" />
+            <span><b className="text-foreground">Pictures and a small summary</b> of the session go to the lead coordinator, so they can be posted online.</span>
+          </li>
+          <li className="flex gap-2">
+            <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-[var(--aso-gold)]" />
+            <span><b className="text-foreground">Everything else</b> (poster, description, attendance, questions) passes through the lead coordinator.</span>
+          </li>
+        </ul>
+        <div className="mt-3.5">
+          <Button size="sm" onClick={onReports}>
+            <FileText className="h-3.5 w-3.5" /> Go to the report section
+          </Button>
         </div>
       </div>
     </div>
