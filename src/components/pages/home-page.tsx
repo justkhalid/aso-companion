@@ -25,8 +25,8 @@ import {
   parseISO,
 } from '@/lib/app-utils'
 import { DAY_FULL, DAY_KEYS, ROOM_LEGEND } from '@/lib/constants'
-import { buildDocLinks } from '@/lib/export-word'
-import { WeeklyGrid, CalendarListView, CalViewSwitcher, readCalView, writeCalView, type GridItem, type LegendEntry, type CalendarView } from '@/components/weekly-grid'
+import { buildCalendarLinks } from '@/lib/export-word'
+import { WeeklyGrid, CalendarListView, CalendarCardsView, CalViewSwitcher, readCalView, writeCalView, type GridItem, type LegendEntry, type CalendarView } from '@/components/weekly-grid'
 import { ClassDialog } from '@/components/dialogs/class-dialog'
 import { CalendarExportMenu } from '@/components/calendar-export'
 import { SectionHeader, LinkButton, Chip, EmptyState } from '@/components/ui-bits'
@@ -185,7 +185,7 @@ export function HomePage({ admin }: { admin: boolean }) {
     items: classItems,
     legend: classLegend,
     rooms: ROOM_LEGEND,
-    libraryLinks: buildDocLinks(state),
+    libraryLinks: buildCalendarLinks(state),
     appUrl: window.location.origin,
   })
 
@@ -284,6 +284,12 @@ export function HomePage({ admin }: { admin: boolean }) {
               weekMonday={wkMon}
               onCellClick={admin ? (it) => setClassDialog({ open: true, cls: state.classes.find((c) => c.id === it.id) || null }) : undefined}
             />
+          ) : calView === 'cards' ? (
+            <CalendarCardsView
+              items={classItems}
+              legend={classLegend}
+              onCellClick={admin ? (it) => setClassDialog({ open: true, cls: state.classes.find((c) => c.id === it.id) || null }) : undefined}
+            />
           ) : (
             <CalendarListView
               items={classItems}
@@ -313,6 +319,8 @@ export function HomePage({ admin }: { admin: boolean }) {
           {homeClubItems.length ? (
             calView === 'grid' ? (
               <WeeklyGrid items={homeClubItems} legend={homeClubLegend} emptyMessage="No club sessions yet" />
+            ) : calView === 'cards' ? (
+              <CalendarCardsView items={homeClubItems} legend={homeClubLegend} emptyMessage="No club sessions yet" />
             ) : (
               <CalendarListView items={homeClubItems} legend={homeClubLegend} emptyMessage="No club sessions yet" />
             )

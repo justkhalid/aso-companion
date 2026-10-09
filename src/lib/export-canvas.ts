@@ -64,6 +64,10 @@ export interface ExportOptions {
   /* Word docs only: library / drive links shown at the end of the document */
   libraryLinks?: DocLink[]
   appUrl?: string
+  /* PNG only: text density. 1 = normal, 1.3 = Large, 1.6 = XL. Fonts and
+     vertical rhythm scale by this factor while the canvas width grows less,
+     so text reads clearly without zooming and the design keeps its shape. */
+  zoom?: number
 }
 
 /* ---------- shared parsing helpers ---------- */
@@ -99,22 +103,32 @@ function loadLogo(): Promise<HTMLImageElement | null> {
   })
 }
 
-function drawHeader(ctx: CanvasRenderingContext2D, o: ExportOptions, logo: HTMLImageElement | null, W: number, PAD: number, titleSize = 28, subSize = 14, logoH = 56): number {
+function drawHeader(
+  ctx: CanvasRenderingContext2D,
+  o: ExportOptions,
+  logo: HTMLImageElement | null,
+  W: number,
+  PAD: number,
+  titleSize = 28,
+  subSize = 14,
+  logoH = 56,
+  S = 1,
+): number {
   /* returns the y where the header ends */
   let x = PAD
   if (logo) {
-    const h = logoH
+    const h = logoH * S
     const w = h * (logo.width / logo.height)
-    ctx.drawImage(logo, x, 26, w, h)
-    x += w + 22
-  } else x += 8
+    ctx.drawImage(logo, x, 26 * S, w, h)
+    x += w + 22 * S
+  } else x += 8 * S
   ctx.fillStyle = '#1C1C1E'
   ctx.font = '800 ' + titleSize + 'px ' + FONT
-  ctx.fillText(clipTo(ctx, o.title, W - PAD - x), x, 60)
+  ctx.fillText(clipTo(ctx, o.title, W - PAD - x), x, 60 * S)
   ctx.fillStyle = '#66666E'
   ctx.font = '500 ' + subSize + 'px ' + FONT
-  ctx.fillText(clipTo(ctx, o.subtitle, W - PAD - x), x, 60 + titleSize + 8)
-  return Math.max(118, 60 + titleSize + 8 + 16)
+  ctx.fillText(clipTo(ctx, o.subtitle, W - PAD - x), x, 60 * S + titleSize + 8 * S)
+  return Math.max(118 * S, 60 * S + titleSize + 8 * S + 16 * S)
 }
 
 function drawFooterRule(ctx: CanvasRenderingContext2D, W: number, PAD: number, y: number): void {
@@ -122,6 +136,51 @@ function drawFooterRule(ctx: CanvasRenderingContext2D, W: number, PAD: number, y
   ctx.beginPath(); ctx.moveTo(PAD, y + .5); ctx.lineTo(W - PAD, y + .5); ctx.stroke()
   ctx.fillStyle = '#8A8A90'
   ctx.font = '500 12px ' + FONT
+}
+
+/**
+ * Draw "room · lead" as one meta line where the LEAD is always bold.
+ * align 'right' composes the segments from the right edge; 'left' from x.
+ */
+function drawRoomLead(
+  ctx: CanvasRenderingContext2D,
+  room: string,
+  lead: string,
+  x: number,
+  y: number,
+  opts: { align: 'left' | 'right'; size: number; roomColor?: string; leadColor?: string },
+): void {
+  const size = opts.size
+  const roomColor = opts.roomColor || '#66666E'
+  const leadColor = opts.leadColor || '#3C3C43'
+  const sep = room && lead ? ' · ' : ''
+  const roomFont = '600 ' + size + 'px ' + FONT
+  const sepFont = '600 ' + size + 'px ' + FONT
+  const leadFont = '700 ' + size + 'px ' + FONT
+  ctx.font = roomFont
+  const wr = room ? ctx.measureText(room).width : 0
+  ctx.font = sepFont
+  const ws = sep ? ctx.measureText(sep).width : 0
+  ctx.font = leadFont
+  const wl = lead ? ctx.measureText(lead).width : 0
+  let cx = opts.align === 'right' ? x - (wr + ws + wl) : x
+  if (room) {
+    ctx.font = roomFont
+    ctx.fillStyle = roomColor
+    ctx.fillText(room, cx, y)
+    cx += wr
+  }
+  if (sep) {
+    ctx.font = sepFont
+    ctx.fillStyle = roomColor
+    ctx.fillText(sep, cx, y)
+    cx += ws
+  }
+  if (lead) {
+    ctx.font = leadFont
+    ctx.fillStyle = leadColor
+    ctx.fillText(lead, cx, y)
+  }
 }
 
 /**
@@ -149,16 +208,19 @@ export async function renderTimetablePNG(o: ExportOptions): Promise<Blob | null>
   } catch { /* logo optional */ }
 
   const SCALE = 2
-  const W = 1320
-  const PAD = 48
-  const DAY_LABEL_W = 72
-  const HEADER_H = 118
-  const HOUR_HEAD_H = 48
+  /* zoom: fonts + vertical rhythm scale by S, width grows less, so text
+     reads bigger relative to the sheet without changing the design */
+  const S = Math.max(1, Math.min(2, o.zoom || 1))
+  const W = Math.round(1320 * (1 + (S - 1) * 0.45))
+  const PAD = Math.round(48 * S)
+  const DAY_LABEL_W = Math.round(72 * S)
+  const HEADER_H = Math.round(118 * S)
+  const HOUR_HEAD_H = Math.round(48 * S)
   /* v4.7: compact chips stacked vertically when simultaneous (matches the web grid) */
-  const CHIP_H = 56
-  const CHIP_GAP = 4
-  const ROW_PAD = 6
-  const ROW_H_EMPTY = 44
+  const CHIP_H = Math.round(56 * S)
+  const CHIP_GAP = Math.round(4 * S)
+  const ROW_PAD = Math.round(6 * S)
+  const ROW_H_EMPTY = Math.round(44 * S)
   /* v4.9: hour window trims to the sessions that actually exist; if the
      natural window is under 6 hours it grows downward, never past the
      last session into empty evening hours */
@@ -194,8 +256,8 @@ export async function renderTimetablePNG(o: ExportOptions): Promise<Blob | null>
     }
   }
 
-  const legendH = 30
-  const roomsH = o.rooms ? 30 : 0
+  const legendH = Math.round(30 * S)
+  const roomsH = o.rooms ? Math.round(30 * S) : 0
 
   /* First pass: cluster + lane packing per day (same model as the web grid):
      simultaneous events share a lane side by side, staggered ones stack. */
@@ -213,7 +275,7 @@ export async function renderTimetablePNG(o: ExportOptions): Promise<Blob | null>
     cursorY += rowH
   }
   const gridH = cursorY - (HEADER_H + HOUR_HEAD_H)
-  const H = HEADER_H + HOUR_HEAD_H + gridH + legendH + roomsH + 40
+  const H = HEADER_H + HOUR_HEAD_H + gridH + legendH + roomsH + Math.round(40 * S)
 
   const cv = document.createElement('canvas')
   cv.width = W * SCALE
@@ -226,26 +288,26 @@ export async function renderTimetablePNG(o: ExportOptions): Promise<Blob | null>
   // Header
   let x = PAD
   if (logo) {
-    const h = 60
+    const h = 60 * S
     const w = h * (logo.width / logo.height)
-    ctx.drawImage(logo, x, 24, w, h)
-    x += w + 22
-  } else x += 8
+    ctx.drawImage(logo, x, 24 * S, w, h)
+    x += w + 22 * S
+  } else x += 8 * S
   ctx.fillStyle = '#1C1C1E'
-  ctx.font = '800 30px ' + FONT
-  ctx.fillText(o.title, x, 60)
+  ctx.font = '800 ' + 30 * S + 'px ' + FONT
+  ctx.fillText(o.title, x, 60 * S)
   ctx.fillStyle = '#66666E'
-  ctx.font = '500 15px ' + FONT
-  ctx.fillText(o.subtitle, x, 86)
+  ctx.font = '500 ' + 15 * S + 'px ' + FONT
+  ctx.fillText(o.subtitle, x, 86 * S)
 
   // Hour header row
   const ty = HEADER_H
   ctx.fillStyle = '#1C1C1E'
-  ctx.font = '700 16px ' + FONT
+  ctx.font = '700 ' + 16 * S + 'px ' + FONT
   /* hour labels sit ON the vertical line marking the start of each hour */
   ctx.textAlign = 'center'
   hours.forEach((h, i) => {
-    ctx.fillText(pad2(h) + ':00', PAD + DAY_LABEL_W + i * HOUR_W, ty + HOUR_HEAD_H / 2 + 6)
+    ctx.fillText(pad2(h) + ':00', PAD + DAY_LABEL_W + i * HOUR_W, ty + HOUR_HEAD_H / 2 + 6 * S)
   })
   ctx.textAlign = 'left'
   // Header borders
@@ -265,9 +327,9 @@ export async function renderTimetablePNG(o: ExportOptions): Promise<Blob | null>
     }
     // Day label: generic day name, no date numbers
     ctx.fillStyle = '#1C1C1E'
-    ctx.font = '700 15px ' + FONT
+    ctx.font = '700 ' + 15 * S + 'px ' + FONT
     ctx.textAlign = 'center'
-    ctx.fillText(d.toUpperCase(), PAD + DAY_LABEL_W / 2, y + rowH / 2 + 5)
+    ctx.fillText(d.toUpperCase(), PAD + DAY_LABEL_W / 2, y + rowH / 2 + 5 * S)
     ctx.textAlign = 'left'
     // Vertical line after day label
     ctx.strokeStyle = 'rgba(60,60,67,.12)'
@@ -295,60 +357,60 @@ export async function renderTimetablePNG(o: ExportOptions): Promise<Blob | null>
 
       const tone = TONE_RGB[toneIdx(e.item.tone)] || TONE_RGB[0]
       ctx.fillStyle = tone.bg
-      rrPath(ctx, cx, cy, cw, ch, 8)
+      rrPath(ctx, cx, cy, cw, ch, 8 * S)
       ctx.fill()
       ctx.strokeStyle = tone.line
       ctx.lineWidth = 1
-      rrPath(ctx, cx, cy, cw, ch, 8)
+      rrPath(ctx, cx, cy, cw, ch, 8 * S)
       ctx.stroke()
 
       /* slim accent bar on the left edge, clipped to the chip */
       ctx.save()
-      rrPath(ctx, cx, cy, cw, ch, 8)
+      rrPath(ctx, cx, cy, cw, ch, 8 * S)
       ctx.clip()
       ctx.globalAlpha = .45
       ctx.fillStyle = tone.txt
-      ctx.fillRect(cx, cy + 5, 4, ch - 10)
+      ctx.fillRect(cx, cy + 5 * S, 4 * S, ch - 10 * S)
       ctx.restore()
       ctx.globalAlpha = 1
 
       ctx.fillStyle = tone.txt
       // Line 1: level/club name
-      ctx.font = '800 13.5px ' + FONT
-      ctx.fillText(clipTo(ctx, e.item.code, cw - 26), cx + 15, cy + 20)
+      ctx.font = '800 ' + 13.5 * S + 'px ' + FONT
+      ctx.fillText(clipTo(ctx, e.item.code, cw - 26 * S), cx + 15 * S, cy + 20 * S)
       // Line 2: hours · room
-      ctx.font = '600 11px ' + FONT
+      ctx.font = '600 ' + 11 * S + 'px ' + FONT
       const hoursRoom = e.label + (e.item.room ? ' · ' + e.item.room : '')
-      ctx.fillText(clipTo(ctx, hoursRoom, cw - 26), cx + 15, cy + 35)
-      // Line 3: teacher/lead
+      ctx.fillText(clipTo(ctx, hoursRoom, cw - 26 * S), cx + 15 * S, cy + 35 * S)
+      // Line 3: teacher/lead, always bold
       if (e.item.lead) {
-        ctx.font = '500 11px ' + FONT
-        ctx.globalAlpha = .8
-        ctx.fillText(clipTo(ctx, e.item.lead, cw - 26), cx + 15, cy + 49)
+        ctx.font = '700 ' + 11 * S + 'px ' + FONT
+        ctx.globalAlpha = 0.9
+        ctx.fillText(clipTo(ctx, e.item.lead, cw - 26 * S), cx + 15 * S, cy + 49 * S)
         ctx.globalAlpha = 1
       }
     }
   })
 
   // Legend
-  const legendY = ty + HOUR_HEAD_H + gridH + 22
-  ctx.font = '600 13px ' + FONT
+  const legendY = ty + HOUR_HEAD_H + gridH + Math.round(22 * S)
+  ctx.font = '600 ' + 13 * S + 'px ' + FONT
   let lx = PAD
   ctx.textAlign = 'left'
   o.legend.forEach(l => {
     const tone = TONE_RGB[toneIdx(l.tone)]
     ctx.fillStyle = tone.txt
-    ctx.beginPath(); ctx.arc(lx + 5, legendY - 4, 5, 0, 7); ctx.fill()
+    ctx.beginPath(); ctx.arc(lx + 5 * S, legendY - 4 * S, 5 * S, 0, 7); ctx.fill()
     ctx.fillStyle = '#66666E'
-    ctx.fillText(clipTo(ctx, l.label, 200), lx + 16, legendY)
-    lx += 22 + ctx.measureText(clipTo(ctx, l.label, 200)).width + 26
+    ctx.fillText(clipTo(ctx, l.label, 200 * S), lx + 16 * S, legendY)
+    lx += 22 * S + ctx.measureText(clipTo(ctx, l.label, 200 * S)).width + 26 * S
   })
 
   // Rooms line
   if (o.rooms) {
     ctx.fillStyle = '#A6A6AD'
-    ctx.font = '500 12px ' + FONT
-    ctx.fillText(o.rooms, PAD, legendY + 26)
+    ctx.font = '500 ' + 12 * S + 'px ' + FONT
+    ctx.fillText(o.rooms, PAD, legendY + 26 * S)
   }
 
   return new Promise(res => cv.toBlob(res, 'image/png'))
@@ -361,19 +423,20 @@ function drawLegendRow(
   y: number,
   PAD: number,
   W: number,
+  S = 1,
 ): void {
-  ctx.font = '600 13.5px ' + FONT
+  ctx.font = '600 ' + 13.5 * S + 'px ' + FONT
   let lx = PAD
   ctx.textAlign = 'left'
   for (const l of legend) {
     const tone = TONE_RGB[toneIdx(l.tone)]
-    if (lx > W - PAD - 60) break // never overflow the right margin
+    if (lx > W - PAD - 60 * S) break // never overflow the right margin
     ctx.fillStyle = tone.txt
-    ctx.beginPath(); ctx.arc(lx + 5, y - 4, 5, 0, 7); ctx.fill()
-    const label = clipTo(ctx, l.label, 200)
+    ctx.beginPath(); ctx.arc(lx + 5 * S, y - 4 * S, 5 * S, 0, 7); ctx.fill()
+    const label = clipTo(ctx, l.label, 200 * S)
     ctx.fillStyle = '#66666E'
-    ctx.fillText(label, lx + 16, y)
-    lx += 22 + ctx.measureText(label).width + 26
+    ctx.fillText(label, lx + 16 * S, y)
+    lx += 22 * S + ctx.measureText(label).width + 26 * S
   }
 }
 
@@ -389,13 +452,15 @@ export async function renderPosterPNG(o: ExportOptions): Promise<Blob | null> {
   const parsed = parseExportItems(o.items)
   const byDay = groupByDay(parsed)
 
-  const W = 1240
-  const PAD = 56
-  const BLOCK_H = 64
-  const BLOCK_GAP = 10
-  const DAY_HEAD_H = 38
-  const DAY_GAP = 30
-  const TIME_W = 190 // left column reserved for the time label
+  /* zoom: fonts + block rhythm scale by S, width grows less */
+  const S = Math.max(1, Math.min(2, o.zoom || 1))
+  const W = Math.round(1240 * (1 + (S - 1) * 0.35))
+  const PAD = Math.round(56 * S)
+  const BLOCK_H = Math.round(64 * S)
+  const BLOCK_GAP = Math.round(10 * S)
+  const DAY_HEAD_H = Math.round(38 * S)
+  const DAY_GAP = Math.round(30 * S)
+  const TIME_W = Math.round(190 * S) // left column reserved for the time label
 
   const days = DAY_KEYS.map((d) => ({
     d,
@@ -403,9 +468,9 @@ export async function renderPosterPNG(o: ExportOptions): Promise<Blob | null> {
   }))
 
   // measure
-  let H = 118 + 20
+  let H = Math.round((118 + 20) * S)
   for (const day of days) H += DAY_HEAD_H + Math.max(1, day.evs.length) * (BLOCK_H + BLOCK_GAP) + DAY_GAP - BLOCK_GAP
-  H += 62 + (o.legend.length ? 36 : 0)
+  H += Math.round(62 * S + (o.legend.length ? 36 * S : 0))
 
   const SCALE = 2
   const cv = document.createElement('canvas')
@@ -416,28 +481,28 @@ export async function renderPosterPNG(o: ExportOptions): Promise<Blob | null> {
   ctx.fillStyle = '#FFFFFF'
   ctx.fillRect(0, 0, W, H)
 
-  const headEnd = drawHeader(ctx, o, logo, W, PAD, 34, 16, 64)
+  const headEnd = drawHeader(ctx, o, logo, W, PAD, 34 * S, 16 * S, 64 * S, S)
   ctx.strokeStyle = 'rgba(60,60,67,.14)'
   ctx.beginPath(); ctx.moveTo(PAD, headEnd + 2); ctx.lineTo(W - PAD, headEnd + 2); ctx.stroke()
 
-  let y = headEnd + 20
+  let y = headEnd + Math.round(20 * S)
   for (const day of days) {
     // day head
     ctx.fillStyle = '#1C1C1E'
-    ctx.font = '800 19px ' + FONT
-    ctx.fillText(day.d.toUpperCase(), PAD, y + 16)
+    ctx.font = '800 ' + 19 * S + 'px ' + FONT
+    ctx.fillText(day.d.toUpperCase(), PAD, y + 16 * S)
     ctx.fillStyle = '#A6A6AD'
-    ctx.font = '600 13px ' + FONT
+    ctx.font = '600 ' + 13 * S + 'px ' + FONT
     const countTxt = day.evs.length ? day.evs.length + (day.evs.length === 1 ? ' session' : ' sessions') : ''
     ctx.textAlign = 'right'
-    ctx.fillText(countTxt, W - PAD, y + 16)
+    ctx.fillText(countTxt, W - PAD, y + 16 * S)
     ctx.textAlign = 'left'
     y += DAY_HEAD_H
 
     if (!day.evs.length) {
       ctx.fillStyle = '#B9B9C0'
-      ctx.font = '600 14px ' + FONT
-      ctx.fillText('No sessions', PAD + 4, y + 20)
+      ctx.font = '600 ' + 14 * S + 'px ' + FONT
+      ctx.fillText('No sessions', PAD + 4 * S, y + 20 * S)
       y += BLOCK_H
     } else {
       // cluster sessions that share the exact same time slot
@@ -458,80 +523,83 @@ export async function renderPosterPNG(o: ExportOptions): Promise<Blob | null> {
           const e = cl.evs[0]
           const tone = TONE_RGB[toneIdx(e.item.tone)] || TONE_RGB[0]
           ctx.fillStyle = tone.bg
-          rrPath(ctx, PAD, y, rowW, BLOCK_H, 12)
+          rrPath(ctx, PAD, y, rowW, BLOCK_H, 12 * S)
           ctx.fill()
           ctx.strokeStyle = tone.line
           ctx.lineWidth = 1
-          rrPath(ctx, PAD, y, rowW, BLOCK_H, 12)
+          rrPath(ctx, PAD, y, rowW, BLOCK_H, 12 * S)
           ctx.stroke()
 
           // accent bar
           ctx.save()
-          rrPath(ctx, PAD, y, rowW, BLOCK_H, 12)
+          rrPath(ctx, PAD, y, rowW, BLOCK_H, 12 * S)
           ctx.clip()
           ctx.globalAlpha = .5
           ctx.fillStyle = tone.txt
-          ctx.fillRect(PAD, y + 8, 5, BLOCK_H - 16)
+          ctx.fillRect(PAD, y + 8 * S, 5 * S, BLOCK_H - 16 * S)
           ctx.restore()
           ctx.globalAlpha = 1
 
           const cy = y + BLOCK_H / 2
           ctx.fillStyle = tone.txt
-          ctx.font = '800 15px ' + FONT
-          ctx.fillText(e.label, PAD + 22, cy + 5)
+          ctx.font = '800 ' + 15 * S + 'px ' + FONT
+          ctx.fillText(e.label, PAD + 22 * S, cy + 5 * S)
 
-          const nx = PAD + 22 + TIME_W
+          const nx = PAD + 22 * S + TIME_W
           ctx.fillStyle = '#1C1C1E'
-          ctx.font = '800 17px ' + FONT
-          ctx.fillText(clipTo(ctx, e.item.code, W - PAD * 2 - 400), nx, cy + 6)
+          ctx.font = '800 ' + 17 * S + 'px ' + FONT
+          ctx.fillText(clipTo(ctx, e.item.code, W - PAD * 2 - Math.round(400 * S)), nx, cy + 6 * S)
 
-          ctx.fillStyle = '#66666E'
-          ctx.font = '600 13.5px ' + FONT
-          ctx.textAlign = 'right'
-          const meta = [e.item.room, e.item.lead].filter(Boolean).join(' · ')
-          ctx.fillText(clipTo(ctx, meta, 340), W - PAD - 18, cy + 5)
-          ctx.textAlign = 'left'
+          // room normal · lead bold, composed from the right edge
+          ctx.font = '600 ' + 13.5 * S + 'px ' + FONT
+          const metaRoom = e.item.room || ''
+          const metaLead = e.item.lead || ''
+          const avail = Math.round(340 * S)
+          const clippedLead = metaLead ? clipTo(ctx, metaLead, avail - (metaRoom ? ctx.measureText(metaRoom).width + 14 * S : 0)) : ''
+          drawRoomLead(ctx, metaRoom, clippedLead, W - PAD - 18 * S, cy + 5 * S, { align: 'right', size: 13.5 * S })
         } else {
           /* shared row: time printed ONCE, blocks side by side */
           const tone0 = TONE_RGB[toneIdx(cl.evs[0].item.tone)] || TONE_RGB[0]
           ctx.fillStyle = tone0.txt
-          ctx.font = '800 15px ' + FONT
-          ctx.fillText(cl.label, PAD + 22, y + BLOCK_H / 2 + 5)
+          ctx.font = '800 ' + 15 * S + 'px ' + FONT
+          ctx.fillText(cl.label, PAD + 22 * S, y + BLOCK_H / 2 + 5 * S)
 
-          const blocksX = PAD + 22 + TIME_W
-          const blocksW = W - PAD - 18 - blocksX
-          const innerGap = 10
+          const blocksX = PAD + 22 * S + TIME_W
+          const blocksW = W - PAD - 18 * S - blocksX
+          const innerGap = Math.round(10 * S)
           const bw = (blocksW - innerGap * (n - 1)) / n
           cl.evs.forEach((e, i) => {
             const bx = blocksX + i * (bw + innerGap)
             const tone = TONE_RGB[toneIdx(e.item.tone)] || TONE_RGB[0]
             ctx.fillStyle = tone.bg
-            rrPath(ctx, bx, y, bw, BLOCK_H, 12)
+            rrPath(ctx, bx, y, bw, BLOCK_H, 12 * S)
             ctx.fill()
             ctx.strokeStyle = tone.line
             ctx.lineWidth = 1
-            rrPath(ctx, bx, y, bw, BLOCK_H, 12)
+            rrPath(ctx, bx, y, bw, BLOCK_H, 12 * S)
             ctx.stroke()
 
             // accent bar
             ctx.save()
-            rrPath(ctx, bx, y, bw, BLOCK_H, 12)
+            rrPath(ctx, bx, y, bw, BLOCK_H, 12 * S)
             ctx.clip()
             ctx.globalAlpha = .5
             ctx.fillStyle = tone.txt
-            ctx.fillRect(bx, y + 8, 5, BLOCK_H - 16)
+            ctx.fillRect(bx, y + 8 * S, 5 * S, BLOCK_H - 16 * S)
             ctx.restore()
             ctx.globalAlpha = 1
 
-            // name + room · lead stacked inside the block
-            const padL = 16
+            // name + room · bold lead stacked inside the block
+            const padL = Math.round(16 * S)
             ctx.fillStyle = '#1C1C1E'
-            ctx.font = '800 15.5px ' + FONT
-            ctx.fillText(clipTo(ctx, e.item.code, bw - padL * 2 - 8), bx + padL, y + 27)
-            ctx.fillStyle = '#66666E'
-            ctx.font = '600 12.5px ' + FONT
-            const meta = [e.item.room, e.item.lead].filter(Boolean).join(' · ')
-            ctx.fillText(clipTo(ctx, meta, bw - padL * 2 - 8), bx + padL, y + 46)
+            ctx.font = '800 ' + 15.5 * S + 'px ' + FONT
+            ctx.fillText(clipTo(ctx, e.item.code, bw - padL * 2 - 8 * S), bx + padL, y + 27 * S)
+            ctx.font = '600 ' + 12.5 * S + 'px ' + FONT
+            const metaRoom = e.item.room || ''
+            const metaLead = e.item.lead || ''
+            const avail2 = bw - padL * 2 - 8 * S
+            const clippedLead2 = metaLead ? clipTo(ctx, metaLead, avail2 - (metaRoom ? ctx.measureText(metaRoom).width + 12 * S : 0)) : ''
+            drawRoomLead(ctx, metaRoom, clippedLead2, bx + padL, y + 46 * S, { align: 'left', size: 12.5 * S })
           })
         }
         y += BLOCK_H + BLOCK_GAP
@@ -541,15 +609,15 @@ export async function renderPosterPNG(o: ExportOptions): Promise<Blob | null> {
     y += DAY_GAP
   }
 
-  // footer: legend + credit
+  // footer: legend + rooms
   if (o.legend.length) {
-    drawLegendRow(ctx, o.legend, y + 10, PAD, W)
-    y += 36
+    drawLegendRow(ctx, o.legend, y + 10 * S, PAD, W, S)
+    y += Math.round(36 * S)
   }
-  drawFooterRule(ctx, W, PAD, y + 4)
+  drawFooterRule(ctx, W, PAD, y + 4 * S)
   ctx.fillStyle = '#8A8A90'
-  ctx.font = '500 12.5px ' + FONT
-  ctx.fillText(o.rooms || '', PAD, y + 26)
+  ctx.font = '500 ' + 12.5 * S + 'px ' + FONT
+  ctx.fillText(o.rooms || '', PAD, y + 26 * S)
 
   return new Promise((res) => cv.toBlob(res, 'image/png'))
 }
@@ -565,13 +633,15 @@ export async function renderWeekStripPNG(o: ExportOptions): Promise<Blob | null>
   const parsed = parseExportItems(o.items)
   const byDay = groupByDay(parsed)
 
-  const W = 1400
-  const PAD = 52
+  /* zoom: fonts + card rhythm scale by S, width grows less */
+  const S = Math.max(1, Math.min(2, o.zoom || 1))
+  const W = Math.round(1400 * (1 + (S - 1) * 0.45))
+  const PAD = Math.round(52 * S)
   const COLS = 4
-  const GAP = 18
-  const HEAD_H = 52 // day name + count inside the card
-  const ROW_H = 40 // one session row
-  const CARD_PAD = 12
+  const GAP = Math.round(18 * S)
+  const HEAD_H = Math.round(52 * S) // day name + count inside the card
+  const ROW_H = Math.round(40 * S) // one session row
+  const CARD_PAD = Math.round(12 * S)
 
   const days = DAY_KEYS.map((d) => ({
     d,
@@ -587,7 +657,7 @@ export async function renderWeekStripPNG(o: ExportOptions): Promise<Blob | null>
   )
 
   const gridH = rowHs.reduce((s, h) => s + h + GAP, -GAP)
-  const H = 118 + 24 + gridH + 72 + (o.legend.length ? 36 : 0)
+  const H = Math.round((118 + 24) * S) + gridH + Math.round(72 * S) + (o.legend.length ? Math.round(36 * S) : 0)
 
   const SCALE = 2
   const cv = document.createElement('canvas')
@@ -598,9 +668,9 @@ export async function renderWeekStripPNG(o: ExportOptions): Promise<Blob | null>
   ctx.fillStyle = '#FFFFFF'
   ctx.fillRect(0, 0, W, H)
 
-  const headEnd = drawHeader(ctx, o, logo, W, PAD, 34, 16, 64)
+  const headEnd = drawHeader(ctx, o, logo, W, PAD, 34 * S, 16 * S, 64 * S, S)
 
-  let y = headEnd + 24
+  let y = headEnd + Math.round(24 * S)
   rows.forEach((row, ri) => {
     const rowH = rowHs[ri]
     // center the cards of this row (last row has fewer cards)
@@ -613,72 +683,72 @@ export async function renderWeekStripPNG(o: ExportOptions): Promise<Blob | null>
 
       // card
       ctx.fillStyle = '#FBFCFE'
-      rrPath(ctx, x, y, cardW, rowH, 16)
+      rrPath(ctx, x, y, cardW, rowH, 16 * S)
       ctx.fill()
       ctx.strokeStyle = 'rgba(60,60,67,.12)'
       ctx.lineWidth = 1
-      rrPath(ctx, x, y, cardW, rowH, 16)
+      rrPath(ctx, x, y, cardW, rowH, 16 * S)
       ctx.stroke()
 
       // day head, centered
       ctx.textAlign = 'center'
       ctx.fillStyle = day.evs.length ? '#1C1C1E' : '#B9B9C0'
-      ctx.font = '800 14.5px ' + FONT
-      ctx.fillText(DAY_FULL[day.d] || day.d, x + cardW / 2, y + 22)
+      ctx.font = '800 ' + 14.5 * S + 'px ' + FONT
+      ctx.fillText(DAY_FULL[day.d] || day.d, x + cardW / 2, y + 22 * S)
       ctx.fillStyle = day.evs.length ? '#8A8A90' : '#C7C7CC'
-      ctx.font = '600 11px ' + FONT
-      ctx.fillText(day.evs.length ? day.evs.length + (day.evs.length === 1 ? ' session' : ' sessions') : 'free day', x + cardW / 2, y + 38)
+      ctx.font = '600 ' + 11 * S + 'px ' + FONT
+      ctx.fillText(day.evs.length ? day.evs.length + (day.evs.length === 1 ? ' session' : ' sessions') : 'free day', x + cardW / 2, y + 38 * S)
       ctx.textAlign = 'left'
 
       // head divider
       ctx.strokeStyle = 'rgba(60,60,67,.08)'
-      ctx.beginPath(); ctx.moveTo(x + 14, y + HEAD_H - 6 + .5); ctx.lineTo(x + cardW - 14, y + HEAD_H - 6 + .5); ctx.stroke()
+      ctx.beginPath(); ctx.moveTo(x + 14 * S, y + HEAD_H - 6 * S + .5); ctx.lineTo(x + cardW - 14 * S, y + HEAD_H - 6 * S + .5); ctx.stroke()
 
       if (!day.evs.length) {
         ctx.fillStyle = '#B9B9C0'
-        ctx.font = '600 12.5px ' + FONT
+        ctx.font = '600 ' + 12.5 * S + 'px ' + FONT
         ctx.textAlign = 'center'
-        ctx.fillText('No sessions', x + cardW / 2, y + HEAD_H + ROW_H / 2 + 4)
+        ctx.fillText('No sessions', x + cardW / 2, y + HEAD_H + ROW_H / 2 + 4 * S)
         ctx.textAlign = 'left'
       } else {
         day.evs.forEach((e, i2) => {
-          const ry = y + HEAD_H + 6 + i2 * ROW_H
+          const ry = y + HEAD_H + 6 * S + i2 * ROW_H
           const cy = ry + ROW_H / 2
           const tone = TONE_RGB[toneIdx(e.item.tone)] || TONE_RGB[0]
 
           // tone dot
           ctx.fillStyle = tone.txt
-          ctx.beginPath(); ctx.arc(x + 20, cy - 8, 3.5, 0, 7); ctx.fill()
+          ctx.beginPath(); ctx.arc(x + 20 * S, cy - 8 * S, 3.5 * S, 0, 7); ctx.fill()
 
           // line 1: time (tone) + room right
           ctx.fillStyle = tone.txt
-          ctx.font = '800 11.5px ' + FONT
-          ctx.fillText(e.label, x + 30, cy - 4)
+          ctx.font = '800 ' + 11.5 * S + 'px ' + FONT
+          ctx.fillText(e.label, x + 30 * S, cy - 4 * S)
           if (e.item.room) {
             ctx.fillStyle = '#8A8A90'
-            ctx.font = '600 10.5px ' + FONT
+            ctx.font = '600 ' + 10.5 * S + 'px ' + FONT
             ctx.textAlign = 'right'
-            ctx.fillText(clipTo(ctx, e.item.room, 120), x + cardW - 16, cy - 4)
+            ctx.fillText(clipTo(ctx, e.item.room, 120 * S), x + cardW - 16 * S, cy - 4 * S)
             ctx.textAlign = 'left'
           }
 
-          // line 2: name ( + lead )
+          // line 2: name ( + bold lead )
           ctx.fillStyle = '#1C1C1E'
-          ctx.font = '700 12.5px ' + FONT
-          const nameW = cardW - 30 - 16 - (e.item.lead ? 90 : 0)
-          ctx.fillText(clipTo(ctx, e.item.code, nameW), x + 30, cy + 12)
+          ctx.font = '700 ' + 12.5 * S + 'px ' + FONT
+          const nameW = cardW - 30 * S - 16 * S - (e.item.lead ? 90 * S : 0)
+          ctx.fillText(clipTo(ctx, e.item.code, nameW), x + 30 * S, cy + 12 * S)
           if (e.item.lead) {
-            ctx.fillStyle = '#8A8A90'
-            ctx.font = '500 10.5px ' + FONT
+            ctx.fillStyle = '#636368'
+            ctx.font = '700 ' + 10.5 * S + 'px ' + FONT
             ctx.textAlign = 'right'
-            ctx.fillText(clipTo(ctx, e.item.lead, 90), x + cardW - 16, cy + 12)
+            ctx.fillText(clipTo(ctx, e.item.lead, 90 * S), x + cardW - 16 * S, cy + 12 * S)
             ctx.textAlign = 'left'
           }
 
           // row hairline
           if (i2 < day.evs.length - 1) {
             ctx.strokeStyle = 'rgba(60,60,67,.05)'
-            ctx.beginPath(); ctx.moveTo(x + 14, ry + ROW_H - 2 + .5); ctx.lineTo(x + cardW - 14, ry + ROW_H - 2 + .5); ctx.stroke()
+            ctx.beginPath(); ctx.moveTo(x + 14 * S, ry + ROW_H - 2 * S + .5); ctx.lineTo(x + cardW - 14 * S, ry + ROW_H - 2 * S + .5); ctx.stroke()
           }
         })
       }
@@ -687,16 +757,16 @@ export async function renderWeekStripPNG(o: ExportOptions): Promise<Blob | null>
     y += rowH + GAP
   })
 
-  // footer: legend + rooms + credit
-  let fy = y - GAP + 16
+  // footer: legend + rooms
+  let fy = y - GAP + 16 * S
   if (o.legend.length) {
-    drawLegendRow(ctx, o.legend, fy, PAD, W)
-    fy += 36
+    drawLegendRow(ctx, o.legend, fy, PAD, W, S)
+    fy += Math.round(36 * S)
   }
-  drawFooterRule(ctx, W, PAD, fy + 2)
+  drawFooterRule(ctx, W, PAD, fy + 2 * S)
   ctx.fillStyle = '#8A8A90'
-  ctx.font = '500 12.5px ' + FONT
-  ctx.fillText(o.rooms || '', PAD, fy + 24)
+  ctx.font = '500 ' + 12.5 * S + 'px ' + FONT
+  ctx.fillText(o.rooms || '', PAD, fy + 24 * S)
 
   return new Promise((res) => cv.toBlob(res, 'image/png'))
 }

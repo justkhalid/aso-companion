@@ -306,9 +306,9 @@ export function LessonPlanDialog({
               className="flex-1 rounded-lg"
               onClick={async () => {
                 try {
-                  const { exportLessonPlanDoc, buildDocLinks } = await import('@/lib/export-word')
+                  const { exportLessonPlanDoc, buildLessonLinks } = await import('@/lib/export-word')
                   await exportLessonPlanDoc(level, weekIndex, {
-                    libraryLinks: buildDocLinks(state),
+                    libraryLinks: buildLessonLinks(state, level, weekIndex),
                     appUrl: window.location.origin,
                   })
                   toast('Word document exported')

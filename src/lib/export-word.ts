@@ -1,6 +1,6 @@
 'use client'
 
-import type { Level, State } from './types'
+import type { Band, Level, LibraryFolder, State, Week } from './types'
 import {
   TONE_RGB,
   toneIdx,
@@ -17,8 +17,9 @@ import { DAY_KEYS, DAY_FULL, ROOM_LEGEND, REPORT_SYSTEM_URL } from './constants'
    is why the ASO logo never showed). Every document is therefore written as
    a multipart/related MIME file with the logo embedded as a real part and
    referenced by relative Content-Location, which Word renders natively.
-   All page setups are explicit A4 (landscape for tables and plans, portrait
-   for the handout).
+   Every page setup is explicit A4 PORTRAIT (21 x 29.7cm) and the logo is
+   written with BOTH width and height (natural aspect ratio) so Word can
+   never stretch it.
    ========================================================================== */
 
 const esc = (s: string) => String(s || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
@@ -36,7 +37,7 @@ const utf8B64 = (s: string) => bytesToB64(new TextEncoder().encode(s))
 
 const wrap76 = (b64: string) => (b64.match(/.{1,76}/g) || []).join('\r\n')
 
-type LogoPart = { name: string; mime: string; b64: string }
+type LogoPart = { name: string; mime: string; b64: string; w: number; h: number }
 
 async function loadLogoPart(): Promise<LogoPart | null> {
   try {
@@ -44,7 +45,19 @@ async function loadLogoPart(): Promise<LogoPart | null> {
     if (!res.ok) return null
     const blob = await res.blob()
     const buf = new Uint8Array(await blob.arrayBuffer())
-    return { name: 'aso-logo.png', mime: blob.type || 'image/png', b64: bytesToB64(buf) }
+    /* read the natural size so the <img> can carry a proportional height */
+    const url = URL.createObjectURL(blob)
+    try {
+      const dim = await new Promise<{ w: number; h: number }>((resolve) => {
+        const im = new Image()
+        im.onload = () => resolve({ w: im.naturalWidth || 500, h: im.naturalHeight || 500 })
+        im.onerror = () => resolve({ w: 500, h: 500 })
+        im.src = url
+      })
+      return { name: 'aso-logo.png', mime: blob.type || 'image/png', b64: bytesToB64(buf), w: dim.w, h: dim.h }
+    } finally {
+      URL.revokeObjectURL(url)
+    }
   } catch {
     return null
   }
@@ -85,14 +98,20 @@ function saveDoc(blob: Blob, filename: string): void {
   setTimeout(() => URL.revokeObjectURL(url), 5000)
 }
 
-/* the relative logo src resolves against Content-Location file:///C:/ASO/ */
-const logoImg = (logo: LogoPart | null, width: number) =>
-  logo ? '<img src="' + logo.name + '" width="' + width + '" alt="ASO logo">' : ''
+/* the relative logo src resolves against Content-Location file:///C:/ASO/.
+   BOTH width and height are written, computed from the natural aspect
+   ratio, so Word can never stretch the mark out of shape. */
+const logoImg = (logo: LogoPart | null, width: number) => {
+  if (!logo) return ''
+  const height = Math.max(1, Math.round((width * logo.h) / logo.w))
+  return '<img src="' + logo.name + '" width="' + width + '" height="' + height + '" style="width:' + width + 'px;height:' + height + 'px;" alt="ASO logo">'
+}
 
-/* ---------- page setups: explicit A4 ---------- */
+/* ---------- page setup: every document is A4 PORTRAIT ---------- */
 
-const A4_LANDSCAPE = '@page Section1 {size:29.7cm 21.0cm; margin:1.3cm 1.3cm 1.3cm 1.3cm; mso-page-orientation:landscape;}'
-const A4_PORTRAIT = '@page Section1 {size:21.0cm 29.7cm; margin:1.5cm 1.5cm 1.5cm 1.5cm;}'
+/* mso-page-orientation is written explicitly so Word never falls back to
+   its default section size (Letter) in any viewer */
+const A4_PORTRAIT = '@page Section1 {size:21.0cm 29.7cm; margin:1.4cm 1.4cm 1.4cm 1.4cm; mso-page-orientation:portrait;}'
 
 const DOC_STYLES =
   'body{font-family:Calibri,Arial,sans-serif;font-size:10pt;color:#1C1C1E;}' +
@@ -107,6 +126,7 @@ const DOC_STYLES =
 function docHead(title: string, a4: string): string {
   return '<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:w="urn:schemas-microsoft-com:office:word"><head>' +
     '<meta charset="utf-8"><title>' + esc(title) + '</title>' +
+    '<meta name="ProgId" content="Word.Document"><meta name="Generator" content="Microsoft Word 15">' +
     '<!--[if gte mso 9]><xml><w:WordDocument><w:View>Print</w:View><w:Zoom>100</w:Zoom><w:DoNotOptimizeForBrowser/></w:WordDocument></xml><![endif]-->' +
     '<style>' + a4 + 'div.Section1 {page:Section1;}' + DOC_STYLES + '</style></head>'
 }
@@ -162,24 +182,96 @@ function docLinksBlock(links: DocLink[] | undefined, appUrl?: string): string {
     '<table class="plan"><tr>' +
     '<th ' + thBase + ' style="width:26%;">Name</th><th ' + thBase + '>What you will find</th><th ' + thBase + ' style="width:40%;">Link</th>' +
     '</tr>' + rows.join('') + '</table>' +
-    '<p class="note">Everything above also lives inside ASO Companion under Library. Links open in your browser.</p>'
+    '<p class="note">Links open in your browser. The same folders live under Library in ASO Companion.</p>'
 }
 
-/* data-driven link set shared by every Word export: the main drive, every
-   library folder (deduped by URL) and the reports platform */
-export function buildDocLinks(state: State): DocLink[] {
+const mkLinkPusher = (seen: Set<string>, out: DocLink[]) => (name: string, desc: string, url?: string) => {
+  const u = String(url || '').trim()
+  if (!u || !/^https?:\/\//i.test(u) || seen.has(u)) return
+  seen.add(u)
+  out.push({ name, desc, url: u })
+}
+
+/* ---------- relevant links only, scoped per document ----------
+   A document must never dump the whole library: each Word export lists the
+   main drive, the reports platform and ONLY the library folders that are
+   relevant to the lesson(s) it describes. */
+
+const LINK_STOP = new Set(['and', 'the', 'of', 'for', 'a', 'an', 'in', 'to', 'on'])
+
+function nameTokens(name: string): string[] {
+  return String(name || '')
+    .toLowerCase()
+    .split(/[^a-z]+/)
+    .filter((t) => t.length >= 4 && !LINK_STOP.has(t))
+}
+
+/* folders aimed at one age band only apply to that band's documents */
+function folderBand(f: LibraryFolder): Band | null {
+  const t = (f.name + ' ' + (f.desc || '')).toLowerCase()
+  if (/\bkids?\b/.test(t)) return 'Kids'
+  if (/\bteens?\b/.test(t)) return 'Teens'
+  if (/\badults?\b/.test(t)) return 'Adults'
+  return null
+}
+
+/**
+ * Links for the weeks in scope: core teaching folders, folders named in the
+ * weeks' Resources text, folders whose URL a week links to, folders scoped
+ * to the level's age band. Leftover week URLs that match no library folder
+ * are added as direct week-resource rows.
+ */
+function linksForWeeks(state: State, level: Level | null, weeks: Week[]): DocLink[] {
   const seen = new Set<string>()
   const out: DocLink[] = []
-  const push = (name: string, desc: string, url?: string) => {
-    const u = String(url || '').trim()
-    if (!u || !/^https?:\/\//i.test(u) || seen.has(u)) return
-    seen.add(u)
-    out.push({ name, desc, url: u })
+  const push = mkLinkPusher(seen, out)
+  push('Main drive (all folders)', 'The root of the ASO Google Drive: the folders below live here', state.rootUrl)
+  push('Reports platform', 'Where session reports and attendance summaries are submitted', REPORT_SYSTEM_URL)
+
+  const resText = weeks.map((w) => [w.res, w.theme, w.obj].join(' ')).join(' ').toLowerCase()
+  const weekUrls: string[] = []
+  for (const w of weeks) for (const u of w.urls || []) weekUrls.push(String(u || '').trim())
+
+  for (const f of state.library || []) {
+    const fb = folderBand(f)
+    if (fb && level?.band && fb !== level.band) continue
+    const hitRes = nameTokens(f.name).some((t) => resText.includes(t) || resText.includes(t.replace(/s$/, '')))
+    const hitUrl = weekUrls.includes(String(f.url || '').trim())
+    /* core teaching docs: a teacher's guide / teacher training booklet or the
+       lesson plans folder - never a loose match on "teacher" or "guide" */
+    const core = /teacher['’]?s?\s+(guide|training)|lesson plan/i.test(f.name)
+    if (core || hitRes || hitUrl) push(f.name, f.desc, f.url)
   }
-  push('Main drive (all folders)', 'The root of the ASO Google Drive: every folder below lives here', state.rootUrl)
-  for (const f of state.library || []) push(f.name, f.desc, f.url)
+
+  /* week URLs that match no library folder stay in the list as direct rows */
+  let extra = 0
+  for (const u of weekUrls) {
+    if (seen.has(u) || !/^https?:\/\//i.test(u)) continue
+    if (extra >= 12) break
+    extra++
+    push('This week\'s resource folder', 'Direct link saved on the week inside ASO Companion', u)
+  }
+  return out
+}
+
+/** Calendar documents are not lesson documents: main drive + reports only. */
+export function buildCalendarLinks(state: State): DocLink[] {
+  const out: DocLink[] = []
+  const push = mkLinkPusher(new Set<string>(), out)
+  push('Main drive (all folders)', 'The root of the ASO Google Drive', state.rootUrl)
   push('Reports platform', 'Where session reports and attendance summaries are submitted', REPORT_SYSTEM_URL)
   return out
+}
+
+/** One lesson (level + week): only the folders that week really uses. */
+export function buildLessonLinks(state: State, level: Level, weekIndex: number): DocLink[] {
+  const w = level.weeks[weekIndex]
+  return linksForWeeks(state, level, w ? [w] : [])
+}
+
+/** A whole level (schemes of work): folders used anywhere across the year. */
+export function buildLevelLinks(state: State, level: Level): DocLink[] {
+  return linksForWeeks(state, level, level.weeks || [])
 }
 
 const appOrigin = () => (typeof window !== 'undefined' ? window.location.origin : '')
@@ -246,7 +338,7 @@ function docDetailBlocks(o: ExportOptions): string {
       '<td ' + td + ' style="font-weight:bold;color:' + tone.txt + ';">' + esc(r.label) + '</td>' +
       '<td ' + td + '>' + r.sessions + '</td>' +
       '<td ' + td + '>' + esc(Array.from(r.rooms).sort().join(', ') || '-') + '</td>' +
-      '<td ' + td + '>' + esc(Array.from(r.leads).join(', ') || '-') + '</td>' +
+      '<td ' + td + ' style="font-weight:bold;">' + esc(Array.from(r.leads).join(', ') || '-') + '</td>' +
       '</tr>'
   }).join('')
 
@@ -270,8 +362,8 @@ export async function exportLevelDoc(state: State, lv: Level) {
   const s1Weeks = lv.weeks.slice(0, s.s1Weeks || 15)
   const s2Weeks = lv.weeks.slice(s.s1Weeks || 15)
 
-  const th = 'style="background:#1B2A55;color:white;font-size:9pt;padding:5px 6px;border:1px solid #1B2A55;text-align:left;"'
-  const td = 'style="border:1px solid #D9D9E0;padding:5px 6px;font-size:9pt;vertical-align:top;"'
+  const th = 'style="background:#1B2A55;color:white;font-size:8.5pt;padding:4px 5px;border:1px solid #1B2A55;text-align:left;"'
+  const td = 'style="border:1px solid #D9D9E0;padding:4px 5px;font-size:8.5pt;vertical-align:top;"'
 
   function weekRow(w: typeof lv.weeks[0], idx: number) {
     const skills = w.skills ? `L: ${esc(w.skills.L || '-')}\nS: ${esc(w.skills.S || '-')}\nR: ${esc(w.skills.R || '-')}\nW: ${esc(w.skills.W || '-')}` : '-'
@@ -302,7 +394,7 @@ export async function exportLevelDoc(state: State, lv: Level) {
     'Write your own remarks in the empty <b>Note</b> column and share them with the lead coordinator.',
   ])
 
-  const html = docHead('ELTASO ' + lv.label + ' Schemes of Work', A4_LANDSCAPE) + '<body><div class="Section1">' +
+  const html = docHead('ELTASO ' + lv.label + ' Schemes of Work', A4_PORTRAIT) + '<body><div class="Section1">' +
     docHeaderBlock(logo, 'ELTASO - ' + esc(lv.label) + ' - Schemes of Work',
       esc(s.institute || '') + ' - ' + year + ' - ' + lv.weeks.length + ' weeks - ' + esc(lv.cefr || '')) +
     guide +
@@ -310,7 +402,7 @@ export async function exportLevelDoc(state: State, lv: Level) {
     '<table class="plan">' + tableHead + s1Weeks.map((w, i) => weekRow(w, i)).join('') + '</table>' +
     '<h2>Semester 2 - Weeks ' + (s1Weeks.length + 1) + ' to ' + lv.weeks.length + '</h2>' +
     '<table class="plan">' + tableHead + s2Weeks.map((w, i) => weekRow(w, i + s1Weeks.length)).join('') + '</table>' +
-    docLinksBlock(buildDocLinks(state), appOrigin()) +
+    docLinksBlock(buildLevelLinks(state, lv), appOrigin()) +
     docFooterBlock(logo) +
     '</div></body></html>'
 
@@ -406,10 +498,10 @@ export async function exportLessonPlanDoc(
     '<b>Differentiation</b> gives one easier and one harder variant of the same task so every student works on the same topic.',
     'Tick the <b>assessment checklist</b> during activities, never as a separate test.',
     'Pick <b>ONE</b> homework option; the menu exists so you can rotate across terms.',
-    'Print more worksheets, flashcards or songs any time from the drives linked at the end of this document.',
+    'Print this week\'s resources any time from the folders linked at the end of this document.',
   ])
 
-  const html = docHead('ELTASO ' + level.label + ' - Lesson Plan W' + (weekIndex + 1), A4_LANDSCAPE) + '<body><div class="Section1">' +
+  const html = docHead('ELTASO ' + level.label + ' - Lesson Plan W' + (weekIndex + 1), A4_PORTRAIT) + '<body><div class="Section1">' +
 
     /* logo header */
     docHeaderBlock(logo, 'Lesson Plan - Week ' + (weekIndex + 1),
@@ -465,9 +557,9 @@ const GRID_COLS = GRID_END - GRID_START
 export async function exportCalendarGridDoc(o: ExportOptions, filename: string) {
   const logo = await loadLogoPart()
 
-  const th = 'style="background:#1B2A55;color:white;font-size:9pt;padding:4px 5px;border:1px solid #1B2A55;text-align:center;"'
-  const dayTh = 'style="background:#1B2A55;color:white;font-size:9pt;padding:4px 6px;border:1px solid #1B2A55;text-align:left;width:78px;"'
-  const tdEmpty = 'style="border:1px solid #E3E3EA;padding:4px;font-size:8pt;"'
+  const th = 'style="background:#1B2A55;color:white;font-size:8pt;padding:3px 4px;border:1px solid #1B2A55;text-align:center;"'
+  const dayTh = 'style="background:#1B2A55;color:white;font-size:8pt;padding:3px 5px;border:1px solid #1B2A55;text-align:left;width:62px;"'
+  const tdEmpty = 'style="border:1px solid #E3E3EA;padding:3px;font-size:7.5pt;"'
   const pad2 = (n: number) => String(n).padStart(2, '0')
 
   const parsed = parseExportItems(o.items)
@@ -507,16 +599,20 @@ export async function exportCalendarGridDoc(o: ExportOptions, filename: string) 
       const inner = group
         .map((g) => {
           const tone = TONE_RGB[toneIdx(g.item.tone)] || TONE_RGB[0]
-          const meta = [g.item.room, g.item.lead].filter(Boolean).map((x) => esc(x || '')).join(' · ')
+          /* room normal, lead ALWAYS bold */
+          const roomLead = [
+            g.item.room ? '<span style="color:#6E6E73;">' + esc(g.item.room) + '</span>' : '',
+            g.item.lead ? '<span style="color:#3C3C43;"><b>' + esc(g.item.lead) + '</b></span>' : '',
+          ].filter(Boolean).join('<span style="color:#8A8A90;"> · </span>')
           return (
             '<b style="color:' + tone.txt + ';">' + esc(g.item.code) + '</b><br>' +
             '<span style="color:#3C3C43;">' + g.label + '</span>' +
-            (meta ? '<br><span style="color:#6E6E73;">' + meta + '</span>' : '')
+            (roomLead ? '<br>' + roomLead : '')
           )
         })
         .join('<hr style="border:none;border-top:1px solid ' + border + ';margin:3px 0;">')
       cells.push(
-        '<td colspan="' + (eCol - sCol) + '" style="background:' + fill + ';border:1px solid ' + border + ';padding:4px 5px;font-size:8pt;vertical-align:top;">' +
+        '<td colspan="' + (eCol - sCol) + '" style="background:' + fill + ';border:1px solid ' + border + ';padding:3px 4px;font-size:7.5pt;vertical-align:top;">' +
         inner +
         '</td>',
       )
@@ -536,7 +632,7 @@ export async function exportCalendarGridDoc(o: ExportOptions, filename: string) 
     'New teachers: what to teach each week lives in ELTASO (Schemes of Work); clubs and events are described on the Clubs &amp; events page.',
   ])
 
-  const html = docHead(o.title, A4_LANDSCAPE) + '<body><div class="Section1">' +
+  const html = docHead(o.title, A4_PORTRAIT) + '<body><div class="Section1">' +
     docHeaderBlock(logo, esc(o.title), esc(o.subtitle)) +
     docDetailBlocks(o) +
     guide +
@@ -558,6 +654,7 @@ export async function exportCalendarListDoc(o: ExportOptions, filename: string) 
 
   const th = 'style="background:#1B2A55;color:white;font-size:9.5pt;padding:4px 6px;border:1px solid #1B2A55;text-align:left;"'
   const td = 'style="border:1px solid #D9D9E0;padding:4px 6px;font-size:9.5pt;vertical-align:top;"'
+  const tdLead = 'style="border:1px solid #D9D9E0;padding:4px 6px;font-size:9.5pt;vertical-align:top;font-weight:bold;"'
   const tdTime = (color: string) =>
     'style="border:1px solid #D9D9E0;padding:4px 6px;font-size:9.5pt;vertical-align:top;white-space:nowrap;font-weight:bold;color:' + color + ';"'
 
@@ -573,7 +670,7 @@ export async function exportCalendarListDoc(o: ExportOptions, filename: string) 
         '<td ' + tdTime(tone.txt) + '>' + e.label + '</td>' +
         '<td ' + td + ' style="border:1px solid #D9D9E0;padding:4px 6px;font-size:9.5pt;vertical-align:top;font-weight:bold;color:' + tone.txt + ';">' + esc(e.item.code) + '</td>' +
         '<td ' + td + '>' + esc(e.item.room || '-') + '</td>' +
-        '<td ' + td + '>' + esc(e.item.lead || '-') + '</td>' +
+        '<td ' + tdLead + '>' + esc(e.item.lead || '-') + '</td>' +
         '</tr>'
     }).join('')
     return '<h2>' + (DAY_FULL[d] || d) + ' · ' + evs.length + (evs.length === 1 ? ' session' : ' sessions') + '</h2>' +

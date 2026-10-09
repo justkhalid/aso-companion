@@ -82,3 +82,6 @@ server.log
 /robots.txt
 /DEPLOY_STEPS.md
 /scripts/
+
+# local test artifacts
+captures/

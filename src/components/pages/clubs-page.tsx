@@ -38,9 +38,9 @@ import {
   isOnceEvent,
 } from '@/lib/app-utils'
 import { ROOM_LEGEND, DAY_KEYS } from '@/lib/constants'
-import { buildDocLinks } from '@/lib/export-word'
+import { buildCalendarLinks } from '@/lib/export-word'
 import { clubIcon } from '@/lib/icons'
-import { WeeklyGrid, CalendarListView, CalViewSwitcher, readCalView, writeCalView, type GridItem, type LegendEntry, type CalendarView } from '@/components/weekly-grid'
+import { WeeklyGrid, CalendarListView, CalendarCardsView, CalViewSwitcher, readCalView, writeCalView, type GridItem, type LegendEntry, type CalendarView } from '@/components/weekly-grid'
 import { ClubDialog } from '@/components/dialogs/club-dialog'
 import { EventDialog } from '@/components/dialogs/event-dialog'
 import { CalendarExportMenu } from '@/components/calendar-export'
@@ -135,7 +135,7 @@ export function ClubsPage({ admin }: { admin: boolean }) {
     items: calItems,
     legend: calLegend,
     rooms: ROOM_LEGEND,
-    libraryLinks: buildDocLinks(state),
+    libraryLinks: buildCalendarLinks(state),
     appUrl: window.location.origin,
   })
 
@@ -191,6 +191,8 @@ export function ClubsPage({ admin }: { admin: boolean }) {
         {calItems.length ? (
           calView === 'grid' ? (
             <WeeklyGrid items={calItems} legend={calLegend} emptyMessage="No club sessions yet" />
+          ) : calView === 'cards' ? (
+            <CalendarCardsView items={calItems} legend={calLegend} emptyMessage="No club sessions yet" />
           ) : (
             <CalendarListView items={calItems} legend={calLegend} emptyMessage="No club sessions yet" />
           )
