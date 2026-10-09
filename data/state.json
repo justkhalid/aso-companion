@@ -18540,6 +18540,17 @@
       "time": "10:30-12:30",
       "room": "Room 2",
       "teacher": "Mustapha"
+    },
+    {
+      "id": "xmv0wp0oz52g45",
+      "code": "ASO-A3",
+      "level": "Adults · Beginners",
+      "teacher": "",
+      "room": "",
+      "days": [
+        "Sat"
+      ],
+      "time": "16:00-18:00"
     }
   ],
   "team": [
@@ -19296,5 +19307,5 @@
   "events": [],
   "reports": [],
   "libraryPins": [],
-  "_rev": 1791508285418
+  "_rev": 1791508285420
 }
