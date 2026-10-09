@@ -62,7 +62,9 @@ export function HomePage({ admin }: { admin: boolean }) {
     id: c.id,
     days: c.days || [],
     slot: c.time,
-    code: c.level,
+    /* group code first (ASO-K1...) - many classes share a level, the code
+       is what names the group on the calendar and in every export */
+    code: c.code || c.level,
     meta: '',
     lead: c.teacher,
     room: c.room,

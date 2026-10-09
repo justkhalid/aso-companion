@@ -26,20 +26,23 @@ export type ExportVariant = 'grid' | 'poster' | 'strip' | 'word-grid' | 'word-li
 /* ---------- PNG text size (zoom) ---------- */
 
 const PNG_ZOOM_KEY = 'aso-png-zoom'
-type PngZoom = 1 | 1.3 | 1.6
+type PngZoom = 1 | 1.3 | 1.6 | 2
 const PNG_ZOOMS: { v: PngZoom; label: string; hint: string }[] = [
-  { v: 1, label: 'Normal', hint: 'Default density' },
+  { v: 1, label: 'Normal', hint: 'Most compact' },
   { v: 1.3, label: 'Large', hint: 'Bigger, clearer text' },
-  { v: 1.6, label: 'XL', hint: 'Maximum zoom-in' },
+  { v: 1.6, label: 'XL', hint: 'The standard for print and walls' },
+  { v: 2, label: 'XXL', hint: 'Maximum zoom-in' },
 ]
 
+/* XL is the standard: anything saved before this default exists, or an
+   invalid value, reads as XL. An explicitly picked size still sticks. */
 function readPngZoom(): PngZoom {
-  if (typeof window === 'undefined') return 1
+  if (typeof window === 'undefined') return 1.6
   try {
     const v = parseFloat(window.localStorage.getItem(PNG_ZOOM_KEY) || '')
-    return v === 1.3 || v === 1.6 ? v : 1
+    return v === 1.3 || v === 1.6 || v === 2 ? v : v === 1 ? 1 : 1.6
   } catch {
-    return 1
+    return 1.6
   }
 }
 
@@ -70,7 +73,7 @@ export function CalendarExportMenu({
   const toast = useStore((s) => s.toast)
   const png = useCanvasPngPreview()
   const [busyKind, setBusyKind] = React.useState<ExportVariant | null>(null)
-  const [zoom, setZoomState] = React.useState<PngZoom>(1)
+  const [zoom, setZoomState] = React.useState<PngZoom>(1.6)
 
   React.useEffect(() => {
     setZoomState(readPngZoom())

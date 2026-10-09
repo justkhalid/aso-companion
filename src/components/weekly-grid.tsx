@@ -89,8 +89,10 @@ const DAY_LABEL_W = 72
 
 /* v4.7 compact chip metrics: chips are content-height (no dead space).
    v4.11: simultaneous events always STACK (side-by-side is a wall-poster-only
-   treatment - it reads confusingly on the timed grid). */
-const CHIP_H = 52
+   treatment - it reads confusingly on the timed grid).
+   v4.16: chips grew to 62px so a long group/club name wraps to two short
+   lines instead of being cut - people must read the title in full. */
+const CHIP_H = 62
 const CHIP_GAP = 4
 const ROW_PAD = 6
 const ROW_H_EMPTY = 44 // empty days keep a slim half-height row
@@ -252,7 +254,8 @@ export function WeeklyGrid({
                             ) : (
                               <i className="inline-block h-1.5 w-1.5 shrink-0 rounded-full" style={{ background: 'var(--tone-txt)' }} />
                             )}
-                            <span className="truncate">{e.item.code}</span>
+                            {/* long titles wrap up to 3 lines when no lead row follows (events), 2 otherwise - full titles, never a cut */}
+                            <span className={cn('min-w-0 break-words leading-[11px]', e.item.lead ? 'line-clamp-2' : 'line-clamp-3')} dir="auto" title={e.item.code}>{e.item.code}</span>
                           </span>
                           <span
                             className="truncate text-[10px] font-semibold leading-[12px] tabular-nums"
@@ -467,10 +470,10 @@ export function CalendarListView({
                           ) : (
                             <i className="inline-block h-1.5 w-1.5 shrink-0 rounded-full" style={{ background: 'var(--tone-txt)' }} />
                           )}
-                          <span className="truncate">{e.item.code}</span>
+                          <span className="min-w-0 break-words leading-tight" dir="auto" title={e.item.code}>{e.item.code}</span>
                         </span>
                         {(e.item.room || e.item.lead) && (
-                          <span className="mt-0.5 block truncate text-[11px] font-semibold opacity-80">
+                          <span className="mt-0.5 block break-words text-[11px] font-semibold leading-tight opacity-80">
                             {[e.item.room, e.item.lead].filter(Boolean).join(' · ')}
                           </span>
                         )}
@@ -603,10 +606,10 @@ export function CalendarCardsView({
                         <span className="min-w-0 flex-1">
                           <span className="flex items-center gap-1 text-[12px] font-bold leading-tight text-foreground">
                             {Icon ? <Icon className="h-3 w-3 shrink-0" style={{ color: tone }} /> : null}
-                            <span className="truncate" dir="auto">{e.item.code}</span>
+                            <span className="min-w-0 break-words" dir="auto" title={e.item.code}>{e.item.code}</span>
                           </span>
                           {e.item.lead && (
-                            <span className="mt-0.5 block truncate text-[10.5px] font-bold leading-tight text-foreground/75" dir="auto">
+                            <span className="mt-0.5 block break-words text-[10.5px] font-bold leading-tight text-foreground/75" dir="auto">
                               {e.item.lead}
                             </span>
                           )}

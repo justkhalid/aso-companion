@@ -37,6 +37,39 @@ function clipTo(ctx: CanvasRenderingContext2D, t: string, w: number): string {
   return s + '...'
 }
 
+/**
+ * Shrink-to-fit: reduces the font size just enough for the FULL text to fit
+ * maxW (down to minRatio of the requested size), then draws it whole.
+ * Titles never turn into "Begin..." anymore; only pathologically long
+ * strings fall back to an ellipsis rather than overlapping neighbours.
+ */
+function drawFit(
+  ctx: CanvasRenderingContext2D,
+  t: string,
+  x: number,
+  y: number,
+  maxW: number,
+  weight: string,
+  size: number,
+  minRatio = 0.58,
+): void {
+  const s0 = String(t || '')
+  ctx.font = weight + ' ' + size + 'px ' + FONT
+  if (!s0 || ctx.measureText(s0).width <= maxW) {
+    ctx.fillText(s0, x, y)
+    return
+  }
+  const min = size * minRatio
+  let s = size
+  while (s > min) {
+    s = Math.max(min, s - Math.max(0.5, size * 0.05))
+    ctx.font = weight + ' ' + s + 'px ' + FONT
+    if (ctx.measureText(s0).width <= maxW) break
+  }
+  if (ctx.measureText(s0).width > maxW) ctx.fillText(clipTo(ctx, s0, maxW), x, y)
+  else ctx.fillText(s0, x, y)
+}
+
 const FONT = '-apple-system, BlinkMacSystemFont, "Segoe UI", Inter, Roboto, Arial, sans-serif'
 
 function rrPath(ctx: CanvasRenderingContext2D, x: number, y: number, w: number, h: number, r: number) {
@@ -123,11 +156,9 @@ function drawHeader(
     x += w + 22 * S
   } else x += 8 * S
   ctx.fillStyle = '#1C1C1E'
-  ctx.font = '800 ' + titleSize + 'px ' + FONT
-  ctx.fillText(clipTo(ctx, o.title, W - PAD - x), x, 60 * S)
+  drawFit(ctx, o.title, x, 60 * S, W - PAD - x, '800', titleSize)
   ctx.fillStyle = '#66666E'
-  ctx.font = '500 ' + subSize + 'px ' + FONT
-  ctx.fillText(clipTo(ctx, o.subtitle, W - PAD - x), x, 60 * S + titleSize + 8 * S)
+  drawFit(ctx, o.subtitle, x, 60 * S + titleSize + 8 * S, W - PAD - x, '500', subSize)
   return Math.max(118 * S, 60 * S + titleSize + 8 * S + 16 * S)
 }
 
@@ -375,18 +406,15 @@ export async function renderTimetablePNG(o: ExportOptions): Promise<Blob | null>
       ctx.globalAlpha = 1
 
       ctx.fillStyle = tone.txt
-      // Line 1: level/club name
-      ctx.font = '800 ' + 13.5 * S + 'px ' + FONT
-      ctx.fillText(clipTo(ctx, e.item.code, cw - 26 * S), cx + 15 * S, cy + 20 * S)
+      // Line 1: group name (class code / club / event) - full title, shrink to fit
+      drawFit(ctx, e.item.code, cx + 15 * S, cy + 20 * S, cw - 26 * S, '800', 13.5 * S)
       // Line 2: hours · room
-      ctx.font = '600 ' + 11 * S + 'px ' + FONT
       const hoursRoom = e.label + (e.item.room ? ' · ' + e.item.room : '')
-      ctx.fillText(clipTo(ctx, hoursRoom, cw - 26 * S), cx + 15 * S, cy + 35 * S)
+      drawFit(ctx, hoursRoom, cx + 15 * S, cy + 35 * S, cw - 26 * S, '600', 11 * S)
       // Line 3: teacher/lead, always bold
       if (e.item.lead) {
-        ctx.font = '700 ' + 11 * S + 'px ' + FONT
         ctx.globalAlpha = 0.9
-        ctx.fillText(clipTo(ctx, e.item.lead, cw - 26 * S), cx + 15 * S, cy + 49 * S)
+        drawFit(ctx, e.item.lead, cx + 15 * S, cy + 49 * S, cw - 26 * S, '700', 11 * S)
         ctx.globalAlpha = 1
       }
     }
@@ -402,8 +430,8 @@ export async function renderTimetablePNG(o: ExportOptions): Promise<Blob | null>
     ctx.fillStyle = tone.txt
     ctx.beginPath(); ctx.arc(lx + 5 * S, legendY - 4 * S, 5 * S, 0, 7); ctx.fill()
     ctx.fillStyle = '#66666E'
-    ctx.fillText(clipTo(ctx, l.label, 200 * S), lx + 16 * S, legendY)
-    lx += 22 * S + ctx.measureText(clipTo(ctx, l.label, 200 * S)).width + 26 * S
+    drawFit(ctx, l.label, lx + 16 * S, legendY, 200 * S, '600', 13 * S)
+    lx += 22 * S + ctx.measureText(l.label).width + 26 * S
   })
 
   // Rooms line
@@ -433,10 +461,9 @@ function drawLegendRow(
     if (lx > W - PAD - 60 * S) break // never overflow the right margin
     ctx.fillStyle = tone.txt
     ctx.beginPath(); ctx.arc(lx + 5 * S, y - 4 * S, 5 * S, 0, 7); ctx.fill()
-    const label = clipTo(ctx, l.label, 200 * S)
     ctx.fillStyle = '#66666E'
-    ctx.fillText(label, lx + 16 * S, y)
-    lx += 22 * S + ctx.measureText(label).width + 26 * S
+    drawFit(ctx, l.label, lx + 16 * S, y, 200 * S, '600', 13.5 * S)
+    lx += 22 * S + ctx.measureText(l.label).width + 26 * S
   }
 }
 
@@ -546,17 +573,25 @@ export async function renderPosterPNG(o: ExportOptions): Promise<Blob | null> {
           ctx.fillText(e.label, PAD + 22 * S, cy + 5 * S)
 
           const nx = PAD + 22 * S + TIME_W
-          ctx.fillStyle = '#1C1C1E'
-          ctx.font = '800 ' + 17 * S + 'px ' + FONT
-          ctx.fillText(clipTo(ctx, e.item.code, W - PAD * 2 - Math.round(400 * S)), nx, cy + 6 * S)
-
-          // room normal · lead bold, composed from the right edge
+          // room normal · lead bold, composed from the right edge - drawn
+          // first so the name can claim every remaining pixel of the row
           ctx.font = '600 ' + 13.5 * S + 'px ' + FONT
           const metaRoom = e.item.room || ''
           const metaLead = e.item.lead || ''
           const avail = Math.round(340 * S)
           const clippedLead = metaLead ? clipTo(ctx, metaLead, avail - (metaRoom ? ctx.measureText(metaRoom).width + 14 * S : 0)) : ''
           drawRoomLead(ctx, metaRoom, clippedLead, W - PAD - 18 * S, cy + 5 * S, { align: 'right', size: 13.5 * S })
+
+          // name: shrink to fit the space left of the meta line - full title
+          ctx.fillStyle = '#1C1C1E'
+          ctx.font = '600 ' + 13.5 * S + 'px ' + FONT
+          let metaW = metaRoom ? ctx.measureText(metaRoom).width : 0
+          if (metaRoom && metaLead) metaW += ctx.measureText(' · ').width
+          if (metaLead) {
+            ctx.font = '700 ' + 13.5 * S + 'px ' + FONT
+            metaW += ctx.measureText(clippedLead).width
+          }
+          drawFit(ctx, e.item.code, nx, cy + 6 * S, Math.max(W - PAD - 18 * S - metaW - 16 * S - nx, 140 * S), '800', 17 * S)
         } else {
           /* shared row: time printed ONCE, blocks side by side */
           const tone0 = TONE_RGB[toneIdx(cl.evs[0].item.tone)] || TONE_RGB[0]
@@ -592,8 +627,7 @@ export async function renderPosterPNG(o: ExportOptions): Promise<Blob | null> {
             // name + room · bold lead stacked inside the block
             const padL = Math.round(16 * S)
             ctx.fillStyle = '#1C1C1E'
-            ctx.font = '800 ' + 15.5 * S + 'px ' + FONT
-            ctx.fillText(clipTo(ctx, e.item.code, bw - padL * 2 - 8 * S), bx + padL, y + 27 * S)
+            drawFit(ctx, e.item.code, bx + padL, y + 27 * S, bw - padL * 2 - 8 * S, '800', 15.5 * S)
             ctx.font = '600 ' + 12.5 * S + 'px ' + FONT
             const metaRoom = e.item.room || ''
             const metaLead = e.item.lead || ''
@@ -722,26 +756,22 @@ export async function renderWeekStripPNG(o: ExportOptions): Promise<Blob | null>
 
           // line 1: time (tone) + room right
           ctx.fillStyle = tone.txt
-          ctx.font = '800 ' + 11.5 * S + 'px ' + FONT
-          ctx.fillText(e.label, x + 30 * S, cy - 4 * S)
+          drawFit(ctx, e.label, x + 30 * S, cy - 4 * S, cardW - 30 * S - (e.item.room ? 126 * S : 16 * S), '800', 11.5 * S)
           if (e.item.room) {
             ctx.fillStyle = '#8A8A90'
-            ctx.font = '600 ' + 10.5 * S + 'px ' + FONT
             ctx.textAlign = 'right'
-            ctx.fillText(clipTo(ctx, e.item.room, 120 * S), x + cardW - 16 * S, cy - 4 * S)
+            drawFit(ctx, e.item.room, x + cardW - 16 * S, cy - 4 * S, 120 * S, '600', 10.5 * S)
             ctx.textAlign = 'left'
           }
 
           // line 2: name ( + bold lead )
           ctx.fillStyle = '#1C1C1E'
-          ctx.font = '700 ' + 12.5 * S + 'px ' + FONT
           const nameW = cardW - 30 * S - 16 * S - (e.item.lead ? 90 * S : 0)
-          ctx.fillText(clipTo(ctx, e.item.code, nameW), x + 30 * S, cy + 12 * S)
+          drawFit(ctx, e.item.code, x + 30 * S, cy + 12 * S, nameW, '700', 12.5 * S)
           if (e.item.lead) {
             ctx.fillStyle = '#636368'
-            ctx.font = '700 ' + 10.5 * S + 'px ' + FONT
             ctx.textAlign = 'right'
-            ctx.fillText(clipTo(ctx, e.item.lead, 90 * S), x + cardW - 16 * S, cy + 12 * S)
+            drawFit(ctx, e.item.lead, x + cardW - 16 * S, cy + 12 * S, 90 * S, '700', 10.5 * S)
             ctx.textAlign = 'left'
           }
 
