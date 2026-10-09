@@ -375,25 +375,50 @@ export async function exportCalendarGridDoc(o: ExportOptions, filename: string) 
 
   const rows = DAY_KEYS.map((d) => {
     const evs = (byDay[d] || []).slice().sort((a, b) => a.startMin - b.startMin)
-    /* build the row: cell HTML strings, gaps filled with empty <td>s */
+    /* build the row: cell HTML strings, gaps filled with empty <td>s.
+       Sessions that occupy the exact same hour span share ONE cell so the
+       times line up and nothing shifts to the right. */
     const cells: string[] = []
     let col = 0
-    for (const e of evs) {
+    let i = 0
+    while (i < evs.length) {
+      const e = evs[i]
       const sCol = Math.max(col, Math.min(GRID_COLS - 1, Math.floor((e.startMin - GRID_START * 60) / 60)))
       const eCol = Math.max(sCol + 1, Math.min(GRID_COLS, Math.ceil((e.endMin - GRID_START * 60) / 60)))
+      // gather every session with the same span
+      const group: typeof evs = [e]
+      let j = i + 1
+      while (j < evs.length) {
+        const g = evs[j]
+        const gsCol = Math.max(col, Math.min(GRID_COLS - 1, Math.floor((g.startMin - GRID_START * 60) / 60)))
+        const geCol = Math.max(gsCol + 1, Math.min(GRID_COLS, Math.ceil((g.endMin - GRID_START * 60) / 60)))
+        if (gsCol === sCol && geCol === eCol) {
+          group.push(g)
+          j++
+        } else break
+      }
       for (; col < sCol; col++) cells.push('<td ' + tdEmpty + '>&nbsp;</td>')
-      const tone = TONE_RGB[toneIdx(e.item.tone)] || TONE_RGB[0]
-      const fill = lightHex(tone.txt, 0.14)
-      const border = lightHex(tone.txt, 0.4)
-      const meta = [e.item.room, e.item.lead].filter(Boolean).map((x) => esc(x || '')).join(' · ')
+      const tone0 = TONE_RGB[toneIdx(group[0].item.tone)] || TONE_RGB[0]
+      const fill = lightHex(tone0.txt, 0.14)
+      const border = lightHex(tone0.txt, 0.4)
+      const inner = group
+        .map((g) => {
+          const tone = TONE_RGB[toneIdx(g.item.tone)] || TONE_RGB[0]
+          const meta = [g.item.room, g.item.lead].filter(Boolean).map((x) => esc(x || '')).join(' · ')
+          return (
+            '<b style="color:' + tone.txt + ';">' + esc(g.item.code) + '</b><br>' +
+            '<span style="color:#3C3C43;">' + g.label + '</span>' +
+            (meta ? '<br><span style="color:#6E6E73;">' + meta + '</span>' : '')
+          )
+        })
+        .join('<hr style="border:none;border-top:1px solid ' + border + ';margin:3px 0;">')
       cells.push(
         '<td colspan="' + (eCol - sCol) + '" style="background:' + fill + ';border:1px solid ' + border + ';padding:4px 5px;font-size:8pt;vertical-align:top;">' +
-        '<b style="color:' + tone.txt + ';">' + esc(e.item.code) + '</b><br>' +
-        '<span style="color:#3C3C43;">' + e.label + '</span>' +
-        (meta ? '<br><span style="color:#6E6E73;">' + meta + '</span>' : '') +
+        inner +
         '</td>',
       )
       col = eCol
+      i = j
     }
     for (; col < GRID_COLS; col++) cells.push('<td ' + tdEmpty + '>&nbsp;</td>')
 

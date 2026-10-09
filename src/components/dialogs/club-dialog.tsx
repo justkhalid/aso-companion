@@ -49,6 +49,9 @@ export function ClubDialog({
   const [url, setUrl] = React.useState('')
   const [icon, setIcon] = React.useState<string | undefined>(undefined)
   const [poster, setPoster] = React.useState<string | undefined>(undefined)
+  const [freq, setFreq] = React.useState<'weekly' | 'biweekly' | 'monthly'>('weekly')
+  const [from, setFrom] = React.useState('')
+  const [until, setUntil] = React.useState('')
 
   React.useEffect(() => {
     if (!open) return
@@ -62,6 +65,9 @@ export function ClubDialog({
     setUrl(club?.url || '')
     setIcon(club?.icon)
     setPoster(club?.poster)
+    setFreq(club?.freq || 'weekly')
+    setFrom(club?.from || '')
+    setUntil(club?.until || '')
   }, [open, club])
 
   const roomOptions = React.useMemo(() => roomOptionsFor(state), [state])
@@ -93,6 +99,9 @@ export function ClubDialog({
       icon,
       poster,
       placeholder: club?.placeholder,
+      freq,
+      from: from || undefined,
+      until: until || undefined,
     }
     patch((draft) => {
       if (isNew) draft.clubs.push(entry)
@@ -117,16 +126,42 @@ export function ClubDialog({
         <div className="flex flex-col gap-4">
           <div className="flex flex-col gap-1.5">
             <Label htmlFor="cl-name">Club name</Label>
-            <Input id="cl-name" value={name} onChange={(e) => setName(e.target.value)} placeholder="Chess club" />
+            <Input id="cl-name" value={name} onChange={(e) => setName(e.target.value)} placeholder="Chess club" dir="auto" />
           </div>
           <div className="flex flex-col gap-1.5">
             <Label htmlFor="cl-desc">Description</Label>
-            <Textarea id="cl-desc" rows={2} value={desc} onChange={(e) => setDesc(e.target.value)} />
+            <Textarea id="cl-desc" rows={2} value={desc} onChange={(e) => setDesc(e.target.value)} dir="auto" />
           </div>
 
           <div className="flex flex-col gap-1.5">
             <Label>Days</Label>
             <DayPills value={days} onChange={setDays} />
+          </div>
+
+          <div className="flex flex-col gap-1.5">
+            <Label>Repeats</Label>
+            <div className="grid grid-cols-3 gap-1.5">
+              <SegmentedButton active={freq === 'weekly'} onClick={() => setFreq('weekly')}>
+                Every week
+              </SegmentedButton>
+              <SegmentedButton active={freq === 'biweekly'} onClick={() => setFreq('biweekly')}>
+                Every 2 weeks
+              </SegmentedButton>
+              <SegmentedButton active={freq === 'monthly'} onClick={() => setFreq('monthly')}>
+                Once a month
+              </SegmentedButton>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-2 gap-2">
+            <div className="flex flex-col gap-1.5">
+              <Label htmlFor="cl-from">Runs from (optional)</Label>
+              <Input id="cl-from" type="date" value={from} onChange={(e) => setFrom(e.target.value)} />
+            </div>
+            <div className="flex flex-col gap-1.5">
+              <Label htmlFor="cl-until">Until (optional)</Label>
+              <Input id="cl-until" type="date" value={until} onChange={(e) => setUntil(e.target.value)} />
+            </div>
           </div>
 
           <div className="flex flex-col gap-1.5">
@@ -189,5 +224,30 @@ export function ClubDialog({
         </DialogFooter>
       </DialogContent>
     </Dialog>
+  )
+}
+
+function SegmentedButton({
+  active,
+  onClick,
+  children,
+}: {
+  active: boolean
+  onClick: () => void
+  children: React.ReactNode
+}) {
+  return (
+    <button
+      type="button"
+      aria-pressed={active}
+      onClick={onClick}
+      className={`rounded-full border px-2 py-1.5 text-[11px] font-bold transition-all active:scale-[0.98] ${
+        active
+          ? 'border-primary bg-primary text-primary-foreground shadow-sm'
+          : 'border-border bg-secondary text-muted-foreground hover:bg-secondary/70'
+      }`}
+    >
+      {children}
+    </button>
   )
 }

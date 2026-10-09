@@ -15,23 +15,31 @@ import {
   Sparkles,
   List,
   LayoutGrid,
-  Images,
   Palette,
   Camera,
   FileText,
   Send,
   HeartHandshake,
   ArrowRight,
+  Repeat2,
+  X,
 } from 'lucide-react'
 import { useStore } from '@/lib/store'
 import {
   toneClassForClub,
   nextOccurrence,
   fmtEventWhen,
+  fmtRepeat,
+  fmtRange,
+  fmtFreq,
   fmtD,
+  clubDayOrder,
+  parseISO,
+  isOnceEvent,
 } from '@/lib/app-utils'
+import { ROOM_LEGEND, DAY_KEYS } from '@/lib/constants'
 import { clubIcon } from '@/lib/icons'
-import { WeeklyGrid, type GridItem, type LegendEntry } from '@/components/weekly-grid'
+import { WeeklyGrid, CalendarListView, type GridItem, type LegendEntry } from '@/components/weekly-grid'
 import { ClubDialog } from '@/components/dialogs/club-dialog'
 import { EventDialog } from '@/components/dialogs/event-dialog'
 import { CalendarExportMenu } from '@/components/calendar-export'
@@ -40,8 +48,10 @@ import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
 import type { Club, EventEntry } from '@/lib/types'
 
-type ClubView = 'list' | 'grid' | 'posters'
-const CLUB_VIEW_KEY = 'aso-clubs-view'
+type ClubView = 'list' | 'grid'
+type CalendarView = 'grid' | 'list'
+const CLUB_VIEW_KEY = 'aso-clubs-view-v2' // v2: grid is now the default
+const CAL_VIEW_KEY = 'aso-cal-view'
 
 export function ClubsPage({ admin }: { admin: boolean }) {
   const state = useStore((s) => s.state)
@@ -52,15 +62,31 @@ export function ClubsPage({ admin }: { admin: boolean }) {
   const [clubDialog, setClubDialog] = React.useState<{ open: boolean; club: Club | null }>({ open: false, club: null })
   const [eventDialog, setEventDialog] = React.useState<{ open: boolean; event: EventEntry | null }>({ open: false, event: null })
   const [clubView, setClubView] = React.useState<ClubView>(() => {
-    if (typeof window === 'undefined') return 'list'
+    if (typeof window === 'undefined') return 'grid'
     const v = window.localStorage.getItem(CLUB_VIEW_KEY)
-    return v === 'grid' || v === 'posters' ? v : 'list'
+    return v === 'list' ? 'list' : 'grid'
   })
   React.useEffect(() => {
     try { window.localStorage.setItem(CLUB_VIEW_KEY, clubView) } catch { /* private mode */ }
   }, [clubView])
 
-  const gridRef = React.useRef<HTMLDivElement>(null)
+  const [calView, setCalView] = React.useState<CalendarView>(() => {
+    if (typeof window === 'undefined') return 'grid'
+    const v = window.localStorage.getItem(CAL_VIEW_KEY)
+    return v === 'list' ? 'list' : 'grid'
+  })
+  React.useEffect(() => {
+    try { window.localStorage.setItem(CAL_VIEW_KEY, calView) } catch { /* private mode */ }
+  }, [calView])
+
+  /* the club card expanded in the elegant overlay (grid + list views) */
+  const [expanded, setExpanded] = React.useState<Club | null>(null)
+
+  /* All clubs: ordered by day of the week (Monday first), then by time */
+  const orderedClubs = React.useMemo(
+    () => [...state.clubs].sort((a, b) => clubDayOrder(a) - clubDayOrder(b)),
+    [state.clubs],
+  )
 
   const clubItems: GridItem[] = (state.clubs || [])
     .filter((c) => (c.days || []).length && c.time)
@@ -75,17 +101,45 @@ export function ClubsPage({ admin }: { admin: boolean }) {
       icon: c.icon,
       tone: toneClassForClub(state, c.id),
     }))
-  const clubLegend: LegendEntry[] = (state.clubs || []).map((c) => ({
-    label: c.name,
-    tone: toneClassForClub(state, c.id),
-  }))
+
+  /* events join the calendar: repeating events sit on their weekday,
+     one-off events on the weekday of their date */
+  const eventItems: GridItem[] = (state.events || [])
+    .map((e) => {
+      let day = ''
+      if (!isOnceEvent(e)) day = e.day || ''
+      else if (e.date) {
+        const d = parseISO(e.date)
+        day = DAY_KEYS[d.getDay() === 0 ? 6 : d.getDay() - 1] || ''
+      }
+      if (!day || !e.time) return null
+      return {
+        id: e.id,
+        days: [day],
+        slot: e.time,
+        code: e.title,
+        meta: '',
+        lead: '',
+        room: e.place || '',
+        icon: e.icon || 'calendar',
+        tone: 'tone-7',
+      }
+    })
+    .filter(Boolean) as GridItem[]
+
+  const calItems = [...clubItems, ...eventItems]
+  const calLegend: LegendEntry[] = [
+    ...(state.clubs || []).map((c) => ({ label: c.name, tone: toneClassForClub(state, c.id) })),
+    ...(eventItems.length ? [{ label: 'Special events', tone: 'tone-7' }] : []),
+  ]
 
   const exportYear = (state.settings.year || 'export').replace(/\//g, '-')
   const buildClubOpts = () => ({
     title: 'ASO - Clubs & Events',
     subtitle: (state.settings.institute || '') + ' - ' + (state.settings.year || '') + ' - ' + (state.clubs || []).length + ' clubs',
-    items: clubItems,
-    legend: clubLegend,
+    items: calItems,
+    legend: calLegend,
+    rooms: ROOM_LEGEND,
   })
 
   const upcoming = (state.events || [])
@@ -131,9 +185,25 @@ export function ClubsPage({ admin }: { admin: boolean }) {
         }
       />
 
-      <div ref={gridRef} className="rounded-2xl bg-card">
-        {clubItems.length ? (
-          <WeeklyGrid items={clubItems} legend={clubLegend} emptyMessage="No club sessions yet" />
+      {/* calendar with a view switcher, like the clubs section */}
+      <div className="mb-3 flex flex-wrap items-center gap-x-2 gap-y-2">
+        <h2 className="text-[15px] font-extrabold tracking-tight">Weekly calendar</h2>
+        <div className="ml-auto flex items-center gap-0.5 rounded-full border border-border bg-secondary/70 p-0.5" role="group" aria-label="Calendar view">
+          <ViewModeButton active={calView === 'grid'} onClick={() => setCalView('grid')} label="Grid view">
+            <LayoutGrid className="h-3.5 w-3.5" />
+          </ViewModeButton>
+          <ViewModeButton active={calView === 'list'} onClick={() => setCalView('list')} label="List view">
+            <List className="h-3.5 w-3.5" />
+          </ViewModeButton>
+        </div>
+      </div>
+      <div className="rounded-2xl bg-card">
+        {calItems.length ? (
+          calView === 'grid' ? (
+            <WeeklyGrid items={calItems} legend={calLegend} emptyMessage="No club sessions yet" />
+          ) : (
+            <CalendarListView items={calItems} legend={calLegend} emptyMessage="No club sessions yet" />
+          )
         ) : (
           <EmptyState icon={<Sparkles className="h-5 w-5" />} title="No club sessions yet" hint="Club sessions appear here as soon as they are scheduled." />
         )}
@@ -163,7 +233,7 @@ export function ClubsPage({ admin }: { admin: boolean }) {
         )}
       </div>
 
-      {/* all clubs, in three display modes */}
+      {/* all clubs, list or grid, ordered by day of the week */}
       <div className="mt-7">
         <div className="mb-3 flex flex-wrap items-center gap-x-2 gap-y-2">
           <h2 className="text-[15px] font-extrabold tracking-tight">All clubs</h2>
@@ -177,41 +247,34 @@ export function ClubsPage({ admin }: { admin: boolean }) {
             <ViewModeButton active={clubView === 'grid'} onClick={() => setClubView('grid')} label="Grid view">
               <LayoutGrid className="h-3.5 w-3.5" />
             </ViewModeButton>
-            <ViewModeButton active={clubView === 'posters'} onClick={() => setClubView('posters')} label="Posters view">
-              <Images className="h-3.5 w-3.5" />
-            </ViewModeButton>
           </div>
         </div>
 
-        {state.clubs.length ? (
+        {orderedClubs.length ? (
           clubView === 'list' ? (
             <div className="grid gap-3">
-              {state.clubs.map((c) => (
+              {orderedClubs.map((c) => (
                 <ClubListCard
                   key={c.id}
                   club={c}
                   admin={admin}
-                  onEdit={() => setClubDialog({ open: true, club: c })}
-                  onDelete={() => deleteClub(c)}
-                />
-              ))}
-            </div>
-          ) : clubView === 'grid' ? (
-            <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-              {state.clubs.map((c) => (
-                <ClubGridCard
-                  key={c.id}
-                  club={c}
-                  admin={admin}
+                  onExpand={() => setExpanded(c)}
                   onEdit={() => setClubDialog({ open: true, club: c })}
                   onDelete={() => deleteClub(c)}
                 />
               ))}
             </div>
           ) : (
-            <div className="columns-2 gap-3 lg:columns-3">
-              {state.clubs.map((c) => (
-                <ClubPosterTile key={c.id} club={c} />
+            <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+              {orderedClubs.map((c) => (
+                <ClubGridCard
+                  key={c.id}
+                  club={c}
+                  admin={admin}
+                  onExpand={() => setExpanded(c)}
+                  onEdit={() => setClubDialog({ open: true, club: c })}
+                  onDelete={() => deleteClub(c)}
+                />
               ))}
             </div>
           )
@@ -222,6 +285,9 @@ export function ClubsPage({ admin }: { admin: boolean }) {
 
       {/* volunteer responsibilities + path to the report section */}
       <Responsibilities onReports={() => setView('reports')} />
+
+      {/* elegant expand overlay: poster + full details + description, X to close */}
+      <ClubExpandOverlay club={expanded} onClose={() => setExpanded(null)} admin={admin} onEdit={(c) => { setExpanded(null); setClubDialog({ open: true, club: c }) }} />
 
       <ClubDialog open={clubDialog.open} onOpenChange={(v) => setClubDialog((s) => ({ ...s, open: v }))} club={clubDialog.club} />
       <EventDialog open={eventDialog.open} onOpenChange={(v) => setEventDialog((s) => ({ ...s, open: v }))} event={eventDialog.event} />
@@ -256,7 +322,7 @@ function ViewModeButton({
   )
 }
 
-/* poster fallback shared by all modes: the chosen club icon on a soft tile */
+/* poster fallback shared by the cards: the chosen club icon on a soft tile */
 function PosterFallback({ club, compact }: { club: Club; compact?: boolean }) {
   const Icon = clubIcon(club.icon)?.Icon || Sparkles
   return (
@@ -264,7 +330,51 @@ function PosterFallback({ club, compact }: { club: Club; compact?: boolean }) {
       <div className={cn('flex items-center justify-center rounded-full bg-primary/10 text-primary', compact ? 'h-12 w-12' : 'h-16 w-16')}>
         <Icon className={compact ? 'h-6 w-6' : 'h-8 w-8'} />
       </div>
-      {!compact && <div className="px-2 text-sm font-extrabold leading-tight text-foreground/80">{club.name}</div>}
+      {!compact && <div className="px-2 text-sm font-extrabold leading-tight text-foreground/80" dir="auto">{club.name}</div>}
+    </div>
+  )
+}
+
+/* meta line shared by the cards: days · time · room */
+function ClubMeta({ club }: { club: Club }) {
+  const days = (club.days || []).length ? club.days.join(' / ') : 'no day set'
+  const time = club.time || 'no time set'
+  return (
+    <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs font-semibold text-muted-foreground">
+      <span className="inline-flex items-center gap-1"><CalendarDays className="h-3.5 w-3.5" /> {days}</span>
+      <span className="inline-flex items-center gap-1"><Clock className="h-3.5 w-3.5" /> {time}</span>
+      {club.room && <span className="inline-flex items-center gap-1"><MapPin className="h-3.5 w-3.5" /> {club.room}</span>}
+    </div>
+  )
+}
+
+/* frequency + duration line, only when it says something */
+function ClubFreqLine({ club }: { club: Club }) {
+  const freq = fmtFreq(club.freq)
+  const range = fmtRange(club.from, club.until)
+  if (club.freq === 'weekly' && !range) return null
+  return (
+    <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs font-semibold text-[var(--aso-gold)]">
+      {club.freq && club.freq !== 'weekly' && (
+        <span className="inline-flex items-center gap-1"><Repeat2 className="h-3.5 w-3.5" /> {freq}</span>
+      )}
+      {range && <span className="inline-flex items-center gap-1"><CalendarDays className="h-3.5 w-3.5" /> {range}</span>}
+    </div>
+  )
+}
+
+function LeadLine({ club }: { club: Club }) {
+  return (
+    <div className="text-xs">
+      {club.lead ? (
+        <span className="inline-flex items-center gap-1 font-semibold text-foreground">
+          <User className="h-3.5 w-3.5" /> Lead: {club.lead}
+        </span>
+      ) : (
+        <span className="inline-flex items-center gap-1 font-semibold text-[var(--aso-gold)]">
+          <AlertTriangle className="h-3.5 w-3.5" /> Needs a lead
+        </span>
+      )}
     </div>
   )
 }
@@ -272,22 +382,24 @@ function PosterFallback({ club, compact }: { club: Club; compact?: boolean }) {
 function ClubListCard({
   club,
   admin,
+  onExpand,
   onEdit,
   onDelete,
 }: {
   club: Club
   admin: boolean
+  onExpand: () => void
   onEdit: () => void
   onDelete: () => void
 }) {
   const [open, setOpen] = React.useState(false)
-  const days = (club.days || []).length ? club.days.join(' / ') : 'no day set'
-  const time = club.time || 'no time set'
-  const room = club.room || ''
   const vol = (club.vol || []).join(', ')
 
   return (
-    <div className="overflow-hidden rounded-2xl border border-border bg-card shadow-sm">
+    <div
+      className="cursor-pointer overflow-hidden rounded-2xl border border-border bg-card shadow-sm transition hover:border-primary/30 hover:shadow-md"
+      onClick={onExpand}
+    >
       <div className="flex">
         {/* poster: natural A4 ratio, stretches to fill taller rows */}
         <div className="flex w-[96px] shrink-0 bg-secondary sm:w-[144px]">
@@ -301,30 +413,17 @@ function ClubListCard({
         {/* content on the right */}
         <div className="flex min-w-0 flex-1 flex-col justify-center gap-2 p-4">
           <div className="flex flex-wrap items-center gap-2">
-            <h3 className="font-bold">{club.name}</h3>
+            <h3 className="font-bold" dir="auto">{club.name}</h3>
             {club.placeholder && <Chip tone="gold">placeholder</Chip>}
           </div>
-          <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs font-semibold text-muted-foreground">
-            <span className="inline-flex items-center gap-1"><CalendarDays className="h-3.5 w-3.5" /> {days}</span>
-            <span className="inline-flex items-center gap-1"><Clock className="h-3.5 w-3.5" /> {time}</span>
-            {room && <span className="inline-flex items-center gap-1"><MapPin className="h-3.5 w-3.5" /> {room}</span>}
-          </div>
-          <div className="text-xs">
-            {club.lead ? (
-              <span className="inline-flex items-center gap-1 font-semibold text-foreground">
-                <User className="h-3.5 w-3.5" /> Lead: {club.lead}
-              </span>
-            ) : (
-              <span className="inline-flex items-center gap-1 font-semibold text-[var(--aso-gold)]">
-                <AlertTriangle className="h-3.5 w-3.5" /> Needs a lead
-              </span>
-            )}
-          </div>
+          <ClubMeta club={club} />
+          <ClubFreqLine club={club} />
+          <LeadLine club={club} />
 
           {/* learn more expandable */}
           <div>
             <button
-              onClick={() => setOpen((o) => !o)}
+              onClick={(ev) => { ev.stopPropagation(); setOpen((o) => !o) }}
               className="inline-flex items-center gap-1 text-xs font-bold text-primary"
             >
               <ChevronDown className={cn('h-3.5 w-3.5 transition', open && 'rotate-180')} />
@@ -333,15 +432,15 @@ function ClubListCard({
             {open && (
               <div className="mt-2 flex flex-col gap-1.5 border-t border-border pt-2 text-[13px]">
                 {club.desc && (
-                  <div><span className="font-bold text-muted-foreground">About:</span> {club.desc}</div>
+                  <div dir="auto"><span className="font-bold text-muted-foreground">About:</span> {club.desc}</div>
                 )}
                 {vol && (
-                  <div><span className="font-bold text-muted-foreground">Volunteers:</span> {vol}</div>
+                  <div dir="auto"><span className="font-bold text-muted-foreground">Volunteers:</span> {vol}</div>
                 )}
                 {club.url && (
                   <div>
                     <span className="font-bold text-muted-foreground">Link:</span>{' '}
-                    <a href={club.url} target="_blank" rel="noopener" className="font-semibold text-primary hover:underline">
+                    <a href={club.url} target="_blank" rel="noopener" onClick={(ev) => ev.stopPropagation()} className="font-semibold text-primary hover:underline">
                       {club.url}
                     </a>
                   </div>
@@ -354,7 +453,7 @@ function ClubListCard({
           </div>
 
           {/* actions */}
-          <div className="flex items-center gap-2 pt-1">
+          <div className="flex items-center gap-2 pt-1" onClick={(ev) => ev.stopPropagation()}>
             {admin ? (
               <>
                 <Button variant="outline" size="sm" onClick={onEdit}>
@@ -383,21 +482,23 @@ function ClubListCard({
 function ClubGridCard({
   club,
   admin,
+  onExpand,
   onEdit,
   onDelete,
 }: {
   club: Club
   admin: boolean
+  onExpand: () => void
   onEdit: () => void
   onDelete: () => void
 }) {
-  const [open, setOpen] = React.useState(false)
-  const days = (club.days || []).length ? club.days.join(' / ') : 'no day set'
-  const time = club.time || 'no time set'
   const vol = (club.vol || []).join(', ')
 
   return (
-    <div className="flex h-full flex-col overflow-hidden rounded-2xl border border-border bg-card shadow-sm">
+    <div
+      className="flex h-full cursor-pointer flex-col overflow-hidden rounded-2xl border border-border bg-card shadow-sm transition hover:border-primary/30 hover:shadow-md"
+      onClick={onExpand}
+    >
       {/* poster at its true A4 ratio, zero crop */}
       <div className="aspect-[848/1200] w-full bg-secondary">
         {club.poster ? (
@@ -409,57 +510,25 @@ function ClubGridCard({
 
       <div className="flex flex-1 flex-col gap-2 p-4">
         <div className="flex flex-wrap items-center gap-2">
-          <h3 className="font-bold leading-tight">{club.name}</h3>
+          <h3 className="font-bold leading-tight" dir="auto">{club.name}</h3>
           {club.placeholder && <Chip tone="gold">placeholder</Chip>}
         </div>
-        <div className="flex flex-wrap gap-x-3 gap-y-1 text-xs font-semibold text-muted-foreground">
-          <span className="inline-flex items-center gap-1"><CalendarDays className="h-3.5 w-3.5" /> {days}</span>
-          <span className="inline-flex items-center gap-1"><Clock className="h-3.5 w-3.5" /> {time}</span>
-          {club.room && <span className="inline-flex items-center gap-1"><MapPin className="h-3.5 w-3.5" /> {club.room}</span>}
-        </div>
-        <div className="text-xs">
-          {club.lead ? (
-            <span className="inline-flex items-center gap-1 font-semibold text-foreground">
-              <User className="h-3.5 w-3.5" /> Lead: {club.lead}
-            </span>
-          ) : (
-            <span className="inline-flex items-center gap-1 font-semibold text-[var(--aso-gold)]">
-              <AlertTriangle className="h-3.5 w-3.5" /> Needs a lead
-            </span>
-          )}
-        </div>
+        <ClubMeta club={club} />
+        <ClubFreqLine club={club} />
+        <LeadLine club={club} />
 
-        {club.desc && <p className="line-clamp-2 text-[13px] text-muted-foreground">{club.desc}</p>}
+        {club.desc && <p className="line-clamp-2 text-[13px] text-muted-foreground" dir="auto">{club.desc}</p>}
 
         {(vol || club.url) && (
-          <div>
-            <button
-              onClick={() => setOpen((o) => !o)}
-              className="inline-flex items-center gap-1 text-xs font-bold text-primary"
-            >
-              <ChevronDown className={cn('h-3.5 w-3.5 transition', open && 'rotate-180')} />
-              {open ? 'Hide' : 'Learn more'}
-            </button>
-            {open && (
-              <div className="mt-2 flex flex-col gap-1.5 border-t border-border pt-2 text-[13px]">
-                {vol && (
-                  <div><span className="font-bold text-muted-foreground">Volunteers:</span> {vol}</div>
-                )}
-                {club.url && (
-                  <div>
-                    <span className="font-bold text-muted-foreground">Link:</span>{' '}
-                    <a href={club.url} target="_blank" rel="noopener" className="font-semibold text-primary hover:underline">
-                      {club.url}
-                    </a>
-                  </div>
-                )}
-              </div>
-            )}
+          <div className="text-xs font-semibold text-muted-foreground">
+            {vol && <span className="truncate" dir="auto">{vol}</span>}
+            {vol && club.url && <span> · </span>}
+            {club.url && <span className="text-primary">link</span>}
           </div>
         )}
 
         {/* actions pinned to the bottom so rows stay symmetric */}
-        <div className="mt-auto flex items-center gap-2 pt-1">
+        <div className="mt-auto flex items-center gap-2 pt-1" onClick={(ev) => ev.stopPropagation()}>
           {admin ? (
             <>
               <Button variant="outline" size="sm" onClick={onEdit}>
@@ -484,27 +553,132 @@ function ClubGridCard({
   )
 }
 
-function ClubPosterTile({ club }: { club: Club }) {
-  const days = (club.days || []).length ? club.days.join(' / ') : 'no day set'
-  const time = club.time || ''
+/* -------------------------------------------------------------------------
+   Elegant expand overlay: the whole club in one calm card with an X to close
+   ------------------------------------------------------------------------- */
+function ClubExpandOverlay({
+  club,
+  onClose,
+  admin,
+  onEdit,
+}: {
+  club: Club | null
+  onClose: () => void
+  admin: boolean
+  onEdit: (c: Club) => void
+}) {
+  React.useEffect(() => {
+    if (!club) return
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') onClose()
+    }
+    document.addEventListener('keydown', onKey)
+    document.body.style.overflow = 'hidden'
+    return () => {
+      document.removeEventListener('keydown', onKey)
+      document.body.style.overflow = ''
+    }
+  }, [club, onClose])
+
+  if (!club) return null
+  const vol = (club.vol || []).join(', ')
   const Icon = clubIcon(club.icon)?.Icon || Sparkles
 
   return (
-    <div className="mb-3 break-inside-avoid overflow-hidden rounded-2xl border border-border bg-card shadow-sm">
-      <div className="relative aspect-[848/1200] w-full bg-secondary">
-        {club.poster ? (
-          <img src={club.poster} alt={`${club.name} poster`} className="h-full w-full object-cover" />
-        ) : (
-          <PosterFallback club={club} />
-        )}
-        {/* bottom info bar over the poster */}
-        <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/80 via-black/45 to-transparent px-3 pb-3 pt-10 text-white">
-          <div className="flex items-center gap-1.5">
-            <Icon className="h-3.5 w-3.5 shrink-0" />
-            <span className="truncate text-[13px] font-extrabold leading-tight">{club.name}</span>
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/45 p-3 backdrop-blur-sm sm:p-6"
+      onClick={onClose}
+      role="dialog"
+      aria-modal="true"
+      aria-label={club.name}
+    >
+      <div
+        className="relative max-h-[92vh] w-full max-w-2xl overflow-y-auto scroll-thin rounded-3xl border border-border bg-card shadow-2xl"
+        onClick={(e) => e.stopPropagation()}
+      >
+        {/* X to go back, top right */}
+        <button
+          onClick={onClose}
+          aria-label="Close"
+          title="Close"
+          className="absolute right-3 top-3 z-10 flex h-9 w-9 items-center justify-center rounded-full bg-black/35 text-white backdrop-blur transition hover:bg-black/55 active:scale-95"
+        >
+          <X className="h-4.5 w-4.5" />
+        </button>
+
+        <div className="flex flex-col sm:flex-row">
+          {/* poster side */}
+          <div className="flex shrink-0 items-center justify-center bg-secondary p-4 sm:w-[264px] sm:p-5">
+            <div className="w-40 overflow-hidden rounded-xl shadow-md sm:w-full">
+              {club.poster ? (
+                <img src={club.poster} alt={`${club.name} poster`} className="aspect-[848/1200] w-full object-cover" />
+              ) : (
+                <div className="flex aspect-[848/1200] w-full flex-col items-center justify-center gap-3 bg-gradient-to-br from-secondary to-background text-center">
+                  <div className="flex h-16 w-16 items-center justify-center rounded-full bg-primary/10 text-primary">
+                    <Icon className="h-8 w-8" />
+                  </div>
+                  <div className="px-3 text-sm font-extrabold leading-tight text-foreground/80" dir="auto">{club.name}</div>
+                </div>
+              )}
+            </div>
           </div>
-          <div className="mt-0.5 truncate text-[11px] font-semibold text-white/85">
-            {days}{time ? ` · ${time}` : ''}{club.room ? ` · ${club.room}` : ''}
+
+          {/* details side */}
+          <div className="flex min-w-0 flex-1 flex-col gap-3 p-5 sm:pl-0">
+            <div>
+              <h3 className="pr-10 text-lg font-extrabold leading-tight" dir="auto">{club.name}</h3>
+              {club.placeholder && <Chip tone="gold">placeholder</Chip>}
+            </div>
+
+            <div className="flex flex-col gap-1.5 text-[13px] font-semibold text-muted-foreground">
+              <span className="inline-flex items-center gap-1.5"><CalendarDays className="h-4 w-4 text-primary" /> {(club.days || []).length ? club.days.join(' / ') : 'no day set'}</span>
+              <span className="inline-flex items-center gap-1.5"><Clock className="h-4 w-4 text-primary" /> {club.time || 'no time set'}</span>
+              {club.room && <span className="inline-flex items-center gap-1.5"><MapPin className="h-4 w-4 text-primary" /> {club.room}</span>}
+              {club.freq !== 'weekly' && (
+                <span className="inline-flex items-center gap-1.5 text-[var(--aso-gold)]"><Repeat2 className="h-4 w-4" /> {fmtFreq(club.freq)}</span>
+              )}
+              {fmtRange(club.from, club.until) && (
+                <span className="inline-flex items-center gap-1.5 text-[var(--aso-gold)]"><CalendarDays className="h-4 w-4" /> {fmtRange(club.from, club.until)}</span>
+              )}
+              {club.lead && <span className="inline-flex items-center gap-1.5"><User className="h-4 w-4 text-primary" /> Lead: {club.lead}</span>}
+            </div>
+
+            {club.desc && (
+              <div className="rounded-2xl bg-secondary/60 p-3.5">
+                <div className="mb-1 text-[11px] font-bold uppercase tracking-wider text-muted-foreground">About</div>
+                <p className="text-[13.5px] leading-relaxed text-foreground" dir="auto">{club.desc}</p>
+              </div>
+            )}
+
+            {vol && (
+              <div className="text-[13px]" dir="auto">
+                <span className="font-bold text-muted-foreground">Volunteers: </span>
+                <span className="font-semibold text-foreground">{vol}</span>
+              </div>
+            )}
+
+            <div className="mt-auto flex flex-wrap items-center gap-2 pt-1">
+              {admin ? (
+                <Button variant="outline" size="sm" onClick={() => onEdit(club)}>
+                  <Pencil className="h-3.5 w-3.5" /> Edit club
+                </Button>
+              ) : (
+                club.url && (
+                  <a href={club.url} target="_blank" rel="noopener">
+                    <Button variant="outline" size="sm">
+                      <ExternalLink className="h-3.5 w-3.5" /> Open link
+                    </Button>
+                  </a>
+                )
+              )}
+              {admin && club.url && (
+                <a href={club.url} target="_blank" rel="noopener">
+                  <Button variant="ghost" size="sm">
+                    <ExternalLink className="h-3.5 w-3.5" /> Open link
+                  </Button>
+                </a>
+              )}
+            </div>
           </div>
         </div>
       </div>
@@ -612,23 +786,36 @@ function EventCard({
 }) {
   const [open, setOpen] = React.useState(false)
   const when = fmtEventWhen(event)
-  const isWeekly = event.recur === 'weekly'
+  const isOnce = isOnceEvent(event)
   const nextStr = fmtD(nextDate, { weekday: 'long', day: 'numeric', month: 'long' })
+  const repeat = fmtRepeat(event)
+  const range = fmtRange(event.from, event.until)
+  const Icon = clubIcon(event.icon)?.Icon || CalendarDays
 
   return (
     <div className="overflow-hidden rounded-2xl border border-[var(--aso-gold-tint)] bg-card shadow-sm">
       <div className="flex flex-col sm:flex-row">
-        {/* gold poster area */}
-        <div className="flex h-44 shrink-0 items-center justify-center bg-gradient-to-br from-[var(--aso-gold-tint)] to-secondary sm:h-auto sm:w-[170px]">
-          <div className="flex h-14 w-14 items-center justify-center rounded-full bg-[var(--aso-gold-tint)] text-[var(--aso-gold)]">
-            <CalendarDays className="h-7 w-7" />
+        {/* poster area: the real poster when there is one, the gold badge otherwise */}
+        {event.poster ? (
+          <div className="flex w-full shrink-0 justify-center bg-secondary p-4 sm:w-[150px]">
+            <img
+              src={event.poster}
+              alt={`${event.title} poster`}
+              className="aspect-[848/1200] w-28 rounded-lg object-cover shadow-sm sm:w-full"
+            />
           </div>
-        </div>
+        ) : (
+          <div className="flex h-44 shrink-0 items-center justify-center bg-gradient-to-br from-[var(--aso-gold-tint)] to-secondary sm:h-auto sm:w-[170px]">
+            <div className="flex h-14 w-14 items-center justify-center rounded-full bg-[var(--aso-gold-tint)] text-[var(--aso-gold)]">
+              <Icon className="h-7 w-7" />
+            </div>
+          </div>
+        )}
 
         <div className="flex flex-1 flex-col gap-2 p-4">
           <div className="flex flex-wrap items-center gap-2">
-            <h3 className="font-bold">{event.title}</h3>
-            <Chip tone={isWeekly ? 'gold' : 'primary'}>{when}</Chip>
+            <h3 className="font-bold" dir="auto">{event.title}</h3>
+            <Chip tone={isOnce ? 'primary' : 'gold'}>{when}</Chip>
           </div>
           <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs font-semibold text-muted-foreground">
             <span className="inline-flex items-center gap-1"><CalendarDays className="h-3.5 w-3.5" /> {nextStr}</span>
@@ -651,15 +838,18 @@ function EventCard({
             {open && (
               <div className="mt-2 flex flex-col gap-1.5 border-t border-border pt-2 text-[13px]">
                 {event.desc && (
-                  <div><span className="font-bold text-muted-foreground">About:</span> {event.desc}</div>
+                  <div dir="auto"><span className="font-bold text-muted-foreground">About:</span> {event.desc}</div>
                 )}
-                {isWeekly && event.day && (
-                  <div><span className="font-bold text-muted-foreground">Repeats:</span> Every {event.day}</div>
+                {repeat && (
+                  <div><span className="font-bold text-muted-foreground">Repeats:</span> {repeat}</div>
                 )}
-                {!isWeekly && event.date && (
+                {range && (
+                  <div><span className="font-bold text-muted-foreground">Runs:</span> {range}</div>
+                )}
+                {isOnce && event.date && (
                   <div><span className="font-bold text-muted-foreground">Date:</span> {event.date}</div>
                 )}
-                {!event.desc && !((isWeekly && event.day) || (!isWeekly && event.date)) && (
+                {!event.desc && !repeat && !range && !(isOnce && event.date) && (
                   <div className="text-muted-foreground">No extra details.</div>
                 )}
               </div>

@@ -22,6 +22,74 @@ export interface LegendEntry {
   tone: string
 }
 
+/* internal: one parsed placement on the grid */
+export interface ParsedChip {
+  item: GridItem
+  startMin: number
+  endMin: number
+  label: string
+}
+
+export interface ChipPlacement {
+  ev: ParsedChip
+  lane: number
+  /** minutes from the day's start hour where the chip begins */
+  leftMin: number
+  /** chip width in minutes */
+  widthMin: number
+}
+
+/**
+ * Layout one day's events:
+ * - events that START at the same minute sit SIDE BY SIDE, splitting the
+ *   width of their shared time span (one lane, equal slices)
+ * - staggered overlaps stack into separate lanes, as before
+ * Returns every chip with its lane, left offset (minutes) and width (minutes).
+ */
+export function packDayChips(sorted: ParsedChip[]): ChipPlacement[] {
+  // cluster by identical start time
+  const clusters: ParsedChip[][] = []
+  for (const e of sorted) {
+    const last = clusters[clusters.length - 1]
+    if (last && last[0].startMin === e.startMin) last.push(e)
+    else clusters.push([e])
+  }
+  // lane packing over clusters
+  const layerEnds: number[] = []
+  const laneOfCluster: number[] = []
+  clusters.forEach((cl, ci) => {
+    const end = Math.max(...cl.map((x) => x.endMin))
+    let li = layerEnds.findIndex((e) => e <= cl[0].startMin)
+    if (li < 0) {
+      li = layerEnds.length
+      layerEnds.push(0)
+    }
+    layerEnds[li] = end
+    laneOfCluster[ci] = li
+  })
+  const out: ChipPlacement[] = []
+  clusters.forEach((cl, ci) => {
+    const lane = laneOfCluster[ci]
+    const spanEnd = Math.max(...cl.map((x) => x.endMin))
+    const span = Math.max(1, spanEnd - cl[0].startMin)
+    cl.forEach((ev, i) => {
+      out.push({ ev, lane, leftMin: (i * span) / cl.length, widthMin: span / cl.length })
+    })
+  })
+  return out
+}
+
+/** lanes used by a day (for row sizing) */
+export function lanesOf(placements: ChipPlacement[]): number {
+  return Math.max(1, ...placements.map((p) => p.lane + 1))
+}
+
+export function parseChip(item: GridItem): ParsedChip | null {
+  const r = parseRange(item.slot)
+  if (!r) return null
+  return { item, startMin: r.startMin, endMin: r.endMin, label: r.label }
+}
+
 interface Props {
   items: GridItem[]
   legend?: LegendEntry[]
@@ -36,8 +104,9 @@ const END_HOUR = 18
 const HOUR_WIDTH = 90
 const DAY_LABEL_W = 72
 
-/* v4.7 compact chip metrics: chips are content-height (no dead space) and
-   simultaneous events stack vertically, one on top of the other. */
+/* v4.7 compact chip metrics: chips are content-height (no dead space).
+   v4.10: events that start at the same time sit SIDE BY SIDE in one lane
+   (splitting the width of their shared span) instead of stacking. */
 const CHIP_H = 52
 const CHIP_GAP = 4
 const ROW_PAD = 6
@@ -55,6 +124,11 @@ function parseRange(t: string): { startMin: number; endMin: number; label: strin
   }
 }
 
+export function chipLabel(t: string): string {
+  const r = parseRange(t)
+  return r ? r.label : String(t || '')
+}
+
 export function WeeklyGrid({
   items,
   legend,
@@ -70,12 +144,10 @@ export function WeeklyGrid({
   const hours: number[] = []
   for (let h = START_HOUR; h <= END_HOUR; h++) hours.push(h)
 
-  type Parsed = { item: GridItem; startMin: number; endMin: number; label: string }
-  const parsed: Parsed[] = []
+  const parsed: ParsedChip[] = []
   for (const it of items) {
-    const r = parseRange(it.slot)
-    if (!r) continue
-    parsed.push({ item: it, startMin: r.startMin, endMin: r.endMin, label: r.label })
+    const c = parseChip(it)
+    if (c) parsed.push(c)
   }
 
   if (!parsed.length) {
@@ -88,7 +160,7 @@ export function WeeklyGrid({
   }
 
   // Group by day
-  const byDay: Record<string, Parsed[]> = {}
+  const byDay: Record<string, ParsedChip[]> = {}
   for (const p of parsed) {
     for (const d of p.item.days) {
       ;(byDay[d] ||= []).push(p)
@@ -122,25 +194,9 @@ export function WeeklyGrid({
             const isToday = di === tday
             const dd = weekMonday ? addDays(weekMonday, di) : null
 
-            // Layer assignment: each event goes into the first layer free at
-            // its start time. Simultaneous (overlapping) events end up in
-            // different layers and stack one on top of the other, each using
-            // the full width of its time span.
-            const layers: Parsed[][] = []
-            const layerEnds: number[] = []
-            const layerOf = new Map<string, number>()
-            for (const e of evs) {
-              let li = layerEnds.findIndex((end) => end <= e.startMin)
-              if (li < 0) {
-                li = layers.length
-                layers.push([])
-                layerEnds.push(0)
-              }
-              layers[li].push(e)
-              layerEnds[li] = e.endMin
-              layerOf.set(e.item.id, li)
-            }
-            const laneCount = Math.max(1, layers.length)
+            // Side-by-side clusters + stacked lanes (see packDayChips)
+            const placements = isEmpty ? [] : packDayChips(evs)
+            const laneCount = lanesOf(placements)
             const rowH = isEmpty
               ? ROW_H_EMPTY
               : ROW_PAD * 2 + laneCount * CHIP_H + (laneCount - 1) * CHIP_GAP
@@ -166,25 +222,26 @@ export function WeeklyGrid({
                   ))}
 
                   {/* Event chips, positioned by their real start and end time.
-                      Overlapping events stack vertically (one per layer). */}
-                  {evs.map((e) => {
-                    const lane = layerOf.get(e.item.id) || 0
-                    const startOffset = e.startMin - START_HOUR * 60
-                    const duration = e.endMin - e.startMin
+                      Simultaneous events sit side by side; staggered overlaps
+                      stack into lanes. */}
+                  {placements.map((p) => {
+                    const e = p.ev
+                    const startOffset = e.startMin - START_HOUR * 60 + p.leftMin
+                    const duration = p.widthMin
                     const leftPx = (startOffset / 60) * HOUR_WIDTH
                     const widthPx = (duration / 60) * HOUR_WIDTH
 
                     const chipLeft = leftPx + 2
                     const chipWidth = widthPx - 4
-                    const chipTop = ROW_PAD + lane * (CHIP_H + CHIP_GAP)
+                    const chipTop = ROW_PAD + p.lane * (CHIP_H + CHIP_GAP)
 
                     const Icon = clubIcon(e.item.icon)?.Icon
                     const Comp: React.ElementType = onCellClick ? 'button' : 'div'
                     return (
                       <div
-                        key={e.item.id + lane}
+                        key={e.item.id + p.lane + p.leftMin}
                         className="absolute"
-                        style={{ left: chipLeft, width: chipWidth, top: chipTop, height: CHIP_H, zIndex: 10 + lane }}
+                        style={{ left: chipLeft, width: chipWidth, top: chipTop, height: CHIP_H, zIndex: 10 + p.lane }}
                       >
                         <Comp
                           onClick={onCellClick ? () => onCellClick(e.item) : undefined}
@@ -250,6 +307,122 @@ export function WeeklyGrid({
           ))}
         </div>
       )}
+    </div>
+  )
+}
+
+/* -------------------------------------------------------------------------
+   CalendarListView: the calendar as a calm day-by-day agenda. Same items,
+   same tones, no hour columns. Used by the calendar view switcher.
+   ------------------------------------------------------------------------- */
+export function CalendarListView({
+  items,
+  legend,
+  onCellClick,
+  emptyMessage = 'Nothing scheduled yet',
+  emptyHint = 'Sessions appear here as soon as they are added.',
+}: Props) {
+  const tday = new Date().getDay() === 0 ? 6 : new Date().getDay() - 1
+
+  const parsed: ParsedChip[] = []
+  for (const it of items) {
+    const c = parseChip(it)
+    if (c) parsed.push(c)
+  }
+
+  if (!parsed.length) {
+    return (
+      <div className="rounded-2xl border border-border bg-card p-10 text-center">
+        <div className="font-semibold text-foreground">{emptyMessage}</div>
+        <div className="mt-1 text-sm text-muted-foreground">{emptyHint}</div>
+      </div>
+    )
+  }
+
+  const byDay: Record<string, ParsedChip[]> = {}
+  for (const p of parsed) {
+    for (const d of p.item.days) {
+      ;(byDay[d] ||= []).push(p)
+    }
+  }
+
+  return (
+    <div className="rounded-2xl border border-border bg-card p-2 sm:p-4">
+      {/* tone legend on top, like the grid keeps it at the bottom */}
+      {legend && legend.length > 0 && (
+        <div className="mb-3 flex flex-wrap gap-x-4 gap-y-1.5 border-b border-border/60 px-1 pb-3">
+          {legend.map((l) => (
+            <span key={l.label} className="flex items-center gap-1.5 text-[11.5px] font-semibold text-muted-foreground">
+              <i className={`${l.tone} inline-block h-2 w-2 rounded-full`} style={{ background: 'var(--tone-txt)' }} />
+              {l.label}
+            </span>
+          ))}
+        </div>
+      )}
+
+      <div className="flex flex-col">
+        {DAY_KEYS.map((d, di) => {
+          const evs = (byDay[d] || []).slice().sort((a, b) => a.startMin - b.startMin)
+          if (!evs.length) return null
+          const isToday = di === tday
+          return (
+            <div key={d} className="border-b border-border/50 py-3 first:pt-1 last:border-0">
+              <div className="mb-2 flex items-baseline gap-2 px-1">
+                <span className={`text-[12px] font-extrabold uppercase tracking-wide ${isToday ? 'text-primary' : 'text-foreground'}`}>
+                  {d}
+                </span>
+                <span className="text-[11px] font-semibold text-muted-foreground">
+                  {evs.length} {evs.length === 1 ? 'session' : 'sessions'}
+                </span>
+                {isToday && (
+                  <span className="ml-auto rounded-full bg-primary/10 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-primary">
+                    Today
+                  </span>
+                )}
+              </div>
+              <div className="flex flex-col gap-1.5">
+                {evs.map((e) => {
+                  const Icon = clubIcon(e.item.icon)?.Icon
+                  const Comp: React.ElementType = onCellClick ? 'button' : 'div'
+                  return (
+                    <Comp
+                      key={e.item.id + e.startMin}
+                      onClick={onCellClick ? () => onCellClick(e.item) : undefined}
+                      className={`flex w-full items-center gap-3 rounded-xl border px-3 py-2 text-left transition ${e.item.tone} ${
+                        onCellClick ? 'hover:brightness-[1.04] hover:shadow-md' : ''
+                      }`}
+                      style={{
+                        background: 'var(--tone-bg)',
+                        borderColor: 'var(--tone-line)',
+                        color: 'var(--tone-txt)',
+                      }}
+                    >
+                      <span className="w-[104px] shrink-0 text-[11.5px] font-extrabold tabular-nums leading-tight sm:w-[120px]">
+                        {e.label}
+                      </span>
+                      <span className="min-w-0 flex-1">
+                        <span className="flex items-center gap-1.5 text-[13px] font-bold leading-tight">
+                          {Icon ? (
+                            <Icon className="h-3.5 w-3.5 shrink-0" />
+                          ) : (
+                            <i className="inline-block h-1.5 w-1.5 shrink-0 rounded-full" style={{ background: 'var(--tone-txt)' }} />
+                          )}
+                          <span className="truncate">{e.item.code}</span>
+                        </span>
+                        {(e.item.room || e.item.lead) && (
+                          <span className="mt-0.5 block truncate text-[11px] font-semibold opacity-80">
+                            {[e.item.room, e.item.lead].filter(Boolean).join(' · ')}
+                          </span>
+                        )}
+                      </span>
+                    </Comp>
+                  )
+                })}
+              </div>
+            </div>
+          )
+        })}
+      </div>
     </div>
   )
 }

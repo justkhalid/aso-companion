@@ -75,6 +75,9 @@ export const BANDS = ['Kids', 'Teens', 'Adults'] as const
    are added to the list dynamically - see roomOptionsFor) */
 export const ROOM_OPTIONS = ['Room 1', 'Room 2', 'Room 3', 'Main Hall'] as const
 
+/* small legend printed under the exports so readers know where each room is */
+export const ROOM_LEGEND = 'Room 1 is upstairs · Room 2 is downstairs'
+
 /* ---- reporting guide ---- */
 export const REPORT_SYSTEM_URL =
   'https://sites.google.com/view/espaceamericainoujda/accueil/teacher-volunteer-intern-trainer'

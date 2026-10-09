@@ -81,6 +81,9 @@ export interface ClassEntry {
   time: string // '14:00-16:00'
 }
 
+/* how often a club or event repeats */
+export type Freq = 'weekly' | 'biweekly' | 'monthly'
+
 export interface Club {
   id: string
   name: string
@@ -94,19 +97,27 @@ export interface Club {
   poster?: string
   icon?: string // key from CLUB_ICONS, rendered on calendar chips
   placeholder?: boolean
+  freq?: Freq // how often the sessions repeat (default weekly)
+  from?: string // ISO date the series starts (optional)
+  until?: string // ISO date the series ends (optional)
 }
 
-export type EventRecur = 'weekly' | 'none'
+/* legacy 'none' is treated as 'once' everywhere */
+export type EventRecur = 'once' | 'weekly' | 'biweekly' | 'monthly' | 'none'
 
 export interface EventEntry {
   id: string
   title: string
   desc: string
   recur: EventRecur
-  day?: string
-  date?: string
+  day?: string // weekday key for repeating events
+  date?: string // ISO date for one-off events
   time: string
   place: string
+  from?: string // ISO date the series starts (repeating events)
+  until?: string // ISO date the series ends (repeating events)
+  poster?: string
+  icon?: string // key from CLUB_ICONS, rendered on calendar chips
 }
 
 export interface Volunteer {
@@ -174,3 +185,6 @@ export type View =
   | 'intern-volunteers'
 
 export type Side = 'elt' | 'intern'
+
+export type ClubViewMode = 'list' | 'grid'
+export type CalendarViewMode = 'grid' | 'list'

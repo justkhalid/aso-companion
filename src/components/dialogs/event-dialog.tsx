@@ -13,10 +13,24 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
-import { DayPills, TimeRangeSelect, PickOrType } from '@/components/forms/form-controls'
+import {
+  DayPills,
+  TimeRangeSelect,
+  PickOrType,
+  IconPicker,
+  IconPreview,
+  PosterUploader,
+} from '@/components/forms/form-controls'
 import { useStore } from '@/lib/store'
 import { uid, roomOptionsFor } from '@/lib/app-utils'
 import type { EventEntry, EventRecur } from '@/lib/types'
+
+const RECUR_OPTIONS: { v: EventRecur; label: string }[] = [
+  { v: 'once', label: 'One-off date' },
+  { v: 'weekly', label: 'Every week' },
+  { v: 'biweekly', label: 'Every 2 weeks' },
+  { v: 'monthly', label: 'Once a month' },
+]
 
 export function EventDialog({
   open,
@@ -34,39 +48,61 @@ export function EventDialog({
 
   const [title, setTitle] = React.useState('')
   const [desc, setDesc] = React.useState('')
-  const [recur, setRecur] = React.useState<EventRecur>('none')
+  const [recur, setRecur] = React.useState<EventRecur>('once')
   const [day, setDay] = React.useState('')
   const [date, setDate] = React.useState('')
+  const [from, setFrom] = React.useState('')
+  const [until, setUntil] = React.useState('')
   const [time, setTime] = React.useState('')
   const [place, setPlace] = React.useState('')
+  const [poster, setPoster] = React.useState<string | undefined>(undefined)
+  const [icon, setIcon] = React.useState<string | undefined>(undefined)
 
   React.useEffect(() => {
     if (!open) return
     setTitle(event?.title || '')
     setDesc(event?.desc || '')
-    setRecur(event?.recur || 'none')
+    const r = !event?.recur || event.recur === 'none' ? 'once' : event.recur
+    setRecur(r)
     setDay(event?.day || '')
     setDate(event?.date || '')
+    setFrom(event?.from || '')
+    setUntil(event?.until || '')
     setTime(event?.time || '')
     setPlace(event?.place || '')
+    setPoster(event?.poster)
+    setIcon(event?.icon)
   }, [open, event])
 
   const roomOptions = React.useMemo(() => roomOptionsFor(state), [state])
+  const repeating = recur !== 'none' && recur !== 'once'
 
   const save = () => {
     if (!title.trim()) {
       toast('Give the event a title', false)
       return
     }
+    if (repeating && !day) {
+      toast('Pick the day of the week', false)
+      return
+    }
+    if (!repeating && !date) {
+      toast('Pick the date of the event', false)
+      return
+    }
     const entry: EventEntry = {
       id: event?.id || uid(),
       title: title.trim(),
       desc: desc.trim(),
-      recur,
-      day: recur === 'weekly' ? day : undefined,
-      date: recur === 'none' ? date : undefined,
+      recur, // 'none' is legacy; new events always save a modern value
+      day: repeating ? day : undefined,
+      date: repeating ? undefined : date,
+      from: repeating && from ? from : undefined,
+      until: repeating && until ? until : undefined,
       time: time.trim() || '16:00-18:00', // fall back to the shown picker defaults
       place: place.trim(),
+      poster,
+      icon,
     }
     patch((draft) => {
       if (isNew) draft.events.push(entry)
@@ -81,49 +117,54 @@ export function EventDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-md">
+      <DialogContent className="max-h-[92vh] overflow-y-auto scroll-thin sm:max-w-md">
         <DialogHeader>
           <DialogTitle>{isNew ? 'New event' : 'Edit event'}</DialogTitle>
           <DialogDescription>
-            One-off events show with their date, weekly events repeat every week.
+            One-off events show with their date. Repeating events choose how often they come back and for how long they run.
           </DialogDescription>
         </DialogHeader>
         <div className="flex flex-col gap-4">
           <div className="flex flex-col gap-1.5">
             <Label htmlFor="ev-title">Title</Label>
-            <Input id="ev-title" value={title} onChange={(e) => setTitle(e.target.value)} />
+            <Input id="ev-title" value={title} onChange={(e) => setTitle(e.target.value)} dir="auto" />
           </div>
           <div className="flex flex-col gap-1.5">
             <Label htmlFor="ev-desc">Description</Label>
-            <Textarea id="ev-desc" rows={2} value={desc} onChange={(e) => setDesc(e.target.value)} />
+            <Textarea id="ev-desc" rows={2} value={desc} onChange={(e) => setDesc(e.target.value)} dir="auto" />
           </div>
 
           <div className="flex flex-col gap-1.5">
             <Label>Repeats</Label>
             <div className="grid grid-cols-2 gap-1.5">
-              <SegmentedButton
-                active={recur === 'none'}
-                onClick={() => setRecur('none')}
-              >
-                One-off date
-              </SegmentedButton>
-              <SegmentedButton
-                active={recur === 'weekly'}
-                onClick={() => setRecur('weekly')}
-              >
-                Weekly
-              </SegmentedButton>
+              {RECUR_OPTIONS.map((o) => (
+                <SegmentedButton key={o.v} active={recur === o.v} onClick={() => setRecur(o.v)}>
+                  {o.label}
+                </SegmentedButton>
+              ))}
             </div>
           </div>
 
-          {recur === 'weekly' ? (
-            <div className="flex flex-col gap-1.5">
-              <Label>Day of week</Label>
-              <DayPills
-                value={day ? [day] : []}
-                onChange={(ds) => setDay(ds[ds.length - 1] || '')}
-              />
-            </div>
+          {repeating ? (
+            <>
+              <div className="flex flex-col gap-1.5">
+                <Label>Day of week</Label>
+                <DayPills
+                  value={day ? [day] : []}
+                  onChange={(ds) => setDay(ds[ds.length - 1] || '')}
+                />
+              </div>
+              <div className="grid grid-cols-2 gap-2">
+                <div className="flex flex-col gap-1.5">
+                  <Label htmlFor="ev-from">Runs from (optional)</Label>
+                  <Input id="ev-from" type="date" value={from} onChange={(e) => setFrom(e.target.value)} />
+                </div>
+                <div className="flex flex-col gap-1.5">
+                  <Label htmlFor="ev-until">Until (optional)</Label>
+                  <Input id="ev-until" type="date" value={until} onChange={(e) => setUntil(e.target.value)} />
+                </div>
+              </div>
+            </>
           ) : (
             <div className="flex flex-col gap-1.5">
               <Label htmlFor="ev-date">Date</Label>
@@ -146,6 +187,21 @@ export function EventDialog({
               placeholder="Pick a place"
               emptyLabel="No place set"
             />
+          </div>
+
+          <div className="flex flex-col gap-2">
+            <Label>Chip icon</Label>
+            <IconPicker value={icon} onChange={setIcon} />
+            {icon && (
+              <span className="flex items-center gap-1.5 text-xs font-semibold text-muted-foreground">
+                Shows on the calendar chip: <IconPreview icon={icon} className="text-primary" />
+              </span>
+            )}
+          </div>
+
+          <div className="flex flex-col gap-2">
+            <Label>Poster</Label>
+            <PosterUploader value={poster} onChange={setPoster} />
           </div>
         </div>
         <DialogFooter className="gap-2">

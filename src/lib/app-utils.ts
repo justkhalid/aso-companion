@@ -169,23 +169,110 @@ export function spotlightOf(wi: number): string {
   return ['L', 'S', 'R', 'W'][((wi % 4) + 4) % 4]
 }
 
-/* ---- events ---- */
+/* ---- events ----
+   nextOccurrence respects the repeat frequency (weekly / bi-weekly / once a
+   month), the optional start anchor (from) and the end of the series
+   (until). Legacy events with recur 'none' are treated as one-off. */
+export function isOnceEvent(e: Pick<EventEntry, 'recur'>): boolean {
+  return e.recur === 'none' || e.recur === 'once'
+}
+
+function freqWeeks(recur: EventEntry['recur']): number {
+  return recur === 'biweekly' ? 2 : recur === 'monthly' ? 4 : 1
+}
+
 export function nextOccurrence(e: EventEntry, ref?: Date): Date | null {
-  if (e.recur === 'none') {
-    return e.date ? parseISO(e.date) : null
+  if (isOnceEvent(e)) {
+    if (!e.date) return null
+    const d = parseISO(e.date)
+    // past one-off events are no longer "upcoming"
+    return d.getTime() < startOfDay(ref || new Date()).getTime() ? null : d
   }
   const di = DAY_KEYS.indexOf((e.day || '') as (typeof DAY_KEYS)[number])
   if (di < 0) return null
   const today = startOfDay(ref || new Date())
-  const cur = today.getDay() === 0 ? 6 : today.getDay() - 1 // Mon = 0
-  return addDays(today, (di - cur + 7) % 7)
+  // never before the anchor date of the series
+  let base = today
+  if (e.from) {
+    const from = parseISO(e.from)
+    if (from.getTime() > base.getTime()) base = from
+  }
+  const baseCur = base.getDay() === 0 ? 6 : base.getDay() - 1 // Mon = 0
+  let candidate = addDays(base, (di - baseCur + 7) % 7)
+  const step = freqWeeks(e.recur) // 1, 2 or 4 weeks between occurrences
+  if (step > 1) {
+    // the anchor fixes which weeks are "on"; walk forward until the week
+    // distance from the anchor is a multiple of the step
+    const anchor = e.from ? parseISO(e.from) : null
+    for (let i = 0; i < step; i++) {
+      if (!anchor) break
+      const anchorCur = anchor.getDay() === 0 ? 6 : anchor.getDay() - 1
+      const anchorDay = addDays(anchor, (di - anchorCur + 7) % 7)
+      const weeks = Math.round((candidate.getTime() - anchorDay.getTime()) / 604800000)
+      if (weeks % step === 0) break
+      candidate = addDays(candidate, 7)
+    }
+  }
+  if (e.until) {
+    const until = parseISO(e.until)
+    if (candidate.getTime() > until.getTime()) return null // series over
+  }
+  return candidate
 }
 
 export function fmtEventWhen(e: EventEntry): string {
-  if (e.recur === 'none' && e.date) {
-    return fmtD(parseISO(e.date), { weekday: 'short', day: 'numeric', month: 'short' })
+  if (isOnceEvent(e)) {
+    return e.date ? fmtD(parseISO(e.date), { weekday: 'short', day: 'numeric', month: 'short' }) : 'One-off'
   }
+  if (e.recur === 'biweekly') return 'Every 2 weeks'
+  if (e.recur === 'monthly') return 'Once a month'
   return 'Every ' + (DAY_FULL[e.day || ''] || e.day || 'week')
+}
+
+/* long form for the details line: "Every Monday · every 2 weeks · until 30 Jun 2026" */
+export function fmtRepeat(e: Pick<EventEntry, 'recur' | 'day' | 'from' | 'until'>): string {
+  if (isOnceEvent(e as EventEntry)) return ''
+  const bits: string[] = []
+  if (e.day) bits.push('Every ' + (DAY_FULL[e.day] || e.day))
+  if (e.recur === 'biweekly') bits.push('every 2 weeks')
+  if (e.recur === 'monthly') bits.push('once a month')
+  if (e.until) bits.push('until ' + fmtD(parseISO(e.until), { day: 'numeric', month: 'short', year: 'numeric' }))
+  return bits.join(' · ')
+}
+
+/* repeat frequency label shared by clubs and events */
+export function fmtFreq(recur: string | undefined): string {
+  return recur === 'biweekly' ? 'Every 2 weeks' : recur === 'monthly' ? 'Once a month' : 'Every week'
+}
+
+/* runs-from/until line shared by clubs and events, e.g. "Runs 12 Jan to 30 May" */
+export function fmtRange(from?: string, until?: string): string {
+  if (!from && !until) return ''
+  const a = from ? fmtD(parseISO(from), { day: 'numeric', month: 'short' }) : ''
+  const b = until ? fmtD(parseISO(until), { day: 'numeric', month: 'short', year: 'numeric' }) : ''
+  if (a && b) return 'Runs ' + a + ' to ' + b
+  if (a) return 'Starts ' + a
+  return 'Until ' + b
+}
+
+/* sort order for the All clubs section: Monday first, Sunday last,
+   then by start time. Clubs with no day go last. */
+export function clubDayOrder(c: { days?: string[]; time?: string }): number {
+  const days = c.days || []
+  if (!days.length) return 99
+  let best = 99
+  for (const d of days) {
+    const i = DAY_KEYS.indexOf(d as (typeof DAY_KEYS)[number])
+    if (i >= 0 && i < best) best = i
+  }
+  const t = c.time || '99:99'
+  const m = t.match(/^(\d{1,2})[:.](\d{2})/)
+  return best * 10000 + (m ? +m[1] * 60 + +m[2] : 9999)
+}
+
+/* true when the string contains Arabic / Hebrew characters (right-to-left) */
+export function isRTL(s: string): boolean {
+  return /[\u0590-\u05FF\u0600-\u06FF\u0750-\u077F\u08A0-\u08FF\uFB50-\uFDFF\uFE70-\uFEFF]/.test(String(s || ''))
 }
 
 /* ---- misc ---- */

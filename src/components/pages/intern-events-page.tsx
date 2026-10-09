@@ -3,7 +3,7 @@
 import * as React from 'react'
 import { Plus, Pencil, Trash2, CalendarDays, Clock, MapPin } from 'lucide-react'
 import { useStore } from '@/lib/store'
-import { fmtEventWhen, nextOccurrence, fmtD } from '@/lib/app-utils'
+import { fmtEventWhen, nextOccurrence, fmtD, isOnceEvent } from '@/lib/app-utils'
 import { PageHead, EmptyState, Chip } from '@/components/ui-bits'
 import { Button } from '@/components/ui/button'
 import { EventDialog } from '@/components/dialogs/event-dialog'
@@ -44,10 +44,10 @@ export function InternEventsPage() {
           {list.map(({ e, d }) => (
             <div key={e.id} className="rounded-2xl border border-border bg-card p-4 shadow-sm">
               <div className="mb-1.5 flex items-center gap-2">
-                <div className="flex-1 font-bold">{e.title}</div>
-                <Chip tone={e.recur === 'weekly' ? 'gold' : 'primary'}>{fmtEventWhen(e)}</Chip>
+                <div className="flex-1 font-bold" dir="auto">{e.title}</div>
+                <Chip tone={isOnceEvent(e) ? 'primary' : 'gold'}>{fmtEventWhen(e)}</Chip>
               </div>
-              {e.desc && <div className="text-sm text-muted-foreground">{e.desc}</div>}
+              {e.desc && <div className="text-sm text-muted-foreground" dir="auto">{e.desc}</div>}
               <div className="mt-1.5 flex flex-wrap gap-x-3 gap-y-1 text-xs font-semibold text-muted-foreground">
                 {d && <span className="inline-flex items-center gap-1"><CalendarDays className="h-3.5 w-3.5" /> {fmtD(d, { weekday: 'long', day: 'numeric', month: 'long' })}</span>}
                 {e.time && <span className="inline-flex items-center gap-1"><Clock className="h-3.5 w-3.5" /> {e.time}</span>}

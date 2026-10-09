@@ -21,8 +21,10 @@ import {
   nextOccurrence,
   fmtEventWhen,
   greeting,
+  isOnceEvent,
+  parseISO,
 } from '@/lib/app-utils'
-import { DAY_FULL } from '@/lib/constants'
+import { DAY_FULL, DAY_KEYS, ROOM_LEGEND } from '@/lib/constants'
 import { WeeklyGrid, type GridItem, type LegendEntry } from '@/components/weekly-grid'
 import { ClassDialog } from '@/components/dialogs/class-dialog'
 import { CalendarExportMenu } from '@/components/calendar-export'
@@ -92,6 +94,36 @@ export function HomePage({ admin }: { admin: boolean }) {
     tone: toneClassForClub(state, c.id),
   }))
 
+  // events join the clubs grid: repeating on their weekday, one-off on the
+  // weekday of their date, gold chips so they read as special
+  const homeEventItems: GridItem[] = (state.events || [])
+    .map((e) => {
+      let day = ''
+      if (!isOnceEvent(e)) day = e.day || ''
+      else if (e.date) {
+        const d = parseISO(e.date)
+        day = DAY_KEYS[d.getDay() === 0 ? 6 : d.getDay() - 1] || ''
+      }
+      if (!day || !e.time) return null
+      return {
+        id: e.id,
+        days: [day],
+        slot: e.time,
+        code: e.title,
+        meta: '',
+        lead: '',
+        room: e.place || '',
+        icon: e.icon || 'calendar',
+        tone: 'tone-7',
+      }
+    })
+    .filter(Boolean) as GridItem[]
+  const homeClubItems = [...clubItems, ...homeEventItems]
+  const homeClubLegend = [
+    ...clubLegend,
+    ...(homeEventItems.length ? [{ label: 'Special events', tone: 'tone-7' } as LegendEntry] : []),
+  ]
+
   // today's schedule
   const tKey = todayKey()
   type TodayItem = { mins: number; title: string; sub: string; kind: 'class' | 'club' | 'event' }
@@ -145,6 +177,7 @@ export function HomePage({ admin }: { admin: boolean }) {
     subtitle: (state.settings.institute || '') + ' - ' + (state.settings.year || '') + ' - ' + (state.classes || []).length + ' classes',
     items: classItems,
     legend: classLegend,
+    rooms: ROOM_LEGEND,
   })
 
   return (
@@ -256,8 +289,8 @@ export function HomePage({ admin }: { admin: boolean }) {
           }
         />
         <div ref={clubGridRef} className="rounded-2xl bg-card">
-          {clubItems.length ? (
-            <WeeklyGrid items={clubItems} legend={clubLegend} emptyMessage="No club sessions yet" />
+          {homeClubItems.length ? (
+            <WeeklyGrid items={homeClubItems} legend={homeClubLegend} emptyMessage="No club sessions yet" />
           ) : (
             <EmptyState icon={<Sparkles className="h-5 w-5" />} title="No club sessions yet" hint="Club sessions appear here as soon as they are scheduled." />
           )}
@@ -274,7 +307,7 @@ export function HomePage({ admin }: { admin: boolean }) {
                   <Sparkles className="h-4 w-4" />
                 </div>
                 <div className="flex-1">
-                  <div className="font-semibold">{e.title}</div>
+                  <div className="font-semibold" dir="auto">{e.title}</div>
                   <div className="text-sm text-muted-foreground">
                     {fmtD(d!, { weekday: 'long', day: 'numeric', month: 'long' })}
                     {e.time ? ` · ${e.time}` : ''}
@@ -320,7 +353,7 @@ export function HomePage({ admin }: { admin: boolean }) {
                   )}
                 </div>
                 <div className="flex-1">
-                  <div className="font-semibold">{it.title}</div>
+                  <div className="font-semibold" dir="auto">{it.title}</div>
                   <div className="text-sm text-muted-foreground">{it.sub}</div>
                 </div>
                 <Chip tone={it.kind === 'event' ? 'gold' : it.kind === 'club' ? 'primary' : 'default'}>

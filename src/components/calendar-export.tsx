@@ -1,7 +1,7 @@
 'use client'
 
 import * as React from 'react'
-import { Download, LayoutGrid, Image as ImageIcon, ListOrdered, FileText, FileSpreadsheet, ChevronDown, Loader2 } from 'lucide-react'
+import { Download, LayoutGrid, Image as ImageIcon, CalendarRange, FileText, FileSpreadsheet, ChevronDown, Loader2 } from 'lucide-react'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -16,18 +16,18 @@ import { PngPreviewSheet, useCanvasPngPreview } from '@/components/png-preview-s
 import {
   renderTimetablePNG,
   renderPosterPNG,
-  renderListPNG,
+  renderWeekStripPNG,
   type ExportOptions,
 } from '@/lib/export-canvas'
 import { exportCalendarGridDoc, exportCalendarListDoc } from '@/lib/export-word'
 
-export type ExportVariant = 'grid' | 'poster' | 'list' | 'word-grid' | 'word-list'
+export type ExportVariant = 'grid' | 'poster' | 'strip' | 'word-grid' | 'word-list'
 
 /**
  * One menu, five versions of the calendar:
- *  - Weekly grid PNG  (the classic timetable)
+ *  - Weekly grid PNG  (the classic timetable, days as rows)
  *  - Poster PNG       (bold A4 wall poster)
- *  - Agenda list PNG  (minimal print-friendly list)
+ *  - Week strip PNG   (day columns planner, sessions float at their time)
  *  - Word table .doc  (landscape, editable, sessions span hour cells)
  *  - Word handout .doc(portrait, one compact table per day)
  *
@@ -49,8 +49,8 @@ export function CalendarExportMenu({
 
   const runPng = async (kind: ExportVariant) => {
     const opts = buildOpts()
-    const suffix = kind === 'grid' ? 'HD' : kind === 'poster' ? 'Poster' : 'List'
-    await png.preview(opts, baseName + '_' + suffix + '.png', kind === 'grid' ? renderTimetablePNG : kind === 'poster' ? renderPosterPNG : renderListPNG)
+    const suffix = kind === 'grid' ? 'HD' : kind === 'poster' ? 'Poster' : 'WeekStrip'
+    await png.preview(opts, baseName + '_' + suffix + '.png', kind === 'grid' ? renderTimetablePNG : kind === 'poster' ? renderPosterPNG : renderWeekStripPNG)
   }
 
   const runWord = async (kind: ExportVariant) => {
@@ -71,7 +71,6 @@ export function CalendarExportMenu({
       setBusyKind(null)
     }
   }
-
   const trigger =
     variant === 'pill' ? (
       <button
@@ -113,11 +112,11 @@ export function CalendarExportMenu({
             busy={busyKind === 'poster'}
           />
           <MenuRow
-            icon={<ListOrdered className="h-4 w-4" />}
-            title="Agenda list"
-            hint="Minimal day-by-day list, print-ready"
-            onClick={() => void run('list')}
-            busy={busyKind === 'list'}
+            icon={<CalendarRange className="h-4 w-4" />}
+            title="Week strip"
+            hint="Day columns planner, sessions at their time"
+            onClick={() => void run('strip')}
+            busy={busyKind === 'strip'}
           />
           <DropdownMenuSeparator />
           <DropdownMenuLabel className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground">
