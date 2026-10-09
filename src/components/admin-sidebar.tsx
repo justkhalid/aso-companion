@@ -123,7 +123,7 @@ function SidebarBody({ onNavigate }: { onNavigate?: () => void }) {
       <div className="flex items-center gap-2 px-4 py-3.5">
         <Logo size={30} />
         <div className="leading-tight">
-          <div className="text-[15px] font-extrabold tracking-tight">ASO Companion</div>
+          <div className="font-display text-[16px] font-extrabold tracking-tight">ASO Companion</div>
           <div className="text-[11px] text-muted-foreground">{state.settings.institute}</div>
         </div>
       </div>
@@ -171,7 +171,7 @@ function SidebarBody({ onNavigate }: { onNavigate?: () => void }) {
                       className={cn(
                         'flex items-center gap-2.5 rounded-full px-2.5 py-2 text-left text-[13.5px] font-semibold transition',
                         active
-                          ? 'bg-primary text-primary-foreground'
+                          ? 'aso-nav-pill'
                           : 'text-foreground/80 hover:bg-secondary',
                       )}
                     >
@@ -205,7 +205,7 @@ function SidebarBody({ onNavigate }: { onNavigate?: () => void }) {
             }}
             className={cn(
               'flex items-center gap-2.5 rounded-full px-2.5 py-2 text-left text-[13.5px] font-semibold transition',
-              view === 'settings' ? 'bg-primary text-primary-foreground' : 'text-foreground/80 hover:bg-secondary',
+              view === 'settings' ? 'aso-nav-pill' : 'text-foreground/80 hover:bg-secondary',
             )}
           >
             <Settings className="h-4 w-4" /> Settings

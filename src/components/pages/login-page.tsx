@@ -36,7 +36,7 @@ export function LoginPage() {
       <div className="aso-fade-up w-full max-w-sm">
         <div className="flex flex-col items-center text-center">
           <Logo size={72} />
-          <h1 className="mt-4 text-2xl font-extrabold tracking-tight">ASO Companion</h1>
+          <h1 className="font-display mt-4 text-3xl font-extrabold tracking-tight">ASO Companion</h1>
           <p className="mt-1 text-sm text-muted-foreground">
             American Space Oujda · admin sign in
           </p>

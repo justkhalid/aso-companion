@@ -271,8 +271,8 @@ export async function renderTimetablePNG(o: ExportOptions): Promise<Blob | null>
       }
     })
 
-    // Event chips: same-time events sit SIDE BY SIDE inside one lane;
-    // staggered overlaps stack (see packDayChips).
+    // Event chips: simultaneous events stack one on top of the other, each
+    // using the full width of its time span (side-by-side is poster-only).
     for (const p of lay.placements) {
       const e = p.ev
       const startOffset = e.startMin - START_HOUR * 60 + p.leftMin
@@ -545,10 +545,10 @@ export async function renderPosterPNG(o: ExportOptions): Promise<Blob | null> {
 }
 
 /**
- * Week strip variant (v4.10, replaces the old agenda list): a planner with
- * one column per day. Sessions are colored pills floating at their real time
- * on a shared hour ruler, so the shape of each day reads at a glance.
- * Creative, symmetric and completely different from the grid and poster.
+ * Week strip variant: a symmetric grid of day cards. Four cards on the top
+ * row, three centered below; every card lists its sessions as calm rows
+ * (tone dot, time, name, room · lead). Equal heights per row keep the whole
+ * sheet perfectly symmetric - no hour ruler, no pills, nothing wobbly.
  */
 export async function renderWeekStripPNG(o: ExportOptions): Promise<Blob | null> {
   const logo = await loadLogo()
@@ -557,28 +557,27 @@ export async function renderWeekStripPNG(o: ExportOptions): Promise<Blob | null>
 
   const W = 1400
   const PAD = 52
-  const RULER_W = 58 // shared hour labels on the left
-  const COL_GAP = 14
-  const DAY_HEAD_H = 56
-  const HOUR_H = 56 // vertical pixels per hour
-  const FOOTER_H = 64 + (o.legend.length ? 36 : 0)
+  const COLS = 4
+  const GAP = 18
+  const HEAD_H = 52 // day name + count inside the card
+  const ROW_H = 40 // one session row
+  const CARD_PAD = 12
 
-  // trim the hour window to the sessions that exist (min 6 hours)
-  let START_HOUR = 9
-  let END_HOUR = 18
-  if (parsed.length) {
-    const minStart = Math.min(...parsed.map((x) => x.startMin))
-    const maxEnd = Math.max(...parsed.map((x) => x.endMin))
-    START_HOUR = Math.max(0, Math.floor(minStart / 60))
-    END_HOUR = Math.min(21, Math.max(Math.ceil(maxEnd / 60), START_HOUR + 6))
-  }
-  const hours: number[] = []
-  for (let h = START_HOUR; h <= END_HOUR; h++) hours.push(h)
-  const bodyH = hours.length * HOUR_H
+  const days = DAY_KEYS.map((d) => ({
+    d,
+    evs: (byDay[d] || []).slice().sort((a, b) => a.startMin - b.startMin),
+  }))
 
-  const cols = DAY_KEYS.length
-  const colW = (W - PAD * 2 - RULER_W - COL_GAP * (cols - 1)) / cols
-  const H = 118 + 26 + DAY_HEAD_H + bodyH + FOOTER_H
+  const cardW = (W - PAD * 2 - GAP * (COLS - 1)) / COLS
+  const rows: (typeof days)[] = []
+  for (let i = 0; i < days.length; i += COLS) rows.push(days.slice(i, i + COLS))
+  // every card in a row shares the tallest card's height: symmetric rows
+  const rowHs = rows.map((r) =>
+    Math.max(...r.map((day) => HEAD_H + Math.max(1, day.evs.length) * ROW_H + CARD_PAD * 2)),
+  )
+
+  const gridH = rowHs.reduce((s, h) => s + h + GAP, -GAP)
+  const H = 118 + 24 + gridH + 72 + (o.legend.length ? 36 : 0)
 
   const SCALE = 2
   const cv = document.createElement('canvas')
@@ -591,120 +590,95 @@ export async function renderWeekStripPNG(o: ExportOptions): Promise<Blob | null>
 
   const headEnd = drawHeader(ctx, o, logo, W, PAD, 34, 16, 64)
 
-  const bodyTop = headEnd + 26 + DAY_HEAD_H
-  const bodyBottom = bodyTop + bodyH
-  const gridL = PAD + RULER_W
+  let y = headEnd + 24
+  rows.forEach((row, ri) => {
+    const rowH = rowHs[ri]
+    // center the cards of this row (last row has fewer cards)
+    const total = row.length * cardW + (row.length - 1) * GAP
+    let x = (W - total) / 2
 
-  /* body backdrop: one soft card behind all columns */
-  ctx.fillStyle = '#F6F6F8'
-  rrPath(ctx, PAD, headEnd + 26, W - PAD * 2, DAY_HEAD_H + bodyH + 8, 18)
-  ctx.fill()
+    for (const day of row) {
+      const n = Math.max(1, day.evs.length)
+      const bodyH = HEAD_H + n * ROW_H + CARD_PAD * 2
 
-  /* horizontal hour lines + shared ruler labels */
-  ctx.textAlign = 'right'
-  hours.forEach((h, i) => {
-    const ly = bodyTop + i * HOUR_H
-    ctx.strokeStyle = 'rgba(60,60,67,.08)'
-    ctx.beginPath(); ctx.moveTo(gridL, ly + .5); ctx.lineTo(W - PAD, ly + .5); ctx.stroke()
-    ctx.fillStyle = '#A6A6AD'
-    ctx.font = '700 12px ' + FONT
-    const label = String(h).padStart(2, '0') + ':00'
-    ctx.fillText(label, PAD + RULER_W - 12, ly + 16)
-    if (i === hours.length - 1) {
-      // last boundary line at the bottom edge
+      // card
+      ctx.fillStyle = '#FBFCFE'
+      rrPath(ctx, x, y, cardW, rowH, 16)
+      ctx.fill()
       ctx.strokeStyle = 'rgba(60,60,67,.12)'
-      ctx.beginPath(); ctx.moveTo(gridL, bodyBottom + .5); ctx.lineTo(W - PAD, bodyBottom + .5); ctx.stroke()
-    }
-  })
-  ctx.textAlign = 'left'
+      ctx.lineWidth = 1
+      rrPath(ctx, x, y, cardW, rowH, 16)
+      ctx.stroke()
 
-  /* day columns */
-  const days = DAY_KEYS.map((d) => ({
-    d,
-    evs: (byDay[d] || []).slice().sort((a, b) => a.startMin - b.startMin),
-  }))
+      // day head, centered
+      ctx.textAlign = 'center'
+      ctx.fillStyle = day.evs.length ? '#1C1C1E' : '#B9B9C0'
+      ctx.font = '800 14.5px ' + FONT
+      ctx.fillText(DAY_FULL[day.d] || day.d, x + cardW / 2, y + 22)
+      ctx.fillStyle = day.evs.length ? '#8A8A90' : '#C7C7CC'
+      ctx.font = '600 11px ' + FONT
+      ctx.fillText(day.evs.length ? day.evs.length + (day.evs.length === 1 ? ' session' : ' sessions') : 'free day', x + cardW / 2, y + 38)
+      ctx.textAlign = 'left'
 
-  days.forEach((day, ci) => {
-    const x = gridL + ci * (colW + COL_GAP)
+      // head divider
+      ctx.strokeStyle = 'rgba(60,60,67,.08)'
+      ctx.beginPath(); ctx.moveTo(x + 14, y + HEAD_H - 6 + .5); ctx.lineTo(x + cardW - 14, y + HEAD_H - 6 + .5); ctx.stroke()
 
-    // day head: name + session count
-    ctx.fillStyle = day.evs.length ? '#1C1C1E' : '#B9B9C0'
-    ctx.font = '800 15px ' + FONT
-    ctx.textAlign = 'center'
-    ctx.fillText(DAY_FULL[day.d] || day.d, x + colW / 2, headEnd + 26 + 22)
-    ctx.fillStyle = day.evs.length ? '#8A8A90' : '#C7C7CC'
-    ctx.font = '600 11.5px ' + FONT
-    ctx.fillText(day.evs.length ? String(day.evs.length) : '-', x + colW / 2, headEnd + 26 + 40)
-    ctx.textAlign = 'left' // pills below draw left-aligned inside their box
+      if (!day.evs.length) {
+        ctx.fillStyle = '#B9B9C0'
+        ctx.font = '600 12.5px ' + FONT
+        ctx.textAlign = 'center'
+        ctx.fillText('No sessions', x + cardW / 2, y + HEAD_H + ROW_H / 2 + 4)
+        ctx.textAlign = 'left'
+      } else {
+        day.evs.forEach((e, i2) => {
+          const ry = y + HEAD_H + 6 + i2 * ROW_H
+          const cy = ry + ROW_H / 2
+          const tone = TONE_RGB[toneIdx(e.item.tone)] || TONE_RGB[0]
 
-    // column panel
-    ctx.fillStyle = 'rgba(255,255,255,.85)'
-    rrPath(ctx, x, bodyTop - 4, colW, bodyH + 8, 14)
-    ctx.fill()
-
-    // cluster same-time sessions: they split the column width side by side
-    type Cluster = { label: string; evs: ParsedExport[] }
-    const clusters: Cluster[] = []
-    for (const e of day.evs) {
-      const last = clusters[clusters.length - 1]
-      if (last && last.label === e.label) last.evs.push(e)
-      else clusters.push({ label: e.label, evs: [e] })
-    }
-
-    for (const cl of clusters) {
-      const n = cl.evs.length
-      const innerW = colW - 12
-      const sliceW = innerW / n
-      cl.evs.forEach((e, i) => {
-        const top = bodyTop + ((e.startMin - START_HOUR * 60) / 60) * HOUR_H
-        const bot = bodyTop + ((e.endMin - START_HOUR * 60) / 60) * HOUR_H
-        const bh = Math.max(34, bot - top - 4)
-        const bx = x + 6 + i * sliceW
-        const bw = sliceW - (n > 1 ? 4 : 0)
-        const tone = TONE_RGB[toneIdx(e.item.tone)] || TONE_RGB[0]
-
-        ctx.fillStyle = tone.bg
-        rrPath(ctx, bx, top, bw, bh, 10)
-        ctx.fill()
-        ctx.strokeStyle = tone.line
-        ctx.lineWidth = 1
-        rrPath(ctx, bx, top, bw, bh, 10)
-        ctx.stroke()
-
-        // accent bar
-        ctx.save()
-        rrPath(ctx, bx, top, bw, bh, 10)
-        ctx.clip()
-        ctx.globalAlpha = .5
-        ctx.fillStyle = tone.txt
-        ctx.fillRect(bx, top + 5, 4, Math.max(8, bh - 10))
-        ctx.restore()
-        ctx.globalAlpha = 1
-
-        const padL = 15
-        const twoLine = e.item.room || e.item.lead
-        ctx.fillStyle = '#1C1C1E'
-        if (twoLine) {
-          ctx.font = '800 13px ' + FONT
-          ctx.fillText(clipTo(ctx, e.item.code, bw - padL * 2 - 6), bx + padL, top + 19)
-          ctx.fillStyle = '#66666E'
-          ctx.font = '600 11px ' + FONT
-          const meta = [e.label, e.item.room, e.item.lead].filter(Boolean).join(' · ')
-          ctx.fillText(clipTo(ctx, meta, bw - padL * 2 - 6), bx + padL, top + 34)
-        } else {
-          ctx.font = '800 13px ' + FONT
-          ctx.fillText(clipTo(ctx, e.item.code, bw - padL * 2 - 6), bx + padL, top + bh / 2 + 4)
+          // tone dot
           ctx.fillStyle = tone.txt
-          ctx.font = '700 10.5px ' + FONT
-          ctx.fillText(clipTo(ctx, e.label, bw - padL * 2 - 6), bx + padL, top + bh / 2 + 18)
-        }
-      })
+          ctx.beginPath(); ctx.arc(x + 20, cy - 8, 3.5, 0, 7); ctx.fill()
+
+          // line 1: time (tone) + room right
+          ctx.fillStyle = tone.txt
+          ctx.font = '800 11.5px ' + FONT
+          ctx.fillText(e.label, x + 30, cy - 4)
+          if (e.item.room) {
+            ctx.fillStyle = '#8A8A90'
+            ctx.font = '600 10.5px ' + FONT
+            ctx.textAlign = 'right'
+            ctx.fillText(clipTo(ctx, e.item.room, 120), x + cardW - 16, cy - 4)
+            ctx.textAlign = 'left'
+          }
+
+          // line 2: name ( + lead )
+          ctx.fillStyle = '#1C1C1E'
+          ctx.font = '700 12.5px ' + FONT
+          const nameW = cardW - 30 - 16 - (e.item.lead ? 90 : 0)
+          ctx.fillText(clipTo(ctx, e.item.code, nameW), x + 30, cy + 12)
+          if (e.item.lead) {
+            ctx.fillStyle = '#8A8A90'
+            ctx.font = '500 10.5px ' + FONT
+            ctx.textAlign = 'right'
+            ctx.fillText(clipTo(ctx, e.item.lead, 90), x + cardW - 16, cy + 12)
+            ctx.textAlign = 'left'
+          }
+
+          // row hairline
+          if (i2 < day.evs.length - 1) {
+            ctx.strokeStyle = 'rgba(60,60,67,.05)'
+            ctx.beginPath(); ctx.moveTo(x + 14, ry + ROW_H - 2 + .5); ctx.lineTo(x + cardW - 14, ry + ROW_H - 2 + .5); ctx.stroke()
+          }
+        })
+      }
+      x += cardW + GAP
     }
+    y += rowH + GAP
   })
-  ctx.textAlign = 'left'
 
   // footer: legend + rooms + credit
-  let fy = bodyBottom + 18
+  let fy = y - GAP + 16
   if (o.legend.length) {
     drawLegendRow(ctx, o.legend, fy, PAD, W)
     fy += 36

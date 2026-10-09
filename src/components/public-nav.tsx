@@ -40,7 +40,7 @@ export function PublicNav() {
         {/* logo (left) */}
         <button
           onClick={() => go('home')}
-          className="flex w-fit items-center gap-2 rounded-full pr-2 text-left"
+          className="col-start-1 flex w-fit items-center gap-2 rounded-full pr-2 text-left"
           aria-label="ASO Companion home"
         >
           <Logo size={30} />
@@ -50,7 +50,7 @@ export function PublicNav() {
         </button>
 
         {/* centered desktop nav: pill items, evenly spaced */}
-        <nav className="hidden items-center gap-1 justify-self-center md:flex">
+        <nav className="col-start-2 hidden items-center gap-1 justify-self-center md:flex">
           {NAV.map((item) => {
             const active = view === item.view || (item.view === 'eltaso' && view === 'level-detail')
             return (
@@ -60,7 +60,7 @@ export function PublicNav() {
                 className={cn(
                   'rounded-full px-3.5 py-1.5 text-sm font-semibold transition',
                   active
-                    ? 'bg-primary text-primary-foreground shadow-sm'
+                    ? 'aso-nav-pill shadow-sm'
                     : 'text-foreground/80 hover:bg-secondary',
                 )}
               >
@@ -71,7 +71,7 @@ export function PublicNav() {
         </nav>
 
         {/* right side */}
-        <div className="flex items-center justify-end gap-1">
+        <div className="col-start-3 flex items-center justify-end gap-1">
           <ThemeToggle />
           <Button
             variant="ghost"
@@ -99,7 +99,7 @@ export function PublicNav() {
                   className={cn(
                     'rounded-full px-4 py-2.5 text-left text-[15px] font-semibold transition aso-fade-up',
                     active
-                      ? 'bg-primary text-primary-foreground'
+                      ? 'aso-nav-pill'
                       : 'text-foreground/80 hover:bg-secondary',
                   )}
                 >

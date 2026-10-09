@@ -76,7 +76,7 @@ export const BANDS = ['Kids', 'Teens', 'Adults'] as const
 export const ROOM_OPTIONS = ['Room 1', 'Room 2', 'Room 3', 'Main Hall'] as const
 
 /* small legend printed under the exports so readers know where each room is */
-export const ROOM_LEGEND = 'Room 1 is upstairs · Room 2 is downstairs'
+export const ROOM_LEGEND = 'Room 1 is on the main floor · Room 2 is upstairs'
 
 /* ---- reporting guide ---- */
 export const REPORT_SYSTEM_URL =

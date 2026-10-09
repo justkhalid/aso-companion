@@ -40,42 +40,23 @@ export interface ChipPlacement {
 }
 
 /**
- * Layout one day's events:
- * - events that START at the same minute sit SIDE BY SIDE, splitting the
- *   width of their shared time span (one lane, equal slices)
- * - staggered overlaps stack into separate lanes, as before
+ * Layout one day's events: simultaneous and overlapping events STACK into
+ * separate lanes, each chip using the full width of its time span.
+ * (Side-by-side splitting is a wall-poster-only treatment.)
  * Returns every chip with its lane, left offset (minutes) and width (minutes).
  */
 export function packDayChips(sorted: ParsedChip[]): ChipPlacement[] {
-  // cluster by identical start time
-  const clusters: ParsedChip[][] = []
-  for (const e of sorted) {
-    const last = clusters[clusters.length - 1]
-    if (last && last[0].startMin === e.startMin) last.push(e)
-    else clusters.push([e])
-  }
-  // lane packing over clusters
   const layerEnds: number[] = []
-  const laneOfCluster: number[] = []
-  clusters.forEach((cl, ci) => {
-    const end = Math.max(...cl.map((x) => x.endMin))
-    let li = layerEnds.findIndex((e) => e <= cl[0].startMin)
+  const out: ChipPlacement[] = []
+  for (const ev of sorted) {
+    let li = layerEnds.findIndex((end) => end <= ev.startMin)
     if (li < 0) {
       li = layerEnds.length
       layerEnds.push(0)
     }
-    layerEnds[li] = end
-    laneOfCluster[ci] = li
-  })
-  const out: ChipPlacement[] = []
-  clusters.forEach((cl, ci) => {
-    const lane = laneOfCluster[ci]
-    const spanEnd = Math.max(...cl.map((x) => x.endMin))
-    const span = Math.max(1, spanEnd - cl[0].startMin)
-    cl.forEach((ev, i) => {
-      out.push({ ev, lane, leftMin: (i * span) / cl.length, widthMin: span / cl.length })
-    })
-  })
+    layerEnds[li] = ev.endMin
+    out.push({ ev, lane: li, leftMin: 0, widthMin: ev.endMin - ev.startMin })
+  }
   return out
 }
 
@@ -105,8 +86,8 @@ const HOUR_WIDTH = 90
 const DAY_LABEL_W = 72
 
 /* v4.7 compact chip metrics: chips are content-height (no dead space).
-   v4.10: events that start at the same time sit SIDE BY SIDE in one lane
-   (splitting the width of their shared span) instead of stacking. */
+   v4.11: simultaneous events always STACK (side-by-side is a wall-poster-only
+   treatment - it reads confusingly on the timed grid). */
 const CHIP_H = 52
 const CHIP_GAP = 4
 const ROW_PAD = 6

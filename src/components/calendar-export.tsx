@@ -27,7 +27,7 @@ export type ExportVariant = 'grid' | 'poster' | 'strip' | 'word-grid' | 'word-li
  * One menu, five versions of the calendar:
  *  - Weekly grid PNG  (the classic timetable, days as rows)
  *  - Poster PNG       (bold A4 wall poster)
- *  - Week strip PNG   (day columns planner, sessions float at their time)
+ *  - Week cards PNG  (symmetric day cards, one per day)
  *  - Word table .doc  (landscape, editable, sessions span hour cells)
  *  - Word handout .doc(portrait, one compact table per day)
  *
@@ -49,7 +49,7 @@ export function CalendarExportMenu({
 
   const runPng = async (kind: ExportVariant) => {
     const opts = buildOpts()
-    const suffix = kind === 'grid' ? 'HD' : kind === 'poster' ? 'Poster' : 'WeekStrip'
+    const suffix = kind === 'grid' ? 'HD' : kind === 'poster' ? 'Poster' : 'WeekCards'
     await png.preview(opts, baseName + '_' + suffix + '.png', kind === 'grid' ? renderTimetablePNG : kind === 'poster' ? renderPosterPNG : renderWeekStripPNG)
   }
 
@@ -113,8 +113,8 @@ export function CalendarExportMenu({
           />
           <MenuRow
             icon={<CalendarRange className="h-4 w-4" />}
-            title="Week strip"
-            hint="Day columns planner, sessions at their time"
+            title="Week cards"
+            hint="Symmetric day cards, one per day"
             onClick={() => void run('strip')}
             busy={busyKind === 'strip'}
           />

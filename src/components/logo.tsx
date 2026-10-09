@@ -31,7 +31,7 @@ export function Logo({
 /** Wordmark used on the splash + login screen. */
 export function Wordmark({ className = '' }: { className?: string }) {
   return (
-    <span className={`font-extrabold tracking-tight ${className}`}>
+    <span className={`font-display font-extrabold tracking-tight ${className}`}>
       ASO Companion
     </span>
   )
