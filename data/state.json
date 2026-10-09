@@ -19286,7 +19286,7 @@
         "Sat"
       ],
       "time": "15:00-17:00",
-      "room": "Room 2",
+      "room": "Library",
       "lead": "Ayoub",
       "vol": [],
       "url": "",
@@ -19360,5 +19360,5 @@
   ],
   "reports": [],
   "libraryPins": [],
-  "_rev": 1791554802472
+  "_rev": 1791554802471
 }
