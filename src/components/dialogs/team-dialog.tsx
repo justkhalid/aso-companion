@@ -88,9 +88,9 @@ export function TeamDialog({
             <Input id="t-email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} />
           </div>
         </div>
-        <DialogFooter>
-          <Button variant="ghost" onClick={() => onOpenChange(false)}>Cancel</Button>
-          <Button onClick={save}>{isNew ? 'Add' : 'Save'}</Button>
+        <DialogFooter className="gap-2">
+          <Button variant="ghost" className="rounded-lg" onClick={() => onOpenChange(false)}>Cancel</Button>
+          <Button className="rounded-lg" onClick={save}>{isNew ? 'Add' : 'Save'}</Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>

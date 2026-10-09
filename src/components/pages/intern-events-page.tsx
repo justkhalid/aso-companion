@@ -42,7 +42,7 @@ export function InternEventsPage() {
       ) : (
         <div className="flex flex-col gap-2">
           {list.map(({ e, d }) => (
-            <div key={e.id} className="rounded-md border border-border bg-card p-4 shadow-sm">
+            <div key={e.id} className="rounded-2xl border border-border bg-card p-4 shadow-sm">
               <div className="mb-1.5 flex items-center gap-2">
                 <div className="flex-1 font-bold">{e.title}</div>
                 <Chip tone={e.recur === 'weekly' ? 'gold' : 'primary'}>{fmtEventWhen(e)}</Chip>

@@ -63,7 +63,7 @@ export function InternOverview() {
             </button>
           }
         />
-        <div className="rounded-md border border-border bg-card p-4">
+        <div className="rounded-2xl border border-border bg-card p-4">
           <div className="mb-2 text-sm font-semibold text-muted-foreground">
             Week of {fmtD(mon, { day: 'numeric', month: 'long' })}
           </div>
@@ -72,7 +72,7 @@ export function InternOverview() {
               const list = byDay[d] || []
               if (!list.length) return null
               return (
-                <div key={d} className="rounded-md border border-border p-3">
+                <div key={d} className="rounded-lg border border-border p-3">
                   <div className="mb-1.5 text-xs font-bold uppercase tracking-wider text-muted-foreground">
                     {DAY_FULL[d]}
                   </div>
@@ -110,7 +110,7 @@ export function InternOverview() {
         {upcoming.length ? (
           <div className="flex flex-col gap-2">
             {upcoming.map(({ e, d }) => (
-              <div key={e.id} className="flex items-center gap-3 rounded-md border border-border bg-card p-3">
+              <div key={e.id} className="flex items-center gap-3 rounded-2xl border border-border bg-card p-3">
                 <div className="flex h-9 w-9 items-center justify-center rounded-full bg-[var(--aso-gold-tint)] text-[var(--aso-gold)]">
                   <CalendarDays className="h-4 w-4" />
                 </div>
@@ -126,7 +126,7 @@ export function InternOverview() {
             ))}
           </div>
         ) : (
-          <div className="rounded-md border border-border bg-card p-8 text-center text-sm text-muted-foreground">
+          <div className="rounded-2xl border border-border bg-card p-8 text-center text-sm text-muted-foreground">
             No upcoming events.
           </div>
         )}
@@ -152,9 +152,9 @@ function StatCard({
   return (
     <Comp
       onClick={onClick}
-      className={`flex items-center gap-3 rounded-md border border-border bg-card p-4 text-left shadow-sm transition ${onClick ? 'hover:border-primary/40' : ''}`}
+      className={`flex items-center gap-3 rounded-2xl border border-border bg-card p-4 text-left shadow-sm transition ${onClick ? 'hover:border-primary/40' : ''}`}
     >
-      <div className={`flex h-10 w-10 items-center justify-center rounded-md ${tone === 'gold' ? 'bg-[var(--aso-gold-tint)] text-[var(--aso-gold)]' : 'bg-primary/10 text-primary'}`}>
+      <div className={`flex h-10 w-10 items-center justify-center rounded-full ${tone === 'gold' ? 'bg-[var(--aso-gold-tint)] text-[var(--aso-gold)]' : 'bg-primary/10 text-primary'}`}>
         {icon}
       </div>
       <div>

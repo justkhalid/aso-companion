@@ -115,13 +115,13 @@ export function LevelDialog({
             <Textarea id="lv-desc" rows={3} value={desc} onChange={(e) => setDesc(e.target.value)} />
           </div>
         </div>
-        <DialogFooter className="flex-row justify-between sm:justify-between">
-          <Button variant="ghost" className="text-destructive" onClick={remove}>
+        <DialogFooter className="flex-row justify-between gap-2 sm:justify-between">
+          <Button variant="ghost" className="rounded-lg text-destructive" onClick={remove}>
             <Trash2 className="h-4 w-4" /> Remove
           </Button>
           <div className="flex gap-2">
-            <Button variant="ghost" onClick={() => onOpenChange(false)}>Cancel</Button>
-            <Button onClick={save}>Save</Button>
+            <Button variant="ghost" className="rounded-lg" onClick={() => onOpenChange(false)}>Cancel</Button>
+            <Button className="rounded-lg" onClick={save}>Save</Button>
           </div>
         </DialogFooter>
       </DialogContent>

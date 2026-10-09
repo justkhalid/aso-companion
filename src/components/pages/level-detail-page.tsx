@@ -154,7 +154,7 @@ export function LevelDetailPage({ admin }: { admin: boolean }) {
             setSeg(curWi < n1 ? 0 : 1)
             setOpenWeeks(new Set([curWi]))
           }}
-          className="mb-4 flex w-full items-center gap-3 rounded-md border border-primary/30 bg-primary/5 p-4 text-left"
+          className="mb-4 flex w-full items-center gap-3 rounded-2xl border border-primary/30 bg-primary/5 p-4 text-left"
         >
           <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary/10 text-primary">
             <CalendarDays className="h-5 w-5" />
@@ -172,11 +172,11 @@ export function LevelDetailPage({ admin }: { admin: boolean }) {
 
       {/* semester toggle */}
       <div className="mb-4 flex items-center gap-3">
-        <div className="grid grid-cols-2 gap-1 rounded-md bg-secondary p-1">
+        <div className="grid grid-cols-2 gap-1 rounded-full bg-secondary p-1">
           <button
             onClick={() => setSeg(0)}
             className={cn(
-              'rounded-md px-4 py-1.5 text-sm font-bold transition',
+              'rounded-full px-4 py-1.5 text-sm font-bold transition',
               inS1 ? 'bg-background shadow-sm' : 'text-muted-foreground',
             )}
           >
@@ -185,7 +185,7 @@ export function LevelDetailPage({ admin }: { admin: boolean }) {
           <button
             onClick={() => setSeg(1)}
             className={cn(
-              'rounded-md px-4 py-1.5 text-sm font-bold transition',
+              'rounded-full px-4 py-1.5 text-sm font-bold transition',
               !inS1 ? 'bg-background shadow-sm' : 'text-muted-foreground',
             )}
           >
@@ -214,7 +214,7 @@ export function LevelDetailPage({ admin }: { admin: boolean }) {
               <div
                 key={wi}
                 className={cn(
-                  'overflow-hidden rounded-md border bg-card shadow-sm transition',
+                  'overflow-hidden rounded-2xl border bg-card shadow-sm transition',
                   isOpen ? 'border-primary/40' : 'border-border',
                   isCur && 'ring-2 ring-primary/30',
                 )}
@@ -224,7 +224,7 @@ export function LevelDetailPage({ admin }: { admin: boolean }) {
                   className="flex w-full items-center gap-3 p-3 text-left sm:p-4"
                 >
                   <div className={cn(
-                    'flex h-12 w-12 shrink-0 flex-col items-center justify-center rounded-md',
+                    'flex h-12 w-12 shrink-0 flex-col items-center justify-center rounded-lg',
                     isCur ? 'bg-primary text-primary-foreground' : 'bg-secondary text-foreground',
                   )}>
                     <span className="text-lg font-extrabold leading-none">{wi + 1}</span>
@@ -241,7 +241,7 @@ export function LevelDetailPage({ admin }: { admin: boolean }) {
                           key={s.k}
                           className={cn(
                             'sk-' + s.k,
-                            'inline-flex items-center justify-center rounded-md px-1.5 py-0.5 text-[10px] font-extrabold',
+                            'inline-flex items-center justify-center rounded-full px-1.5 py-0.5 text-[10px] font-extrabold',
                             s.k === sp && 'ring-2 ring-offset-1 ring-offset-card',
                           )}
                           title={SKILL_NAMES[s.k]}
@@ -269,9 +269,9 @@ export function LevelDetailPage({ admin }: { admin: boolean }) {
                       {sk && (
                         <div className="grid gap-2 sm:grid-cols-2">
                           {SKILLS.map((s) => (
-                            <div key={s.k} className="rounded-md border border-border p-2.5">
+                            <div key={s.k} className="rounded-lg border border-border p-2.5">
                               <div className="mb-1 flex items-center gap-2">
-                                <span className={cn('sk-' + s.k, 'inline-flex h-5 w-5 items-center justify-center rounded-md text-[10px] font-extrabold')}>
+                                <span className={cn('sk-' + s.k, 'inline-flex h-5 w-5 items-center justify-center rounded-full text-[10px] font-extrabold')}>
                                   {s.k}
                                 </span>
                                 <span className="text-xs font-bold">{s.name}</span>

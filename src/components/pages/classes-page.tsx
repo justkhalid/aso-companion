@@ -52,7 +52,7 @@ export function ClassesPage() {
       ) : (
         <div className="grid gap-3 sm:grid-cols-2">
           {state.classes.map((c) => (
-            <div key={c.id} className="rounded-md border border-border bg-card p-4 shadow-sm">
+            <div key={c.id} className="rounded-2xl border border-border bg-card p-4 shadow-sm">
               <div className="mb-2 flex items-center gap-2">
                 <div className="flex-1 font-bold">{c.code}</div>
                 <Chip tone="primary">{c.level}</Chip>

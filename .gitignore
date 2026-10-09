@@ -30,25 +30,55 @@ yarn-debug.log*
 yarn-error.log*
 .pnpm-debug.log*
 
-# env files (can opt-in for committing if needed)
-.env*
+# env files
+.env
+.env.*
+!.env.example
 
 # vercel
 .vercel
 
-
 # typescript
 *.tsbuildinfo
 next-env.d.ts
-local-*
-.claude
-.z-ai-config
+
+# logs
 *.log
 dev.log
 dev.out.log
-test
-prompt
-
 server.log
-# Skills directory
-/skills/aso-companion/
+
+# ---- non-app working files (never push these to the repo) ----
+# agent / tooling workspace
+/skills/
+/agent-ctx/
+/tool-results/
+/tools/
+/tests/
+/upload/
+/download/
+/examples/
+/mini-services/
+/.zscripts/
+/.claude/
+/.z-ai-config
+
+# agent worklog
+/worklog.md
+
+# sandbox runtime config
+/Caddyfile
+/prompt
+/test
+/local-*
+
+# legacy vanilla site (removed in v4.5, keep ignored just in case)
+/index.html
+/style.css
+/js/
+/icons/
+/manifest.webmanifest
+/404.html
+/robots.txt
+/DEPLOY_STEPS.md
+/scripts/

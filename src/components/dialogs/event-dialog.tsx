@@ -7,19 +7,13 @@ import {
   DialogHeader,
   DialogTitle,
   DialogFooter,
+  DialogDescription,
 } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select'
-import { DAY_KEYS } from '@/lib/constants'
+import { DayPills, TimeRangeSelect } from '@/components/forms/form-controls'
 import { useStore } from '@/lib/store'
 import { uid } from '@/lib/app-utils'
 import type { EventEntry, EventRecur } from '@/lib/types'
@@ -68,7 +62,7 @@ export function EventDialog({
       recur,
       day: recur === 'weekly' ? day : undefined,
       date: recur === 'none' ? date : undefined,
-      time: time.trim(),
+      time: time.trim() || '16:00-18:00', // fall back to the shown picker defaults
       place: place.trim(),
     }
     patch((draft) => {
@@ -87,6 +81,9 @@ export function EventDialog({
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
           <DialogTitle>{isNew ? 'New event' : 'Edit event'}</DialogTitle>
+          <DialogDescription>
+            One-off events show with their date, weekly events repeat every week.
+          </DialogDescription>
         </DialogHeader>
         <div className="flex flex-col gap-4">
           <div className="flex flex-col gap-1.5">
@@ -97,27 +94,32 @@ export function EventDialog({
             <Label htmlFor="ev-desc">Description</Label>
             <Textarea id="ev-desc" rows={2} value={desc} onChange={(e) => setDesc(e.target.value)} />
           </div>
+
           <div className="flex flex-col gap-1.5">
             <Label>Repeats</Label>
-            <Select value={recur} onValueChange={(v) => setRecur(v as EventRecur)}>
-              <SelectTrigger className="w-full"><SelectValue /></SelectTrigger>
-              <SelectContent>
-                <SelectItem value="none">One-off date</SelectItem>
-                <SelectItem value="weekly">Weekly (every week)</SelectItem>
-              </SelectContent>
-            </Select>
+            <div className="grid grid-cols-2 gap-1.5">
+              <SegmentedButton
+                active={recur === 'none'}
+                onClick={() => setRecur('none')}
+              >
+                One-off date
+              </SegmentedButton>
+              <SegmentedButton
+                active={recur === 'weekly'}
+                onClick={() => setRecur('weekly')}
+              >
+                Weekly
+              </SegmentedButton>
+            </div>
           </div>
+
           {recur === 'weekly' ? (
             <div className="flex flex-col gap-1.5">
               <Label>Day of week</Label>
-              <Select value={day} onValueChange={setDay}>
-                <SelectTrigger className="w-full"><SelectValue placeholder="Pick a day" /></SelectTrigger>
-                <SelectContent>
-                  {DAY_KEYS.map((d) => (
-                    <SelectItem key={d} value={d}>{d}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <DayPills
+                value={day ? [day] : []}
+                onChange={(ds) => setDay(ds[ds.length - 1] || '')}
+              />
             </div>
           ) : (
             <div className="flex flex-col gap-1.5">
@@ -125,22 +127,47 @@ export function EventDialog({
               <Input id="ev-date" type="date" value={date} onChange={(e) => setDate(e.target.value)} />
             </div>
           )}
-          <div className="grid grid-cols-2 gap-3">
-            <div className="flex flex-col gap-1.5">
-              <Label htmlFor="ev-time">Time (24h)</Label>
-              <Input id="ev-time" value={time} onChange={(e) => setTime(e.target.value)} placeholder="16:00-18:00" />
-            </div>
-            <div className="flex flex-col gap-1.5">
-              <Label htmlFor="ev-place">Place</Label>
-              <Input id="ev-place" value={place} onChange={(e) => setPlace(e.target.value)} />
-            </div>
+
+          <div className="flex flex-col gap-1.5">
+            <Label>Time (24h)</Label>
+            <TimeRangeSelect value={time} onChange={setTime} defaultStart="16:00" defaultEnd="18:00" />
+          </div>
+
+          <div className="flex flex-col gap-1.5">
+            <Label htmlFor="ev-place">Place</Label>
+            <Input id="ev-place" value={place} onChange={(e) => setPlace(e.target.value)} />
           </div>
         </div>
-        <DialogFooter>
-          <Button variant="ghost" onClick={() => onOpenChange(false)}>Cancel</Button>
-          <Button onClick={save}>{isNew ? 'Add event' : 'Save'}</Button>
+        <DialogFooter className="gap-2">
+          <Button variant="ghost" className="rounded-lg" onClick={() => onOpenChange(false)}>Cancel</Button>
+          <Button className="rounded-lg" onClick={save}>{isNew ? 'Add event' : 'Save'}</Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>
+  )
+}
+
+function SegmentedButton({
+  active,
+  onClick,
+  children,
+}: {
+  active: boolean
+  onClick: () => void
+  children: React.ReactNode
+}) {
+  return (
+    <button
+      type="button"
+      aria-pressed={active}
+      onClick={onClick}
+      className={`rounded-full border px-3 py-1.5 text-xs font-bold transition-all active:scale-[0.98] ${
+        active
+          ? 'border-primary bg-primary text-primary-foreground shadow-sm'
+          : 'border-border bg-secondary text-muted-foreground hover:bg-secondary/70'
+      }`}
+    >
+      {children}
+    </button>
   )
 }

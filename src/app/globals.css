@@ -7,6 +7,7 @@
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --font-sans: var(--font-geist-sans);
+  --font-display: var(--font-playfair);
   --font-mono: var(--font-geist-mono);
   --color-sidebar-ring: var(--sidebar-ring);
   --color-sidebar-border: var(--sidebar-border);
@@ -45,7 +46,9 @@
 
 /* ================= iOS-inspired design system =================
    Light: bg #F2F2F7, card white, accent #0B5CE6
-   Dark:  bg #000000, card #1C1C1E, accent #4E8FFF */
+   Dark:  bg #000000, frosted card rgba(28,28,30,0.6) + blur, accent #4E8FFF
+   Corners are always either fully round (pill / rounded-2xl) or squared
+   (rounded-lg, 8px): never "slightly rounded" 4-6px. */
 :root {
   --radius: 0.375rem;
   --background: #F2F2F7;
@@ -95,9 +98,10 @@
 .dark {
   --background: #000000;
   --foreground: #f2f2f7;
-  --card: #1C1C1E;
+  /* frosted glass card: translucent + backdrop blur (applied below) */
+  --card: rgba(28, 28, 30, 0.6);
   --card-foreground: #f2f2f7;
-  --popover: #2C2C2E;
+  --popover: rgba(28, 28, 30, 0.82);
   --popover-foreground: #f2f2f7;
   --primary: #4E8FFF;
   --primary-foreground: #ffffff;
@@ -145,6 +149,10 @@
     font-feature-settings: "ss01", "cv01";
     -webkit-font-smoothing: antialiased;
   }
+  /* Playfair Display for headings + the logo wordmark (Inter for body) */
+  h1, h2, h3, .font-display {
+    font-family: var(--font-playfair), 'Playfair Display', Georgia, serif;
+  }
   /* nicer thin scrollbars */
   .scroll-thin::-webkit-scrollbar { width: 8px; height: 8px; }
   .scroll-thin::-webkit-scrollbar-thumb {
@@ -152,6 +160,36 @@
     border-radius: 999px;
   }
   .scroll-thin::-webkit-scrollbar-track { background: transparent; }
+}
+
+/* ================= glossy dark mode (Apple frosted glass) ================= */
+.dark .bg-card {
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  backdrop-filter: blur(20px) saturate(180%);
+  /* subtle top-down gradient overlay for a premium sheen */
+  background-image: linear-gradient(180deg, rgba(255, 255, 255, 0.045), rgba(255, 255, 255, 0) 42%);
+}
+.dark .bg-popover,
+.dark [data-slot='dialog-content'],
+.dark [data-slot='sheet-content'] {
+  -webkit-backdrop-filter: blur(24px) saturate(180%);
+  backdrop-filter: blur(24px) saturate(180%);
+}
+/* frosted navigation bars: darker glass with a stronger blur */
+.dark .aso-nav-glass {
+  background: rgba(20, 20, 22, 0.6);
+  -webkit-backdrop-filter: blur(28px) saturate(180%);
+  backdrop-filter: blur(28px) saturate(180%);
+}
+/* frosted admin sidebar */
+.dark .bg-sidebar {
+  background: rgba(20, 20, 22, 0.6);
+  -webkit-backdrop-filter: blur(24px) saturate(180%);
+  backdrop-filter: blur(24px) saturate(180%);
+}
+/* calendar grid surfaces stay readable over the blur */
+.dark .bg-secondary {
+  background-color: rgba(44, 44, 46, 0.6);
 }
 
 /* ================= timetable tone palette (9 tones, light + dark) ================= */
@@ -183,6 +221,13 @@
 .dark .sk-S { background: rgba(48,209,88,.20); color: #5BE084; }
 .dark .sk-R { background: rgba(255,159,10,.22); color: #FFB340; }
 .dark .sk-W { background: rgba(191,90,242,.22); color: #D18CF5; }
+
+/* frosted public nav glass (light mode keeps the soft tinted blur) */
+.aso-nav-glass {
+  background: color-mix(in srgb, var(--background) 85%, transparent);
+  -webkit-backdrop-filter: blur(20px) saturate(160%);
+  backdrop-filter: blur(20px) saturate(160%);
+}
 
 /* boot splash brand animation */
 @keyframes aso-spin { to { transform: rotate(360deg); } }

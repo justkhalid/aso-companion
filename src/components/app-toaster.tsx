@@ -12,7 +12,7 @@ export function AppToaster() {
         <button
           key={t.id}
           onClick={() => dismiss(t.id)}
-          className="aso-fade-up pointer-events-auto flex max-w-md items-center gap-2 rounded-md border border-border bg-popover px-4 py-2.5 text-sm font-semibold shadow-lg"
+          className="aso-fade-up pointer-events-auto flex max-w-md items-center gap-2 rounded-2xl border border-border bg-popover px-4 py-2.5 text-sm font-semibold shadow-lg"
         >
           {t.ok ? (
             <CheckCircle2 className="h-4 w-4 text-emerald-500" />

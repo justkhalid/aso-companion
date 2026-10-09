@@ -59,7 +59,7 @@ export interface ExportOptions {
 /**
  * Canvas-based PNG export matching the old vanilla JS design:
  * - Logo + title + subtitle at the top
- * - Days on the LEFT (rows), hours on the TOP (columns) — flipped
+ * - Days on the LEFT (rows), hours on the TOP (columns) - flipped
  * - Colored chips with level, hours · room, teacher
  * - Legend at the bottom
  * - 2x HD resolution (3508px wide)
@@ -157,11 +157,11 @@ export async function renderTimetablePNG(o: ExportOptions): Promise<Blob | null>
       ctx.strokeStyle = 'rgba(60,60,67,.07)'
       ctx.beginPath(); ctx.moveTo(PAD, y + .5); ctx.lineTo(W - PAD, y + .5); ctx.stroke()
     }
-    // Day label
+    // Day label: generic day name, no date numbers
     ctx.fillStyle = '#1C1C1E'
     ctx.font = '700 14px ' + FONT
     ctx.textAlign = 'center'
-    ctx.fillText(d, PAD + DAY_LABEL_W / 2, y + DAY_ROW_H / 2 + 5)
+    ctx.fillText(d.toUpperCase(), PAD + DAY_LABEL_W / 2, y + DAY_ROW_H / 2 + 5)
     ctx.textAlign = 'left'
     // Vertical line after day label
     ctx.strokeStyle = 'rgba(60,60,67,.12)'
@@ -206,7 +206,7 @@ export async function renderTimetablePNG(o: ExportOptions): Promise<Blob | null>
         const cy = y + 6
         const ch = DAY_ROW_H - 12
 
-        const tone = TONE_RGB[toneIdx(e.item.tone)] || TONE_PNG[0]
+        const tone = TONE_RGB[toneIdx(e.item.tone)] || TONE_RGB[0]
         ctx.fillStyle = tone.bg
         rrPath(ctx, cx, cy, cw, ch, Math.min(8, ch / 2))
         ctx.fill()

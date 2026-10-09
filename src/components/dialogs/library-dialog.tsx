@@ -94,9 +94,9 @@ export function LibraryDialog({
             <SkillPicker value={sk} onChange={setSk} />
           </div>
         </div>
-        <DialogFooter>
-          <Button variant="ghost" onClick={() => onOpenChange(false)}>Cancel</Button>
-          <Button onClick={save}>{isNew ? 'Add folder' : 'Save'}</Button>
+        <DialogFooter className="gap-2">
+          <Button variant="ghost" className="rounded-lg" onClick={() => onOpenChange(false)}>Cancel</Button>
+          <Button className="rounded-lg" onClick={save}>{isNew ? 'Add folder' : 'Save'}</Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>

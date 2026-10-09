@@ -39,7 +39,7 @@ export function TeamPage() {
       ) : (
         <div className="grid gap-3 sm:grid-cols-2">
           {state.team.map((t) => (
-            <div key={t.id} className="rounded-md border border-border bg-card p-4 shadow-sm">
+            <div key={t.id} className="rounded-2xl border border-border bg-card p-4 shadow-sm">
               <div className="mb-2 flex items-center gap-2.5">
                 <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary/10 font-bold text-primary">
                   {initials(t.name)}

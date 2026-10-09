@@ -148,7 +148,7 @@ export function WeekDialog({
           </div>
 
           {/* lesson plan editor (advanced, collapsible) */}
-          <div className="rounded-md border border-border">
+          <div className="rounded-lg border border-border">
             <button
               onClick={() => setLpOpen((o) => !o)}
               className="flex w-full items-center gap-2 px-3 py-2.5 text-left text-sm font-bold"
@@ -164,9 +164,9 @@ export function WeekDialog({
           </div>
         </div>
 
-        <DialogFooter>
-          <Button variant="ghost" onClick={() => onOpenChange(false)}>Cancel</Button>
-          <Button onClick={save}>Save week</Button>
+        <DialogFooter className="gap-2">
+          <Button variant="ghost" className="rounded-lg" onClick={() => onOpenChange(false)}>Cancel</Button>
+          <Button className="rounded-lg" onClick={save}>Save week</Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>

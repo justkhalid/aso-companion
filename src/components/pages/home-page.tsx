@@ -87,6 +87,7 @@ export function HomePage({ admin }: { admin: boolean }) {
       meta: '',
       lead: c.lead || 'no lead yet',
       room: c.room,
+      icon: c.icon,
       tone: toneClassForClub(state, c.id),
     }))
   const clubLegend: LegendEntry[] = (state.clubs || []).map((c) => ({
@@ -181,7 +182,7 @@ export function HomePage({ admin }: { admin: boolean }) {
 
       {/* admin: term status card */}
       {admin && (
-        <div className="mb-5 rounded-md border border-border bg-card p-4 shadow-sm">
+        <div className="mb-5 rounded-2xl border border-border bg-card p-4 shadow-sm">
           {st.mode === 's1' || st.mode === 's2' ? (
             <div className="flex items-center gap-3">
               <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary/10 text-primary">
@@ -254,7 +255,7 @@ export function HomePage({ admin }: { admin: boolean }) {
           </>
         }
       />
-      <div ref={gridRef} className="rounded-md bg-card">
+      <div ref={gridRef} className="rounded-2xl bg-card">
         {classItems.length ? (
           <WeeklyGrid
             items={classItems}
@@ -277,7 +278,7 @@ export function HomePage({ admin }: { admin: boolean }) {
             </LinkButton>
           }
         />
-        <div ref={clubGridRef} className="rounded-md bg-card">
+        <div ref={clubGridRef} className="rounded-2xl bg-card">
           {clubItems.length ? (
             <WeeklyGrid items={clubItems} legend={clubLegend} emptyMessage="No club sessions yet" />
           ) : (
@@ -290,7 +291,7 @@ export function HomePage({ admin }: { admin: boolean }) {
             {upcoming.map(({ e, d }) => (
               <div
                 key={e.id}
-                className="flex items-center gap-3 rounded-md border border-border bg-card p-3"
+                className="flex items-center gap-3 rounded-2xl border border-border bg-card p-3"
               >
                 <div className="flex h-9 w-9 items-center justify-center rounded-full bg-[var(--aso-gold-tint)] text-[var(--aso-gold)]">
                   <Sparkles className="h-4 w-4" />
@@ -323,7 +324,7 @@ export function HomePage({ admin }: { admin: boolean }) {
         {todayItems.length ? (
           <div className="flex flex-col gap-2">
             {todayItems.map((it, i) => (
-              <div key={i} className="flex items-center gap-3 rounded-md border border-border bg-card p-3">
+              <div key={i} className="flex items-center gap-3 rounded-2xl border border-border bg-card p-3">
                 <div
                   className={`flex h-9 w-9 items-center justify-center rounded-full ${
                     it.kind === 'class'
@@ -405,7 +406,7 @@ function AdminHomeExtra() {
                 <button
                   key={l.key}
                   onClick={() => openLevel(l.key)}
-                  className="flex flex-col gap-1.5 rounded-md border border-border bg-card p-4 text-left shadow-sm transition hover:border-primary/40"
+                  className="flex flex-col gap-1.5 rounded-2xl border border-border bg-card p-4 text-left shadow-sm transition hover:border-primary/40"
                 >
                   <div className="flex items-center gap-2">
                     <div className="flex-1 font-bold">{l.label}</div>
@@ -440,7 +441,7 @@ function AdminHomeExtra() {
               href={l.url}
               target="_blank"
               rel="noopener"
-              className="flex items-center gap-2 rounded-md border border-border bg-card p-3 text-sm font-semibold hover:border-primary/40"
+              className="flex items-center gap-2 rounded-2xl border border-border bg-card p-3 text-sm font-semibold hover:border-primary/40"
             >
               <BookOpen className="h-4 w-4 text-muted-foreground" />
               <span className="flex-1 truncate">{l.name}</span>

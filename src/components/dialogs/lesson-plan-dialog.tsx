@@ -93,7 +93,7 @@ export function LessonPlanDialog({
           <DialogHeader>
             <DialogTitle>Lesson plan · Week {weekIndex + 1}</DialogTitle>
           </DialogHeader>
-          <div className="rounded-md border border-border bg-card p-6 text-center text-sm text-muted-foreground">
+          <div className="rounded-2xl border border-border bg-card p-6 text-center text-sm text-muted-foreground">
             No detailed lesson plan for this week yet.
           </div>
         </DialogContent>
@@ -157,7 +157,7 @@ export function LessonPlanDialog({
             <div className="mb-1.5 text-[12px] font-bold uppercase tracking-wider text-muted-foreground">
               The {dur} arc
             </div>
-            <div className="overflow-x-auto scroll-thin rounded-md border border-border">
+            <div className="overflow-x-auto scroll-thin rounded-lg border border-border">
               <table className="w-full border-collapse">
                 <thead>
                   <tr className="bg-secondary text-left">
@@ -188,7 +188,7 @@ export function LessonPlanDialog({
               <div className="mb-1.5 text-[12px] font-bold uppercase tracking-wider text-muted-foreground">
                 Game bank / activity bank this week
               </div>
-              <div className="overflow-hidden rounded-md border border-border">
+              <div className="overflow-hidden rounded-lg border border-border">
                 <table className="w-full border-collapse">
                   <tbody className="divide-y divide-border">
                     {p.g.map((g, i) => (
@@ -257,7 +257,7 @@ export function LessonPlanDialog({
               <div className="mb-1.5 text-[12px] font-bold uppercase tracking-wider text-muted-foreground">
                 Assessment observation checklist
               </div>
-              <div className="overflow-x-auto scroll-thin rounded-md border border-border">
+              <div className="overflow-x-auto scroll-thin rounded-lg border border-border">
                 <table className="w-full border-collapse">
                   <thead>
                     <tr className="bg-secondary text-left">
@@ -302,12 +302,11 @@ export function LessonPlanDialog({
             </Button>
             <Button
               variant="default"
-              className="flex-1"
+              className="flex-1 rounded-lg"
               onClick={async () => {
                 try {
-                  const { exportLevelDoc } = await import('@/lib/export-word')
-                  const st = useStore.getState()
-                  await exportLevelDoc(st.state, level)
+                  const { exportLessonPlanDoc } = await import('@/lib/export-word')
+                  await exportLessonPlanDoc(level, weekIndex)
                   toast('Word document exported')
                 } catch (e) {
                   toast('Export failed: ' + (e instanceof Error ? e.message : 'unknown'), false)

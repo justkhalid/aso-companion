@@ -37,7 +37,7 @@ export function InternVolunteersPage() {
       ) : (
         <div className="grid gap-3 sm:grid-cols-2">
           {state.volunteers.map((v) => (
-            <div key={v.id} className="rounded-md border border-border bg-card p-4 shadow-sm">
+            <div key={v.id} className="rounded-2xl border border-border bg-card p-4 shadow-sm">
               <div className="mb-2">
                 <div className="font-bold">{v.name}</div>
                 <div className="text-xs text-muted-foreground">{v.role}</div>

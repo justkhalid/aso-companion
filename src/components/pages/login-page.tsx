@@ -42,7 +42,7 @@ export function LoginPage() {
           </p>
         </div>
 
-        <div className="mt-6 rounded-md border border-border bg-card p-5 shadow-sm">
+        <div className="mt-6 rounded-2xl border border-border bg-card p-5 shadow-sm">
           <div className="flex flex-col gap-1.5">
             <Label htmlFor="admin-code">Access code</Label>
             <Input

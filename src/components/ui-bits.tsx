@@ -52,7 +52,7 @@ export function EmptyState({
   hint?: string
 }) {
   return (
-    <div className="rounded-md border border-border bg-card p-10 text-center">
+    <div className="rounded-2xl border border-border bg-card p-10 text-center">
       {icon && <div className="mx-auto mb-2 flex h-10 w-10 items-center justify-center rounded-full bg-secondary text-muted-foreground">{icon}</div>}
       <div className="font-semibold">{title}</div>
       {hint && <div className="mt-1 text-sm text-muted-foreground">{hint}</div>}

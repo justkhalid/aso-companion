@@ -129,11 +129,11 @@ function SidebarBody({ onNavigate }: { onNavigate?: () => void }) {
         </div>
       </div>
 
-      <div className="mx-3 mb-2 grid grid-cols-2 gap-1 rounded-md bg-secondary p-1">
+      <div className="mx-3 mb-2 grid grid-cols-2 gap-1 rounded-full bg-secondary p-1">
         <button
           onClick={() => switchSide('elt')}
           className={cn(
-            'rounded-md px-2 py-1.5 text-xs font-bold transition',
+            'rounded-full px-2 py-1.5 text-xs font-bold transition',
             side === 'elt' ? 'bg-background shadow-sm' : 'text-muted-foreground',
           )}
         >
@@ -142,7 +142,7 @@ function SidebarBody({ onNavigate }: { onNavigate?: () => void }) {
         <button
           onClick={() => switchSide('intern')}
           className={cn(
-            'rounded-md px-2 py-1.5 text-xs font-bold transition',
+            'rounded-full px-2 py-1.5 text-xs font-bold transition',
             side === 'intern' ? 'bg-background shadow-sm' : 'text-muted-foreground',
           )}
         >
@@ -168,7 +168,7 @@ function SidebarBody({ onNavigate }: { onNavigate?: () => void }) {
                       key={it.label + (it.key || '')}
                       onClick={() => handleNav(it.view, it.key)}
                       className={cn(
-                        'flex items-center gap-2.5 rounded-md px-2.5 py-2 text-left text-[13.5px] font-semibold transition',
+                        'flex items-center gap-2.5 rounded-full px-2.5 py-2 text-left text-[13.5px] font-semibold transition',
                         active
                           ? 'bg-primary text-primary-foreground'
                           : 'text-foreground/80 hover:bg-secondary',
@@ -193,7 +193,7 @@ function SidebarBody({ onNavigate }: { onNavigate?: () => void }) {
               setView('home')
               onNavigate?.()
             }}
-            className="flex items-center gap-2.5 rounded-md px-2.5 py-2 text-left text-[13.5px] font-semibold text-foreground/80 hover:bg-secondary"
+            className="flex items-center gap-2.5 rounded-full px-2.5 py-2 text-left text-[13.5px] font-semibold text-foreground/80 hover:bg-secondary"
           >
             <Eye className="h-4 w-4" /> Public view
           </button>
@@ -203,7 +203,7 @@ function SidebarBody({ onNavigate }: { onNavigate?: () => void }) {
               onNavigate?.()
             }}
             className={cn(
-              'flex items-center gap-2.5 rounded-md px-2.5 py-2 text-left text-[13.5px] font-semibold transition',
+              'flex items-center gap-2.5 rounded-full px-2.5 py-2 text-left text-[13.5px] font-semibold transition',
               view === 'settings' ? 'bg-primary text-primary-foreground' : 'text-foreground/80 hover:bg-secondary',
             )}
           >
@@ -214,7 +214,7 @@ function SidebarBody({ onNavigate }: { onNavigate?: () => void }) {
               logout()
               onNavigate?.()
             }}
-            className="flex items-center gap-2.5 rounded-md px-2.5 py-2 text-left text-[13.5px] font-semibold text-destructive hover:bg-destructive/10"
+            className="flex items-center gap-2.5 rounded-full px-2.5 py-2 text-left text-[13.5px] font-semibold text-destructive hover:bg-destructive/10"
           >
             <LogOut className="h-4 w-4" /> Sign out
           </button>

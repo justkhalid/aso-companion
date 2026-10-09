@@ -22,16 +22,19 @@ export const SKILLS = [
 
 export const LIB_SKILLS = ['', 'L', 'S', 'R', 'W'] as const
 
+/* Library categories in display order (importance): teacher resources first,
+   then planning, coursebooks, exams, learner materials, media, reading,
+   writing, speaking, and everything else last. */
 export const LIB_CATEGORIES = [
   { k: 'teacher', label: 'Teacher resources', match: ['teacher', "teacher's guide"] },
   { k: 'planning', label: 'Planning', match: ['lesson plan', 'writing guide'] },
   { k: 'course', label: 'Coursebooks', match: ['coursebook', 'cambridge global', 'english books', 'ready for'] },
+  { k: 'exams', label: 'Tests & exams', match: ['test', 'quiz', 'ket', 'pet', 'ielts'] },
   { k: 'learner', label: 'Learner materials', match: ['kids english', 'flashcard', 'worksheet', 'maths', 'autism', 'seasonal'] },
   { k: 'media', label: 'Listening & media', match: ['listening', 'podcast', 'audiobook', 'video', 'music', 'song'] },
   { k: 'reading', label: 'Reading', match: ['reading', 'comprehension', 'book'] },
   { k: 'writing', label: 'Writing', match: ['writing', 'creative'] },
   { k: 'speaking', label: 'Speaking & activities', match: ['speaking', 'game', 'powerpoint', 'critical'] },
-  { k: 'exams', label: 'Tests & exams', match: ['test', 'quiz', 'ket', 'pet', 'ielts'] },
   { k: 'other', label: 'Other', match: ['business', 'app', 'misc', 'contribution'] },
 ] as const
 
@@ -42,6 +45,16 @@ export function libCategory(name: string) {
   }
   return LIB_CATEGORIES[LIB_CATEGORIES.length - 1] // Other
 }
+
+/* ---- 24h time options in 30-minute steps (for the time picker) ---- */
+export const TIME_OPTIONS: string[] = (() => {
+  const out: string[] = []
+  for (let h = 6; h <= 23; h++) {
+    out.push(`${String(h).padStart(2, '0')}:00`)
+    out.push(`${String(h).padStart(2, '0')}:30`)
+  }
+  return out
+})()
 
 /* default level keys in canonical order */
 export const LEVEL_ORDER = [

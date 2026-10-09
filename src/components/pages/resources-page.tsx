@@ -3,7 +3,7 @@
 import * as React from 'react'
 import { ExternalLink, Copy, FileText, CalendarDays, Pencil, Users, CheckSquare, LayoutGrid, MessageSquare, FolderOpen } from 'lucide-react'
 import { useStore } from '@/lib/store'
-import { libCategory, SKILLS, REPORT_STEPS, REPORT_SYSTEM_URL, REPORT_EXAMPLE } from '@/lib/constants'
+import { libCategory, LIB_CATEGORIES, SKILLS, REPORT_STEPS, REPORT_SYSTEM_URL, REPORT_EXAMPLE } from '@/lib/constants'
 import { PageHead, SectionHeader, Chip } from '@/components/ui-bits'
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
@@ -17,22 +17,17 @@ export function ResourcesPage() {
 
   const lib = filter ? state.library.filter((l) => (l.sk || []).includes(filter)) : state.library.slice()
 
-  // group by category preserving LIB_CATEGORIES order, alphabetical within
-  const groups: { label: string; folders: typeof lib }[] = []
+  // group by category in canonical importance order (LIB_CATEGORIES),
+  // alphabetical within each group; empty categories are skipped
   const byCat: Record<string, typeof lib> = {}
   lib.forEach((l) => {
     const cat = libCategory(l.name)
     ;(byCat[cat.label] ||= []).push(l)
   })
-  // preserve category order from the constant list
-  const seen = new Set<string>()
-  state.library.forEach((l) => {
-    const c = libCategory(l.name)
-    if (!seen.has(c.label)) {
-      seen.add(c.label)
-      if (byCat[c.label]) groups.push({ label: c.label, folders: byCat[c.label].slice().sort((a, b) => a.name.localeCompare(b.name)) })
-    }
-  })
+  const groups: { label: string; folders: typeof lib }[] = LIB_CATEGORIES.map((c) => ({
+    label: c.label,
+    folders: (byCat[c.label] || []).slice().sort((a, b) => a.name.localeCompare(b.name)),
+  })).filter((g) => g.folders.length > 0)
 
   return (
     <div className="mx-auto max-w-5xl px-4 py-6 sm:py-8">
@@ -74,9 +69,9 @@ export function ResourcesPage() {
                 href={l.url}
                 target="_blank"
                 rel="noopener"
-                className="flex items-start gap-3 rounded-md border border-border bg-card p-3.5 transition hover:border-primary/40"
+                className="flex items-start gap-3 rounded-2xl border border-border bg-card p-4 transition hover:border-primary/40"
               >
-                <div className="mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-md bg-primary/10 text-primary">
+                <div className="mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary">
                   <FolderOpen className="h-4 w-4" />
                 </div>
                 <div className="min-w-0 flex-1">
@@ -85,7 +80,7 @@ export function ResourcesPage() {
                   {(l.sk || []).length > 0 && (
                     <div className="mt-1.5 flex flex-wrap gap-1">
                       {l.sk.map((k) => (
-                        <span key={k} className={cn('sk-' + k, 'inline-flex items-center rounded-md px-1.5 py-0.5 text-[10px] font-extrabold')}>
+                        <span key={k} className={cn('sk-' + k, 'inline-flex items-center rounded-full px-1.5 py-0.5 text-[10px] font-extrabold')}>
                           {k} · {SKILL_NAMES[k]}
                         </span>
                       ))}
@@ -100,7 +95,7 @@ export function ResourcesPage() {
       ))}
 
       {lib.length === 0 && (
-        <div className="rounded-md border border-border bg-card p-10 text-center text-sm text-muted-foreground">
+        <div className="rounded-2xl border border-border bg-card p-10 text-center text-sm text-muted-foreground">
           Nothing for this skill yet · pick another skill.
         </div>
       )}
@@ -117,13 +112,13 @@ export function ResourcesPage() {
       <div className="mt-8">
         <SectionHeader title="Reporting guide" />
 
-        <div className="rounded-md border border-border bg-card p-5">
+        <div className="rounded-2xl border border-border bg-card p-5">
           <p className="text-sm leading-relaxed text-foreground/90">
             Every teacher, volunteer and intern files the class and session reports on the official ASO reporting site, from any phone or computer. Here is the whole path, in order:
           </p>
           <div className="mt-3 flex flex-col gap-2">
             {REPORT_STEPS.map((s, i) => (
-              <div key={i} className="flex items-start gap-3 rounded-md border border-border p-3">
+              <div key={i} className="flex items-start gap-3 rounded-lg border border-border p-3">
                 <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-primary text-xs font-bold text-primary-foreground">
                   {i + 1}
                 </div>
@@ -142,7 +137,7 @@ export function ResourcesPage() {
         </div>
 
         {/* the form, field by field */}
-        <div className="mt-4 rounded-md border border-border bg-card p-5">
+        <div className="mt-4 rounded-2xl border border-border bg-card p-5">
           <div className="mb-2 font-bold">The report form, field by field</div>
           <p className="text-sm text-muted-foreground">
             "Send a report" on the site opens this form · fields marked * are required:
@@ -157,8 +152,8 @@ export function ResourcesPage() {
               { icon: LayoutGrid, t: 'Type of categories *', d: 'Check all that apply: Information about the USA · English Language Learning · Education on the U.S.A. · Alumni Activities · Community Engagement.' },
               { icon: MessageSquare, t: 'Summary text * · Drafted by *', d: 'A short honest summary of what happened, then your name.' },
             ].map((f, i) => (
-              <div key={i} className="flex items-start gap-3 rounded-md border border-border p-3">
-                <div className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-md bg-secondary text-muted-foreground">
+              <div key={i} className="flex items-start gap-3 rounded-lg border border-border p-3">
+                <div className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-secondary text-muted-foreground">
                   <f.icon className="h-4 w-4" />
                 </div>
                 <div className="min-w-0 flex-1">
@@ -171,7 +166,7 @@ export function ResourcesPage() {
         </div>
 
         {/* why we report */}
-        <div className="mt-4 rounded-md border border-border bg-card p-5">
+        <div className="mt-4 rounded-2xl border border-border bg-card p-5">
           <div className="mb-1 font-bold">Why we report the same way every time</div>
           <p className="text-sm leading-relaxed text-foreground/90">
             Every session gets a short write-up, the same way, every time. Teachers report after classes; the lead intern and volunteers report after clubs and events. It takes two minutes, it keeps the coordinator in the loop without a meeting, and by June it becomes the record of the whole year: what was taught, what worked and what to fix.
@@ -186,7 +181,7 @@ export function ResourcesPage() {
         </div>
 
         {/* example */}
-        <div className="mt-4 rounded-md border border-border bg-card p-5">
+        <div className="mt-4 rounded-2xl border border-border bg-card p-5">
           <div className="mb-2 flex items-center gap-2">
             <div className="font-bold">A filled example</div>
             <Chip tone="muted">a class report, exactly as the form wants it</Chip>
@@ -201,7 +196,7 @@ export function ResourcesPage() {
               <Copy className="h-3.5 w-3.5" /> Copy example
             </Button>
           </div>
-          <pre className="overflow-x-auto scroll-thin rounded-md bg-secondary p-4 text-[12.5px] leading-relaxed whitespace-pre-wrap font-mono">
+          <pre className="overflow-x-auto scroll-thin rounded-lg bg-secondary p-4 text-[12.5px] leading-relaxed whitespace-pre-wrap font-mono">
             {REPORT_EXAMPLE}
           </pre>
         </div>

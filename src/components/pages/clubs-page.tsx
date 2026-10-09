@@ -23,6 +23,7 @@ import {
   fmtEventWhen,
   fmtD,
 } from '@/lib/app-utils'
+import { clubIcon } from '@/lib/icons'
 import { WeeklyGrid, type GridItem, type LegendEntry } from '@/components/weekly-grid'
 import { ClubDialog } from '@/components/dialogs/club-dialog'
 import { EventDialog } from '@/components/dialogs/event-dialog'
@@ -55,6 +56,7 @@ export function ClubsPage({ admin }: { admin: boolean }) {
       meta: '',
       lead: c.lead || 'no lead yet',
       room: c.room,
+      icon: c.icon,
       tone: toneClassForClub(state, c.id),
     }))
   const clubLegend: LegendEntry[] = (state.clubs || []).map((c) => ({
@@ -119,7 +121,7 @@ export function ClubsPage({ admin }: { admin: boolean }) {
         }
       />
 
-      <div ref={gridRef} className="rounded-md bg-card">
+      <div ref={gridRef} className="rounded-2xl bg-card">
         {clubItems.length ? (
           <WeeklyGrid items={clubItems} legend={clubLegend} emptyMessage="No club sessions yet" />
         ) : (
@@ -201,15 +203,18 @@ function ClubCard({
   const vol = (club.vol || []).join(', ')
 
   return (
-    <div className="overflow-hidden rounded-md border border-border bg-card shadow-sm">
+    <div className="overflow-hidden rounded-2xl border border-border bg-card shadow-sm">
       <div className="flex flex-col sm:flex-row">
         {/* poster on the left (170px) */}
         <div className="flex h-44 shrink-0 items-center justify-center bg-secondary sm:h-auto sm:w-[170px]">
           {club.poster ? (
             <img src={club.poster} alt={`${club.name} poster`} className="h-full w-full object-cover" />
           ) : (
-            <div className="flex h-14 w-14 items-center justify-center rounded-md bg-primary/10 text-primary">
-              <Sparkles className="h-7 w-7" />
+            <div className="flex h-14 w-14 items-center justify-center rounded-full bg-primary/10 text-primary">
+              {(() => {
+                const Icon = clubIcon(club.icon)?.Icon || Sparkles
+                return <Icon className="h-7 w-7" />
+              })()}
             </div>
           )}
         </div>
@@ -315,11 +320,11 @@ function EventCard({
   const nextStr = fmtD(nextDate, { weekday: 'long', day: 'numeric', month: 'long' })
 
   return (
-    <div className="overflow-hidden rounded-md border border-[var(--aso-gold-tint)] bg-card shadow-sm">
+    <div className="overflow-hidden rounded-2xl border border-[var(--aso-gold-tint)] bg-card shadow-sm">
       <div className="flex flex-col sm:flex-row">
         {/* gold poster area */}
         <div className="flex h-44 shrink-0 items-center justify-center bg-gradient-to-br from-[var(--aso-gold-tint)] to-secondary sm:h-auto sm:w-[170px]">
-          <div className="flex h-14 w-14 items-center justify-center rounded-md bg-[var(--aso-gold-tint)] text-[var(--aso-gold)]">
+          <div className="flex h-14 w-14 items-center justify-center rounded-full bg-[var(--aso-gold-tint)] text-[var(--aso-gold)]">
             <CalendarDays className="h-7 w-7" />
           </div>
         </div>

@@ -29,7 +29,8 @@ export function ThemeToggle({ className = '' }: { className?: string }) {
       variant="ghost"
       size="icon"
       aria-label="Toggle dark mode"
-      title={isDark ? 'Switch to light mode' : 'Switch to dark mode'}
+      /* title only after mount: avoids an SSR/client mismatch */
+      title={mounted ? (isDark ? 'Switch to light mode' : 'Switch to dark mode') : undefined}
       className={`rounded-full ${className}`}
       onClick={toggle}
     >

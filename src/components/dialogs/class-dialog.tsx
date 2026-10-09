@@ -7,6 +7,7 @@ import {
   DialogHeader,
   DialogTitle,
   DialogFooter,
+  DialogDescription,
 } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -18,7 +19,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import { DayPills, TimeRangeInput } from '@/components/forms/form-controls'
+import { DayPills, TimeRangeSelect } from '@/components/forms/form-controls'
 import { useStore } from '@/lib/store'
 import { uid } from '@/lib/app-utils'
 import type { ClassEntry } from '@/lib/types'
@@ -59,10 +60,7 @@ export function ClassDialog({
       toast('Give the class a code', false)
       return
     }
-    if (!time.includes('-')) {
-      toast('Set a valid time range', false)
-      return
-    }
+    const timeValue = time.includes('-') ? time : '14:00-16:00' // fall back to the shown picker defaults
     const entry: ClassEntry = {
       id: cls?.id || uid(),
       code: code.trim(),
@@ -70,7 +68,7 @@ export function ClassDialog({
       teacher: teacher.trim(),
       room: room.trim(),
       days,
-      time,
+      time: timeValue,
     }
     patch((draft) => {
       if (isNew) draft.classes.push(entry)
@@ -88,40 +86,20 @@ export function ClassDialog({
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
           <DialogTitle>{isNew ? 'New class' : 'Edit class'}</DialogTitle>
+          <DialogDescription>
+            The class shows on the teachers calendar under its level color.
+          </DialogDescription>
         </DialogHeader>
-        <div className="flex flex-col gap-4 py-1">
-          <div className="flex flex-col gap-1.5">
-            <Label htmlFor="cls-code">Class code</Label>
-            <Input
-              id="cls-code"
-              value={code}
-              onChange={(e) => setCode(e.target.value)}
-              placeholder="ASO-K1"
-            />
-          </div>
-          <div className="flex flex-col gap-1.5">
-            <Label>Level</Label>
-            <Select value={level} onValueChange={setLevel}>
-              <SelectTrigger className="w-full">
-                <SelectValue placeholder="Pick a level" />
-              </SelectTrigger>
-              <SelectContent>
-                {state.levels.map((l) => (
-                  <SelectItem key={l.key} value={l.label}>
-                    {l.label} ({l.cefr})
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-          <div className="flex flex-col gap-1.5">
-            <Label>Days</Label>
-            <DayPills value={days} onChange={setDays} />
-          </div>
+        <div className="flex flex-col gap-4">
           <div className="grid grid-cols-2 gap-3">
             <div className="flex flex-col gap-1.5">
-              <Label>Time slot</Label>
-              <TimeRangeInput value={time} onChange={setTime} />
+              <Label htmlFor="cls-code">Class code</Label>
+              <Input
+                id="cls-code"
+                value={code}
+                onChange={(e) => setCode(e.target.value)}
+                placeholder="ASO-K1"
+              />
             </div>
             <div className="flex flex-col gap-1.5">
               <Label htmlFor="cls-room">Room / space</Label>
@@ -133,6 +111,33 @@ export function ClassDialog({
               />
             </div>
           </div>
+
+          <div className="flex flex-col gap-1.5">
+            <Label>Level</Label>
+            <Select value={level} onValueChange={setLevel}>
+              <SelectTrigger className="w-full rounded-lg">
+                <SelectValue placeholder="Pick a level" />
+              </SelectTrigger>
+              <SelectContent className="max-h-64 scroll-thin rounded-lg">
+                {state.levels.map((l) => (
+                  <SelectItem key={l.key} value={l.label}>
+                    {l.label} ({l.cefr})
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div className="flex flex-col gap-1.5">
+            <Label>Days</Label>
+            <DayPills value={days} onChange={setDays} />
+          </div>
+
+          <div className="flex flex-col gap-1.5">
+            <Label>Time slot (24h)</Label>
+            <TimeRangeSelect value={time} onChange={setTime} />
+          </div>
+
           <div className="flex flex-col gap-1.5">
             <Label htmlFor="cls-teacher">Teacher</Label>
             <Input
@@ -149,11 +154,11 @@ export function ClassDialog({
             </datalist>
           </div>
         </div>
-        <DialogFooter>
-          <Button variant="ghost" onClick={() => onOpenChange(false)}>
+        <DialogFooter className="gap-2">
+          <Button variant="ghost" className="rounded-lg" onClick={() => onOpenChange(false)}>
             Cancel
           </Button>
-          <Button onClick={save}>{isNew ? 'Add class' : 'Save'}</Button>
+          <Button className="rounded-lg" onClick={save}>{isNew ? 'Add class' : 'Save'}</Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>

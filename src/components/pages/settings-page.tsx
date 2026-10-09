@@ -129,13 +129,13 @@ export function SettingsPage() {
       <Section title="Appearance" icon={<Sun className="h-4 w-4" />}>
         <div className="flex items-center gap-2">
           <span className="text-sm font-semibold">Theme</span>
-          <div className="ml-auto grid grid-cols-3 gap-1 rounded-md bg-secondary p-1">
+          <div className="ml-auto grid grid-cols-3 gap-1 rounded-full bg-secondary p-1">
             {(['light', 'dark', 'auto'] as Theme[]).map((t) => (
               <button
                 key={t}
                 onClick={() => setThemeVal(t)}
                 className={cn(
-                  'flex items-center gap-1.5 rounded-md px-3 py-1.5 text-xs font-bold capitalize transition',
+                  'flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-bold capitalize transition',
                   s.theme === t ? 'bg-background shadow-sm' : 'text-muted-foreground',
                 )}
               >
@@ -195,8 +195,8 @@ export function SettingsPage() {
                 .slice()
                 .sort((a, b) => a.week - b.week)
                 .map((n) => (
-                  <div key={n.week} className="flex items-center gap-2 rounded-md border border-border p-2.5">
-                    <span className="rounded-md bg-secondary px-2 py-0.5 text-xs font-bold">W{n.week}</span>
+                  <div key={n.week} className="flex items-center gap-2 rounded-lg border border-border p-2.5">
+                    <span className="rounded-full bg-secondary px-2 py-0.5 text-xs font-bold">W{n.week}</span>
                     <span className="flex-1 text-sm">{n.text}</span>
                     <button onClick={() => removeNote(n.week)} className="text-destructive hover:bg-destructive/10 rounded p-1">
                       <Trash2 className="h-3.5 w-3.5" />
@@ -324,9 +324,9 @@ function Section({
   children: React.ReactNode
 }) {
   return (
-    <div className="mb-4 rounded-md border border-border bg-card p-5 shadow-sm">
+    <div className="mb-4 rounded-2xl border border-border bg-card p-5 shadow-sm">
       <div className="mb-3 flex items-center gap-2">
-        <div className="flex h-7 w-7 items-center justify-center rounded-md bg-primary/10 text-primary">{icon}</div>
+        <div className="flex h-7 w-7 items-center justify-center rounded-full bg-primary/10 text-primary">{icon}</div>
         <h2 className="text-sm font-extrabold tracking-tight">{title}</h2>
       </div>
       {children}
@@ -365,7 +365,7 @@ function ToggleRow({
   onChange: (v: boolean) => void
 }) {
   return (
-    <div className="flex items-center gap-2 rounded-md border border-border p-2.5">
+    <div className="flex items-center gap-2 rounded-lg border border-border p-2.5">
       <span className="text-sm font-semibold">{label}</span>
       <Switch checked={checked} onCheckedChange={onChange} className="ml-auto" />
     </div>

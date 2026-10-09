@@ -7,12 +7,19 @@ import {
   DialogHeader,
   DialogTitle,
   DialogFooter,
+  DialogDescription,
 } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
-import { DayPills, TimeRangeInput } from '@/components/forms/form-controls'
+import {
+  DayPills,
+  TimeRangeSelect,
+  IconPicker,
+  PosterUploader,
+  IconPreview,
+} from '@/components/forms/form-controls'
 import { useStore } from '@/lib/store'
 import { uid } from '@/lib/app-utils'
 import type { Club } from '@/lib/types'
@@ -39,6 +46,8 @@ export function ClubDialog({
   const [lead, setLead] = React.useState('')
   const [vol, setVol] = React.useState('')
   const [url, setUrl] = React.useState('')
+  const [icon, setIcon] = React.useState<string | undefined>(undefined)
+  const [poster, setPoster] = React.useState<string | undefined>(undefined)
 
   React.useEffect(() => {
     if (!open) return
@@ -50,6 +59,8 @@ export function ClubDialog({
     setLead(club?.lead || '')
     setVol((club?.vol || []).join(', '))
     setUrl(club?.url || '')
+    setIcon(club?.icon)
+    setPoster(club?.poster)
   }, [open, club])
 
   const save = () => {
@@ -62,11 +73,13 @@ export function ClubDialog({
       name: name.trim(),
       desc: desc.trim(),
       days,
-      time,
+      time: time || '14:00-16:00', // fall back to the shown picker defaults
       room: room.trim(),
       lead: lead.trim(),
       vol: vol.split(',').map((s) => s.trim()).filter(Boolean),
       url: url.trim(),
+      icon,
+      poster,
       placeholder: club?.placeholder,
     }
     patch((draft) => {
@@ -82,33 +95,38 @@ export function ClubDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-md">
+      <DialogContent className="max-h-[92vh] overflow-y-auto scroll-thin sm:max-w-md">
         <DialogHeader>
           <DialogTitle>{isNew ? 'New club' : 'Edit club'}</DialogTitle>
+          <DialogDescription>
+            Sessions appear on the clubs calendar as soon as they have a day and a time.
+          </DialogDescription>
         </DialogHeader>
         <div className="flex flex-col gap-4">
           <div className="flex flex-col gap-1.5">
             <Label htmlFor="cl-name">Club name</Label>
-            <Input id="cl-name" value={name} onChange={(e) => setName(e.target.value)} />
+            <Input id="cl-name" value={name} onChange={(e) => setName(e.target.value)} placeholder="Chess club" />
           </div>
           <div className="flex flex-col gap-1.5">
             <Label htmlFor="cl-desc">Description</Label>
             <Textarea id="cl-desc" rows={2} value={desc} onChange={(e) => setDesc(e.target.value)} />
           </div>
+
           <div className="flex flex-col gap-1.5">
             <Label>Days</Label>
             <DayPills value={days} onChange={setDays} />
           </div>
-          <div className="grid grid-cols-2 gap-3">
-            <div className="flex flex-col gap-1.5">
-              <Label>Time</Label>
-              <TimeRangeInput value={time} onChange={setTime} />
-            </div>
-            <div className="flex flex-col gap-1.5">
-              <Label htmlFor="cl-room">Room</Label>
-              <Input id="cl-room" value={room} onChange={(e) => setRoom(e.target.value)} />
-            </div>
+
+          <div className="flex flex-col gap-1.5">
+            <Label>Time (24h)</Label>
+            <TimeRangeSelect value={time} onChange={setTime} />
           </div>
+
+          <div className="flex flex-col gap-1.5">
+            <Label htmlFor="cl-room">Room</Label>
+            <Input id="cl-room" value={room} onChange={(e) => setRoom(e.target.value)} placeholder="Main Hall" />
+          </div>
+
           <div className="flex flex-col gap-1.5">
             <Label htmlFor="cl-lead">Lead</Label>
             <Input id="cl-lead" value={lead} onChange={(e) => setLead(e.target.value)} list="vol-names" placeholder="No lead yet" />
@@ -121,18 +139,35 @@ export function ClubDialog({
               ))}
             </datalist>
           </div>
+
           <div className="flex flex-col gap-1.5">
             <Label htmlFor="cl-vol">Volunteers (comma-separated)</Label>
             <Input id="cl-vol" value={vol} onChange={(e) => setVol(e.target.value)} />
           </div>
+
           <div className="flex flex-col gap-1.5">
             <Label htmlFor="cl-url">Link (optional)</Label>
             <Input id="cl-url" value={url} onChange={(e) => setUrl(e.target.value)} placeholder="https://..." />
           </div>
+
+          <div className="flex flex-col gap-2">
+            <Label>Chip icon</Label>
+            <IconPicker value={icon} onChange={setIcon} />
+            {icon && (
+              <span className="flex items-center gap-1.5 text-xs font-semibold text-muted-foreground">
+                Shows on the calendar chip: <IconPreview icon={icon} className="text-primary" />
+              </span>
+            )}
+          </div>
+
+          <div className="flex flex-col gap-2">
+            <Label>Poster</Label>
+            <PosterUploader value={poster} onChange={setPoster} />
+          </div>
         </div>
-        <DialogFooter>
-          <Button variant="ghost" onClick={() => onOpenChange(false)}>Cancel</Button>
-          <Button onClick={save}>{isNew ? 'Add club' : 'Save'}</Button>
+        <DialogFooter className="gap-2">
+          <Button variant="ghost" className="rounded-lg" onClick={() => onOpenChange(false)}>Cancel</Button>
+          <Button className="rounded-lg" onClick={save}>{isNew ? 'Add club' : 'Save'}</Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>

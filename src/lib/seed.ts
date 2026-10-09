@@ -451,6 +451,7 @@ const CLUBS: Club[] = [
   {
     id: 'cl1',
     name: 'Conversation Club',
+    icon: 'mic',
     desc:
       'A relaxed weekly speaking club where members practise real-life English around a theme: travel, food, work, dreams. Open to all levels.',
     days: ['Tue'],
@@ -463,6 +464,7 @@ const CLUBS: Club[] = [
   {
     id: 'cl2',
     name: 'Reading Circle',
+    icon: 'book',
     desc:
       'A short story or article each week, read together and discussed. Builds vocabulary and fluency through shared reading.',
     days: ['Wed'],

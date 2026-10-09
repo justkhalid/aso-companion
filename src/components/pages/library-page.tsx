@@ -3,7 +3,7 @@
 import * as React from 'react'
 import { Plus, Pencil, Trash2, ExternalLink, FolderOpen } from 'lucide-react'
 import { useStore } from '@/lib/store'
-import { libCategory, SKILLS } from '@/lib/constants'
+import { libCategory, LIB_CATEGORIES, SKILLS } from '@/lib/constants'
 import { PageHead, EmptyState } from '@/components/ui-bits'
 import { Button } from '@/components/ui/button'
 import { LibraryDialog } from '@/components/dialogs/library-dialog'
@@ -25,21 +25,17 @@ export function LibraryPage() {
     toast('Removed')
   }
 
-  // group by category preserving order
-  const groups: { label: string; folders: LibraryFolder[] }[] = []
+  // group by category in canonical importance order (LIB_CATEGORIES),
+  // alphabetical within each group; empty categories are skipped
   const byCat: Record<string, LibraryFolder[]> = {}
   state.library.forEach((l) => {
     const cat = libCategory(l.name)
     ;(byCat[cat.label] ||= []).push(l)
   })
-  const seen = new Set<string>()
-  state.library.forEach((l) => {
-    const c = libCategory(l.name)
-    if (!seen.has(c.label)) {
-      seen.add(c.label)
-      if (byCat[c.label]) groups.push({ label: c.label, folders: byCat[c.label].slice().sort((a, b) => a.name.localeCompare(b.name)) })
-    }
-  })
+  const groups: { label: string; folders: LibraryFolder[] }[] = LIB_CATEGORIES.map((c) => ({
+    label: c.label,
+    folders: (byCat[c.label] || []).slice().sort((a, b) => a.name.localeCompare(b.name)),
+  })).filter((g) => g.folders.length > 0)
 
   return (
     <div className="mx-auto max-w-4xl px-4 py-6 sm:py-8">
@@ -63,8 +59,8 @@ export function LibraryPage() {
           <div className="mb-2 text-xs font-bold uppercase tracking-wider text-muted-foreground">{g.label}</div>
           <div className="grid gap-2">
             {g.folders.map((l) => (
-              <div key={l.id} className="flex items-start gap-3 rounded-md border border-border bg-card p-3.5">
-                <div className="mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-md bg-primary/10 text-primary">
+              <div key={l.id} className="flex items-start gap-3 rounded-2xl border border-border bg-card p-4">
+                <div className="mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary">
                   <FolderOpen className="h-4 w-4" />
                 </div>
                 <div className="min-w-0 flex-1">
@@ -73,7 +69,7 @@ export function LibraryPage() {
                   {(l.sk || []).length > 0 && (
                     <div className="mt-1.5 flex flex-wrap gap-1">
                       {l.sk.map((k) => (
-                        <span key={k} className={cn('sk-' + k, 'inline-flex items-center rounded-md px-1.5 py-0.5 text-[10px] font-extrabold')}>
+                        <span key={k} className={cn('sk-' + k, 'inline-flex items-center rounded-full px-1.5 py-0.5 text-[10px] font-extrabold')}>
                           {k} · {SKILL_NAMES[k]}
                         </span>
                       ))}

@@ -82,3 +82,150 @@ export async function exportLevelDoc(state: State, lv: Level) {
   a.remove()
   setTimeout(() => URL.revokeObjectURL(url), 5000)
 }
+
+/**
+ * Export one week's detailed lesson plan as a Word-compatible .doc file:
+ * ASO logo header, landscape A4, Calibri, and every section of the plan
+ * (stages, game bank, differentiation, homework, teacher tip, checklist).
+ */
+export async function exportLessonPlanDoc(level: Level, weekIndex: number) {
+  let logoB64 = ''
+  try {
+    const res = await fetch('/aso-logo.png')
+    const blob = await res.blob()
+    logoB64 = await new Promise<string>(resolve => {
+      const reader = new FileReader()
+      reader.onloadend = () => resolve(reader.result as string)
+      reader.readAsDataURL(blob)
+    })
+  } catch { /* logo optional */ }
+
+  const w = level.weeks[weekIndex]
+  const p = w?.lp
+  if (!p) throw new Error('No lesson plan for this week')
+
+  const isKids = level.band === 'Kids' || level.key.indexOf('kids') === 0
+  const dur = isKids ? '2 hours' : '90 minutes'
+  const esc = (s: string) => String(s || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+
+  const th = 'style="background:#1B2A55;color:white;font-size:10pt;padding:6px 8px;border:1px solid #1B2A55;text-align:left;"'
+  const td = 'style="border:1px solid #D9D9E0;padding:6px 8px;font-size:10pt;vertical-align:top;"'
+
+  /* stage rows for the 2-hour / 90-minute arc */
+  const helloTxt =
+    weekIndex === 0
+      ? isKids
+        ? 'Hello Song + name ball toss; establish the attention signal ("1, 2, 3, eyes on me!").'
+        : 'Welcome and icebreaker; establish class routines and the "English only" signal.'
+      : isKids
+        ? `Hello Song + register; feelings chart check-in${weekIndex >= 20 ? '; weather report' : ''}.`
+        : "Warm hello; quick recap of last week + today's goal."
+  const brkTxt = isKids ? 'Toilet + water; soft music; sitting signal on return.' : 'Short break; quick stretch / water; regroup.'
+
+  const T = isKids
+    ? { hello: '0:00-0:10', wu: '0:10-0:20', pres: '0:20-0:35', prac: '0:35-0:50', ls: '0:50-1:00', brk: '1:00-1:10', re: '1:10-1:20', prod: '1:20-1:45', rw: '1:45-1:55', st: '1:55-2:00' }
+    : { hello: '0:00-0:05', wu: '0:05-0:15', pres: '0:15-0:30', prac: '0:30-0:45', ls: '0:45-0:55', brk: '0:55-1:00', re: '1:00-1:08', prod: '1:08-1:22', rw: '1:22-1:28', st: '1:28-1:30' }
+
+  const stages: [string, string, string, boolean][] = [
+    ['Hello & routine', T.hello, helloTxt, false],
+    ['Warm-up review', T.wu, p.wu, false],
+    ['Presentation', T.pres, p.pres, false],
+    ['Practice (guided)', T.prac, p.prac, false],
+    ['Listening slot', T.ls, p.ls, false],
+    ['BREAK', T.brk, brkTxt, true],
+    ['Reactivation game', T.re, p.re, false],
+    ['Production task', T.prod, p.prod, false],
+    ['Reading & writing', T.rw, p.rw, false],
+    ['Story / song + goodbye', T.st, p.st, false],
+  ]
+
+  const stageRows = stages
+    .map(([name, tm, main, brk]) =>
+      '<tr' + (brk ? ' style="background:#FBF3DC;"' : '') + '>' +
+      '<td ' + td + ' style="font-weight:bold;width:22%;">' + esc(name) + '</td>' +
+      '<td ' + td + ' style="font-weight:bold;width:13%;color:#8A6A00;white-space:nowrap;">' + esc(tm) + '</td>' +
+      '<td ' + td + '>' + esc(main) + '</td></tr>',
+    )
+    .join('')
+
+  const bulletList = (items: string[]) =>
+    items && items.length
+      ? '<ul style="margin:4pt 0 0 14pt;padding:0;">' + items.map((x) => '<li style="margin-bottom:3pt;">' + esc(x) + '</li>').join('') + '</ul>'
+      : ''
+
+  const gameTable =
+    p.g && p.g.length
+      ? '<table class="plan"><tr><th ' + th + ' style="width:26%;">Game / activity</th><th ' + th + '>How it works</th></tr>' +
+        p.g.map((g) => '<tr><td ' + td + ' style="font-weight:bold;">' + esc(g[0]) + '</td><td ' + td + '>' + esc(g[1]) + '</td></tr>').join('') +
+        '</table>'
+      : ''
+
+  const checklistTable =
+    p.checklist && p.checklist.length
+      ? '<table class="plan"><tr>' +
+        '<th ' + th + '>Can-do statement</th><th ' + th + ' style="width:14%;">Not yet</th>' +
+        '<th ' + th + ' style="width:14%;">With help</th><th ' + th + ' style="width:16%;">Independently</th></tr>' +
+        p.checklist.map((c) => '<tr><td ' + td + '>' + esc(c) + '</td><td ' + td + '>&#9744;</td><td ' + td + '>&#9744;</td><td ' + td + '>&#9744;</td></tr>').join('') +
+        '</table><p class="note">Tick DURING play, never as a table test. If a child freezes, observe again later. The record should show their best normal self.</p>'
+      : ''
+
+  const html = '<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:w="urn:schemas-microsoft-com:office:word"><head>' +
+    '<meta charset="utf-8"><title>ELTASO ' + esc(level.label) + ' - Lesson Plan W' + (weekIndex + 1) + '</title>' +
+    '<!--[if gte mso 9]><xml><w:WordDocument><w:View>Print</w:View><w:Zoom>100</w:Zoom></w:WordDocument></xml><![endif]-->' +
+    '<style>' +
+    '@page Section1 {size:29.7cm 21.0cm; margin:1.4cm; mso-page-orientation:landscape;}' +
+    'div.Section1 {page:Section1;}' +
+    'body{font-family:Calibri,Arial,sans-serif;font-size:10.5pt;color:#1C1C1E;}' +
+    'h1{color:#1B2A55;font-size:19pt;margin:0 0 2pt 0;}' +
+    'h2{color:#C1272D;font-size:13pt;margin:14pt 0 6pt 0;}' +
+    '.sub{color:#6E6E73;font-size:10.5pt;margin:0 0 8pt 0;}' +
+    '.note{color:#8A6A00;font-size:9pt;margin:6pt 0 0 0;}' +
+    'table.plan{border-collapse:collapse;width:100%;margin-bottom:6pt;}' +
+    'table.plan td{border:1px solid #D9D9E0;padding:6px 8px;font-size:10pt;vertical-align:top;}' +
+    'table.plan th{border:1px solid #1B2A55;padding:6px 8px;font-size:10pt;text-align:left;}' +
+    '</style></head><body><div class="Section1">' +
+
+    /* logo header */
+    '<table style="border-collapse:collapse;width:100%;margin-bottom:6pt;"><tr>' +
+    '<td style="border:none;width:130px;padding:0;">' + (logoB64 ? '<img src="' + logoB64 + '" width="118" alt="ASO logo">' : '') + '</td>' +
+    '<td style="border:none;vertical-align:middle;padding:0 0 0 10px;"><h1>Lesson Plan - Week ' + (weekIndex + 1) + '</h1>' +
+    '<p class="sub">' + esc(level.label) + ' · ' + esc(w.theme || '') + ' · ' + dur + ' · ' + esc(level.cefr || '') + '</p></td>' +
+    '</tr></table>' +
+
+    /* objectives banner */
+    '<table class="plan"><tr><th ' + th + ' style="width:22%;">Objectives</th><td ' + td + '>students can ' + esc(w.obj || '-') + '</td>' +
+    '<th ' + th + ' style="width:18%;">Key language</th><td ' + td + '>' + esc(w.lang || '-') + '</td></tr></table>' +
+
+    /* stages */
+    '<h2>The ' + esc(dur) + ' arc</h2>' +
+    '<table class="plan"><tr><th ' + th + ' style="width:22%;">Stage</th><th ' + th + ' style="width:13%;">Time</th><th ' + th + '>What happens</th></tr>' +
+    stageRows + '</table>' +
+
+    /* game bank */
+    (gameTable ? '<h2>Game bank / activity bank this week</h2>' + gameTable : '') +
+
+    /* differentiation */
+    (p.diff && p.diff.length ? '<h2>Differentiation</h2>' + bulletList(p.diff) : '') +
+
+    /* homework */
+    (p.hw && p.hw.length ? '<h2>Homework options</h2>' + bulletList(p.hw) : '') +
+
+    /* teacher tip */
+    (p.tip ? '<h2>Teacher tip</h2><p style="margin:0 0 6pt 0;">' + esc(p.tip) + '</p>' : '') +
+
+    /* assessment checklist */
+    (checklistTable ? '<h2>Assessment observation checklist</h2>' + checklistTable : '') +
+
+    '</div></body></html>'
+
+  const blob = new Blob(['\ufeff' + html], { type: 'application/msword' })
+  const url = URL.createObjectURL(blob)
+  const a = document.createElement('a')
+  const safeName = (level.label + '_W' + (weekIndex + 1)).replace(/[^A-Za-z0-9]+/g, '_')
+  a.href = url
+  a.download = 'ELTASO_LessonPlan_' + safeName + '.doc'
+  document.body.appendChild(a)
+  a.click()
+  a.remove()
+  setTimeout(() => URL.revokeObjectURL(url), 5000)
+}

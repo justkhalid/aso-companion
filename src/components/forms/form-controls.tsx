@@ -1,10 +1,20 @@
 'use client'
 
 import * as React from 'react'
-import { DAY_KEYS } from '@/lib/constants'
+import { Clock, ImagePlus, Loader2, Trash2 } from 'lucide-react'
+import { DAY_KEYS, TIME_OPTIONS } from '@/lib/constants'
+import { CLUB_ICONS, clubIcon } from '@/lib/icons'
 import { cn } from '@/lib/utils'
+import { Button } from '@/components/ui/button'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
 
-/* day-of-week pills used in class/club/event forms */
+/* ---------- day-of-week pills (iOS style toggles) ---------- */
 export function DayPills({
   value,
   onChange,
@@ -21,63 +31,286 @@ export function DayPills({
   }
   return (
     <div className="flex flex-wrap gap-1.5">
-      {DAY_KEYS.map((d) => (
-        <button
-          key={d}
-          type="button"
-          onClick={() => toggle(d)}
-          className={cn(
-            'rounded-md border px-3 py-1 text-xs font-bold transition',
-            set.has(d)
-              ? 'border-primary bg-primary text-primary-foreground'
-              : 'border-border bg-secondary text-muted-foreground hover:bg-secondary/80',
-          )}
-        >
-          {d}
-        </button>
-      ))}
+      {DAY_KEYS.map((d) => {
+        const on = set.has(d)
+        return (
+          <button
+            key={d}
+            type="button"
+            aria-pressed={on}
+            onClick={() => toggle(d)}
+            className={cn(
+              'rounded-full border px-3.5 py-1.5 text-xs font-bold transition-all active:scale-95',
+              on
+                ? 'border-primary bg-primary text-primary-foreground shadow-sm'
+                : 'border-border bg-secondary text-muted-foreground hover:bg-secondary/70',
+            )}
+          >
+            {d}
+          </button>
+        )
+      })}
     </div>
   )
 }
 
-/* 24h time range input - two HH:MM fields joined by a dash */
-export function TimeRangeInput({
+/* ---------- two-step 24h time picker (30-minute steps) ---------- */
+export function TimeRangeSelect({
   value,
   onChange,
+  defaultStart = '14:00',
+  defaultEnd = '16:00',
 }: {
   value: string
   onChange: (v: string) => void
+  defaultStart?: string
+  defaultEnd?: string
 }) {
   const [start, end] = React.useMemo(() => {
     const m = String(value || '').match(/^(\d{1,2}:\d{2})-(\d{1,2}:\d{2})$/)
-    return m ? [m[1], m[2]] : ['', '']
+    if (m) return [padTime(m[1]), padTime(m[2])]
+    return ['', '']
   }, [value])
 
-  const set = (s: string, e: string) => {
-    if (s && e) onChange(`${s}-${e}`)
-    else onChange(s || e)
+  const valid = (t: string) => TIME_OPTIONS.includes(t)
+  const sv = valid(start) ? start : ''
+  const ev = valid(end) ? end : ''
+
+  const setStart = (s: string) => {
+    const e = ev || defaultEnd
+    onChange(sv || s ? `${s || defaultStart}-${e}` : '')
+  }
+  const setEnd = (e: string) => {
+    const s = sv || defaultStart
+    onChange(ev || e ? `${s}-${e || defaultEnd}` : '')
   }
 
   return (
-    <div className="flex items-center gap-2">
-      <input
-        type="time"
-        value={start}
-        onChange={(ev) => set(ev.target.value, end)}
-        className="flex-1 rounded-md border border-input bg-background px-3 py-2 text-sm"
+    <div className="grid grid-cols-2 gap-2">
+      <TimeStep
+        id="time-start"
+        caption="Starts"
+        value={sv}
+        fallback={defaultStart}
+        onPick={setStart}
       />
-      <span className="text-muted-foreground">–</span>
-      <input
-        type="time"
-        value={end}
-        onChange={(ev) => set(start, ev.target.value)}
-        className="flex-1 rounded-md border border-input bg-background px-3 py-2 text-sm"
+      <TimeStep
+        id="time-end"
+        caption="Ends"
+        value={ev}
+        fallback={defaultEnd}
+        onPick={setEnd}
       />
     </div>
   )
 }
 
-/* skill tag picker for library folders */
+function TimeStep({
+  id,
+  caption,
+  value,
+  fallback,
+  onPick,
+}: {
+  id: string
+  caption: string
+  value: string
+  fallback: string
+  onPick: (v: string) => void
+}) {
+  return (
+    <div className="flex flex-col gap-1.5">
+      <span className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground">
+        {caption}
+      </span>
+      <Select value={value || fallback} onValueChange={onPick}>
+        <SelectTrigger id={id} className="w-full rounded-lg font-semibold tabular-nums">
+          <span className="flex items-center gap-1.5">
+            <Clock className="h-3.5 w-3.5 text-muted-foreground" />
+            <SelectValue />
+          </span>
+        </SelectTrigger>
+        <SelectContent className="max-h-64 scroll-thin rounded-lg">
+          {TIME_OPTIONS.map((t) => (
+            <SelectItem key={t} value={t} className="tabular-nums">
+              {t}
+            </SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
+    </div>
+  )
+}
+
+function padTime(t: string): string {
+  const m = String(t || '').match(/^(\d{1,2}):(\d{2})$/)
+  if (!m) return t
+  return `${m[1].padStart(2, '0')}:${m[2]}`
+}
+
+/* ---------- Lucide icon picker (for club / event chips) ---------- */
+export function IconPicker({
+  value,
+  onChange,
+}: {
+  value?: string
+  onChange: (icon?: string) => void
+}) {
+  return (
+    <div className="grid grid-cols-8 gap-1.5 sm:grid-cols-9">
+      {CLUB_ICONS.map(({ name, label, Icon }) => {
+        const on = value === name
+        return (
+          <button
+            key={name}
+            type="button"
+            title={label}
+            aria-label={label}
+            aria-pressed={on}
+            onClick={() => onChange(on ? undefined : name)}
+            className={cn(
+              'flex h-9 w-full items-center justify-center rounded-full border transition-all active:scale-90',
+              on
+                ? 'border-primary bg-primary text-primary-foreground shadow-sm'
+                : 'border-border bg-secondary text-muted-foreground hover:bg-secondary/70 hover:text-foreground',
+            )}
+          >
+            <Icon className="h-4 w-4" />
+          </button>
+        )
+      })}
+    </div>
+  )
+}
+
+/* ---------- poster upload: compress + crop to A4 portrait, store base64 ---------- */
+const POSTER_W = 848
+const POSTER_H = 1200 // 848x1200 = A4 portrait ratio
+
+export function PosterUploader({
+  value,
+  onChange,
+}: {
+  value?: string
+  onChange: (poster?: string) => void
+}) {
+  const [busy, setBusy] = React.useState(false)
+  const inputRef = React.useRef<HTMLInputElement>(null)
+
+  const handleFile = async (file: File) => {
+    if (!file || !file.type.startsWith('image/')) return
+    setBusy(true)
+    try {
+      const dataUrl = await new Promise<string>((resolve, reject) => {
+        const r = new FileReader()
+        r.onloadend = () => resolve(String(r.result))
+        r.onerror = reject
+        r.readAsDataURL(file)
+      })
+      const img = await new Promise<HTMLImageElement>((resolve, reject) => {
+        const im = new Image()
+        im.onload = () => resolve(im)
+        im.onerror = () => reject(new Error('bad image'))
+        im.src = dataUrl
+      })
+      // cover-crop to A4 portrait on a canvas
+      const cv = document.createElement('canvas')
+      cv.width = POSTER_W
+      cv.height = POSTER_H
+      const ctx = cv.getContext('2d')!
+      const scale = Math.max(POSTER_W / img.width, POSTER_H / img.height)
+      const w = img.width * scale
+      const h = img.height * scale
+      ctx.fillStyle = '#ffffff'
+      ctx.fillRect(0, 0, POSTER_W, POSTER_H)
+      ctx.drawImage(img, (POSTER_W - w) / 2, (POSTER_H - h) / 2, w, h)
+      onChange(cv.toDataURL('image/jpeg', 0.82))
+    } catch {
+      // keep the old poster on failure
+    } finally {
+      setBusy(false)
+    }
+  }
+
+  if (value) {
+    return (
+      <div className="flex items-start gap-3">
+        <div className="relative w-24 shrink-0 overflow-hidden rounded-lg border border-border shadow-sm">
+          <img src={value} alt="Club poster preview" className="block aspect-[848/1200] w-full object-cover" />
+        </div>
+        <div className="flex flex-col gap-1.5">
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            className="rounded-lg"
+            onClick={() => inputRef.current?.click()}
+            disabled={busy}
+          >
+            {busy ? <Loader2 className="h-4 w-4 animate-spin" /> : <ImagePlus className="h-4 w-4" />}
+            Replace poster
+          </Button>
+          <Button
+            type="button"
+            variant="ghost"
+            size="sm"
+            className="rounded-lg text-destructive"
+            onClick={() => onChange(undefined)}
+            disabled={busy}
+          >
+            <Trash2 className="h-4 w-4" /> Remove
+          </Button>
+          <span className="text-[11px] text-muted-foreground">Cropped to A4 portrait automatically.</span>
+        </div>
+        <input
+          ref={inputRef}
+          type="file"
+          accept="image/*"
+          className="hidden"
+          onChange={(e) => {
+            const f = e.target.files?.[0]
+            if (f) void handleFile(f)
+            e.target.value = ''
+          }}
+        />
+      </div>
+    )
+  }
+
+  return (
+    <button
+      type="button"
+      onClick={() => inputRef.current?.click()}
+      disabled={busy}
+      className="flex w-full flex-col items-center justify-center gap-1.5 rounded-lg border border-dashed border-border bg-secondary/40 px-4 py-6 text-center transition hover:border-primary/40 hover:bg-secondary/70"
+    >
+      {busy ? (
+        <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
+      ) : (
+        <ImagePlus className="h-5 w-5 text-muted-foreground" />
+      )}
+      <span className="text-xs font-bold text-foreground">
+        {busy ? 'Processing...' : 'Add a poster'}
+      </span>
+      <span className="text-[11px] text-muted-foreground">
+        JPG or PNG, cropped to A4 portrait automatically
+      </span>
+      <input
+        ref={inputRef}
+        type="file"
+        accept="image/*"
+        className="hidden"
+        onChange={(e) => {
+          const f = e.target.files?.[0]
+          if (f) void handleFile(f)
+          e.target.value = ''
+        }}
+      />
+    </button>
+  )
+}
+
+/* ---------- skill tag picker for library folders ---------- */
 export function SkillPicker({
   value,
   onChange,
@@ -95,21 +328,33 @@ export function SkillPicker({
   }
   return (
     <div className="flex flex-wrap gap-1.5">
-      {SK.map((k) => (
-        <button
-          key={k}
-          type="button"
-          onClick={() => toggle(k)}
-          className={cn(
-            'rounded-md border px-3 py-1 text-xs font-bold transition',
-            set.has(k)
-              ? 'border-primary bg-primary text-primary-foreground'
-              : 'border-border bg-secondary text-muted-foreground',
-          )}
-        >
-          {k}
-        </button>
-      ))}
+      {SK.map((k) => {
+        const on = set.has(k)
+        return (
+          <button
+            key={k}
+            type="button"
+            aria-pressed={on}
+            onClick={() => toggle(k)}
+            className={cn(
+              'rounded-full border px-3.5 py-1.5 text-xs font-bold transition-all active:scale-95',
+              on
+                ? 'border-primary bg-primary text-primary-foreground shadow-sm'
+                : 'border-border bg-secondary text-muted-foreground hover:bg-secondary/70',
+            )}
+          >
+            {k}
+          </button>
+        )
+      })}
     </div>
   )
+}
+
+/* small helper used by the club dialog to preview the chosen icon */
+export function IconPreview({ icon, className }: { icon?: string; className?: string }) {
+  const hit = clubIcon(icon)
+  if (!hit) return null
+  const Icon = hit.Icon
+  return <Icon className={cn('h-4 w-4', className)} />
 }

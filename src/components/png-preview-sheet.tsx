@@ -52,7 +52,7 @@ export function PngPreviewSheet({
               Rendering image...
             </div>
           ) : dataUrl ? (
-            <img src={dataUrl} alt="Exported timetable" className="block w-full rounded-md border border-border bg-white shadow-sm" />
+            <img src={dataUrl} alt="Exported timetable" className="block w-full rounded-lg border border-border bg-white shadow-sm" />
           ) : (
             <div className="flex h-64 items-center justify-center text-sm text-muted-foreground">No image generated yet.</div>
           )}

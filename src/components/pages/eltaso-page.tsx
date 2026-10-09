@@ -14,13 +14,18 @@ export function EltasoPage() {
   const inSession = st.mode === 's1' || st.mode === 's2'
   const wi = inSession ? (st.week || 1) - 1 : -1
 
+  // Only levels that actually have at least one class this year get a card.
+  const withClasses = state.levels.filter((l) =>
+    (state.classes || []).some((c) => c.level === l.label),
+  )
+
   // group by band preserving canonical order
   const groups: { band: string; levels: typeof state.levels }[] = BANDS.map((band) => ({
     band,
-    levels: state.levels.filter((l) => l.band === band),
+    levels: withClasses.filter((l) => l.band === band),
   })).filter((g) => g.levels.length > 0)
   // any level with empty band
-  const other = state.levels.filter((l) => !l.band)
+  const other = withClasses.filter((l) => !l.band)
   if (other.length) groups.push({ band: '', levels: other })
 
   return (
@@ -33,7 +38,7 @@ export function EltasoPage() {
       <div className="mb-5 flex items-center gap-2">
         <h2 className="text-[15px] font-extrabold tracking-tight">Weekly plans</h2>
         <span className="ml-auto text-xs font-semibold text-muted-foreground">
-          {state.levels.length} levels · {state.levels.reduce((m, l) => m + l.weeks.length, 0)} weeks
+          {withClasses.length} levels · {withClasses.reduce((m, l) => m + l.weeks.length, 0)} weeks
         </span>
       </div>
 
@@ -53,10 +58,10 @@ export function EltasoPage() {
                 <button
                   key={l.key}
                   onClick={() => openLevel(l.key)}
-                  className="flex flex-col gap-2 rounded-md border border-border bg-card p-5 text-left shadow-sm transition hover:border-primary/40 hover:shadow-md"
+                  className="flex flex-col gap-2 rounded-2xl border border-border bg-card p-5 text-left shadow-sm transition hover:border-primary/40 hover:shadow-md"
                 >
                   <div className="flex items-center gap-2">
-                    <div className="flex h-9 w-9 items-center justify-center rounded-md bg-primary/10 text-primary">
+                    <div className="flex h-9 w-9 items-center justify-center rounded-full bg-primary/10 text-primary">
                       <GraduationCap className="h-5 w-5" />
                     </div>
                     <div className="flex-1 font-bold leading-tight">{l.label}</div>
@@ -83,7 +88,7 @@ export function EltasoPage() {
       {/* library + reports quick links */}
       <div className="mb-2 mt-2 text-[15px] font-extrabold tracking-tight">More</div>
       <div className="grid gap-3 sm:grid-cols-2">
-        <div className="rounded-md border border-border bg-card p-5">
+        <div className="rounded-2xl border border-border bg-card p-5">
           <div className="flex items-center gap-2 font-bold">
             <BookOpen className="h-4 w-4 text-primary" /> Library
           </div>
@@ -91,7 +96,7 @@ export function EltasoPage() {
             {state.library.length} Drive folders, grouped by category and tagged by skill.
           </div>
         </div>
-        <div className="rounded-md border border-border bg-card p-5">
+        <div className="rounded-2xl border border-border bg-card p-5">
           <div className="flex items-center gap-2 font-bold">
             <BookOpen className="h-4 w-4 text-primary" /> Reports
           </div>

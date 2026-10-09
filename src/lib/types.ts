@@ -92,6 +92,7 @@ export interface Club {
   vol: string[]
   url: string
   poster?: string
+  icon?: string // key from CLUB_ICONS, rendered on calendar chips
   placeholder?: boolean
 }
 
