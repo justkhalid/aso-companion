@@ -4,6 +4,7 @@ import { create } from 'zustand'
 import type { State, View, Side, Theme } from './types'
 import { seedState } from './seed'
 import { LS_KEY, ROLE_KEY } from './constants'
+import { syncViewUrl } from './url-sync'
 
 export type BootStatus = 'idle' | 'loading' | 'loaded' | 'error'
 
@@ -124,7 +125,12 @@ export const useStore = create<UIStore>((set, get) => ({
 
   setView: (v) => {
     set({ view: v })
-    if (typeof window !== 'undefined') window.scrollTo({ top: 0 })
+    if (typeof window !== 'undefined') {
+      window.scrollTo({ top: 0 })
+      /* public tabs own their path (/clubs, /eltaso, ...); admin-only views
+         normalise the URL back to / instead of advertising a tab path */
+      syncViewUrl(v)
+    }
   },
   setSide: (s) => set({ side: s }),
   openLevel: (key) => {
@@ -137,11 +143,13 @@ export const useStore = create<UIStore>((set, get) => ({
     if (code.trim() !== ok) return false
     set({ admin: true, pubView: false, rememberDevice: remember, view: 'home', side: 'elt' })
     if (remember) lsSet(ROLE_KEY, 'admin')
+    syncViewUrl('home', 'replace')
     return true
   },
   logout: () => {
     set({ admin: false, pubView: false, view: 'home', side: 'elt' })
     lsDel(ROLE_KEY)
+    syncViewUrl('home', 'replace')
   },
   setPubView: (v) => set({ pubView: v }),
 
@@ -346,6 +354,7 @@ export const useStore = create<UIStore>((set, get) => ({
     set({ state: s, view: 'home', selectedLevelKey: '' })
     applyTheme(s.settings.theme)
     lsSet(LS_KEY, JSON.stringify(s))
+    syncViewUrl('home', 'replace')
   },
 
   toast: (msg, ok = true) => {

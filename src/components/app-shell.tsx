@@ -21,9 +21,10 @@ import { InternOverview } from './pages/intern-overview'
 import { InternClubsPage } from './pages/intern-clubs-page'
 import { InternEventsPage } from './pages/intern-events-page'
 import { InternVolunteersPage } from './pages/intern-volunteers-page'
+import { viewFromPath } from '@/lib/url-sync'
 import type { View } from '@/lib/types'
 
-export function AppShell() {
+export function AppShell({ initialView }: { initialView?: View }) {
   const bootApp = useStore((s) => s.bootApp)
   const boot = useStore((s) => s.boot)
   const admin = useStore((s) => s.admin)
@@ -37,6 +38,23 @@ export function AppShell() {
   React.useEffect(() => {
     void bootApp()
   }, [bootApp])
+
+  // deep link: /eltaso, /clubs or /resources land directly on that tab
+  // (no-op when the URL is /, the default home). Runs before the boot
+  // splash lifts, so the first real paint is already the requested tab.
+  React.useEffect(() => {
+    if (initialView && initialView !== 'home') setView(initialView)
+  }, [])
+
+  // browser back / forward walks through public tab paths
+  React.useEffect(() => {
+    const onPop = () => {
+      const v = viewFromPath(window.location.pathname)
+      if (v) setView(v) // syncViewUrl skips the push when already on the path
+    }
+    window.addEventListener('popstate', onPop)
+    return () => window.removeEventListener('popstate', onPop)
+  }, [])
 
   // v4.7 boot splash: until the app state is ready, show a branded splash
   // instead of rendering anything. This kills the split-second flash of the
