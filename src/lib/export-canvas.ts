@@ -233,9 +233,10 @@ export async function renderTimetablePNG(o: ExportOptions): Promise<Blob | null>
   const ty = HEADER_H
   ctx.fillStyle = '#1C1C1E'
   ctx.font = '700 16px ' + FONT
+  /* hour labels sit ON the vertical line marking the start of each hour */
   ctx.textAlign = 'center'
   hours.forEach((h, i) => {
-    ctx.fillText(pad2(h) + ':00', PAD + DAY_LABEL_W + i * HOUR_W + HOUR_W / 2, ty + HOUR_HEAD_H / 2 + 6)
+    ctx.fillText(pad2(h) + ':00', PAD + DAY_LABEL_W + i * HOUR_W, ty + HOUR_HEAD_H / 2 + 6)
   })
   ctx.textAlign = 'left'
   // Header borders
@@ -539,7 +540,7 @@ export async function renderPosterPNG(o: ExportOptions): Promise<Blob | null> {
   drawFooterRule(ctx, W, PAD, y + 4)
   ctx.fillStyle = '#8A8A90'
   ctx.font = '500 12.5px ' + FONT
-  ctx.fillText([o.rooms, 'Made with ASO Companion'].filter(Boolean).join('  ·  '), PAD, y + 26)
+  ctx.fillText(o.rooms || '', PAD, y + 26)
 
   return new Promise((res) => cv.toBlob(res, 'image/png'))
 }
@@ -686,7 +687,7 @@ export async function renderWeekStripPNG(o: ExportOptions): Promise<Blob | null>
   drawFooterRule(ctx, W, PAD, fy + 2)
   ctx.fillStyle = '#8A8A90'
   ctx.font = '500 12.5px ' + FONT
-  ctx.fillText([o.rooms, 'Made with ASO Companion'].filter(Boolean).join('  ·  '), PAD, fy + 24)
+  ctx.fillText(o.rooms || '', PAD, fy + 24)
 
   return new Promise((res) => cv.toBlob(res, 'image/png'))
 }

@@ -25,7 +25,7 @@ import {
   parseISO,
 } from '@/lib/app-utils'
 import { DAY_FULL, DAY_KEYS, ROOM_LEGEND } from '@/lib/constants'
-import { WeeklyGrid, type GridItem, type LegendEntry } from '@/components/weekly-grid'
+import { WeeklyGrid, CalendarListView, CalViewSwitcher, readCalView, writeCalView, type GridItem, type LegendEntry, type CalendarView } from '@/components/weekly-grid'
 import { ClassDialog } from '@/components/dialogs/class-dialog'
 import { CalendarExportMenu } from '@/components/calendar-export'
 import { SectionHeader, LinkButton, Chip, EmptyState } from '@/components/ui-bits'
@@ -39,6 +39,12 @@ export function HomePage({ admin }: { admin: boolean }) {
     open: false,
     cls: null,
   })
+
+  /* calendar view (grid/list) shared by both home calendars, like clubs */
+  const [calView, setCalView] = React.useState<CalendarView>(readCalView)
+  React.useEffect(() => {
+    writeCalView(calView)
+  }, [calView])
 
   const st = termStatus(state)
   const now = new Date()
@@ -262,17 +268,26 @@ export function HomePage({ admin }: { admin: boolean }) {
               baseName={'ELTASO_Weekly_Program_' + exportYear}
               variant="pill"
             />
+            <CalViewSwitcher view={calView} onChange={setCalView} />
           </>
         }
       />
       <div ref={gridRef} className="rounded-2xl bg-card">
         {classItems.length ? (
-          <WeeklyGrid
-            items={classItems}
-            legend={classLegend}
-            weekMonday={wkMon}
-            onCellClick={admin ? (it) => setClassDialog({ open: true, cls: state.classes.find((c) => c.id === it.id) || null }) : undefined}
-          />
+          calView === 'grid' ? (
+            <WeeklyGrid
+              items={classItems}
+              legend={classLegend}
+              weekMonday={wkMon}
+              onCellClick={admin ? (it) => setClassDialog({ open: true, cls: state.classes.find((c) => c.id === it.id) || null }) : undefined}
+            />
+          ) : (
+            <CalendarListView
+              items={classItems}
+              legend={classLegend}
+              onCellClick={admin ? (it) => setClassDialog({ open: true, cls: state.classes.find((c) => c.id === it.id) || null }) : undefined}
+            />
+          )
         ) : (
           <EmptyState icon={<CalendarDays className="h-5 w-5" />} title="No classes yet" hint="The weekly timetable appears here once classes are added." />
         )}
@@ -283,14 +298,21 @@ export function HomePage({ admin }: { admin: boolean }) {
         <SectionHeader
           title="Clubs & events"
           right={
-            <LinkButton icon={<ArrowRight className="h-3.5 w-3.5" />} onClick={() => setView('clubs')}>
-              Open calendar
-            </LinkButton>
+            <>
+              <LinkButton icon={<ArrowRight className="h-3.5 w-3.5" />} onClick={() => setView('clubs')}>
+                Open calendar
+              </LinkButton>
+              <CalViewSwitcher view={calView} onChange={setCalView} />
+            </>
           }
         />
         <div ref={clubGridRef} className="rounded-2xl bg-card">
           {homeClubItems.length ? (
-            <WeeklyGrid items={homeClubItems} legend={homeClubLegend} emptyMessage="No club sessions yet" />
+            calView === 'grid' ? (
+              <WeeklyGrid items={homeClubItems} legend={homeClubLegend} emptyMessage="No club sessions yet" />
+            ) : (
+              <CalendarListView items={homeClubItems} legend={homeClubLegend} emptyMessage="No club sessions yet" />
+            )
           ) : (
             <EmptyState icon={<Sparkles className="h-5 w-5" />} title="No club sessions yet" hint="Club sessions appear here as soon as they are scheduled." />
           )}

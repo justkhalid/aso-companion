@@ -1,9 +1,11 @@
 'use client'
 
 import * as React from 'react'
+import { LayoutGrid, List } from 'lucide-react'
 import { DAY_KEYS } from '@/lib/constants'
 import { addDays, fmtD, todayKey } from '@/lib/app-utils'
 import { clubIcon } from '@/lib/icons'
+import { cn } from '@/lib/utils'
 
 export interface GridItem {
   id: string
@@ -154,14 +156,14 @@ export function WeeklyGrid({
     <div className="rounded-2xl border border-border bg-card p-2 sm:p-3">
       <div className="overflow-x-auto scroll-thin">
         <div style={{ width: gridWidth, position: 'relative' }}>
-          {/* Hour header row: hours across the top, 09:00 to 18:00 */}
-          <div className="sticky top-0 z-20 flex border-b border-border bg-card" style={{ height: 40 }}>
-            <div style={{ width: DAY_LABEL_W }} className="shrink-0" />
-            {hours.map((h) => (
+          {/* Hour header row: each label sits ON the vertical line that marks
+              the START of that hour (not centered inside the hour cell) */}
+          <div className="sticky top-0 z-20 border-b border-border bg-card" style={{ height: 40, position: 'relative' }}>
+            {hours.map((h, i) => (
               <div
                 key={h}
-                className="flex items-center justify-center text-[11px] font-bold tabular-nums text-muted-foreground"
-                style={{ width: HOUR_WIDTH }}
+                className="absolute top-0 flex h-full items-center text-[11px] font-bold tabular-nums text-muted-foreground"
+                style={{ left: DAY_LABEL_W + i * HOUR_WIDTH, transform: 'translateX(-50%)' }}
               >
                 {pad(h)}:00
               </div>
@@ -289,6 +291,80 @@ export function WeeklyGrid({
         </div>
       )}
     </div>
+  )
+}
+
+/* -------------------------------------------------------------------------
+   Calendar view switcher: the same pill used on every page that shows a
+   calendar (home, clubs). One shared component + one shared localStorage
+   key so the preference follows the user around. Grid stays the default.
+   ------------------------------------------------------------------------- */
+export type CalendarView = 'grid' | 'list'
+export const CAL_VIEW_KEY = 'aso-cal-view'
+
+export function readCalView(): CalendarView {
+  if (typeof window === 'undefined') return 'grid'
+  try {
+    const v = window.localStorage.getItem(CAL_VIEW_KEY)
+    return v === 'list' ? 'list' : 'grid'
+  } catch {
+    return 'grid'
+  }
+}
+
+export function writeCalView(v: CalendarView): void {
+  try { window.localStorage.setItem(CAL_VIEW_KEY, v) } catch { /* private mode */ }
+}
+
+export function CalViewSwitcher({
+  view,
+  onChange,
+  className,
+}: {
+  view: CalendarView
+  onChange: (v: CalendarView) => void
+  className?: string
+}) {
+  return (
+    <div
+      className={cn('flex items-center gap-0.5 rounded-full border border-border bg-secondary/70 p-0.5', className)}
+      role="group"
+      aria-label="Calendar view"
+    >
+      <ViewModeButton active={view === 'grid'} onClick={() => onChange('grid')} label="Grid view">
+        <LayoutGrid className="h-3.5 w-3.5" />
+      </ViewModeButton>
+      <ViewModeButton active={view === 'list'} onClick={() => onChange('list')} label="List view">
+        <List className="h-3.5 w-3.5" />
+      </ViewModeButton>
+    </div>
+  )
+}
+
+function ViewModeButton({
+  active,
+  onClick,
+  label,
+  children,
+}: {
+  active: boolean
+  onClick: () => void
+  label: string
+  children: React.ReactNode
+}) {
+  return (
+    <button
+      onClick={onClick}
+      aria-label={label}
+      aria-pressed={active}
+      title={label}
+      className={cn(
+        'flex h-7 w-8 items-center justify-center rounded-full transition',
+        active ? 'bg-primary text-primary-foreground shadow-sm' : 'text-muted-foreground hover:bg-secondary hover:text-foreground',
+      )}
+    >
+      {children}
+    </button>
   )
 }
 

@@ -75,8 +75,10 @@ export const BANDS = ['Kids', 'Teens', 'Adults'] as const
    are added to the list dynamically - see roomOptionsFor) */
 export const ROOM_OPTIONS = ['Room 1', 'Room 2', 'Room 3', 'Main Hall'] as const
 
-/* small legend printed under the exports so readers know where each room is */
-export const ROOM_LEGEND = 'Room 1 is on the main floor · Room 2 is upstairs'
+/* small legend printed under the exports so readers know where each room is.
+   ASO layout: the Library and Room 1 are on the ground floor; Room 2 and the
+   Main Hall are upstairs. */
+export const ROOM_LEGEND = 'Ground floor: Room 1 & Library · Upstairs: Room 2 & Main Hall'
 
 /* ---- reporting guide ---- */
 export const REPORT_SYSTEM_URL =

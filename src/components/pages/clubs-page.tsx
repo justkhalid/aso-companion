@@ -39,7 +39,7 @@ import {
 } from '@/lib/app-utils'
 import { ROOM_LEGEND, DAY_KEYS } from '@/lib/constants'
 import { clubIcon } from '@/lib/icons'
-import { WeeklyGrid, CalendarListView, type GridItem, type LegendEntry } from '@/components/weekly-grid'
+import { WeeklyGrid, CalendarListView, CalViewSwitcher, readCalView, writeCalView, type GridItem, type LegendEntry, type CalendarView } from '@/components/weekly-grid'
 import { ClubDialog } from '@/components/dialogs/club-dialog'
 import { EventDialog } from '@/components/dialogs/event-dialog'
 import { CalendarExportMenu } from '@/components/calendar-export'
@@ -49,9 +49,7 @@ import { cn } from '@/lib/utils'
 import type { Club, EventEntry } from '@/lib/types'
 
 type ClubView = 'list' | 'grid'
-type CalendarView = 'grid' | 'list'
 const CLUB_VIEW_KEY = 'aso-clubs-view-v2' // v2: grid is now the default
-const CAL_VIEW_KEY = 'aso-cal-view'
 
 export function ClubsPage({ admin }: { admin: boolean }) {
   const state = useStore((s) => s.state)
@@ -70,13 +68,9 @@ export function ClubsPage({ admin }: { admin: boolean }) {
     try { window.localStorage.setItem(CLUB_VIEW_KEY, clubView) } catch { /* private mode */ }
   }, [clubView])
 
-  const [calView, setCalView] = React.useState<CalendarView>(() => {
-    if (typeof window === 'undefined') return 'grid'
-    const v = window.localStorage.getItem(CAL_VIEW_KEY)
-    return v === 'list' ? 'list' : 'grid'
-  })
+  const [calView, setCalView] = React.useState<CalendarView>(readCalView)
   React.useEffect(() => {
-    try { window.localStorage.setItem(CAL_VIEW_KEY, calView) } catch { /* private mode */ }
+    writeCalView(calView)
   }, [calView])
 
   /* the club card expanded in the elegant overlay (grid + list views) */
@@ -188,14 +182,7 @@ export function ClubsPage({ admin }: { admin: boolean }) {
       {/* calendar with a view switcher, like the clubs section */}
       <div className="mb-3 flex flex-wrap items-center gap-x-2 gap-y-2">
         <h2 className="text-[15px] font-extrabold tracking-tight">Weekly calendar</h2>
-        <div className="ml-auto flex items-center gap-0.5 rounded-full border border-border bg-secondary/70 p-0.5" role="group" aria-label="Calendar view">
-          <ViewModeButton active={calView === 'grid'} onClick={() => setCalView('grid')} label="Grid view">
-            <LayoutGrid className="h-3.5 w-3.5" />
-          </ViewModeButton>
-          <ViewModeButton active={calView === 'list'} onClick={() => setCalView('list')} label="List view">
-            <List className="h-3.5 w-3.5" />
-          </ViewModeButton>
-        </div>
+        <CalViewSwitcher view={calView} onChange={setCalView} className="ml-auto" />
       </div>
       <div className="rounded-2xl bg-card">
         {calItems.length ? (

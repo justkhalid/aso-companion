@@ -274,7 +274,7 @@ function docFooterBlock(logoB64: string): string {
   return '<table style="border-collapse:collapse;width:100%;margin-top:12pt;"><tr>' +
     '<td style="border:none;width:48px;padding:0;">' + (logoB64 ? '<img src="' + logoB64 + '" width="44" alt="ASO logo">' : '') + '</td>' +
     '<td style="border:none;vertical-align:middle;padding:0 0 0 8px;color:#6E6E73;font-size:8.5pt;">' +
-    'Made with ASO Companion · American Space Oujda · generated ' + when + '</td></tr></table>'
+    'American Space Oujda · generated ' + when + '</td></tr></table>'
 }
 
 /* At a glance: one paragraph with the weekly totals, then a color legend
