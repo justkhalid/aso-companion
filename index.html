@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>ASO Companion</title>
+<meta name="description" content="ASO Companion - American Space Oujda. The ELTASO classes side and the Internship side: clubs, events, volunteers, library and reports.">
+<meta name="theme-color" content="#F2F2F7" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#000000" media="(prefers-color-scheme: dark)">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="ASO Companion">
+<link rel="stylesheet" href="style.css?v=2.24">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" type="image/png" sizes="32x32" href="icons/icon-32.png">
+<link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+</head>
+<body>
+<div class="app">
+  <aside class="side" id="sidebar">
+    <div class="s-logo">
+      <img id="logoImg" alt="ASO logo">
+      <div>
+        <div class="t1">ASO Companion</div>
+        <div class="t2" id="sideYear"></div>
+      </div>
+    </div>
+    <button class="pub-burger" id="pubBurger" aria-label="Menu"></button>
+    <nav class="s-nav" id="snav"></nav>
+    <div class="s-foot">
+      <button class="nav-item" id="navSettings"></button>
+    </div>
+  </aside>
+  <div class="main">
+    <header class="topbar">
+      <button class="icon-btn burger" id="burger" aria-label="Menu"></button>
+      <div class="tb-title" id="tbTitle">Home</div>
+      <div class="tb-right">
+        <div class="side-pill hidden" id="sidePill" role="tablist">
+          <button type="button" class="sp-btn" data-pill="elt">ELT</button>
+          <button type="button" class="sp-btn" data-pill="intern">Intern</button>
+        </div>
+        <button type="button" class="pub-pill hidden" id="pubPill">Back to admin</button>
+        <button class="tb-chip" id="tbWeek" title="Jump to this week"></button>
+        <button class="icon-btn" id="themeBtn" aria-label="Toggle theme"></button>
+      </div>
+    </header>
+    <main class="content" id="content">
+      <div class="view-wrap" id="viewRoot">
+        <!-- v2.15: branded boot splash rendered in HTML so it shows the moment
+             the page loads, BEFORE the JS runs. The boot loader (07_edit.js)
+             replaces this once the state is fetched from GitHub. -->
+        <div class="boot-splash" id="bootSplash">
+          <img class="bs-logo" alt="ASO logo" src="icons/icon-192.png">
+          <div class="bs-title">ASO Companion</div>
+          <div class="bs-spinner"></div>
+        </div>
+      </div>
+    </main>
+  </div>
+</div>
+<div id="overlayRoot"></div>
+<div id="toastRoot"></div>
+<script src="js/01_seed.js?v=2.24"></script>
+<script src="js/02_core.js?v=2.24"></script>
+<script src="js/03_views_a.js?v=2.24"></script>
+<script src="js/04_views_b.js?v=2.24"></script>
+<script src="js/05_styles_xml.js?v=2.24"></script>
+<script src="js/06_exports.js?v=2.24"></script>
+<script src="js/07_edit.js?v=2.24"></script>
+</body>
+</html>

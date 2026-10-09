@@ -1,0 +1,54 @@
+{
+  "wu": "Students play 'Ability Charades' in teams. One student mimes a sport or action (e.g., running fast, swimming well), others guess 'Can you [verb]?' The miming student replies 'Yes, I can' or 'No, I can't'.",
+  "wuAlt": [
+    "Students play 'Find Someone Who...' with a grid of sports/actions, asking peers 'Can you [verb]?' and signing names.",
+    "Students quickly share one sport they can do well using 'I can [verb] well.'"
+  ],
+  "pres": "Teacher shows flashcards of sports (football, swimming, basketball) and actions (run, jump, write). Models sentences: 'I can play football well' and 'I couldn't swim last year'. Elicits similar sentences from students about their own abilities. Checks understanding by asking 'Can you jump?' and 'Could you read when you were five?'",
+  "presAlt": [
+    "Teacher tells a short story about a child who couldn't ride a bike last year but can now, using past/present 'can'.",
+    "Teacher demonstrates a simple task (e.g., juggling) and says 'I can do this now, but I couldn't last week'."
+  ],
+  "prac": "Students complete a 'Can/Could' worksheet with gaps (e.g., 'I ___ swim now, but I ___ last year'). Then they drill in pairs, asking 'Can you [verb]?' and 'Could you [verb] when you were young?' with teacher monitoring.",
+  "pracAlt": [
+    "Students play 'Ability Bingo' with sentences like 'I can play tennis' on cards, listening for teacher's prompts.",
+    "Students match sports to ability adverbs (well, fast) in a cut-and-paste activity."
+  ],
+  "ls": "Students listen to a short audio clip of a teen talking about their sports abilities now and in the past. They tick a grid with sports like 'swimming', 'football' and mark 'now' or 'before'.",
+  "re": "After break, students play 'Stand Up If You Can...'. Teacher calls out abilities (e.g., 'Stand up if you can run fast!'), students who can stand up.",
+  "prod": "Students work in pairs for a 'Can-Can't Interview'. They ask each other 3 questions about sports/abilities now and 3 about the past (e.g., 'Can you play basketball?' 'Could you swim when you were 10?'). They take notes and share one interesting fact about their partner with the class.",
+  "rw": "Students read a short text about a Moroccan athlete (e.g., Hicham El Guerrouj) and complete a grid with 'now' and 'past' abilities from the text. Then they write 3 sentences about their own abilities using 'can' and 'could'.",
+  "st": "Teacher tells a simple story about a boy who learns to skateboard, using 'can' and 'could'. Ends with the goodbye routine: 'Today we talked about what we can and can't do. Thank you, class!'",
+  "g": [
+    [
+      "Ability Relay",
+      "Teams race to write sentences about abilities on the board, e.g., 'I can run fast.'"
+    ],
+    [
+      "Can/Could Charades",
+      "Students mime actions for peers to guess using 'Can you...?' or 'Could you...?'"
+    ],
+    [
+      "Find Someone Who...",
+      "Students survey classmates to find someone who can do a specific sport."
+    ],
+    [
+      "Ability Match-Up",
+      "Students match sports to adverbs like 'well' or 'fast'."
+    ],
+    [
+      "Past-Present Quiz",
+      "Teacher asks 'Could you...?' questions, students answer 'Yes, I can now' or 'No, I still can't'."
+    ]
+  ],
+  "diff": [
+    "Fast finishers: Write a paragraph about a famous athlete's abilities now and in the past.",
+    "Support learners: Use sentence starters like 'I can ___ well' and 'I couldn't ___ when I was young'."
+  ],
+  "hw": [
+    "Write 6-8 sentences about your sports abilities now and when you were younger.",
+    "Interview a family member about their abilities and write 5 sentences.",
+    "Draw a picture of yourself doing a sport and write 3 sentences about it using 'can' and 'could'."
+  ],
+  "tip": "Use local sports like football or athletics to connect with students' interests, and praise effort over accuracy to build confidence."
+}

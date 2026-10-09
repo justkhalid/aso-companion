@@ -1,0 +1,54 @@
+{
+  "wu": "Stand in a circle. Throw a soft ball to a student. They say 'Yesterday I was [happy/tired]'. Throw to the next student. Repeat until everyone has spoken.",
+  "wuAlt": [
+    "Play 'Two Truths and a Lie'. Students write three sentences about yesterday, one false. Class guesses the lie.",
+    "Show flashcards of emotions (happy, sad, tired). Students mime and say 'Yesterday I was [emotion]'."
+  ],
+  "pres": "Display a photo of a child's birthday party. Ask 'Who was happy?'. Elicit 'The boy was happy'. Point to the cake. 'The cake was big'. Model 'was/were' with positive sentences. Ask 'Was the girl sad?'. Elicit 'No, she wasn't'. Check understanding with thumbs up/down.",
+  "presAlt": [
+    "Tell a short story about your own childhood: 'When I was five, I was small. My house was old'. Use gestures for 'was/were'.",
+    "Draw a simple timeline on the board: 'Now', 'Last year', 'When I was 10'. Write sentences for each time."
+  ],
+  "prac": "Give each pair a set of 'was/were' sentence cards. They race to match them to picture cards (e.g., 'The cat was black' with a black cat picture). Monitor and correct pronunciation.",
+  "pracAlt": [
+    "Play 'Find Someone Who'. Students walk around asking 'Were you at school yesterday?'. Find someone who answers 'Yes, I was'.",
+    "Complete the gap-fill worksheet: 'Yesterday I ___ at the park. My friends ___ with me.'"
+  ],
+  "ls": "Play a short audio clip of two teens talking about their weekend. Students listen and tick the activities they hear on a worksheet (e.g., 'watched TV', 'played football').",
+  "re": "Play 'Freeze'. Play music. Students dance. When music stops, a student must say a sentence with 'was/were' (e.g., 'I was dancing').",
+  "prod": "In groups, create a 'Childhood Memories' poster. Draw pictures of when they were younger. Write sentences: 'When I was five, I was [small/fast]. My toy was [red].'. Present to the class.",
+  "rw": "Read a short diary entry about a boy's New Year's Eve. Students underline all examples of 'was/were'. Then, write 3 sentences about their own last weekend using 'was/were'.",
+  "st": "Read the story 'The New Year's Resolution' from the coursebook. Discuss the resolutions. Close with: 'Today we talked about yesterday using was/were. Thank you, class!'",
+  "g": [
+    [
+      "Memory Match",
+      "Students match picture cards to 'was/were' sentences."
+    ],
+    [
+      "Chain Story",
+      "Each student adds one sentence to a story using 'was/were'."
+    ],
+    [
+      "Guess the Picture",
+      "Teacher describes a picture with 'was/were'. Students guess what it is."
+    ],
+    [
+      "Past Tense Bingo",
+      "Students have bingo cards with past tense sentences. Teacher calls out clues."
+    ],
+    [
+      "Human Sentences",
+      "Students line up to form a sentence with 'was/were' word cards."
+    ]
+  ],
+  "diff": [
+    "Fast finishers: Write 5 more sentences about their childhood.",
+    "Support: Use a sentence frame: 'When I was ___, I was ___.'"
+  ],
+  "hw": [
+    "Write 6 sentences about your last weekend using 'was/were'.",
+    "Write 5 New Year resolutions using 'will' and 'going to'.",
+    "Draw a picture of your last weekend and label it with 'was/were' sentences."
+  ],
+  "tip": "Use personal examples from your own life to make 'was/were' more relatable for teens. Connect it to local events like the Green March to build cultural relevance."
+}

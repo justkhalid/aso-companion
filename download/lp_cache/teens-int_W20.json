@@ -1,0 +1,54 @@
+{
+  "wu": "Plan Pictionary: Write weekend plans on slips (e.g., 'visit grandma', 'study English'). Students draw; classmates guess using 'Are you going to...?' and the drawer responds 'Yes, I am.' or 'No, I'm going to...'.",
+  "wuAlt": [
+    "Plan Charades: Act out holiday plans; peers guess with 'Are you going to...?'",
+    "Plan Relay: Teams race to write 'going to' sentences about their weekend on the board."
+  ],
+  "pres": "Show flashcards of Moroccan holidays (Eid, Green March). Model: 'For Eid, I'm going to visit my family after I pray.' Elicit similar sentences. Check with thumbs-up/down: 'Are you going to...?'",
+  "presAlt": [
+    "Use a calendar with events; ask 'What are you going to do on...?'",
+    "Show a video of a local festival; pause to ask 'What are they going to do next?'"
+  ],
+  "prac": "Find Someone Who...: Students mingle, ask 'Are you going to... this weekend?', write names. Review with 'Yes, [name] is going to...' or 'No, but [name] is going to...'.",
+  "pracAlt": [
+    "Plan Dominoes: Match 'going to' phrases with time clauses (e.g., 'after school' + 'do homework').",
+    "Plan Bingo: Call out plans; students cover if they match their own."
+  ],
+  "ls": "Listen to a teen's holiday plans (audio). Students tick activities heard and underline 'going to + when' phrases. Check answers in pairs.",
+  "re": "Plan Freeze: Teacher calls a plan (e.g., 'going to the beach'); students mime it. On 'Freeze!', they freeze and say a sentence (e.g., 'I'm going to swim after I eat lunch').",
+  "prod": "Two-Corner Debate: Divide class into 'City Holiday' vs. 'Beach Holiday'. Groups prepare 3 reasons using 'going to + when'. Present; peers ask follow-up questions ('When are you going to leave?').",
+  "rw": "Read a short text about a teen's Green March plans. Underline all 'going to' + time clauses. Write 3 similar sentences about their own Independence Day plans.",
+  "st": "Sing 'What Are You Going to Do?' (to the tune of 'Frère Jacques'). Close with: 'Today we talked about plans using going to. Thank you, class!'",
+  "g": [
+    [
+      "Plan Pictionary",
+      "Draw weekend plans; guess with 'Are you going to...?'"
+    ],
+    [
+      "Plan Relay",
+      "Teams race to write 'going to' sentences on the board"
+    ],
+    [
+      "Find Someone Who",
+      "Mingle and ask about weekend plans"
+    ],
+    [
+      "Plan Freeze",
+      "Mime plans and say sentences on 'Freeze'"
+    ],
+    [
+      "Two-Corner Debate",
+      "Argue for city vs. beach holiday plans"
+    ]
+  ],
+  "diff": [
+    "Fast finishers: Write a paragraph about a dream holiday using 3 'going to + when' clauses.",
+    "Support: Use sentence starters like 'I'm going to... after I...'."
+  ],
+  "hw": [
+    "Complete the future plans worksheet from the library folder.",
+    "Write 5 sentences about your Labour Day plans using 'going to + when'.",
+    "Interview a family member about their weekend plans and report back."
+  ],
+  "tip": "Use local holidays (Eid, Green March) to make plans relatable; teens engage more when discussing familiar events."
+}

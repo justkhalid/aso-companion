@@ -1,0 +1,54 @@
+{
+  "wu": "Play 'Mime the Animal': Teacher mimes a wild animal, students guess 'Is it a lion?' or 'Is it an elephant?' using target vocabulary. Students take turns miming.",
+  "wuAlt": [
+    "Play 'Animal Charades': Students draw an animal flashcard and act it out for the class to guess.",
+    "Play 'Flashcard Race': Two teams race to slap the correct animal flashcard when the teacher says the name."
+  ],
+  "pres": "Show flashcards of lion, elephant, monkey, snake. Model sentences: 'A lion is big. It has got a mane. It lives in Africa.' Drill pronunciation. Check understanding by asking 'What has a mane?' and 'Where does a snake live?'",
+  "presAlt": [
+    "Tell a short story about a trip to the zoo using the target animals and facts.",
+    "Use a video clip of animals and pause to elicit facts from students."
+  ],
+  "prac": "Play 'Guess the Animal': Teacher describes an animal ('It is big and grey. It has a trunk.'), students guess the animal. Students then describe animals in pairs using 'It is... It has got... It lives...'",
+  "pracAlt": [
+    "Complete a 'My Animal Fact' worksheet by filling in blanks with size, body part, and location.",
+    "Play 'Animal Bingo' with fact clues instead of names."
+  ],
+  "ls": "Listen to a short audio recording of a child presenting their animal facts. Students listen and fill in a simple chart with the animal name and one fact they heard.",
+  "re": "Play 'Months Line-Up': Students get a month card and line up in order from January to December. Teacher asks 'What month comes after March?' to review the year.",
+  "prod": "Survey and Graph Activity: Students ask 3 classmates 'What is your favorite wild animal?' and tally results. As a group, they draw a simple bar graph on the board to show the most popular animal.",
+  "rw": "Create 'My Wish for 2027' Craft: Students write one sentence 'I wish...' on a star-shaped paper (e.g., 'I wish I can see a lion.') and decorate it. They stick it on a class New Year poster.",
+  "st": "Sing 'Happy New Year' song with actions. Read a short picture story about animals celebrating the New Year. End with the goodbye routine: Goodbye Song + sticker chart + high-five line.",
+  "g": [
+    [
+      "Animal Facts Memory",
+      "Students match animal flashcards to fact cards, reading the facts aloud."
+    ],
+    [
+      "Animal Guessing Game",
+      "One student thinks of an animal, others ask 'Is it big? Can it fly?' to guess."
+    ],
+    [
+      "Survey and Graph",
+      "Students ask classmates about favorite animals and draw a bar graph."
+    ],
+    [
+      "My Wish Craft",
+      "Students write a wish for 2027 on a star and decorate it."
+    ],
+    [
+      "Months Line-Up",
+      "Students line up in order from January to December."
+    ]
+  ],
+  "diff": [
+    "Fast finishers / stronger learners: Write a second, more complex fact about their animal using 'It can...'",
+    "Support / weaker learners: Use a sentence frame 'It is... It has got...' to write their facts."
+  ],
+  "hw": [
+    "Prepare 2 facts about a wild animal to tell the class next week.",
+    "Write your wish on the class poster template.",
+    "Draw a picture of your favorite wild animal and label it."
+  ],
+  "tip": "Use the animal theme to connect with local Moroccan wildlife like the Barbary macaque or desert fox to make the lesson more relatable and culturally relevant."
+}

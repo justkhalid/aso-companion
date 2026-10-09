@@ -1,0 +1,54 @@
+{
+  "wu": "Weather Charades: Teacher mimes actions like shivering, sweating, or using an umbrella; students guess 'It's cold/hot/rainy' in full sentences. Teacher writes correct sentences on the board.",
+  "wuAlt": [
+    "Weather Bingo: Students draw 9 weather symbols, teacher calls out 'It's sunny/rainy...' and students mark the matching symbol.",
+    "Weather Chain: One student says 'I like sunny weather', next says 'I like sunny weather and I like snowy weather', etc."
+  ],
+  "pres": "Teacher shows flashcards of different weather and asks 'What is the weather like?'; models answers 'It's sunny/rainy/snowy'. Then shows a calendar with 'Saturday' and asks 'What are you going to do on Saturday?'; models answers 'I'm going to play football/watch TV'.",
+  "presAlt": [
+    "Weather Report Video: Play a short cartoon weather forecast, pause and ask students to report the weather using the target language.",
+    "Plan Your Day: Teacher draws a simple timeline of their Saturday and says 'I'm going to wake up at 8, I'm going to have breakfast...', students repeat."
+  ],
+  "prac": "Weather and Plans Matching: Students have cards with weather on one side and activities on the other; they match them and make sentences like 'It's sunny, I'm going to the park'. Teacher monitors and corrects.",
+  "pracAlt": [
+    "Find Someone Who...: Students walk around and ask 'What are you going to do this weekend?'; find someone who matches each activity and write their name.",
+    "Picture Prompt: Students get a picture of a weather scene and must tell their partner what they are going to do in that weather."
+  ],
+  "ls": "Listen to two friends making weekend plans; students complete a table with 'Name' and 'Plan' (e.g., 'Lina: going to the cinema'). Teacher plays the audio twice, then checks answers as a class.",
+  "re": "Weather TPR: Teacher calls out weather commands like 'If it's sunny, jump! If it's rainy, cover your head!', students act them out quickly to reactivate vocabulary.",
+  "prod": "Christmas Party Planning: In groups, students plan a Christmas party with a 500-dirham budget. They must decide on food, games, and decorations using 'We're going to buy... We're going to play...'. Each group presents their plan.",
+  "rw": "Christmas Around the World Jigsaw: Students read short texts about Christmas in different countries (e.g., USA, UK, Morocco). They then share one fact from their text with a partner and write a sentence about it.",
+  "st": "Teacher tells a short story about a character's Christmas plans, using target language. End with 'Today we learned to talk about weather and make plans. Thank you, class!'",
+  "g": [
+    [
+      "Weather Charades",
+      "Students mime weather actions for others to guess in sentences."
+    ],
+    [
+      "Plan Your Weekend",
+      "Students write their weekend plans on paper and swap with a partner to ask questions."
+    ],
+    [
+      "Christmas Bingo",
+      "Students mark off party items as the teacher calls them out."
+    ],
+    [
+      "Find Someone Who",
+      "Students ask classmates about weekend plans and find matches."
+    ],
+    [
+      "Two-Corner Debate",
+      "Teacher says 'Sunny weather is better than rainy weather'; students go to corners and defend their choice."
+    ]
+  ],
+  "diff": [
+    "Fast finishers: Design a dream Christmas party with no budget limit and present it to the class.",
+    "Support: Use sentence starters like 'I'm going to...' and 'It's...' for the party planning task."
+  ],
+  "hw": [
+    "Write a 6-8 sentence paragraph about the weather in Oujda this weekend and what you are going to do.",
+    "Write a 10-line invitation to a class Christmas party, including the date, time, and activities.",
+    "Draw a picture of your weekend plans and write 5 sentences about it using 'going to'."
+  ],
+  "tip": "Use local context: Discuss how Moroccans celebrate Christmas (family gatherings, special foods) to make the theme relevant and build cultural awareness."
+}

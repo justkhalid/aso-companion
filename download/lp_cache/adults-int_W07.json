@@ -1,0 +1,54 @@
+{
+  "wu": "Students stand in a circle. Teacher holds up two flashcards: a picture of Casablanca and a picture of Rabat. Teacher says: 'Casablanca is bigger than Rabat.' Students pass the cards to the left and each student must say a true comparative sentence using the two cities.",
+  "wuAlt": [
+    "Teacher writes 'Oujda' and 'Tangier' on the board. Students brainstorm comparative sentences in pairs and share them with the class.",
+    "Teacher reads a sentence: 'Marrakech is more exciting than Fes.' Students change the sentence to use 'as...as' if possible."
+  ],
+  "pres": "Teacher projects a short infographic comparing two Moroccan cities, e.g., 'Casablanca vs. Fez'. Teacher highlights model sentences: 'Casablanca is much larger than Fez.' 'Fez is as historic as Meknes.' Teacher uses gestures to show 'much' and 'as...as' and checks understanding by asking: 'Which city is bigger? How do we say they are equally historic?'",
+  "presAlt": [
+    "Teacher uses two realia items: a small apple and a large orange. Students make comparisons, then teacher introduces 'much bigger' and 'as heavy as'.",
+    "Teacher distributes a short text with missing comparative words. Students fill in the gaps, then teacher explains the rules."
+  ],
+  "prac": "Students receive 'City Comparison Role Cards' (e.g., 'You are a tourist. You prefer the coast. Compare Agadir to Chefchaouen.'). They work in pairs to prepare a dialogue using 'much/far + -er' and 'as...as'. Teacher monitors and corrects errors.",
+  "pracAlt": [
+    "'Comparative Auction': Teacher writes 10 sentences on the board with errors. Students 'bid' to correct them, with the highest bidder explaining the change.",
+    "Students play 'Find Someone Who...': 'Find someone who thinks Casablanca is more modern than Rabat.' They ask questions and write down the answers."
+  ],
+  "ls": "Students listen to a 1-minute audio clip from a travel podcast comparing two Moroccan cities. They must complete a chart with the comparisons made (e.g., 'Fez: older, quieter; Rabat: more modern, cleaner').",
+  "re": "Students stand. Teacher calls out a city name (e.g., 'Marrakech'). Students must quickly say one comparative fact about it (e.g., 'Marrakech is hotter than Rabat!').",
+  "prod": "Students are divided into two groups: 'Team Casablanca' and 'Team Rabat'. They have 10 minutes to prepare a 3-minute debate arguing why their city is 'better' using nuanced comparatives. After, they vote for the most convincing team.",
+  "rw": "Students read a short article (100 words) comparing life in a city and a village in Morocco. They underline all the comparative adjectives and modifiers (e.g., 'much', 'far', 'slightly'). Then, they write 5 sentences comparing their own city to another Moroccan city.",
+  "st": "Teacher tells a short, personal story: 'When I was young, I thought Casablanca was the best city. Now, I think Rabat is as beautiful.' Students share one sentence comparing their past and present opinions. Close with: 'Today you debated with nuance. Thank you, class.'",
+  "g": [
+    [
+      "Comparative Snap",
+      "Teacher says a sentence. If it's true, students snap. If false, they stomp."
+    ],
+    [
+      "City Top Trumps",
+      "Students compare city cards (population, size) and the highest value wins."
+    ],
+    [
+      "Find the Difference",
+      "Students look at two pictures of Moroccan cities and write 5 comparisons."
+    ],
+    [
+      "As...as Chain",
+      "Students start a sentence: 'Rabat is as...as...' and the next student must complete it."
+    ],
+    [
+      "Comparative Relay",
+      "Teams race to write comparative sentences on the board for a given prompt."
+    ]
+  ],
+  "diff": [
+    "Fast finishers: Write a 50-word email comparing two Moroccan cities for a friend.",
+    "Support / weaker learners: Use a sentence frame: '______ is much ______ than ______ because ______.'"
+  ],
+  "hw": [
+    "Write 5 nuanced comparisons between two Moroccan cities using 'much/far' and 'as...as'.",
+    "Write 5 sentences in the past perfect about Moroccan history (e.g., 'By 1956, Morocco had gained its independence.').",
+    "Record a 1-minute video comparing two cities in Morocco and post it on the class forum."
+  ],
+  "tip": "Encourage learners to connect comparisons to personal experiences, e.g., 'Casablanca is more expensive than my hometown,' to increase engagement and authenticity."
+}

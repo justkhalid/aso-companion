@@ -1,0 +1,63 @@
+{
+  "wu": "Review Relay Race: Teams race to write 10 jobs on the board. Teacher shouts 'Teacher! Doctor! Farmer!' and students run to write them. Winners get 2 points, others 1.",
+  "wuAlt": [
+    "Job Charades: Students act out jobs like 'bake bread' or 'drive a bus' while others guess.",
+    "Flashcard Speed: Show job flashcards fast; teams shout the job name."
+  ],
+  "pres": "Teacher shows realia (doctor's coat, chef's hat) and asks 'What is it? It is a __.' Then models 'What does a doctor do? They help people.' Students repeat in pairs with flashcards.",
+  "presAlt": [
+    "Job Poster: Point to a poster of jobs and ask 'What does a farmer do? They grow food.' Students answer in full sentences.",
+    "Storytime: Read 'Jobs Around Us' story, stopping to ask 'What does the baker do?'"
+  ],
+  "prac": "Jobs Guessing Game: Team A thinks of a job, Team B asks 'Does it wear a hat? Do they work outside?' until they guess. Teacher monitors for full sentences like 'Yes, they do.'",
+  "pracAlt": [
+    "Job Match-Up: Students match picture cards to job description cards ('They teach students.') in pairs.",
+    "TPR Job Actions: Teacher says 'Be a farmer!' and students pretend to plant seeds; 'Be a doctor!' and they pretend to check a patient."
+  ],
+  "ls": "Listen and Circle: Students listen to audio of 5 jobs (e.g., 'A firefighter puts out fires.') and circle the correct picture on their worksheet. Teacher checks answers together.",
+  "re": "Job Action Freeze: Play music; students dance to a job action (e.g., 'sweep like a cleaner'). When music stops, they freeze. Last one out sits down.",
+  "prod": "Thank-You Cards: Students draw a worker they know (e.g., 'My father is a mechanic.') and write 'Thank you for working hard!' with crayons. They share with the class.",
+  "rw": "Read and Match: Students read 3 simple sentences ('A teacher works at school.') and match them to the correct job picture. Then they trace 3 sentences about their dream job.",
+  "st": "Read 'The Little Worker' story about a child helping at home. Sing 'What Do You Do?' song with actions. Goodbye routine: Goodbye Song + sticker chart + high-five line.",
+  "g": [
+    [
+      "Job Relay",
+      "Teams take turns running to write a job on the board; no duplicates allowed."
+    ],
+    [
+      "Who Am I?",
+      "Teacher describes a job ('I wear a uniform and drive a bus.'); students guess."
+    ],
+    [
+      "Job Pictionary",
+      "Students draw a job for their team to guess."
+    ],
+    [
+      "Job Charades",
+      "Students act out jobs while others guess the name."
+    ],
+    [
+      "Job Bingo",
+      "Students mark off jobs called by the teacher."
+    ]
+  ],
+  "diff": [
+    "Fast finishers: Write 5 sentences about what jobs they want to do when they grow up.",
+    "Support: Trace the job names and match to pictures with sentence starters."
+  ],
+  "hw": [
+    "Draw one job you love and write 3 sentences about it (e.g., 'I love teachers. They help students. They are smart.')",
+    "Ask your family about their jobs and write them down.",
+    "Play the Jobs Guessing Game with your family."
+  ],
+  "tip": "Use Moroccan context: highlight local jobs like 'artisan' or 'fisherman' to connect Labour Day to students' lives. Praise effort, not just correctness, during assessment.",
+  "checklist": [
+    "I can name 10 jobs in English",
+    "I can ask 'What does a ___ do?'",
+    "I can answer 'They ___.'",
+    "I can listen and circle the correct job",
+    "I can read and match jobs to sentences",
+    "I can write 3 sentences about a job",
+    "I can say thank you to workers"
+  ]
+}

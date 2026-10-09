@@ -1,0 +1,54 @@
+{
+  "wu": "KET Reading Relay: Students race to match 5 KET part descriptions (e.g., 'Part 4: Read and choose the right picture') with 5 sample tasks on the board. They shout 'Match!' when done.",
+  "wuAlt": [
+    "KET Pictionary: Teacher draws KET reading parts (e.g., a multiple-choice bubble), students guess the part number.",
+    "KET Quiz: 3 quick questions about KET format (e.g., 'How many parts in KET reading?') with hand signals."
+  ],
+  "pres": "Teacher projects a full KET reading paper, labeling parts 4-5 with colored markers. Models skimming a text for gist (30 sec) and scanning for details (1 min). Checks understanding with 'Show me Part 4!' gestures.",
+  "presAlt": [
+    "KET Parts Poster: Students draw posters for each part with examples in groups.",
+    "KET Video Clip: Play a 2-min Cambridge video explaining parts 4-5, then discuss."
+  ],
+  "prac": "Students work in pairs to complete 3 KET Part 4 (matching) and 2 Part 5 (multiple-choice) tasks from the KET folder under 10 minutes. Teacher circulates, whispering hints like 'Scan for names/dates'.",
+  "pracAlt": [
+    "KET Task Race: Two teams race to finish one Part 4 and one Part 5 task first.",
+    "KET Error Correction: Students find mistakes in 3 sample Part 4 answers."
+  ],
+  "ls": "Teacher plays a 1-min audio of a student explaining their KET reading strategy. Students listen and note 2 tips they hear, then compare in pairs.",
+  "re": "KET Freeze Tag: Teacher calls out a KET part (e.g., 'Part 4!'), students freeze and say one strategy (e.g., 'Look for pictures!').",
+  "prod": "Group Presentation: Students prepare 3-minute talks with visuals (posters/drawings) about KET reading parts 4-5. Each group presents to the class, who vote for 'Most Clear Explanation'.",
+  "rw": "Students write 3 tips for KET reading parts 4-5 in their notebooks, then swap with a partner to add one more tip each.",
+  "st": "Teacher tells a short story about a student who aced KET reading, emphasizing strategy use. Close with 'Today we mastered KET reading parts 4-5—great job! Thank you, class.'",
+  "g": [
+    [
+      "KET Speed Match",
+      "Students match KET part names to tasks in 60 seconds."
+    ],
+    [
+      "KET Strategy Swap",
+      "Students share one strategy and get one new one from a partner."
+    ],
+    [
+      "KET Relay Race",
+      "Teams race to complete a Part 4 task first."
+    ],
+    [
+      "KET Quiz Show",
+      "Teacher asks 5 KET format questions, fastest wins."
+    ],
+    [
+      "KET Error Hunt",
+      "Students find 3 mistakes in a fake Part 5 answer."
+    ]
+  ],
+  "diff": [
+    "Fast finishers: Design a KET Part 4 task for their classmates.",
+    "Support learners: Use highlighters to mark key words in Part 5 questions."
+  ],
+  "hw": [
+    "Create a KET Part 4 matching task about Moroccan festivals (e.g., Green March).",
+    "Record a 1-minute video explaining KET Part 5 tips.",
+    "Write 5 questions about KET reading for a class quiz next week."
+  ],
+  "tip": "Use Moroccan teen interests (e.g., football, music) in KET tasks to boost engagement—e.g., 'Read about a Moroccan footballer's day' for Part 4."
+}

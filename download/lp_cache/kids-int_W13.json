@@ -1,0 +1,54 @@
+{
+  "wu": "Circle Game: Pass the soft ball around the circle. When the music stops, the child holding the ball answers 'What animal is it?' and the class guesses.",
+  "wuAlt": [
+    "Flashcard Jump: Lay animal flashcards on the floor. Children jump on the card you name and say the word.",
+    "Simon Says: Play Simon Says with actions like 'Simon says be a big lion!'"
+  ],
+  "pres": "Show flashcards of lion, elephant, monkey, snake. Model 'It is a lion. It is big. It has got a mane. It lives in the jungle.' Ask 'Where does it live?' to check understanding.",
+  "presAlt": [
+    "Story Time: Read 'Walking Through the Jungle' and stop to ask about each animal's home.",
+    "Puppet Show: Use animal puppets to ask 'What is it? It is a __.' and 'Where does it live?'"
+  ],
+  "prac": "Pair Work: Match animal flashcards to home flashcards (jungle/forest) with the sentence 'It is a __. It lives in the __.' Support with sentence strips.",
+  "pracAlt": [
+    "Board Game: Roll a dice and move. Land on a square, say the animal and its home.",
+    "Find Your Partner: Children wear animal pictures and find their home partner by saying 'I live in the __.'"
+  ],
+  "ls": "Listen to animal-homes riddles: 'I am big and grey. I have a long nose. I live in the jungle. What am I?' Children point to the correct animal flashcard.",
+  "re": "Jungle Run: When you call an animal, children run to the 'jungle' corner. When you call 'snake!', they freeze. Checks listening and movement.",
+  "prod": "Craft: Decorate a 'My Wish for 2027' star. Write 'I wish for __.' and draw a picture. Share wishes with a partner.",
+  "rw": "Animal Fact Sheet: Trace and copy sentences like 'The lion has got a big mane.' Then write one original fact with 'has got'.",
+  "st": "Sing 'Happy New Year' with actions. End with the Goodbye routine: Goodbye Song + sticker chart + high-five line.",
+  "g": [
+    [
+      "Animal Guess",
+      "Child describes an animal with 'It is big/small. It has got __.' Class guesses."
+    ],
+    [
+      "Months Line-Up",
+      "Children line up in order of months when called, saying 'January, February...'"
+    ],
+    [
+      "Pass the Parcel",
+      "Pass a wrapped parcel; when music stops, name an animal and its home."
+    ],
+    [
+      "Animal Charades",
+      "Child acts an animal, others guess 'Is it a lion?'"
+    ],
+    [
+      "Home Match Relay",
+      "Teams race to match animal flashcards to home flashcards."
+    ]
+  ],
+  "diff": [
+    "Fast finishers: Draw a new animal and write two facts with 'has got'.",
+    "Support: Use word banks with animal and home words for the fact sheet."
+  ],
+  "hw": [
+    "Teach the 4 wild animals and their homes to a family member.",
+    "Write your wish on the class poster template at home.",
+    "Draw a picture of your favorite wild animal and label it."
+  ],
+  "tip": "Use TTPR (Total Physical Response) for animal actions to engage kinesthetic learners and reinforce vocabulary retention."
+}

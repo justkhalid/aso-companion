@@ -1,0 +1,54 @@
+{
+  "wu": "Weather Charades: Teacher mimes weather actions (e.g., shivering for cold, fanning for hot), students guess the word in English. Students then take turns miming for partners.",
+  "wuAlt": [
+    "Flashcard Race: Show weather flashcards quickly, students shout the word. Fastest wins a point.",
+    "Weather Bingo: Teacher calls out weather words, students cross them off their bingo sheets."
+  ],
+  "pres": "Teacher presents weather flashcards (sunny, rainy, windy, cold, hot) with gestures. Model sentences: 'It's sunny today.' 'It's raining.' Ask students 'How's the weather?' to elicit responses, checking understanding with thumbs up/down.",
+  "presAlt": [
+    "Weather Song: Play 'How's the Weather?' song, students repeat and do actions. Then review key words.",
+    "Realia: Bring a fan (hot), umbrella (rainy), sunglasses (sunny) to demonstrate vocabulary and model sentences."
+  ],
+  "prac": "Weather Reporter Roulette: Students sit in a circle. Teacher spins a pointer; when it stops, the student it points to pretends to be a weather reporter and says 'Good morning! The weather is...' using a flashcard. Teacher helps with pronunciation.",
+  "pracAlt": [
+    "Matching Pairs: Students match weather words to pictures, then practice saying the sentences in pairs.",
+    "Weather Dice: Roll a die with weather symbols, students say the corresponding sentence."
+  ],
+  "ls": "Listen to a 1-minute dialogue between two people talking about the weather. Students circle the weather words they hear on a worksheet. Check answers as a class.",
+  "re": "Weather Action Relay: Students line up. Teacher calls a weather word, the first student in line mimes it, then the next student says the word and mimes the next one. Fast team wins.",
+  "prod": "Small Talk Speed Dating: Students pair up. Each pair has 2 minutes to have a small talk conversation starting with 'Hello! How are you?' and including the weather (e.g., 'It's sunny today, isn't it?'). They switch partners after 2 minutes.",
+  "rw": "Read 3 small-talk tips on a worksheet (e.g., 'Ask about the weather,' 'Smile'). Students then write 3 small-talk exchanges using the tips, e.g., 'A: Hello! B: Hi! A: It's hot today, right? B: Yes, very hot!'.",
+  "st": "Read a short story about two friends meeting and talking about the weather. End with the goodbye routine: 'Today we practiced small talk about the weather. Thank you, class! Goodbye!'",
+  "g": [
+    [
+      "Weather Bingo",
+      "Students mark off weather words on a bingo card as the teacher calls them."
+    ],
+    [
+      "Charades",
+      "Students mime weather actions for others to guess the word."
+    ],
+    [
+      "Matching Game",
+      "Students match weather words to pictures on flashcards."
+    ],
+    [
+      "Dice Game",
+      "Students roll a die and say a sentence about the weather shown."
+    ],
+    [
+      "Speed Dating",
+      "Students practice small talk with different partners about the weather."
+    ]
+  ],
+  "diff": [
+    "Fast finishers: Write a short paragraph about their ideal weather day.",
+    "Support: Use sentence starters like 'It's...' and 'I like...' for their exchanges."
+  ],
+  "hw": [
+    "Homework 1: Write 3 small-talk conversations with a family member about the weather.",
+    "Homework 2: Watch a weather forecast in English and write down 3 weather words they hear.",
+    "Homework 3: Draw 4 weather pictures and write a sentence for each."
+  ],
+  "tip": "Connect weather to local context: ask about the weather in Oujda or during holidays like Green March to make it relevant."
+}

@@ -1,0 +1,48 @@
+{
+  "wu": "Story Chain: Teacher starts a story with 'While I was walking to class, I found a magic lamp.' Students take turns adding one sentence using past continuous, e.g., 'While I was rubbing the lamp, a genie appeared.' Props: None. Students speak in turn.",
+  "wuAlt": [
+    "Picture Prompt: Show a photo of a chaotic scene (e.g., a messy room). Students say what was happening, e.g., 'While the mom was cooking, the cat was knocking over the vase.'",
+    "Action Charades: Teacher mimes an action (e.g., running). Students guess 'While you were running, what were you doing?'"
+  ],
+  "pres": "Teacher tells a short story about a Moroccan teen who finds a old book while visiting the Hassan II Mosque. Model sentences: 'While I was exploring, I found a book.' 'When I opened it, I had seen my name inside.' Check understanding: 'What tense shows an action in progress?' 'What tense shows a past event before another?'",
+  "presAlt": [
+    "Flashcard Sequence: Show flashcards of a story (e.g., boy walking, rain starting, umbrella blowing away). Narrate with past continuous and past perfect. Students repeat sentences.",
+    "Dialogue Drill: Present a short dialogue between two friends discussing a past event. Highlight target tenses and ask students to identify them."
+  ],
+  "prac": "Grammar Relay: Divide class into teams. Each team gets a sentence strip with past continuous/past perfect. They race to write the correct form on the board. Support: Provide verb charts and sentence frames.",
+  "pracAlt": [
+    "Sentence Auction: Write 10 sentences (5 correct, 5 incorrect). Teams 'bid' on correct sentences using past continuous/past perfect. Support: Allow dictionaries for verb forms.",
+    "Find Someone Who...: Students walk around asking 'While you were [activity], were you [something]?' and 'Had you ever [experience] before?'"
+  ],
+  "ls": "Listen to a 2-minute audio story about a teen in Marrakech who discovers a hidden treasure. Task: Students fill in gaps in a handout with past continuous/past perfect verbs. Check: Peer review answers in pairs.",
+  "re": "Action Race: Teacher calls out an action (e.g., 'eating'). Students race to mime it and say 'While I was eating, I dropped my spoon!' Fast-paced and physical.",
+  "prod": "Twist Story Circle: Groups of 4 build a story. Each student adds one sentence using past continuous/past perfect, aiming for a surprise ending. Example: 'While we were hiking, we found a cave. When we entered, we had discovered ancient paintings.' Present to class.",
+  "rw": "Read a fable about a fox and a turtle with a flashback. Task: Underline all past perfect verbs ('had', 'had seen') and write one sentence explaining the flashback. Then write a 60-word continuation of the story using past continuous.",
+  "st": "Read a short story about a Moroccan girl who helps a lost tourist at the Festival of Roses. Close with: 'Today we wrote stories with twists using past continuous and past perfect. Thank you, class!'",
+  "g": [
+    [
+      "Grammar Ball",
+      "Toss a ball and ask a question (e.g., 'What were you doing at 8 AM?'). Catcher answers in past continuous."
+    ],
+    [
+      "Flashback Freeze",
+      "Students freeze in an action. Teacher says 'While you were [action], you had [past event].'",
+      "Twist Charades",
+      "Student mimes a story with a twist. Others guess using past continuous.",
+      "Sentence Race",
+      "Teams race to write a sentence with both tenses. Fastest wins.",
+      "Story Dice",
+      "Roll dice for story prompts. Build a sentence with past continuous/past perfect."
+    ]
+  ],
+  "diff": [
+    "Fast finishers: Write a second paragraph for their twist story with more details.",
+    "Support: Provide sentence starters like 'While I was ___, I had ___.'"
+  ],
+  "hw": [
+    "Read the story 'The Lost Key' and answer: What was happening when the key was found? Had anyone seen it before?",
+    "Write a 70-word story about a festival in Morocco with a twist ending.",
+    "Complete the grammar exercise: Fill in blanks with past continuous or past perfect."
+  ],
+  "tip": "Use local context (e.g., Hassan II Mosque, Festival of Roses) to make stories relatable and boost engagement. Teens connect better when themes reflect their culture."
+}

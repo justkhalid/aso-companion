@@ -1,0 +1,54 @@
+{
+  "wu": "Hobby Charades: Students take turns miming a hobby while others guess using 'Do you like...?' or 'Are you...ing?'. The mimer responds with 'Yes, I love/like/hate + -ing' and an adverb of frequency.",
+  "wuAlt": [
+    "Hobby Bingo: Students write 9 hobbies in a grid. The teacher calls out sentences like 'I sometimes swim', and students cross off matching hobbies.",
+    "Find Someone Who...: Students walk around asking 'Do you ever...?' to find peers who match the hobby on their sheet."
+  ],
+  "pres": "Show flashcards of hobbies (e.g., football, painting, coding). Model sentences: 'I always play football', 'I never paint', 'I enjoy coding'. Elicit adverbs of frequency from the board. Check understanding by asking 'What do you always do?'",
+  "presAlt": [
+    "Hobby Survey Demo: Teacher surveys students with 'Do you like + -ing?', then models writing results on the board.",
+    "Story Time: Read a short paragraph about a teen's hobbies, highlighting verb patterns with colored chalk."
+  ],
+  "prac": "Verb Pattern Sort: Students sort sentence strips into 'like + -ing' and 'try + to' columns. In pairs, they write 3 sentences about themselves using each pattern. Monitor for accuracy.",
+  "pracAlt": [
+    "Matching Game: Match hobby sentences (e.g., 'I love hiking') to adverbs of frequency (e.g., 'always') on the board.",
+    "Sentence Relay: Teams race to write correct sentences with target verb patterns on the whiteboard."
+  ],
+  "ls": "Listen to a dialogue between two teens discussing hobbies. Students tick activities they hear and write down the verb patterns (e.g., 'I enjoy playing video games'). Check answers as a class.",
+  "re": "Hobby Hop: Stand in a circle. Teacher calls a hobby (e.g., 'swimming'), and students hop if they like it, jump if they love it, or squat if they hate it. Repeat with adverbs of frequency.",
+  "prod": "Green March Timeline Poster: In groups, create a poster with 5 key events of the Green March (past simple). Each student writes 1 sentence using 'I learned that...' + past simple verb. Present posters to the class.",
+  "rw": "Read a short article about Moroccan hobbies. Underline all examples of 'like + -ing' and 'stop + to'. Then write a paragraph about your own hobbies using 3 target patterns.",
+  "st": "Read a story about a teen's hobby journey. End with the goodbye routine: 'Today we compared hobby habits using verb patterns. Great work, everyone! Have a great day!'",
+  "g": [
+    [
+      "Verb Pattern Race",
+      "Teams race to write sentences with 'love/stop/enjoy + -ing' on the board."
+    ],
+    [
+      "Adverb Ball Toss",
+      "Students toss a ball and make a sentence with the adverb they catch."
+    ],
+    [
+      "Hobby Survey",
+      "Survey classmates about hobbies using target language and tally results."
+    ],
+    [
+      "Past Simple Relay",
+      "Teams write past simple sentences about the Green March on the board."
+    ],
+    [
+      "Green March Quiz",
+      "Answer questions about the Green March using past simple verbs."
+    ]
+  ],
+  "diff": [
+    "Fast finishers: Write a second paragraph comparing their hobby habits with a partner's.",
+    "Support: Use a sentence frame: 'I always/never/sometimes + verb + -ing'."
+  ],
+  "hw": [
+    "Write a 25+ word KET-style email to a friend about your hobbies.",
+    "Write 5 past-simple sentences about the Green March.",
+    "Interview a family member about their hobbies and report back."
+  ],
+  "tip": "Use real-life Moroccan hobbies (e.g., mint tea preparation, henna art) to make the lesson culturally relevant and boost engagement."
+}

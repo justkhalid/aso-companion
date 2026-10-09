@@ -1,0 +1,51 @@
+{
+  "wu": "Music Opinions Relay: Students line up in two teams. Teacher shows a flashcard with a song title (e.g., 'Shape of You'). First student runs to the board, writes one opinion adjective (e.g., 'catchy'), runs back, tags next student who writes another (e.g., 'boring'), and so on. First team with 5 correct adjectives wins.",
+  "wuAlt": [
+    "Opinion Charades: Teacher acts out a song genre (e.g., 'rock'), students guess and say 'I think it's rock because...'",
+    "Song Title Association: Teacher says a song, students shout an opinion word (e.g., 'Happy' → 'funny')"
+  ],
+  "pres": "Teacher projects a music review of 'Blinding Lights' by The Weeknd. Models sentences: 'I think it's amazing because the beat is cool' and 'The genre is synth-pop'. Underlines opinion adjectives (amazing, cool) and review phrases (genre, beat). Checks understanding: 'What's the genre? Why does he like it?'",
+  "presAlt": [
+    "Genre Flashcard Sort: Students match flashcards (jazz, hip-hop) to definitions, then say 'I think jazz is... because...'",
+    "YouTube Review Analysis: Teacher plays a 30-second song review, students list 3 opinion words"
+  ],
+  "prac": "Two-Corners Debate: Label corners 'Love' and 'Hate'. Teacher plays 30 seconds of a controversial song (e.g., 'Baby Shark'). Students go to a corner, pair up, and say 'I love/hate it because...'. After 2 minutes, switch corners and repeat with a new song.",
+  "pracAlt": [
+    "Opinion Dice Game: Students roll a dice (1=Love, 2=Hate, 3=Boring, etc.), say the opinion, and justify",
+    "Music Bingo: Teacher calls out opinion adjectives, students mark them on bingo cards and make sentences"
+  ],
+  "ls": "Song Excerpt Review: Students listen to 3 short song clips (1 min each). For each, they write: 1) Genre, 2) One opinion adjective, 3) One reason. Teacher plays clips twice, checks answers on the board.",
+  "re": "Musical Opinions Freeze: Teacher plays upbeat music, students dance. When music stops, they freeze and say an opinion about the last song (e.g., 'I think it's loud!').",
+  "prod": "Song Review Swap: Students write a 4-sentence review of their favorite song on a slip (genre, opinion, reason, rating). They swap with a partner, who reads it and says 'I agree/disagree because...'.",
+  "rw": "Review Reading + Rating: Students read a short music review (60 words) about a Moroccan artist (e.g., Saad Lamjarred). They underline 5 genre words (e.g., ' Rai', 'pop') and write a 1-5 star rating with a reason.",
+  "st": "Teacher plays 'Lah ya sahbi' by Cheb Khaled. Discuss: 'What genre is it? Is it traditional or modern?' End with: 'Today we learned to share music opinions. Thank you, class!'",
+  "g": [
+    [
+      "Genre Guess",
+      "Teacher hums a song, students guess the genre and say 'I think it's... because...'"
+    ],
+    [
+      "Opinion Relay Race",
+      "Teams race to write opinion sentences on the board with correct 'because' clauses"
+    ],
+    [
+      "Music Review Pictionary",
+      "Student draws a genre, others guess and say 'Is it hip-hop? I think so because...'"
+    ],
+    [
+      "Debate Dice",
+      "Roll dice to pick a song/opinion, students debate for 1 minute"
+    ],
+    "Review Chain Game"
+  ],
+  "diff": [
+    "Fast finishers: Write a second review comparing two songs",
+    "Support: Use a sentence frame: 'I think ____ is ____ because ____'"
+  ],
+  "hw": [
+    "Write a 10-sentence review of a Moroccan song (genre, opinion, reason, rating)",
+    "Record a 30-second video review of a song",
+    "Find 3 music reviews online, copy 2 opinion sentences each"
+  ],
+  "tip": "Use local music (e.g., Gnawa, Rai) to build cultural relevance. Teens engage more when opinions connect to their world."
+}

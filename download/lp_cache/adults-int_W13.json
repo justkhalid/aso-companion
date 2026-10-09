@@ -1,0 +1,52 @@
+{
+  "wu": "Students play 'Two Truths and a Resolution': each shares two past resolutions and one new one for the class to guess which is the new one using 'Will you...?' questions.",
+  "wuAlt": [
+    "Students write three resolutions on slips of paper; teacher collects and reads aloud for class to guess the writer",
+    "Students interview a partner about their resolutions using 'How will you...?' and report back to the class"
+  ],
+  "pres": "Teacher displays a formal email template on the board with blanks for subject, greeting, request, closing; models filling it for a 'requesting a holiday extension' scenario; checks understanding with 'What do we say in a formal email?' questions.",
+  "presAlt": [
+    "Teacher uses a real email from a local company (with sensitive info removed) to highlight formal phrases",
+    "Teacher roleplays a phone call followed by an email to show the connection between spoken and written requests"
+  ],
+  "prac": "Students complete a gap-fill exercise with formal email phrases (e.g., 'I am writing to...', 'Could you please...', 'Thank you for your consideration'); then rewrite an informal email into a formal one in pairs.",
+  "pracAlt": [
+    "Students match request phrases to email parts (greeting, body, closing) in a cut-and-paste activity",
+    "Students play 'Email Bingo' with formal phrases they mark off when heard in a teacher dictation"
+  ],
+  "ls": "Students listen to two model emails (one formal request, one informal) and tick differences in a T-chart; then listen again to note specific request phrases.",
+  "re": "Students play 'Simon Says' with action verbs related to email tasks (e.g., 'Simon says attach the document', 'Simon says send the email') to refocus after the break.",
+  "prod": "Students write a formal email to a manager requesting time off for the New Year, using a checklist for structure and polite language; then swap drafts for peer feedback.",
+  "rw": "Students read two short emails (one formal, one informal) about New Year plans and answer true/false questions about the register; then write a 50-word reply to one email using the formal frame.",
+  "st": "Teacher shares a short story about 'A Resolution That Worked' and ends with the class saying 'Thank you for a great lesson!' as the goodbye routine.",
+  "g": [
+    [
+      "Email Relay",
+      "Teams race to write a formal email line by line, passing the paper"
+    ],
+    [
+      "Resolution Roleplay",
+      "Students roleplay a phone call and email exchange for a request"
+    ],
+    [
+      "Formal Phrase Match",
+      "Students match phrases to email functions (e.g., 'Dear...' = greeting)"
+    ],
+    [
+      "Email Puzzle",
+      "Students unscramble a formal email into correct order"
+    ],
+    "Request Charades",
+    "Students act out a request for others to guess and write the email"
+  ],
+  "diff": [
+    "Fast finishers / stronger learners: write a follow-up email with a new request using 'Furthermore...'",
+    "Support / weaker learners: use a sentence frame template with options (e.g., 'I would like to request...')"
+  ],
+  "hw": [
+    "Draft a formal email to a teacher requesting a meeting about your progress",
+    "Write three resolutions and one strategy for each using 'I will...' and 'I am going to...'",
+    "Find a formal email online (e.g., a company) and list three formal phrases"
+  ],
+  "tip": "Model the email structure on the board step-by-step; Moroccan learners benefit from clear visual scaffolding for formal writing tasks."
+}

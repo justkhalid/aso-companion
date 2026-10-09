@@ -1,0 +1,52 @@
+{
+  "wu": "Memory Chain: Students sit in a circle. The first student says 'I remember when I was a child, I loved to play football.' The next student repeats this and adds their own memory: 'He remembers when he was a child, he loved to play football. I remember when I was a child, I loved to eat mint tea.' The chain continues around the circle.",
+  "wuAlt": [
+    "Photo Memory: Show a personal photo and ask 'What do you think was happening here?' Students guess using past continuous. Then reveal the story.",
+    "Word Association: Write 'memory' on the board. Students say one word associated with it, then explain why using a past tense."
+  ],
+  "pres": "Write a short story on the board: 'While I was walking home yesterday, I saw my old friend. We stopped and talked for an hour.' Underline 'was walking' and 'saw'. Explain that past continuous describes the background action, past simple describes the interrupting action. Ask: 'What was happening first? What happened then?'",
+  "presAlt": [
+    "Picture Story: Show a comic strip with two panels. Panel 1: 'While the man was cooking, the phone rang.' Panel 2: 'He answered it.' Elicit the tenses from the students.",
+    "Timeline Draw: Draw a timeline on the board. Mark two points: 'Background' and 'Interrupting Action'. Ask students to create a sentence for each."
+  ],
+  "prac": "Worksheet 'Find the Mistake': Students correct sentences like 'While I was eating, the phone was ringing.' They should change one verb to past simple. In pairs, they compare answers. Then, they write two correct sentences of their own.",
+  "pracAlt": [
+    "Tense Race: Write 'While...' and '...' on the board. In teams, students race to write correct sentences using the board. The first team to write a valid sentence gets a point.",
+    "Sentence Building: Give students cards with verbs (walk, see, call) and time expressions (yesterday, last week). They build sentences in pairs, then swap with another pair to check."
+  ],
+  "ls": "Students listen to a 1-minute audio of someone telling a story about getting lost. They have a worksheet with two columns: 'Past Continuous' and 'Past Simple'. They write down the phrases they hear in the correct column.",
+  "re": "Action Replay: The teacher mimes an action (e.g., walking). A student says 'While you were walking, the phone rang.' The teacher then mimes a new action. The next student continues the story. This continues around the class.",
+  "prod": "Mini-Presentation: Students prepare a 3-minute talk about a memorable event. They must use at least three past continuous and three past simple sentences. They work in groups of three to present and ask each other questions. The teacher provides feedback on accuracy.",
+  "rw": "Reading Task: Students read a short story extract about a festival. They underline all examples of past continuous and past simple. Then, in pairs, they discuss why the writer used each tense in the context of the story.",
+  "st": "Story: The teacher tells a short, personal story about a memorable event, using target tenses. Goodbye routine: 'Today we learned to tell stories about the past using past simple and continuous. Thank you for your stories and participation.'",
+  "g": [
+    [
+      "Memory Match",
+      "Students match sentence halves (e.g., 'While I was studying...' with '...the lights went out.')"
+    ],
+    [
+      "Tense Relay",
+      "Teams race to write correct sentences on the board using prompts like 'While I was... / I...'. The first to finish wins."
+    ],
+    [
+      "Picture Prompts",
+      "Students pick a photo and tell a story using the target tenses to their partner."
+    ],
+    [
+      "Chain Story",
+      "One student starts a story with a past continuous sentence. Each student adds one sentence, alternating tenses."
+    ],
+    "Grammar Auction",
+    "Students bet play money on whether sentences are grammatically correct."
+  ],
+  "diff": [
+    "Fast finishers: Write a second paragraph to their story, using wish/should have to express regret.",
+    "Support / weaker learners: Use a sentence frame: 'While I __________ (verb-ing), __________ (past simple verb).'"
+  ],
+  "hw": [
+    "Write a 120-word story about a memorable event using past simple and continuous.",
+    "Record yourself telling a 2-minute story about your childhood and send it to the teacher.",
+    "Find a short article online about a famous person's memory and write a 50-word summary."
+  ],
+  "tip": "For Moroccan learners, connect the theme to local cultural memories like the Green March or family gatherings to increase engagement and personal relevance."
+}

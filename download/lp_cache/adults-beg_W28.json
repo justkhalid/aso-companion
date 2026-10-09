@@ -1,0 +1,54 @@
+{
+  "wu": "Quick Quiz: Teacher shows flashcards of daily routines (brush teeth, eat breakfast, go to work). Students stand up and say the action when they see it, then sit down. Teacher asks, 'What do you do in the morning?'",
+  "wuAlt": [
+    "Find Someone Who: Students walk around asking, 'Do you like tea?' and writing names. Share results.",
+    "Word Race: Write 'daily routines' on the board. Students race to write 5 verbs in 1 minute."
+  ],
+  "pres": "Show a KET-style reading paper (Part 1: matching questions). Model answering Q1 with a think-aloud: 'I see a picture of a man buying bread. The text says 'He is at the bakery.' So, I match them.' Check with thumbs up/down: 'Is the man at the bakery?'",
+  "presAlt": [
+    "Realia Demo: Bring a shopping list and coins. Say, 'I need milk and bread.' Ask, 'What do I need?'",
+    "Storyboard: Draw 3 pictures (buying fruit, paying, leaving). Narrate: 'First, she buys apples. Then, she pays. Finally, she leaves.'"
+  ],
+  "prac": "Pair work: Students get a KET reading Part 1 worksheet with 5 pictures and 5 short texts. They take turns matching and saying, 'Picture 1 matches text C because it shows a market.' Teacher monitors and helps with pronunciation.",
+  "pracAlt": [
+    "Flashcard Match: Students match picture cards to sentence cards (e.g., 'He is buying a newspaper' + picture of a newsstand).",
+    "Board Game: Roll dice, land on a square, match a picture to a sentence to move."
+  ],
+  "ls": "KET listening mini-set (Part 1): Play a short audio of 5 people describing what they bought (e.g., 'I bought some apples'). Students listen and write the items next to the speakers' names. Play twice, then check answers as a class.",
+  "re": "Simon Says with KET vocabulary: 'Simon says point to the bakery.' 'Simon says say, 'I need milk.' Students who make a mistake sit down. Last student standing wins.",
+  "prod": "Roleplay: In pairs, one student is a customer (with a shopping list), the other is a shopkeeper. They use target language: 'Can I have some bread, please?' 'Yes, that's 5 dirhams.' 'Thank you.' Switch roles.",
+  "rw": "Writing task: Students write a short message (3-4 sentences) to a friend about their shopping. Example: 'Hi Fatima. I went to the market. I bought apples and milk. See you soon.' Use the board for sentence starters.",
+  "st": "Play a simple song like 'What Do You Like to Do?' with actions. End with the goodbye routine: 'Today we practiced KET reading and writing. Thank you, class. Goodbye!'",
+  "g": [
+    [
+      "Bingo",
+      "Teacher calls out shopping words (e.g., 'bread'), students cross them off if on their card."
+    ],
+    [
+      "Memory Match",
+      "Students flip over picture/sentence cards and find matching pairs."
+    ],
+    [
+      "Chain Story",
+      "Start with 'I went to the market,' each student adds one item."
+    ],
+    [
+      "Shopping Race",
+      "Students race to circle 5 food items in a supermarket flyer."
+    ],
+    [
+      "Error Correction",
+      "Teacher writes wrong sentences on board (e.g., 'I buyed bread'), students fix them."
+    ]
+  ],
+  "diff": [
+    "Fast finishers: Write 3 more sentences about their favorite shop.",
+    "Support: Use sentence frames like 'I need ______.' and 'I bought ______.'"
+  ],
+  "hw": [
+    "Complete a KET reading Part 2 worksheet (multiple choice).",
+    "Write 5 sentences about what you bought yesterday.",
+    "Record yourself saying a short shopping dialogue and send to teacher."
+  ],
+  "tip": "For KET practice, focus on task strategy (e.g., 'Read the question first') over perfection. Moroccan learners may need extra time with British English terms like 'chemist' (pharmacy)."
+}

@@ -1,0 +1,63 @@
+{
+  "wu": "Warm-up: 'Simon Says' with S1 vocabulary. Teacher says 'Simon says touch your nose', 'Simon says point to the door'. Students perform actions and repeat the phrases. Teacher praises correct responses.",
+  "wuAlt": [
+    "Alternative warm-up 1: 'I spy with my little eye' using S1 objects in the classroom. Students guess 'Is it a book?'",
+    "Alternative warm-up 2: 'Quick quiz' with 3 S1 questions like 'What colour is the pen?'"
+  ],
+  "pres": "Presentation: Show flashcards of S1 topics (animals, food, colours). Ask 'What is it?' and model 'It is a __.' Then ask 'Can you __?' (e.g. 'Can you fly?') and model 'Yes, I can.' Check understanding by asking students to repeat and answer.",
+  "presAlt": [
+    "Alternative presentation 1: Use a storybook with S1 words, point to pictures and ask questions",
+    "Alternative presentation 2: Bring real objects (apple, ball) and have students name them and answer 'Can you __?'"
+  ],
+  "prac": "Guided practice: 'Find the Match' game. Students work in pairs with picture and word cards. They take turns saying 'What is it?' and 'It is a __.' Teacher monitors and helps with pronunciation.",
+  "pracAlt": [
+    "Alternative practice 1: 'Action Drill' - students stand up and perform actions (jump, run) while saying 'I can jump'",
+    "Alternative practice 2: 'Chain Game' - students say 'I like __' and the next student repeats and adds one more"
+  ],
+  "ls": "Listening slot: 'Listen and Circle' quiz. Teacher plays audio with S1 sentences (e.g. 'Point to the red apple'). Students circle the correct picture on their worksheet. Checks listening comprehension of key vocabulary.",
+  "re": "Reactivation game: 'Musical Statues'. Play music, students dance. When music stops, teacher calls out an S1 word (e.g. 'book') and students freeze in the shape of that object. Says 'What is it?' and students respond.",
+  "prod": "Production task: 'Pair Picture Chat'. Students work in pairs with a picture scene. They take turns asking 'What is it?' and answering 'It is a __.' and 'Can you __?' Teacher listens and assesses speaking skills.",
+  "rw": "Reading and writing slot: 'Read and Match' quiz. Students match S1 words to pictures. Then 'My favourite ___' writing: students trace, then copy, then write two sentences like 'My favourite animal is a cat. It is big.'",
+  "st": "Story / song + goodbye: Read a short S1 story about a day. Then sing 'Goodbye Song' with actions. End with sticker chart and high-five line. Teacher says 'Good job today!'",
+  "g": [
+    [
+      "Game 1: Bingo",
+      "Students have S1 pictures on cards. Teacher calls words, students mark and shout 'Bingo!' when complete"
+    ],
+    [
+      "Game 2: Relay Race",
+      "Teams race to grab the right flashcard when teacher says a word"
+    ],
+    [
+      "Game 3: Guess the Word",
+      "Student mimes an S1 word, others guess 'Is it a __?'"
+    ],
+    [
+      "Game 4: Memory Match",
+      "Students turn over cards to find matching picture-word pairs"
+    ],
+    [
+      "Game 5: Quiz Show",
+      "Teams answer S1 questions for points"
+    ]
+  ],
+  "diff": [
+    "Fast finishers / stronger learners: Write 3 sentences about their favourite S1 topic",
+    "Support / weaker learners: Trace words and match to pictures with a word bank"
+  ],
+  "hw": [
+    "Homework option 1: Draw 3 S1 things and write the words",
+    "Homework option 2: Play 'I spy' with family at home",
+    "Homework option 3: Practice 'What is it?' with a family member"
+  ],
+  "tip": "Use the sticker chart to reward effort, not just accuracy, to build confidence. For Moroccan learners, include local words like 'tagine' or ' couscous' where appropriate.",
+  "checklist": [
+    "I can say 'What is it?' and answer 'It is a __.'",
+    "I can ask 'Can you __?' and answer 'Yes, I can.'",
+    "I can understand and circle S1 words in a listening quiz",
+    "I can read and match S1 words to pictures",
+    "I can write 2 sentences about my favourite thing",
+    "I can play a game using S1 words",
+    "I can take part in a pair chat"
+  ]
+}

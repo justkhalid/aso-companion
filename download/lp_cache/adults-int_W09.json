@@ -1,0 +1,54 @@
+{
+  "wu": "Conditional Chain Game: Teacher starts a zero conditional (e.g., 'If it rains, the ground gets wet'), students add first conditionals in a chain (e.g., 'If the ground gets wet, people use umbrellas'), each student adds one sentence, chain continues until it breaks.",
+  "wuAlt": [
+    "Real-Life Scenario Cards: Students draw cards with simple situations (e.g., 'You have a headache') and respond with zero/first conditionals ('If you have a headache, you take medicine').",
+    "If-Then Charades: One student acts out a conditional action (e.g., pretending to study), others guess the clause ('If you study, you pass exams')."
+  ],
+  "pres": "Show a weather forecast video clip with rain; present zero conditional model: 'If it rains, the ground gets wet.' Then show a job interview scenario; present first conditional: 'If you study hard, you get the job.' Check understanding by asking students to create their own examples for each type.",
+  "presAlt": [
+    "Picture Stories: Use flashcards showing cause-effect (e.g., sun/ice cream melting) to elicit zero conditionals, then flashcards showing future plans (e.g., saving money/buying a car) for first conditionals.",
+    "Dialogue Roleplay: Teacher models a dialogue using conditionals, students identify and label the types (0/1)."
+  ],
+  "prac": "Match the Conditionals: Students receive a worksheet with mixed clauses (if-clauses and result clauses) to pair correctly; teacher monitors and provides sentence starters for struggling learners. Then play 'Conditional Relay'—teams race to write correct sentences on the board for prompts like 'If you miss the bus...'.",
+  "pracAlt": [
+    "Sentence Building Blocks: Students use colored cards (blue for if-clause, green for result) to physically build sentences, then swap with partners for correction.",
+    "Error Correction Race: Teams find and fix errors in 10 conditional sentences, first team to correct all wins."
+  ],
+  "ls": "Listen to three short dialogues (e.g., weather forecast, doctor's advice, travel plans) and tick whether each uses zero or first conditional. Then listen again and write down one correct conditional sentence from each dialogue.",
+  "re": "Stand If True: Teacher reads conditional statements (e.g., 'If you live in Morocco, you speak Arabic'); students stand if the statement is true for them, sit if false. Quick movement to refocus post-break.",
+  "prod": "Problem-Solution Debate: In pairs, students receive a Moroccan-themed problem (e.g., 'If there is a power cut, how do you study?'). They discuss and present their first conditional solutions to the class, defending their choices.",
+  "rw": "Read a short article about how Moroccans prepare for Ramadan (e.g., 'If the month starts, families buy special foods'). Underline all conditional sentences, then write 4 first-conditional sentences about your own holiday plans.",
+  "st": "Watch a 2-minute animated story about conditional decisions (e.g., 'If you help others, you make friends'). Close with a one-line recap: 'Today we discussed real possibilities with if-clauses.' Thank the class.",
+  "g": [
+    [
+      "Conditional Chain",
+      "Students take turns adding to a conditional sentence chain, each adding one clause."
+    ],
+    [
+      "If-Then Charades",
+      "Students act out conditional actions for others to guess the clauses."
+    ],
+    [
+      "Match the Clauses",
+      "Pair if-clause and result clause cards to make correct sentences."
+    ],
+    [
+      "Stand If True",
+      "Students stand/sit based on truth of conditional statements about them."
+    ],
+    [
+      "Problem-Solution Relay",
+      "Teams race to write first-conditional solutions to given problems."
+    ]
+  ],
+  "diff": [
+    "Fast finishers: Write 3 second-conditional sentences about imaginary changes in Morocco.",
+    "Support learners: Use sentence frames ('If ___, I ___') to build first conditionals."
+  ],
+  "hw": [
+    "Write 5 first-conditional sentences about your personal goals for this year (e.g., 'If I exercise daily, I will be healthier').",
+    "Find a news article and highlight all conditional sentences, then write 2 new ones about Moroccan current events.",
+    "Record a 1-minute voice note explaining what you will do if you travel to America next year."
+  ],
+  "tip": "Use local examples (e.g., 'If you visit the Hassan II Mosque, you see beautiful architecture') to make conditionals culturally relevant and memorable for Moroccan learners."
+}

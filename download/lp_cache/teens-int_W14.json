@@ -1,0 +1,54 @@
+{
+  "wu": "Christmas Memory Chain: Students sit in a circle. Teacher starts with 'Last Christmas, I ate a cookie.' Student 1 repeats and adds: 'Last Christmas, I ate a cookie and drank hot chocolate.' Each student repeats the full chain and adds one new past verb phrase.",
+  "wuAlt": [
+    "Christmas Verb Bingo: Teacher calls out Christmas verbs (opened, wrapped, decorated) and students cross them off their bingo cards.",
+    "Find Someone Who...: Students walk around asking 'Did you...?' questions about Christmas activities."
+  ],
+  "pres": "Teacher shows 4 flashcards: 1) a wrapped present, 2) a Christmas tree, 3) a plate of cookies, 4) a family dinner. Models sentences: 'I wrapped a present. Then I decorated the tree. After that, I ate cookies.' Checks understanding by asking 'What did I do first?' and having students point to the flashcards.",
+  "presAlt": [
+    "Past Tense Timeline: Teacher draws a timeline on the board and writes 3 past verbs from the flashcards, asking students to order them.",
+    "Christmas Story Circle: Teacher starts a short story and each student adds one sentence using a past verb."
+  ],
+  "prac": "Picture Description Relay: In pairs, students get a Christmas photo. They take turns describing one action in the photo using 'first, then, after that' (e.g., 'First, they decorated the tree. Then, they put presents under it.'). Teacher monitors and corrects pronunciation of -ed endings.",
+  "pracAlt": [
+    "Verb Match-Up: Students match Christmas verbs to pictures and then write sentences.",
+    "Sentence Race: Teams race to write correct past simple sentences from prompts on the board."
+  ],
+  "ls": "Students listen to a 1-minute audio of a teen describing their Christmas memory. They fill in the blanks in a worksheet with past verbs (e.g., 'I ___ (wrap) presents for my family'). Teacher plays the audio twice.",
+  "re": "Christmas Verb Charades: Students act out Christmas verbs (e.g., 'wrapped', 'decorated') while others guess the verb in the past simple.",
+  "prod": "Christmas Memory Writing: Students write a 40-word paragraph about their own Christmas memory using 'first, then, after that' and at least 3 regular past verbs. They then share their paragraph with a partner who asks one follow-up question.",
+  "rw": "Reading and Sequencing: Students read a short text (50 words) about a Christmas day and cut out 4 sentences to order them using 'first, then, after that'. They glue them in the correct order.",
+  "st": "Teacher reads a short Christmas story (e.g., 'The Gingerbread Man's Christmas') and students repeat key sentences. Goodbye routine: 'Today we learned to talk about Christmas memories using past simple verbs. Thank you, class!'",
+  "g": [
+    [
+      "Past Tense Relay",
+      "Teams race to write past verbs on the board from prompts."
+    ],
+    [
+      "Christmas Verb Bingo",
+      "Students mark past verbs called out by the teacher."
+    ],
+    [
+      "Picture Description Relay",
+      "Pairs describe Christmas photos using sequencers."
+    ],
+    [
+      "Sequencer Sorting",
+      "Students order sentence strips using 'first, then, after that'."
+    ],
+    [
+      "Memory Chain",
+      "Students build a story chain with past verbs."
+    ]
+  ],
+  "diff": [
+    "Fast finishers: Write a second paragraph about a different holiday memory using past verbs.",
+    "Support: Use a sentence frame with verbs already filled in (e.g., 'First, I _____. Then, I _____.')"
+  ],
+  "hw": [
+    "Complete the Christmas worksheet from the library folder (ordering events and writing sentences).",
+    "Write 5 sentences about your favorite Moroccan holiday using past verbs.",
+    "Draw a picture of a Christmas memory and label 3 actions in the past simple."
+  ],
+  "tip": "Emphasize the pronunciation of -ed endings (/t/, /d/, /ɪd/) by having students 'feel' the sounds with their hands on their throats. Connect to local culture by asking how Christmas memories might differ from Moroccan celebrations like Eid."
+}

@@ -1,0 +1,54 @@
+{
+  "wu": "Students play 'Memory Match' with flashcards showing key year vocabulary (e.g., 'recycle', 'volunteer', 'Earth Day', 'climate change'). They turn over two cards, say the words, and keep a pair if they match. The student with the most pairs wins.",
+  "wuAlt": [
+    "Students do a 'Word Association Circle' starting with 'Earth' and adding one related word each turn.",
+    "Students complete a 'Quick Quiz' on the board with 5 true/false questions about environmental facts."
+  ],
+  "pres": "Teacher presents a cause-and-effect chain using flashcards: 'Littering (cause) → Pollution (effect) → Animals suffer (effect)'. Model sentences: 'If people litter, the environment gets dirty.' and 'Pollution happens because people throw trash.' Check understanding by asking students to create their own simple cause-effect sentences.",
+  "presAlt": [
+    "Teacher uses a short video clip showing pollution and pauses to elicit cause-effect language from students.",
+    "Teacher draws a simple flowchart on the board and has students fill in the blanks with 'because' or 'so'."
+  ],
+  "prac": "Students do a 'Grammar Station Carousel' with 4 stations: 1) Match causes to effects, 2) Complete sentences with 'if/so/because', 3) Sort words into 'problem/solution', 4) Write 2 cause-effect sentences. Teacher monitors and provides sentence starters.",
+  "pracAlt": [
+    "Students play 'Cause and Effect Dominoes' matching cards to form logical chains.",
+    "Students work in pairs to correct 5 wrong cause-effect sentences on a worksheet."
+  ],
+  "ls": "Students listen to a 2-minute podcast about 'Small Changes for Earth Day' and complete a 'True/Not Mentioned/False' worksheet. They then listen again to check answers in pairs.",
+  "re": "Students play 'Green Charades' acting out verbs like 'recycle', 'plant', 'save water' for teammates to guess. The team with the most correct guesses in 1 minute wins.",
+  "prod": "Students form speaking circles of 4 and take 3-minute turns discussing 'One green habit I can start'. They use prompts like 'If I start..., then...' and 'I will... because...'. Teacher rotates to monitor and provide feedback.",
+  "rw": "Students read a short article '5 Easy Green Habits' and write an 80-word email to a friend suggesting one habit to adopt. They must include one cause-effect sentence (e.g., 'If you use a reusable bag, you will reduce plastic waste').",
+  "st": "Teacher shares a short story 'The Day the Earth Smiled' about a child's small actions making a difference. Close with the goodbye routine: 'Today we reviewed how our actions affect the environment. Thank you for your hard work and ideas.'",
+  "g": [
+    [
+      "Memory Match",
+      "Students match pairs of environmental vocabulary flashcards."
+    ],
+    [
+      "Cause and Effect Dominoes",
+      "Students match cause cards to effect cards to form logical chains."
+    ],
+    [
+      "Green Charades",
+      "Students act out environmental verbs for teammates to guess."
+    ],
+    [
+      "Grammar Station Carousel",
+      "Students rotate through 4 grammar practice stations."
+    ],
+    [
+      "Speaking Circles",
+      "Students discuss green habits in timed 3-minute turns."
+    ]
+  ],
+  "diff": [
+    "Fast finishers: Write a second email suggesting another green habit with two cause-effect sentences.",
+    "Support learners: Use a sentence frame: 'If I start ___, then ___ because ___.'"
+  ],
+  "hw": [
+    "Complete the pre-assessment checklist by marking 3 can-do statements you can now do.",
+    "Write one paragraph: 'One green habit I will start is... because... If I do this, then...'",
+    "Watch a 3-minute YouTube video about Earth Day and list 2 new ideas."
+  ],
+  "tip": "Use Moroccan examples like reducing plastic at souks or saving water during droughts to make the theme relatable. Encourage students to share local customs like using reusable bags for market visits."
+}

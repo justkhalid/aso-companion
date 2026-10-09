@@ -1,0 +1,54 @@
+{
+  "wu": "Warm-up: 'Phonics Jump' — Teacher says a letter sound (e.g., 'a'), students jump and say a word (e.g., 'apple'). Repeat for A-F sounds.",
+  "wuAlt": [
+    "Warm-up: 'Sound Bingo' — Students have bingo cards with A-F pictures; teacher calls sounds, students mark matches.",
+    "Warm-up: 'Pass the Sound' — Students pass a ball and say a word for the called sound (e.g., 'b' for 'ball')."
+  ],
+  "pres": "Presentation: Use flashcards for A-F (apple, ball, cat, dog, egg, fish) and ch/sh (chair, shop). Model 'a is for apple', 'ch is for chair'. Students repeat and point.",
+  "presAlt": [
+    "Presentation: 'Phonics Story' — Show a short story with A-F and ch/sh words; teacher reads, students repeat sounds.",
+    "Presentation: 'Realia Show' — Bring real objects (apple, ball, chair, shop toy); name them, emphasize sounds."
+  ],
+  "prac": "Guided Practice: 'Pair Picture Dictation' — Student A says a word (e.g., 'fish'), Student B draws it. Swap roles. Teacher monitors for correct sounds.",
+  "pracAlt": [
+    "Guided Practice: 'Word Sort' — Students sort ch/sh word cards into two columns; teacher checks pronunciation.",
+    "Guided Practice: 'Sound Hopscotch' — Draw hopscotch with A-F sounds; students jump and say a word for each sound."
+  ],
+  "ls": "Listening Slot: 'Sound Hunt' — Teacher plays a recording with ch/sh words (e.g., 'shop', 'chair'). Students raise hands when they hear the sound and say the word.",
+  "re": "Reactivation Game: 'Turkey Tag' — One student is 'it' (turkey), others run. If tagged, they say 'I am thankful for...'.",
+  "prod": "Production Task: 'Gratitude Turkey Craft' — Students make a turkey with paper feathers. Each feather has a sentence: 'I am thankful for...'. Share in groups.",
+  "rw": "Reading/Writing Slot: 'Trace and Write' — Students trace ch/sh words (fish, chair, shop) from the board, then copy them into notebooks.",
+  "st": "Story/Song + Goodbye: Sing 'The Thanksgiving Turkey' song with actions. End with 'Goodbye Song + sticker chart + high-five line.'",
+  "g": [
+    [
+      "Phonics Jump",
+      "Jump and say a word for the called sound."
+    ],
+    [
+      "Picture Dictation",
+      "Draw words said by a partner."
+    ],
+    [
+      "Sound Bingo",
+      "Mark pictures matching called sounds."
+    ],
+    [
+      "Turkey Tag",
+      "Tagged students say 'I am thankful for...'."
+    ],
+    [
+      "Word Sort",
+      "Sort ch/sh word cards into columns."
+    ]
+  ],
+  "diff": [
+    "Fast finishers: Write 3 extra 'thankful' sentences.",
+    "Support: Trace words with dotted lines."
+  ],
+  "hw": [
+    "Find and label 5 pictures of A-F and ch/sh words from magazines.",
+    "Say 3 'I am thankful for...' sentences at home to your family.",
+    "Draw a picture of your favorite ch/sh word and write it below."
+  ],
+  "tip": "Use real objects (like a toy shop or chair) to make phonics tangible; connect gratitude to local values like family and community."
+}

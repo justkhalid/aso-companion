@@ -1,0 +1,54 @@
+{
+  "wu": "Fruit Relay Race: Students line up in teams. Teacher calls a fruit (e.g., 'apple!'), first student runs to the table, picks up the correct flashcard, and runs back. Team with the most correct flashcards wins.",
+  "wuAlt": [
+    "Fruit Bingo: Teacher calls out fruits, students cross them off their bingo cards. First to shout 'Bingo!' wins.",
+    "Fruit Charades: Student mimes a fruit, others guess 'Is it a...?'"
+  ],
+  "pres": "Teacher brings a basket of real fruit (apple, banana, orange, grapes, strawberry, lemon). Holds each up, says 'This is an apple,' students repeat. Then models 'How much is the apple? It's 5 dirhams.' Students repeat. Checks understanding by asking 'Show me the apple.'",
+  "presAlt": [
+    "Fruit Story: Teacher tells a short story about buying fruit at the souk, using target language. Students point to the fruits as they're mentioned.",
+    "Fruit Market Video: Show a short clip of a fruit market, pause, ask 'What fruit is that? How much is it?'"
+  ],
+  "prac": "Fruit Shop Roleplay: In pairs, one student is the shopkeeper with price cards, the other is the customer. They practice 'How much is the...?' 'It's... dirhams.' 'Do you like...?' 'Yes, I do/No, I don't.' Teacher circulates, models if needed.",
+  "pracAlt": [
+    "Fruit Memory Game: Students match picture cards with word cards, saying the word and price when they find a match.",
+    "Fruit Dice Game: Roll a dice, say the fruit and a price (e.g., 'Grapes! 6 dirhams!')."
+  ],
+  "ls": "Listen and Draw: Teacher reads a shopping list ('I want an apple, 3 bananas, and some grapes.'). Students draw the fruit and write the total price. Teacher checks drawings and totals.",
+  "re": "Fruit Freeze Dance: Play music, students dance with fruit flashcards. When music stops, teacher calls a fruit, students holding it must freeze and say 'I like...!'",
+  "prod": "Fruit Market Project: In groups of 3, students create a mini fruit market. One is shopkeeper, one is customer, one is the 'price checker'. They use play money and price lists. Each group presents their market to the class.",
+  "rw": "Read and Match: Students read a simple price list ('Apple: 5 dirhams, Banana: 3 dirhams') and match it to the correct picture of a fruit shop. Then they write 2 sentences: 'I like apples but I don't like lemons.'",
+  "st": "Read 'The Hungry Caterpillar' story, stopping to name the fruits. Sing 'Do You Like Bananas?' song. Goodbye routine: Goodbye Song + sticker chart + high-five line.",
+  "g": [
+    [
+      "Fruit Toss",
+      "Students toss a ball and say a fruit and price before catching it."
+    ],
+    [
+      "Fruit Pictionary",
+      "Student draws a fruit, others guess 'Is it a...?'"
+    ],
+    [
+      "Fruit Shop Board Game",
+      "Move around the board, land on a fruit, say the price."
+    ],
+    [
+      "Fruit Dominoes",
+      "Match picture to word, saying the fruit name."
+    ],
+    [
+      "Fruit Survey",
+      "Ask classmates 'Do you like...?' and tally the answers."
+    ]
+  ],
+  "diff": [
+    "Fast finishers: Design their own fruit shop poster with prices and 3 sentences about what they like.",
+    "Support: Use word banks with fruit names and prices for the roleplay."
+  ],
+  "hw": [
+    "Write 4 sentences about fruit using 'and' and 'but' (e.g., 'I like apples and bananas, but I don't like lemons.')",
+    "Draw a picture of your favorite fruit and write its price in dirhams.",
+    "Ask your family 'Do you like...?' for 3 fruits and write down their answers."
+  ],
+  "tip": "Use real fruit to engage tactile learners and connect to local souk culture. For the roleplay, use Moroccan dirhams to make it culturally relevant and practical."
+}

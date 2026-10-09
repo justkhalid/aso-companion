@@ -1,0 +1,51 @@
+{
+  "wu": "Simon Says: Teacher says 'Simon says clap' and students clap; 'Simon says jump' and students jump; 'Simon says swim' and students swim; 'Simon says fly' and students pretend to fly; 'Simon says sleep' and students pretend to sleep.",
+  "wuAlt": [
+    "Action Charades: Teacher mimes an action (e.g., run) and students guess 'You run!'",
+    "Flashcard Race: Show flashcards of actions quickly, students say the word."
+  ],
+  "pres": "Use flashcards of the 8 action verbs (clap, jump, run, walk, swim, fly, eat, sleep); teacher mimes each action and says the word; students repeat; ask 'Can you swim?' and students respond 'Yes, I can' or 'No, I can't'; check understanding with thumbs up/down.",
+  "presAlt": [
+    "TPR Story: Tell a story about a boy who can run, jump, and swim, using flashcards to illustrate each action",
+    "Video Clip: Show a short video of animals doing actions, pause and ask 'What is it? It is a __.'"
+  ],
+  "prac": "Mime and Guess: Students work in pairs, one student mimes an action, the other guesses 'You __!' (e.g., 'You jump!'); teacher circulates to correct pronunciation; play 'Action Charades' with the whole class.",
+  "pracAlt": [
+    "Action Bingo: Students draw a 3x3 grid and write 6 action verbs; teacher calls out actions, students cross them off; first to get a line wins",
+    "Action Relay: Divide class into teams, one student runs to the board, writes an action verb, runs back, next student mimes it."
+  ],
+  "ls": "Listen and Match: Teacher says sentences like 'I can swim' or 'I can't fly'; students hold up the correct flashcard; check comprehension by asking 'Can you fly?' and students respond with thumbs up/down.",
+  "re": "Action Dance: Play a short song with actions (e.g., 'Head, Shoulders, Knees and Toes'), students stand up and do the actions; after the break, do the dance again to re-energize.",
+  "prod": "Mini-Survey: Students ask 3 friends 'Can you __?' (e.g., 'Can you jump?'); friends respond 'Yes, I can' or 'No, I can't'; students report back to the class 'Ali can jump, but Sara can't swim.'",
+  "rw": "Trace and Copy: Students trace the 8 action verbs in their notebook; then copy them once in rainbow colours; write 3 sentences like 'I can clap' or 'I can't fly'.",
+  "st": "Read 'The Hungry Caterpillar' story focusing on actions like 'eat' and 'sleep'; sing the 'Hello Song' and 'Goodbye Song'; end with sticker chart and high-five line.",
+  "g": [
+    [
+      "Simon Says",
+      "Teacher gives commands with 'Simon says' and students follow; if no 'Simon says', they don't move"
+    ],
+    [
+      "Action Charades",
+      "Student mimes an action, others guess the verb"
+    ],
+    [
+      "Action Bingo",
+      "Students cross off verbs as teacher calls them"
+    ],
+    [
+      "Action Relay",
+      "Teams take turns writing/miming actions"
+    ],
+    "Mime and Guess"
+  ],
+  "diff": [
+    "Fast finishers: Write 5 sentences about what they can and can't do",
+    "Support: Use word bank with pictures to help write sentences"
+  ],
+  "hw": [
+    "Write the 8 action verbs twice in rainbow colours",
+    "Draw a picture of yourself doing 3 actions and write the words",
+    "Ask your family members 'Can you __?' and write down their answers"
+  ],
+  "tip": "Use local context: reference Moroccan festivals like Green March by asking 'Can you march?' to connect the theme to students' culture."
+}

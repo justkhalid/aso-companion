@@ -1,0 +1,63 @@
+{
+  "wu": "Warm-up: 'Flashcard Race' - Teacher shows flashcards of S1 vocab (animals, food, family), teams take turns shouting the word in English. Props: Flashcards, timer. Children stand in lines, race to say the word first. Teacher says 'Ready, set, go!'",
+  "wuAlt": [
+    "Alternative 1: 'Simon Says' with S1 verbs (jump, run, draw) - Teacher says 'Simon says jump!' children jump.",
+    "Alternative 2: 'Number Bingo' - Teacher calls numbers 1-20, children cross off on bingo sheets."
+  ],
+  "pres": "Presentation: 'Story Time' - Teacher reads a short story about a Moroccan family celebrating Eid. Props: Story flashcards (Eid, couscous, gifts). Model sentences: 'They were happy.' 'He gave a present.' Check understanding: 'Who was happy?' 'What did he give?'",
+  "presAlt": [
+    "Alternative 1: 'Realia Show' - Show Moroccan objects (tagine, mint tea), say 'This is a tagine.' 'It is blue.'",
+    "Alternative 2: 'Picture Talk' - Show a picture of a Green March celebration, ask 'What do you see?'"
+  ],
+  "prac": "Guided Practice: 'Find the Pair' - Children match picture cards with word cards (S1 nouns). In pairs, they take turns saying 'This is a...' and 'It is a...'. Support: Teacher models first match, helps with pronunciation.",
+  "pracAlt": [
+    "Alternative 1: 'Sentence Building' - Children use word cards to make sentences like 'I have a cat.'",
+    "Alternative 2: 'Roleplay Cards' - Pairs practice dialogues like 'What is this?' 'It is a book.'"
+  ],
+  "ls": "Listening Slot: 'Instruction Quiz' - Teacher reads 3-step instructions (e.g., 'Stand up, touch your nose, sit down'). Children do the actions. Checks comprehension by observing if they follow correctly.",
+  "re": "Reactivation Game: 'Musical Statues' - Play Moroccan music, children dance when music stops, freeze. Teacher calls out an S1 word (e.g., 'animal'), children must act like that animal.",
+  "prod": "Production Task: 'My Mini-Poster' - Children draw a picture of their favorite S1 topic (family, food, pets) and write 2-3 sentences (e.g., 'This is my family. We are happy. I have a cat.'). Present to the class.",
+  "rw": "Reading and Writing Slot: 'Read and Answer' - Children read a short paragraph about a Moroccan festival (e.g., 'Independence Day is in November. People celebrate.'). Then answer 3 questions (e.g., 'When is it?') in simple sentences.",
+  "st": "Story / Song + Goodbye: 'Goodbye Song' (to the tune of 'Twinkle Twinkle') - 'Goodbye friends, goodbye friends, see you next time, goodbye friends.' Props: Sticker chart. Goodbye routine: Goodbye Song + sticker chart + high-five line.",
+  "g": [
+    [
+      "Flashcard Race",
+      "Teams race to shout the word on the flashcard."
+    ],
+    [
+      "Find the Pair",
+      "Match picture cards with word cards."
+    ],
+    [
+      "Musical Statues",
+      "Dance and freeze when music stops, act out a word."
+    ],
+    [
+      "My Mini-Poster",
+      "Draw and write about a topic to present."
+    ],
+    [
+      "Read and Answer",
+      "Read a short text and answer questions."
+    ]
+  ],
+  "diff": [
+    "Fast finishers: Write 3 extra sentences about their mini-poster.",
+    "Support: Use sentence starters like 'This is...' for the writing task."
+  ],
+  "hw": [
+    "Homework 1: Draw a picture of your home and label 5 things in English.",
+    "Homework 2: Write 5 sentences about your favorite food.",
+    "Homework 3: Ask your family 3 questions in English and write the answers."
+  ],
+  "tip": "Use the sticker chart to motivate kids during assessment week—stickers for effort, not just correct answers. Connect tasks to local culture (Eid, Green March) to make learning relevant.",
+  "checklist": [
+    "I can say 10+ S1 words correctly.",
+    "I can follow 3-step instructions in English.",
+    "I can write 2-3 connected sentences.",
+    "I can describe a picture in English.",
+    "I can answer simple questions about a story.",
+    "I can play a game using S1 language.",
+    "I can present my mini-poster to the class."
+  ]
+}

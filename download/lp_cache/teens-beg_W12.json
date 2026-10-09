@@ -1,0 +1,48 @@
+{
+  "wu": "Weather Charades: Students act out weather words (sunny, rainy, windy) while others guess using 'Is it...?' The winner acts next. Props: Weather flashcards.",
+  "wuAlt": [
+    "Weather Bingo: Students draw 6 weather symbols; teacher calls words, students cross off. Winner shouts 'Bingo!'",
+    "Weather Chain: One student says 'It's sunny', next adds 'It's sunny and rainy', etc., building a chain."
+  ],
+  "pres": "Show flashcards of weather and activities (e.g., sunny/beach, snowy/skiing). Model: 'What's the weather like? It's sunny. Shall we go to the beach?' Elicit responses. Check understanding with 'What do we ask about weather?'",
+  "presAlt": [
+    "Weather Report Video: Play a 1-minute kids' weather video; pause to ask 'What's the weather like in London?'",
+    "Weather Song: Sing 'What's the weather like today?' with gestures; drill key phrases."
+  ],
+  "prac": "Weather Report Cards: Students pick a city card and weather card; practice reporting to partners. Teacher monitors and corrects 'Shall we...?' sentences.",
+  "pracAlt": [
+    "Weather Dice Game: Roll a die for weather (1=sunny, 2=rainy); roll again for activity. Say: 'It's... Shall we...?'",
+    "Matching Pairs: Match weather to activities (e.g., rainy/watch a movie); then practice invitations."
+  ],
+  "ls": "Listen to a 1-minute weather forecast for 3 cities. Students tick the correct picture on their worksheet. Checks listening for specific details.",
+  "re": "Weather Action: Teacher calls out weather (e.g., 'It's windy!'), students fan themselves; 'It's rainy!', students pretend to hold umbrellas. Fast-paced review.",
+  "prod": "Christmas Party Invitations: In pairs, students plan a party using a budget ($50). They write 3 invitations using 'Shall we...?' and reactions (e.g., 'Great idea!').",
+  "rw": "Christmas Around the World: Jigsaw reading. Group A reads about Morocco's Aid, Group B about USA's Christmas. Then share 1 fact each. Write 2 sentences about their own holiday.",
+  "st": "Sing 'We Wish You a Merry Christmas' with actions. Close with: 'Today we learned to talk about weather and make plans. Thank you, class!'",
+  "g": [
+    [
+      "Weather Bingo",
+      "Students draw 6 weather symbols; teacher calls words, students cross off. Winner shouts 'Bingo!'"
+    ],
+    [
+      "Shall We...? Chain",
+      "One student says 'Shall we play football?', next adds 'Yes! Let's go!', then starts a new chain."
+    ],
+    [
+      "Christmas Budget Game",
+      "Groups plan a $50 party; must include food, activity, and decoration. Present their plan."
+    ],
+    "Weather Charades",
+    "Matching Pairs"
+  ],
+  "diff": [
+    "Fast finishers: Design a dream Christmas party poster with 5 activities.",
+    "Support: Use sentence frames for invitations: 'Shall we...?' 'Yes, let's...' or 'Sorry, I can't.'"
+  ],
+  "hw": [
+    "Write 3 party invitations using 'Shall we...?' (10 lines total).",
+    "Draw the weather in Oujda today and write 2 sentences.",
+    "Ask a family member about their favorite holiday and write 1 sentence."
+  ],
+  "tip": "Use Moroccan holidays (like Aid) to compare with Christmas, making the theme relevant. Teens connect better when local culture is included."
+}

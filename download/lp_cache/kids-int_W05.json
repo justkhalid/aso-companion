@@ -1,0 +1,54 @@
+{
+  "wu": "Ball Pass Count: Students stand in a circle. Teacher passes a soft ball to a student, who says 'One red balloon' and passes it to the next, who says 'Two blue balloons', continuing to ten. Teacher helps with pronunciation.",
+  "wuAlt": [
+    "Flashcard Jump: Teacher holds up a color flashcard; students jump and say the color number (e.g., 'Three green!').",
+    "Color Hunt: Teacher calls 'Find something blue!'; students point and say 'I see one blue book!'"
+  ],
+  "pres": "Teacher shows a large map of Morocco with the Green March route marked. 'This is the Green March. The march goes to... Agadir!' Students repeat. Teacher models 'The march goes to...' with different cities, using a pointer. Teacher asks 'How many red flags?' and holds up a flashcard to check 'There are three red flags.'",
+  "presAlt": [
+    "Storytime: Teacher reads a simple story about a boy counting colored flags during the Green March, pausing to ask 'How many yellow flags?'",
+    "Flag Craft Demo: Teacher draws a simple Moroccan flag on the board, colors it red and green, and says 'The flag is red and green.'"
+  ],
+  "prac": "Team Counting Race: Two teams race to count colored balloons on flashcards. Teacher asks 'How many (blue) balloons?' Team members answer 'There are five blue balloons!' and get a point. Teacher helps with full sentences.",
+  "pracAlt": [
+    "Color-by-Number Worksheet: Students trace and color a simple map of the Green March route using numbers 1-5 (1=red, 2=green). They say 'The march goes to... number 1!'",
+    "Flag Chant: Students stand and chant 'Red, green, red, green! The Moroccan flag!' with claps."
+  ],
+  "ls": "Listen and Point: Teacher plays an audio saying 'There are four red balloons.' Students point to the correct picture on a worksheet with three options (e.g., 3 blue, 4 red, 5 green). Teacher checks answers together.",
+  "re": "Simon Says Colors: After break, teacher plays 'Simon says touch something green!' Students touch green objects and say 'Green!' to reactivate vocabulary quickly.",
+  "prod": "March Route Project: In pairs, students get a blank map. They draw the Green March route with numbered stops (1-5). They take turns saying 'The march goes to... number one! It is red.' Teacher walks to support.",
+  "rw": "Flag Writing: Students trace the words 'red' and 'green' in their notebooks. Then, they copy the sentence 'The flag is red and green.' Teacher checks spelling and handwriting.",
+  "st": "Goodbye Song: Teacher leads 'Goodbye, Goodbye, See You Next Time!' with gestures. Students line up for a high-five and get a sticker for their chart.",
+  "g": [
+    [
+      "Ball Pass Count",
+      "Pass a ball and count colored objects (1-10)."
+    ],
+    [
+      "Team Counting Race",
+      "Race to answer 'How many balloons?' for points."
+    ],
+    [
+      "Color-by-Number",
+      "Color a map using numbers 1-5."
+    ],
+    [
+      "Flag Chant",
+      "Chant and clap 'Red, green, red, green!'"
+    ],
+    [
+      "Simon Says Colors",
+      "Touch and name colors on command."
+    ]
+  ],
+  "diff": [
+    "Fast finishers: Draw 10 balloons and write the color word for each.",
+    "Support: Use a word bank with colors and numbers to help with writing."
+  ],
+  "hw": [
+    "Write 'red' and 'green' twice in rainbow colors.",
+    "Draw the Moroccan flag and write 'red' and 'green' under it.",
+    "Count 10 objects at home and say 'There are... (number) (color) (objects).'"
+  ],
+  "tip": "Use the Green March theme to connect language learning to local history, making colors and numbers more meaningful and memorable for students."
+}

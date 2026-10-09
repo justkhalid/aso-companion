@@ -1,0 +1,54 @@
+{
+  "wu": "Phonics Relay Race: Students line up in two teams. Teacher shows a flashcard (e.g., 'sun'), first student runs to the board, writes the first letter ('s'), runs back, tags next student who writes 'u', then next writes 'n'. First team to spell correctly wins. They shout: 'S-U-N! Sun!'",
+  "wuAlt": [
+    "Sound Sorting Race: Students grab U-Z flashcards from a pile and sort them into 'short vowel' and 'long vowel' baskets on their table, naming each letter sound as they place it.",
+    "Phonics I Spy: Teacher says 'I spy with my little eye something beginning with /p/', students guess words like 'pen' or 'pencil'."
+  ],
+  "pres": "Teacher holds up letter N flashcard: 'This is letter N. It says /n/. Like in 'nose'.' Students repeat '/n/'. Then shows T: 'This is T. It says /t/. Like in 'tiger'.' Students repeat '/t/'. Teacher models blending: 'N + T = NT. Like in 'ant'.' Checks with thumbs up/down: 'Is this /nt/?' for 'net' and 'cat'.",
+  "presAlt": [
+    "Storytime: Teacher reads a short story about 'Noon the Tiger' who finds a 'net' and a 'nut', emphasizing the /n/ and /t/ sounds. Students repeat the words after each page.",
+    "Phonics Hopscotch: Draw a hopscotch board with N-T letters. Students hop and say the sound: 'N! /n/! T! /t!' when they land on a letter."
+  ],
+  "prac": "Word Building Pairs: Students get letter cards (n, t, a, e, p). Teacher says 'cat', students find c, a, t and build it. Then 'pen', 'net'. Teacher circulates, helping with blending. Game: 'Phonics Bingo'—Teacher calls words, students mark them on their bingo card with U-Z words.",
+  "pracAlt": [
+    "Sound Families Sort: Students work in groups. They have a set of U-Z word cards (e.g., 'sun', 'tap', 'net', 'pen'). They sort them into 'short a' (cat, pen) and 'short e' (net, tent) families, saying the words as they sort.",
+    "Blend Challenge: Teacher writes blends on the board (nt, st, nd). Students race to add a vowel to make a real word (e.g., nt + a = ant)."
+  ],
+  "ls": "Listen and Draw: Teacher describes a picture using target sounds: 'Draw a net. Draw a tent. Draw a pen in the tent.' Students draw and hold up their pictures. Teacher checks if they included all items with /n/ and /t/ sounds.",
+  "re": "Eid Freeze Dance: Play Arabic music. Students dance. When music stops, teacher calls 'Eid Mubarak!', students freeze and say it back. Restart. After break, this reactivates the Eid theme quickly.",
+  "prod": "Eid Greeting Roleplay: Students practice in pairs. One is a guest, one is a host. Guest: 'Eid Mubarak! I brought cookies.' Host: 'Eid Mubarak! Thank you! How many cookies?' They count 1-5 cookies using numbers. Then switch roles.",
+  "rw": "Eid Card Writing: Students finish the Eid card started in class. They write: 'Eid Mubarak!' inside, draw a gift, and write '1 gift' or '2 cookies' using the target words. They trace the sentence if needed.",
+  "st": "Story: 'The Eid Phonics Party'—a short story about friends sharing gifts with words like 'net', 'tent', 'pen'. Song: 'Eid Mubarak' song with actions (wave, hug). Goodbye routine: Goodbye Song + sticker chart + high-five line.",
+  "g": [
+    [
+      "Phonics Basketball",
+      "Students shoot a ball into a basket. If they make it, they must say a U-Z word with /n/ or /t/ sound correctly to get a point."
+    ],
+    [
+      "Cookie Counting Game",
+      "Students sit in a circle. Teacher gives out cookie cards (1-5). They pass a cookie and say 'Eid Mubarak! One cookie!' when they pass it."
+    ],
+    [
+      "Word Family Match",
+      "Students match word cards (e.g., 'cat', 'pen') to the correct family picture (cat family, pen family) on the table."
+    ],
+    [
+      "Eid Gift Swap",
+      "Students sit in a circle. They pass a 'gift' (box) and say 'Eid Mubarak! I have a gift.' When music stops, the one holding it opens it and says 'It's a pen!' or 'It's a net!'"
+    ],
+    [
+      "Sound Hop",
+      "Students hop on letter flashcards (N, T, U, Z). When they land, they must say a word with that sound (e.g., 'N! Net!')"
+    ]
+  ],
+  "diff": [
+    "Fast finishers / stronger learners: Write a 4-line rhyme about phonics, e.g., 'N is for net, T is for tent, Pen and pen, They all went!'",
+    "Support / weaker learners: Use letter tracing worksheets for N and T, and build words with magnetic letters."
+  ],
+  "hw": [
+    "Find a phonics worksheet in the library folder and bring it done next class.",
+    "Write the Eid greeting card we started in class for a family member.",
+    "Ask your family 3 words with /n/ or /t/ sounds (e.g., 'What is in the kitchen?') and write them down."
+  ],
+  "tip": "Use the Eid theme to make phonics meaningful—connect letters to gifts, cookies, and greetings. Moroccan learners will engage more with familiar cultural contexts."
+}

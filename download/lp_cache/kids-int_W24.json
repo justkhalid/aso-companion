@@ -1,0 +1,54 @@
+{
+  "wu": "Alphabet Relay: Students line up in two teams. Teacher calls out a letter (U-Z), first student runs to the board, writes it, runs back, tags next player. Team with all letters wins. They shout 'U, V, W, we are the best!'",
+  "wuAlt": [
+    "Letter Jump: Teacher holds flashcards U-Z, students jump when they hear their letter's sound",
+    "Alphabet Chain: One student says 'U', next says 'V', continue until Z"
+  ],
+  "pres": "Teacher displays flashcards umbrella, violin, window, xylophone, yellow, zebra. Models 'U is for umbrella /ʌ/, V is for violin /v/' etc. Students repeat. Teacher asks 'What is it? It is a __.' Students answer. Checks understanding by holding up random cards.",
+  "presAlt": [
+    "Storytime: Read 'The Umbrella and the Zebra' with U-Z words, point to letters as they appear",
+    "Mystery Box: Students reach in, pull out object (toy violin), say letter and sound"
+  ],
+  "prac": "Pair Picture Dictation: Student A has U-Z pictures, Student B has alphabet chart. A says 'Write umbrella under U', B writes word under correct letter. Swap roles. Teacher monitors and helps with spelling.",
+  "pracAlt": [
+    "Alphabet Order Race: Teams get shuffled U-Z word cards, first to line them up alphabetically wins",
+    "Sound Match: Students match U-Z picture cards to sound cards on the board"
+  ],
+  "ls": "Alphabet Neighbors Game: Teacher plays a recording of mixed U-Z letter sounds. Students hold up two cards when they hear neighbors (e.g., V and W). Teacher checks pairs.",
+  "re": "Alphabet Jump Rope: Students jump while chanting 'U, V, W, X, Y, Z', stop when teacher claps. Last one out does a silly dance.",
+  "prod": "My Alphabet Chart: Students trace U-Z letters in a chart, then write 3 words under each (from flashcards). They share with partner 'This is umbrella, U-U-Umbrella!'",
+  "rw": "Write in Order: Students write 5 U-Z words on slips, mix them, then reorder alphabetically. Copy sentences: 'Umbrella starts with U. Zebra starts with Z.'",
+  "st": "Sing the Alphabet Song with actions (U: open arms like umbrella, Z: roar like zebra). Story: 'The Zebra's Umbrella' with U-Z focus. Goodbye routine: Goodbye Song + sticker chart + high-five line.",
+  "g": [
+    [
+      "Letter Sound Bingo",
+      "Students cover pictures when teacher calls out U-Z sounds"
+    ],
+    [
+      "Alphabet Line-Up",
+      "Teacher says 'Line up from U to Z!', students race to order themselves"
+    ],
+    [
+      "Sound Jump",
+      "Jump on correct letter when teacher says sound"
+    ],
+    [
+      "Word Hunt",
+      "Find U-Z words hidden in classroom, say letter and sound"
+    ],
+    [
+      "Alphabet Chain Game",
+      "Students say 'I spy with my little eye, something beginning with U'"
+    ]
+  ],
+  "diff": [
+    "Fast finishers: Write a sentence with 2 U-Z words and draw a picture",
+    "Support: Trace letters with dotted lines, use word bank for spelling"
+  ],
+  "hw": [
+    "Write 3 sentences: 'U is for umbrella. V is for violin. Z is for zebra.' Draw pictures",
+    "Make flashcards for U-Z words with pictures and sounds",
+    "Practice the alphabet song with family, teach them the actions"
+  ],
+  "tip": "Use Moroccan context: show pictures of 'umbrella' for sun protection, 'violin' in local music. Link to Green March by saying 'Z is for zero, like the start of our march!'"
+}

@@ -1,0 +1,54 @@
+{
+  "wu": "Flashcard Jump: Students jump when they see a pet flashcard and say 'I have got a cat/dog/bird/fish!' Teacher holds up flashcards one by one.",
+  "wuAlt": [
+    "Pet Charades: Students act out a pet and classmates guess 'Have you got a dog?'",
+    "Pet Memory Game: Students match pet flashcards and say 'I have got a fish!' when they find a pair."
+  ],
+  "pres": "Teacher shows a stuffed dog and says 'I have got a dog. It can run!' Then points to a cat and asks 'Have you got a cat?' Students practice asking each other with flashcards.",
+  "presAlt": [
+    "Story 'My Pet': Teacher reads a simple story about pets with 'I have got...' and 'It can...' sentences, using flashcards to illustrate.",
+    "TPR Pet Actions: Teacher says 'It can fly!' and flaps arms for bird, 'It can swim!' for fish, students copy and repeat."
+  ],
+  "prac": "Find My Pet Game: Students hide pet flashcards around the room. Teacher says 'Find the dog!' and students bring it back saying 'I have got a dog!'",
+  "pracAlt": [
+    "Pet Survey: Students walk around asking 'Have you got a dog?' and tally answers on a simple chart.",
+    "Match the Cards: Students match pet pictures to sentences like 'I have got a bird. It can fly.'"
+  ],
+  "ls": "Listen and Draw: Teacher describes pets ('I have got a cat. It can climb.') and students draw the correct pet, then hold up their drawings.",
+  "re": "Pet Relay: Teams race to place flashcards on the board when teacher calls out 'I have got a dog!' or 'It can swim!'",
+  "prod": "Show-and-Tell: Each student brings a toy or drawing of a pet and says two sentences: 'I have got a __. It can __.'",
+  "rw": "Trace and Copy: Students trace sentences like 'I have got a dog.' from the board, then copy them into their notebooks with a drawing.",
+  "st": "Story 'The Pet Show': Teacher reads a story with repeated 'I have got...' and 'It can...' lines. End with 'Goodbye Song' and sticker chart.",
+  "g": [
+    [
+      "Pet Bingo",
+      "Students cover pictures on bingo cards when teacher says 'I have got a cat!'"
+    ],
+    [
+      "Guess the Pet",
+      "Student describes a pet with 'It can...' and classmates guess"
+    ],
+    [
+      "Pet Shop Roleplay",
+      "Students play shopkeeper and customer: 'Have you got a dog?'"
+    ],
+    [
+      "Pet Memory Match",
+      "Students match pet cards and say 'I have got a fish!'"
+    ],
+    [
+      "Pet Actions Game",
+      "Students act out pet actions when teacher says 'It can swim!'"
+    ]
+  ],
+  "diff": [
+    "Fast finishers: Write three sentences about their dream pet.",
+    "Support: Use sentence frames with pictures to help them talk."
+  ],
+  "hw": [
+    "Read your 'Pets and I have got' mini-book to a family member.",
+    "Draw a pet and write 'I have got a __. It can __.'",
+    "Ask five family members 'Have you got a pet?' and tell the class next week."
+  ],
+  "tip": "Use local pets like goats or birds to connect with students' lives; praise effort with stickers to build confidence."
+}

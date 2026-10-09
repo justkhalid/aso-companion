@@ -1,0 +1,54 @@
+{
+  "wu": "Teacher greets students and shows a world map. Students point to their home country and say: 'I am from Morocco.' Teacher models and drills pronunciation.",
+  "wuAlt": [
+    "Teacher holds up flag flashcards; students say the country name and nationality in chorus.",
+    "Teacher says a country; students jump and say the nationality."
+  ],
+  "pres": "Teacher presents 5 country flashcards (Morocco, USA, UK, France, Spain) with flags and nationalities. Models 'He is from Morocco. She is from Spain.' Checks understanding with thumbs up/down for true/false sentences.",
+  "presAlt": [
+    "Teacher draws simple country outlines on the board; students guess and repeat the country name.",
+    "Teacher uses a short video clip of people saying 'I am from...' with subtitles."
+  ],
+  "prac": "Students work in pairs with a country table worksheet. They take turns asking 'Where are you from?' and answering 'I am from [country].' Teacher monitors and corrects errors.",
+  "pracAlt": [
+    "Students play 'Find Someone Who...' with a grid of countries; they ask classmates and write names.",
+    "Teacher gives each student a country card; they mingle and ask 'Where are you from?' to the group."
+  ],
+  "ls": "Students listen to a KET-style audio of 3 people introducing themselves. They complete a table with names and countries. Teacher plays audio twice.",
+  "re": "Teacher calls out a country; students race to point to it on the world map. Fastest student gets to call the next country.",
+  "prod": "Students stand in a circle. The first student says 'I am from Morocco.' The next student says 'He is from Morocco. I am from France.' The chain continues around the circle.",
+  "rw": "Students read 3 short profiles (e.g., 'My name is Amina. I am from Morocco.') and fill in a table with countries. Then they write 3 sentences: 'He is from Spain. She is from France. I am from Morocco.'",
+  "st": "Teacher sings a simple 'Where Are You From?' song with clapping. Class says goodbye with 'Thank you, teacher. See you next time!'",
+  "g": [
+    [
+      "World Map Mingle",
+      "Students mingle, ask 'Where are you from?', and mark countries on their map."
+    ],
+    [
+      "Guess the Country",
+      "Teacher describes a country (language, flag); students guess the name."
+    ],
+    [
+      "Nationality Bingo",
+      "Students write nationalities on a grid; teacher calls them out."
+    ],
+    [
+      "Chain Game",
+      "Students sit in a circle; each adds a country to the growing list."
+    ],
+    [
+      "Flag Match",
+      "Students match country flags to their names on flashcards."
+    ]
+  ],
+  "diff": [
+    "Fast finishers: Write 5 sentences about famous people's countries.",
+    "Support: Use word bank with countries/nationalities for writing task."
+  ],
+  "hw": [
+    "Complete the 'Where Are You From?' survey with 5 family members.",
+    "Draw 3 flags and write the country names.",
+    "Write 3 sentences about your classmates from today's class."
+  ],
+  "tip": "Use Moroccan cultural references (e.g., 'I am from Morocco, like Hassan II.') to build connection and pride in the learners' identity while practicing the target language."
+}

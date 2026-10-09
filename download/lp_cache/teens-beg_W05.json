@@ -1,0 +1,54 @@
+{
+  "wu": "Hobby Charades: Teacher writes 5 hobbies on the board (e.g., play football, listen to music, read books, watch TV, cook). Students take turns acting out a hobby while others guess, saying 'He/She likes...' or 'He/She is playing...'.",
+  "wuAlt": [
+    "Hobby Pictionary: Students draw a hobby on the board for others to guess, using 'He/She is...'.",
+    "Find My Match: Teacher gives each student a hobby picture; they mingle to find another student with the same picture and say 'I like...'."
+  ],
+  "pres": "Teacher shows flashcards of hobbies and models sentences: 'I like playing football. I love listening to music. I hate watching TV.' Then introduces adverbs: 'I always play football on Fridays. I sometimes listen to music. I never watch TV.' Checks understanding with thumbs up/down: 'Do you like swimming?'",
+  "presAlt": [
+    "Hobby Survey: Teacher asks 3 students about their hobbies, writing their answers on the board to model the structure.",
+    "Green March Video: Shows a short clip of the Green March, pauses, and asks 'Did they like walking? Did they always walk?' to connect to past simple."
+  ],
+  "prac": "Find Someone Who...: Students get a grid with hobbies (e.g., play football, read books). They mingle asking 'Do you like...?' and write names. Teacher monitors for correct use of like + -ing and adverbs.",
+  "pracAlt": [
+    "Hobby Poster Pairs: Students draw 3 hobbies in pairs and label them with 'I like/love/hate + -ing'.",
+    "Frequency Line-Up: Teacher gives cards with adverbs (always, sometimes, never); students line up from most to least frequent and say a sentence with their card."
+  ],
+  "ls": "Listen to 3 teens talking about their free time. Students tick the hobbies they hear and circle the adverbs (always, sometimes, never). Teacher plays audio twice, then checks answers as a class.",
+  "re": "Hobby Relay: Two lines of students. Teacher calls a hobby (e.g., 'play football'), first student runs to the board, writes 'I like playing football', runs back, tags next. Team with correct sentences wins.",
+  "prod": "Green March Timeline Poster: In pairs, students create a poster with 3 pictures of the Green March (e.g., walking, singing, waving flags). They write 3 past simple sentences: 'They walked to the city. They sang songs. They waved flags.' Then present to the class.",
+  "rw": "Read 3 short hobby profiles (e.g., 'I am Amina. I like reading books. I never play sports.'). Students match each profile to a picture. Then write 3 sentences about their own free time using 'I like/love/hate + -ing' and an adverb.",
+  "st": "Sing 'What Do You Like to Do?' song with actions. Then close with: 'Today we talked about hobbies using like + -ing and adverbs. Thank you, class! Goodbye!'",
+  "g": [
+    [
+      "Hobby Bingo",
+      "Students get a bingo grid with hobbies; teacher calls out 'I like playing football' and students mark the square."
+    ],
+    [
+      "Hobby Charades",
+      "Students act out hobbies for others to guess using 'He/She likes...'."
+    ],
+    [
+      "Find Someone Who",
+      "Students mingle asking 'Do you like...?' and write names on a grid."
+    ],
+    [
+      "Frequency Line-Up",
+      "Students line up with adverb cards from 'always' to 'never' and say a sentence."
+    ],
+    [
+      "Green March Poster",
+      "Pairs create a poster with past simple sentences about the Green March."
+    ]
+  ],
+  "diff": [
+    "Fast finishers: Write 5 more sentences about the Green March using different verbs.",
+    "Support learners: Use sentence starters like 'I like...' and 'I sometimes...' on their poster."
+  ],
+  "hw": [
+    "Write 5 sentences about your free time using 'I like/love/hate + -ing' and an adverb.",
+    "Write 5 past-simple sentences about the Green March (e.g., 'They walked. They sang.').",
+    "Draw a picture of your favorite hobby and write 2 sentences about it."
+  ],
+  "tip": "Use the Green March theme to connect to local culture and build pride, while practicing past simple. Teens respond well to real-world topics like national history."
+}

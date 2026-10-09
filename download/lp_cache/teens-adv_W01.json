@@ -1,0 +1,62 @@
+{
+  "wu": "Human Bingo: Students walk around with bingo cards containing prompts like 'speaks 3 languages' or 'has a pet'. They ask classmates 'Do you...?' and mark off squares. First to get a line shouts 'Bingo!'",
+  "wuAlt": [
+    "Name Chain: Students stand in a circle, each says their name + one hobby, e.g., 'I'm Ali, I play football'. The next repeats the previous names and adds their own.",
+    "Two Truths and a Lie: Students write two true statements and one false about themselves, then read them aloud for others to guess the lie."
+  ],
+  "pres": "Show a flashcard of a teen with hobbies (football, music, reading). Model: 'My name's Sam. I'm 15. I live in Oujda. I like football. What about you?' Elicit questions using 'What?', 'Where?', 'How old?', then drill possessive adjectives + tags: 'You live here, don't you?'",
+  "presAlt": [
+    "Profile Poster: Draw a simple profile on the board with blanks (Name: ___, Age: ___, Hobbies: ___). Fill it in with a student's info, then ask them questions about it.",
+    "Video Clip: Play a 30-second clip of a teen introducing themselves. Pause after each sentence to repeat and drill."
+  ],
+  "prac": "KET-Style Task Carousel: Set up 4 stations with profile cards (e.g., 'Lina, 16, likes cooking'). In pairs, students rotate stations, asking questions to complete a partner profile form. Monitor and correct 'be' + Wh- errors.",
+  "pracAlt": [
+    "Find Someone Who...: Distribute a grid with prompts like 'Find someone who has a birthday in December'. Students mingle, asking 'Do you have...?' and writing names.",
+    "Profile Matchup: Give each student half a profile (e.g., 'I'm 15, I like music'). They must find the other half by asking questions."
+  ],
+  "ls": "PET-Style Audio Track: Play a 1-minute recording of two teens swapping profiles. Students listen and fill in a table with details (name, age, hobbies). Replay to check answers, then ask follow-up questions like 'Does he like football?'",
+  "re": "Stand Up, Sit Down: Call out profile facts (e.g., 'If you like music, stand up! If you live in Oujda, sit down!'). Students respond physically to reactivate the target vocabulary.",
+  "prod": "Partner Interview Swap: Students form new pairs. Each has 2 minutes to interview their partner using 5 questions (e.g., 'What's your name?', 'Where do you live?', 'How old are you?', 'What do you like?', 'Do you have a pet?'). Then swap roles and share 1 new fact about their partner.",
+  "rw": "Reading PET Part 1: Give students a short profile text (60 words) about a fictional teen. They answer 5 multiple-choice questions (e.g., 'Where does she live?'). Then write 3 sentences about themselves using the same structure.",
+  "st": "Read a short story about a teen making new friends at the American Space. End with the goodbye routine: 'Today we learned to swap detailed profiles. Thank you, class! See you next week!'",
+  "g": [
+    [
+      "Guess Who?",
+      "Students think of a classmate and describe them using 'He/She is... He/She likes...'. Others guess who it is."
+    ],
+    [
+      "Chain Reaction",
+      "One student says a fact about themselves, the next repeats it and adds one, e.g., 'Ali is 15. He likes football. I'm Fatima, I like music.'"
+    ],
+    [
+      "Profile Pictionary",
+      "Students draw a hobby or item (e.g., a football) and others guess 'Do you like football?'"
+    ],
+    [
+      "Speed Interviewing",
+      "Timer for 1-minute interviews with 3 different partners, rotating desks after each round."
+    ],
+    [
+      "Fact or Fiction",
+      "Students write 3 statements about themselves, others ask 'Is this true?' to guess the fiction."
+    ],
+    [
+      "Find the Difference",
+      "Students compare two similar profile cards and spot 3 differences by asking questions."
+    ],
+    [
+      "Human Graph",
+      "Students line up by age, then move to form groups based on hobbies, asking 'Do you like...?' to confirm."
+    ]
+  ],
+  "diff": [
+    "Fast finishers: Write a 60-word profile of a celebrity, using the target language.",
+    "Support weaker learners: Use a sentence frame worksheet to complete their profile (e.g., 'My name's ______. I'm ______ years old. I live in ______. I like ______.')"
+  ],
+  "hw": [
+    "Record a 90-second video introducing yourself and answering 5 get-to-know-you questions.",
+    "Write a 70-word email to a new pen pal describing your hobbies and life in Oujda.",
+    "Create a poster with photos and captions about your family and friends, using 'be' + possessives."
+  ],
+  "tip": "Use Moroccan cultural references (e.g., 'Do you like couscous?', 'Have you been to the Sahara?') to make the language relevant and build rapport with learners."
+}

@@ -1,0 +1,63 @@
+{
+  "wu": "Warm-up: 'Quiz Relay' in teams of 4. Students race to write 3 S1 review words (e.g., 'present perfect', 'past continuous') on the board. First team to write all 3 correctly wins a point.",
+  "wuAlt": [
+    "Alternative 1: 'Word Association Chain' - students say one S1 word related to the previous word.",
+    "Alternative 2: 'Quick Draw' - teacher draws a S1 grammar concept (e.g., 'used to'), students guess."
+  ],
+  "pres": "Presentation: Teacher shows a PET-style writing task example (email to a friend). Model sentences: 'I have been to...', 'I used to live...'. Check understanding by asking: 'What tense is used for experiences?'",
+  "presAlt": [
+    "Alternative 1: Use flashcards for 'present perfect' vs 'past simple' with visuals (e.g., 'travel' icons).",
+    "Alternative 2: Realia - show old photos to elicit 'used to' sentences."
+  ],
+  "prac": "Guided practice: 'Grammar Match-Up' - students match sentence halves (e.g., 'I have never...' with '...been to the USA'). Teacher circulates to correct errors.",
+  "pracAlt": [
+    "Alternative 1: 'Sentence Auction' - students bet on correct S1 grammar sentences.",
+    "Alternative 2: 'Find Someone Who...' survey with S1 questions."
+  ],
+  "ls": "Listening slot: PET-style listening task (audio about a teen's holiday). Students answer 5 multiple-choice questions. Play audio twice, then review answers as a class.",
+  "re": "Reactivation game: 'Stand Up If...' - teacher says S1 review prompts (e.g., 'Stand up if you have ever eaten camel meat'), students stand up and say a full sentence.",
+  "prod": "Production task: Paired speaking task - 'My Dream Vacation'. Students take 2-minute turns describing their dream trip using S1 grammar. Teacher assesses using a checklist.",
+  "rw": "Reading and writing slot: Read a short text about Moroccan festivals (e.g., Green March), then write 60-word email to a friend about a festival they enjoyed. Include 1 'present perfect' sentence.",
+  "st": "Story / song + goodbye: Teacher tells a short story about a teen's first time in Casablanca. Close with: 'Today we reviewed S1 for our assessment. Thank you for your hard work!'",
+  "g": [
+    [
+      "Quiz Relay",
+      "Teams race to write 3 S1 words on the board."
+    ],
+    [
+      "Grammar Match-Up",
+      "Match sentence halves for S1 grammar."
+    ],
+    [
+      "Stand Up If...",
+      "Stand and speak when prompted with S1 grammar."
+    ],
+    [
+      "Sentence Auction",
+      "Bet on correct S1 sentences."
+    ],
+    [
+      "Find Someone Who...",
+      "Survey classmates using S1 questions."
+    ]
+  ],
+  "diff": [
+    "Fast finishers: Write an extra paragraph about their dream vacation.",
+    "Support learners: Use a sentence frame for the email (e.g., 'I have... because...')."
+  ],
+  "hw": [
+    "Homework 1: Write 5 sentences about your family using 'used to'.",
+    "Homework 2: Record yourself describing your favorite festival (1-2 min).",
+    "Homework 3: Create a quiz with 5 S1 review questions for a friend."
+  ],
+  "tip": "Use Moroccan cultural examples (e.g., 'Green March') to make grammar practice relatable and boost engagement.",
+  "checklist": [
+    "I can use present perfect for experiences.",
+    "I can describe past habits with 'used to'.",
+    "I can write a 60-word email about a festival.",
+    "I can answer PET-style listening questions.",
+    "I can speak for 2 minutes about my dream vacation.",
+    "I can use 0/1 conditionals in sentences.",
+    "I can identify relative clauses in texts."
+  ]
+}

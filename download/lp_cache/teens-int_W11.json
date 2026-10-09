@@ -1,0 +1,54 @@
+{
+  "wu": "Students play 'Shopkeeper Says' with clothes flashcards: teacher commands like 'Show me a red shirt' or 'Point to the cheapest shoes'; students grab the correct card and say 'This is a red shirt' or 'Those shoes are cheaper'.",
+  "wuAlt": [
+    "Students do a 'Clothes Quiz' in teams: teacher shows flashcards, teams race to shout the English word first.",
+    "Students play 'Guess What I'm Wearing': teacher describes an outfit (e.g., 'I'm wearing a blue jacket and jeans'), students guess the item."
+  ],
+  "pres": "Teacher holds up two shop ads (e.g., 'Zara' vs 'H&M') and models comparisons: 'Zara is more stylish than H&M, but H&M is cheaper than Zara'; students repeat chorally; teacher checks understanding by asking 'Which shop is cheaper?'.",
+  "presAlt": [
+    "Teacher uses realia (two T-shirts, one plain, one printed) to demonstrate comparatives: 'This T-shirt is more stylish than that one'.",
+    "Teacher draws two shops on the board and adds prices/stylishness ratings; students compare them using sentence frames."
+  ],
+  "prac": "Students do a 'Shop Comparison Race' in pairs: each pair gets two shop ads, they race to write 3 comparisons (e.g., 'Zara has more styles than H&M'); teacher monitors and corrects errors.",
+  "pracAlt": [
+    "Students play 'Find the Difference' with two clothing catalogues: they spot 3 differences and write sentences (e.g., 'These jeans are more expensive than those jeans').",
+    "Students do a 'Comparative Chain Game' in teams: one student says a comparison (e.g., 'This bag is bigger'), next student adds another (e.g., 'This bag is bigger and cheaper')."
+  ],
+  "ls": "Students listen to a dialogue between two friends comparing two shops (Zara vs. H&M); they tick which shop is cheaper and more stylish on a worksheet; teacher plays the audio twice.",
+  "re": "Students play 'Price Tag Swap': teacher calls out a price (e.g., '100 dirhams'), students quickly swap places with a partner and say 'This is cheaper than that' with a point.",
+  "prod": "Students roleplay a shop exchange in pairs: one is a customer, one is a shopkeeper; customers ask about sizes/colors/prices (e.g., 'How much are these jeans?'), shopkeepers respond and handle exchanges (e.g., 'These are too big, do you have smaller ones?'); teacher circulates and notes errors.",
+  "rw": "Students read a short text comparing two shops (e.g., 'Zara vs. H&M: Which is better?') and underline 5 new words (e.g., 'stylish', 'discount', 'fabric'); then write 4 sentences comparing the shops using comparatives.",
+  "st": "Teacher tells a short story about a teen shopping for clothes, using comparatives (e.g., 'She liked the blue shirt more than the red one because it was cheaper'); class closes with the goodbye routine: 'Today we compared shops and clothes—great work! Thank you, class.'",
+  "g": [
+    [
+      "Shop Bingo",
+      "Students mark off items on a bingo card as the teacher calls out clothes vocabulary."
+    ],
+    [
+      "Price Guess",
+      "Teacher writes a price on the board, students guess the item (e.g., 'Is it 50 dirhams for a T-shirt?')."
+    ],
+    [
+      "Comparative Relay",
+      "Teams race to write comparative sentences on the board (e.g., 'This is cheaper than that')."
+    ],
+    [
+      "Shop Roleplay Swap",
+      "Pairs swap roles after 2 minutes to practice both customer and shopkeeper."
+    ],
+    [
+      "Word Search",
+      "Students find clothes/comparative words in a worksheet."
+    ]
+  ],
+  "diff": [
+    "Fast finishers write 5 extra sentences comparing their favorite shop to another.",
+    "Support weaker learners use a sentence frame: 'This shop is _______ than that shop because _______.'"
+  ],
+  "hw": [
+    "Read a shop ad from a Moroccan store (e.g., Marjane) and note 5 new words.",
+    "Write 4 sentences comparing two local shops (e.g., 'Souk El Had is cheaper than Carrefour').",
+    "Ask a family member about their favorite clothes shop and write 2 comparisons."
+  ],
+  "tip": "Use local examples (e.g., comparing Marjane vs. Carrefour) to make the theme relevant; teens engage more when they see real-world connections."
+}

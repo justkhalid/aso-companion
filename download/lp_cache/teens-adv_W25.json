@@ -1,0 +1,54 @@
+{
+  "wu": "Tech Charades: Students draw tech words (e.g., 'smartphone', 'social media') from a hat and act them out while others guess. Winner gets a point.",
+  "wuAlt": [
+    "Tech Pictionary: Students sketch tech devices and classmates name them.",
+    "Tech Word Association: Teacher says 'phone', students shout related words like 'call', 'app', 'screen'."
+  ],
+  "pres": "Show flashcards of teens using tech (e.g., 'studying with a laptop', 'scrolling on TikTok'). Model sentences: 'I like studying with my laptop', 'She hates scrolling on TikTok'. Check understanding with thumbs up/down for 'Do you like using your phone?'",
+  "presAlt": [
+    "Realia Tech Talk: Bring in old phones/keyboards. Students describe their habits using 'I love/hate + -ing'.",
+    "Tech Survey: Students ask 3 classmates 'Do you like/hate using ___?' and report back."
+  ],
+  "prac": "Verb Pattern Match: Students match 'like/love/hate' cards to '-ing' verb cards (e.g., 'like' → 'playing games'). Play in pairs, then swap cards for a new round.",
+  "pracAlt": [
+    "Tech Habit Survey: Students walk around asking 'Do you like/hate + -ing?' and tally responses.",
+    "Sentence Race: Teams race to write 5 correct sentences using 'like/love/hate + -ing'."
+  ],
+  "ls": "Listen to a 1-minute debate: 'Is social media good for teens?'. Students tick arguments for/against and underline 2 'if-clauses' (e.g., 'If you use it too much, you can lose sleep').",
+  "re": "Tech Freeze: Teacher shouts tech words (e.g., 'laptop!', 'phone!'). Students freeze and say a full sentence like 'I love using my laptop!' to unfreeze.",
+  "prod": "Debate Carousel: Teams debate 'Should phones be allowed in school?' using 'I think...', 'If we allow phones,...', 'I agree because...' with 2-min turns. Rotate opponents.",
+  "rw": "Read a short debate text about 'Are robots helpful?'. Circle all 'if-clauses' and write 2 sentences: 'If robots do our jobs, humans might be lazy' and 'If we use robots, we can save time'.",
+  "st": "Watch a 2-minute animated story about a teen balancing screen time and homework. Close with: 'Today we debated tech opinions using like/love/hate + -ing and conditionals. Thanks for your great ideas, class!'",
+  "g": [
+    [
+      "Tech Taboo",
+      "Students describe tech words without saying 'phone', 'screen', or 'app'"
+    ],
+    [
+      "If-Chain Game",
+      "Start with 'If I use my phone too much...', next student adds 'I might get bad grades'"
+    ],
+    [
+      "Tech Bingo",
+      "Bingo cards with tech habits; mark off when someone says 'I love/hate + -ing'"
+    ],
+    [
+      "Debate Dice",
+      "Roll dice to get debate topics (e.g., 'Social media', 'Video games')"
+    ],
+    [
+      "Tech Charades 2",
+      "Act out tech verbs (e.g., 'scrolling', 'charging', 'coding')"
+    ]
+  ],
+  "diff": [
+    "Fast finishers: Write a 5-sentence paragraph about their ideal tech device.",
+    "Support: Use sentence frames: 'I like/hate + ___. If I ___, I might ___.'"
+  ],
+  "hw": [
+    "Record a 90-second video saying your opinion: 'Do you like/hate using AI? Why? Use 2 'if-clauses'.",
+    "Write 5 sentences about your family's tech habits using like/love/hate + -ing.",
+    "Interview 3 people: 'Do you think robots will replace jobs? Why?' and write their answers."
+  ],
+  "tip": "Encourage polite arguing with phrases like 'I understand your point, but...' to mirror real debates. Link to local tech habits (e.g., 'In Morocco, many families use WhatsApp for calls')."
+}

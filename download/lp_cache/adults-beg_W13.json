@@ -1,0 +1,54 @@
+{
+  "wu": "Last Weekend Board: Teacher draws a 3x3 grid on the board with squares for 'Saturday morning', 'Saturday afternoon', 'Saturday night', 'Sunday morning', etc. Students ask 'Where were you last Saturday morning?' and teacher answers 'I was at home' or 'I was at the market', drawing a simple icon in the square. Students then ask each other in pairs.",
+  "wuAlt": [
+    "Find Someone Who...: Hand out a sheet with prompts like 'Find someone who was at the cinema last weekend'. Students walk around asking 'Were you at the cinema last weekend?' and writing names.",
+    "Memory Chain: Teacher says 'Last weekend I was at home'. Student 1 says 'Last weekend [teacher] was at home and I was at the market'. Student 2 repeats the chain and adds their own."
+  ],
+  "pres": "Teacher shows two flashcards: one of a person sleeping at home, one of a person at a cafe. Teacher says 'Last night, I was at home' and 'Last night, Ali was at the cafe'. Elicits 'was' and 'were' from students. Teacher then presents last-time expressions: 'last night', 'last weekend', 'last year', pointing to a calendar. Checks understanding by asking 'Where were you last night?' to a few students.",
+  "presAlt": [
+    "Timeline Drawing: Teacher draws a simple timeline from 'Friday' to 'Sunday' on the board. Asks students to draw a picture of where they were on Saturday and say the sentence 'I was at [place]'.",
+    "Photo Story: Teacher shows 3-4 photos of themselves from last weekend (e.g., at a restaurant, at home, at a park). Tells a short story using 'was' and 'were' and asks students to guess the location for each photo."
+  ],
+  "prac": "Where Were You? Quiz: Teacher writes 5 sentences on the board, some true, some false, about herself last weekend (e.g., 'I was at the cinema', 'I was at work'). Students in teams get points for guessing correctly. Then, in pairs, students write 3 true and 1 false sentence about their own last weekend. They read their sentences to their partner, who guesses the false one.",
+  "pracAlt": [
+    "Grammar Auction: Teacher writes 10 sentences with was/were errors (e.g., 'I was happy'). Students in teams have 100 points. They 'bid' on sentences they think are correct. Correct sentences earn them points, incorrect ones lose points.",
+    "Sentence Race: In pairs, students race to write 5 correct sentences using 'was/were' and a last-time expression from a list of prompts (e.g., 'last year', 'last night'). The first pair to write all 5 correctly wins."
+  ],
+  "ls": "Listening for Details: Teacher plays a short audio recording (30-45 seconds) of two people talking about their New Year's Eve. The script is: 'A: Hi Leila! How was your New Year's Eve? B: It was great! I was at my cousin's house. We were very happy. A: Nice! And you, Sarah? A: I was at home. I was tired, so I was in bed at 11 pm.' Students listen and answer two questions: 'Where was Leila?' and 'Where was Sarah?' on a handout.",
+  "re": "Past Tense Charades: Teacher writes 'was/were' actions on small slips of paper (e.g., 'was happy', 'was at the market', 'was sleeping'). A student picks a slip, acts it out without speaking, and the class guesses, asking 'Were you...?' The student answers 'Yes, I was' or 'No, I wasn't'.",
+  "prod": "Pair Interviews: Students work in pairs. Student A asks Student B three questions: 'Where were you last night?', 'Where were you last weekend?', 'Were you happy last year?'. Student B answers. Then they swap roles. After, each student stands up and introduces their partner to the class: 'Last weekend, [partner's name] was at [place]'.",
+  "rw": "Diary Entry Reading: Students receive a short, simple diary entry about a person's last weekend. Example: 'Friday: I was tired. I was at home. Saturday: I was happy. I was at my friend's house. Sunday: I was busy. I was at the market.' Students read the text and underline all examples of 'was' and 'were'. Then, they write 5 simple sentences about their own last weekend using the same structure.",
+  "st": "Teacher reads a very short, simple story about New Year's resolutions using 'will' and 'going to'. Example: 'For the New Year, I will eat more vegetables. I am going to walk every day.' After the story, the class discusses resolutions. Teacher leads the goodbye routine: 'Today we talked about the past with was/were. Thank you, class. Have a good day.'",
+  "g": [
+    [
+      "Last Weekend Bingo",
+      "Students write 9 places in a bingo grid (e.g., 'park', 'home', 'cinema'). Teacher calls out sentences like 'I was at the park last weekend'. Students mark the square if they have it."
+    ],
+    [
+      "Find the Difference",
+      "Students work in pairs with two similar pictures of a 'last weekend' scene. They take turns asking 'Was he at the market?' to find the differences."
+    ],
+    [
+      "Chain Story",
+      "Teacher starts a story: 'Last weekend, I was at home...'. Each student adds one sentence using 'was/were' to continue the story."
+    ],
+    [
+      "Past Tense Tic-Tac-Toe",
+      "Students play in teams. To place an X or O, a team member must correctly make a sentence with 'was/were' from a prompt."
+    ],
+    [
+      "Memory Test",
+      "Teacher shows a picture of a scene for 20 seconds. Hides it. Students write 5 sentences using 'was/were' to describe what was in the picture."
+    ]
+  ],
+  "diff": [
+    "Fast finishers / stronger learners: Write a short paragraph (6-7 sentences) about their last weekend using 'was/were'.",
+    "Support / weaker learners: Use a sentence frame: 'Last weekend, I was at ___. I was ___. I was ___.' to write their sentences."
+  ],
+  "hw": [
+    "Participation Quiz: Interview 3 family members or friends about their last weekend. Ask 'Where were you last night?' and write down their answers in a simple sentence.",
+    "Resolutions: Write 3 New Year's resolutions. For each, write one sentence using 'will' and one using 'going to'. Example: 'I will learn English. I am going to study every day.'",
+    "Write About Your Weekend: Write 5 sentences about your last weekend. Use 'was/were' and a last-time expression in each sentence."
+  ],
+  "tip": "Connect the language to students' personal experiences by asking about local holidays like Independence Day or the Green March to make 'last weekend' and 'last year' more relevant and meaningful."
+}

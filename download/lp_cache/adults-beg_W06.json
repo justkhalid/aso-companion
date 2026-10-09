@@ -1,0 +1,54 @@
+{
+  "wu": "Students stand up. Teacher shows flashcards of free-time activities (playing football, reading books, cooking). Students walk around and ask each other: 'Do you like...?' and respond with 'Yes, I do' or 'No, I don't'.",
+  "wuAlt": [
+    "Teacher writes 'free time' on the board. Students brainstorm activities in pairs, writing 3 each on sticky notes and sticking them up.",
+    "Teacher mimes an activity (e.g., swimming). Students guess: 'Do you like swimming?' Teacher responds with 'Yes, I love it' or 'No, I enjoy reading'."
+  ],
+  "pres": "Teacher presents 3 model sentences: 'I like playing football', 'I love reading books', 'I enjoy cooking'. Uses flashcards to show each activity. Checks understanding by asking: 'What do I love?' and 'Do I like cooking?'",
+  "presAlt": [
+    "Teacher tells a short story: 'On weekends, I like walking in the park. I love drinking mint tea. I enjoy listening to music.' Underlines the -ing forms.",
+    "Teacher uses realia: a football, a book, a cooking pot. Holds each up and says the sentence, then gestures for students to repeat chorally."
+  ],
+  "prac": "Students do 'Find Someone Who...' with a grid of activities. They walk around and ask: 'Do you like...?' and write names. Teacher monitors and models questions.",
+  "pracAlt": [
+    "Students work in pairs. Teacher gives each pair a set of activity cards. They take turns saying: 'I like/love/enjoy...' and the partner responds with 'Me too' or 'I don't, I prefer...'.",
+    "Teacher plays 'Guess the Activity'. Mimes an activity; students guess using: 'Do you like...?' Teacher responds with 'Yes, I love it' or 'No, I enjoy...'"
+  ],
+  "ls": "Students listen to 3 short audio clips of people talking about their free time. They tick the activities mentioned on their worksheet. Teacher plays each clip twice.",
+  "re": "Students stand in a circle. Teacher says an activity (e.g., 'swimming'), and students jump if they like it, squat if they don't. Quick and energetic.",
+  "prod": "Students work in pairs. They plan their ideal weekend using 'I like/love/enjoy...'. They then present their plan to the class: 'On Saturday, I like... On Sunday, I love...'",
+  "rw": "Students read 3 short profiles of people's free-time activities. They underline all the -ing forms. Then they write 4 sentences about their own free time using 'like/love/enjoy + -ing'.",
+  "st": "Teacher tells a short story about a character's weekend using target language. Ends with the goodbye routine: 'Today we talked about free time. Thank you, class!'",
+  "g": [
+    [
+      "Activity Match",
+      "Students match flashcards to sentences like 'I love swimming'."
+    ],
+    [
+      "Preference Corners",
+      "Teacher labels corners of the room: 'love', 'like', 'enjoy'. Students go to the corner for an activity when called out."
+    ],
+    [
+      "Mime and Guess",
+      "Student mimes an activity; others guess using 'Do you like...?'"
+    ],
+    [
+      "Weekend Bingo",
+      "Students have bingo cards with activities. They ask classmates: 'Do you like...?' to mark off squares."
+    ],
+    [
+      "Chain Reaction",
+      "Student 1 says: 'I like playing football'. Student 2 repeats and adds: 'I love reading books'."
+    ]
+  ],
+  "diff": [
+    "Fast finishers: Write 6 sentences about their friends' free time.",
+    "Support: Use a sentence frame: 'I like ___. I love ___. I enjoy ___.'"
+  ],
+  "hw": [
+    "Write 5 sentences about your free time using like/love/enjoy + -ing.",
+    "Interview a family member about their free time and write 3 sentences.",
+    "Draw a picture of your ideal weekend and label 3 activities with -ing words."
+  ],
+  "tip": "Connect activities to local context: ask about free time during Ramadan or holidays like Green March. Use real-life examples like 'liking mint tea with friends' to build rapport."
+}

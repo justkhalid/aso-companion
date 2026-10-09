@@ -1,0 +1,54 @@
+{
+  "wu": "City Bingo: Students get bingo cards with city names (Oujda, Casablanca, Paris, London, New York). Teacher says clues like 'This city is bigger than Oujda' or 'This city is more modern than Rabat'. Students mark the city and shout 'Bingo!' when they have a line.",
+  "wuAlt": [
+    "Adjective Race: Students line up. Teacher shows flashcards of adjectives (big, small, old, new, tall, short). Students race to say the comparative form (bigger, smaller, older, newer, taller, shorter).",
+    "Find Someone Who: Students walk around asking 'Is your city bigger than your friend's city?' and write names of people who say yes."
+  ],
+  "pres": "Teacher shows two city flashcards (Oujda and Paris). Models sentences: 'Oujda is smaller than Paris. Paris is bigger than Oujda.' Uses gestures for 'small' and 'big'. Asks students to repeat chorally. Checks understanding by pointing to flashcards and asking 'Which city is bigger?'",
+  "presAlt": [
+    "Realia Comparison: Teacher holds two objects (a small Moroccan tagine and a big American coffee mug). Models: 'The tagine is smaller than the mug. The mug is bigger than the tagine.' Students repeat.",
+    "Picture Story: Shows a simple comic strip with two characters comparing their cities. Reads aloud: 'My city is older than yours. Your city is newer than mine.'"
+  ],
+  "prac": "Adjective Duel Game: Students in pairs get a set of adjective cards (big, small, old, new, tall, short). Teacher says two cities (e.g., 'Oujda and Rabat'). Students race to flip the card for the correct comparative ('Oujda is smaller than Rabat'). First pair to get 3 points wins.",
+  "pracAlt": [
+    "Comparative Pairs: Students work in pairs. Each pair gets two city cards. They take turns making one comparative sentence about the cities (e.g., 'Casablanca is more modern than Fes'). Teacher monitors and corrects.",
+    "Flashcard Line-Up: Students get flashcards of cities. They line up in order from smallest to biggest, saying sentences as they move: 'Oujda is smaller than Tangier.'"
+  ],
+  "ls": "City Comparison Audio: Students listen to a short audio where two teens compare their cities (Oujda and Agadir). They have a worksheet with two columns: 'Agadir' and 'Oujda'. They write down the comparatives they hear (e.g., 'Agadir is more modern. Oujda is older.')",
+  "re": "Comparative Charades: One student comes to the front. Teacher whispers a comparative sentence (e.g., 'Tall'). The student acts being 'tall' and then 'taller' by stretching up. Class guesses the comparative word.",
+  "prod": "City Debate Teams: Divide class into two teams (Team Oujda vs Team Rabat). Each team has 5 minutes to prepare 3 comparative sentences to argue why their city is better (e.g., 'Oujda is more beautiful than Rabat. Rabat is noisier than Oujda.'). Teams take turns presenting their sentences. Class votes for the most convincing team.",
+  "rw": "Read and Compare: Students read a short text comparing two Moroccan cities (Marrakech and Chefchaouen). The text has gaps with comparatives (e.g., 'Marrakech is _____ (big) than Chefchaouen. Chefchaouen is _____ (old) than Marrakech.'). Students fill in the gaps with -er or more. Then they write 2 sentences comparing their own city to another.",
+  "st": "Sing 'The Comparative Song': A simple chant to the tune of 'Twinkle Twinkle Little Star': 'Bigger, smaller, taller, shorter. More than, less than, it's easy. Compare two things and you will see. How they are different, you and me.' End with 'Today we learned to compare cities with -er and more. Great job, everyone! Thank you, class!'",
+  "g": [
+    [
+      "Adjective Duel",
+      "Students race to flip the correct comparative card for two cities."
+    ],
+    [
+      "City Bingo",
+      "Students mark cities on bingo cards based on comparative clues."
+    ],
+    [
+      "Comparative Charades",
+      "Students act out comparatives for the class to guess."
+    ],
+    [
+      "Flashcard Line-Up",
+      "Students line up city cards and say comparative sentences."
+    ],
+    [
+      "City Debate Teams",
+      "Teams argue why their city is better using comparatives."
+    ]
+  ],
+  "diff": [
+    "Fast finishers / stronger learners: Write 5 comparisons between Oujda and a city of their choice (e.g., 'Oujda is sunnier than London.')",
+    "Support / weaker learners: Use a sentence frame: 'Oujda is _____ (adjective) than _____ (city).' with a word bank of adjectives (big, small, old, new)."
+  ],
+  "hw": [
+    "Write 5 comparisons about Oujda vs another city (e.g., 'Oujda is smaller than Casablanca.')",
+    "Draw two pictures of your city and another city. Label 3 things in each picture and write 1 comparative sentence (e.g., 'The mosque in Oujda is older than the one in Tangier.')",
+    "Interview a family member: 'Is Oujda bigger than your hometown? Write down their answer and 1 more comparison.'"
+  ],
+  "tip": "Use local cities (Oujda, Rabat, Casablanca, Tangier) to make the comparisons relevant and engaging. Teens are more motivated to talk about places they know."
+}

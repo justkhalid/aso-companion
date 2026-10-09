@@ -1,0 +1,51 @@
+{
+  "wu": "Start with 'Tradition Bingo': Students write 5 traditions (e.g., 'eat couscous on Fridays', 'celebrate Eid') in a grid. Teacher calls out customs, students cross off matches. First to get 3 in a row says 'Bingo!' and shares one tradition.",
+  "wuAlt": [
+    "Alternative 1: 'Two Truths and a Lie'—students state 3 traditions, one false, others guess.",
+    "Alternative 2: 'Quick Share'—each student names one tradition from their family in 10 seconds."
+  ],
+  "pres": "Show flashcards of Moroccan traditions (Eid, Ramadan, Green March). Model present simple: 'People visit family during Eid.' Elicit sequencers: 'First, they pray. Then, they eat.' Check understanding with 'What do people do first during Ramadan?'",
+  "presAlt": [
+    "Alternative 1: Use a short video of a Moroccan wedding, pause to describe steps.",
+    "Alternative 2: Bring a mint tea set, demonstrate the ritual while narrating with sequencers."
+  ],
+  "prac": "Sequencing Relay: Groups get 4 cards (e.g., 'Light candles', 'Pray', 'Eat sweets', 'Exchange gifts'). Race to put in order, then present using 'First... Then...'. Support with sentence frames on board.",
+  "pracAlt": [
+    "Alternative 1: 'Order the Steps' worksheet—students match sentences to pictures of a wedding.",
+    "Alternative 2: 'Chain Story'—each student adds one step to a tradition story using a sequencer."
+  ],
+  "ls": "Listen to a 1-minute audio about a Moroccan wedding. Students fill in blanks in a step-by-step worksheet (e.g., 'First, the bride... Then, the guests...'). Check answers in pairs.",
+  "re": "Stand Up, Sit Down: Teacher calls out traditions (e.g., 'If you break fast with family, stand up!'). Students stand/sit to respond, repeating the sentence with sequencers ('First, I pray...').",
+  "prod": "Pair Presentations: Each student prepares a 2-minute talk about a custom (e.g., 'How we celebrate Eid'). Use sequencers: 'First, we... Then, we...'. Partners give feedback using 'I liked when you said...'",
+  "rw": "Read a short text on 'History of Moroccan Tea' (100 words). Students take notes on key steps. Then write 3 sentences using sequencers: 'First, the tea is boiled. Then, mint is added...'",
+  "st": "End with a 2-minute video of a Moroccan folk song about traditions. Close with: 'Today we learned to describe customs with sequencers. Thank you for sharing your traditions!'",
+  "g": [
+    [
+      "Sequencing Race",
+      "Groups race to reorder tradition steps on cards."
+    ],
+    [
+      "Tradition Charades",
+      "Students act out a tradition; others guess using 'First, do you...?'"
+    ],
+    [
+      "Find Someone Who...",
+      "Mingle to find peers who share traditions (e.g., 'Find someone who fasts Ramadan')."
+    ],
+    [
+      "Custom Pictionary",
+      "Draw a tradition; team guesses using sequencers."
+    ],
+    "Memory Chain (Each student repeats all previous steps + one new one)"
+  ],
+  "diff": [
+    "Fast finishers: Write a 50-word paragraph comparing two traditions.",
+    "Support: Use a sentence frame template for presentations (e.g., 'In my family, we... First, we... Then...')."
+  ],
+  "hw": [
+    "Option 1: Record a 1-minute video describing a custom at home.",
+    "Option 2: Write 80 words about a wedding tradition using sequencers.",
+    "Option 3: Interview a family member about a tradition and share notes."
+  ],
+  "tip": "Leverage learners' lived experiences—encourage comparisons between Moroccan and American traditions to build cross-cultural awareness."
+}

@@ -1,0 +1,54 @@
+{
+  "wu": "KET Reading Relay: Students race in teams to match 5 KET reading part 1 sentences with 5 picture prompts, shouting 'Found it!' when correct.",
+  "wuAlt": [
+    "KET Vocabulary Pictionary: Teams draw KET reading keywords (e.g., 'library', 'birthday') for others to guess.",
+    "KET Sentence Scramble: Teams unscramble 5 jumbled KET part 1 sentences."
+  ],
+  "pres": "Show a KET reading part 1 sample on the whiteboard, highlighting 'skimming' (reading for gist) and 'scanning' (finding keywords). Model with a think-aloud: 'I see the word 'library'—I'll scan for it.' Check understanding with thumbs up/down for 'skimming vs scanning'.",
+  "presAlt": [
+    "KET Strategy Cards: Distribute cards with 'skim' or 'scan'—students hold up when you read a task instruction.",
+    "KET Video Clip: Play a 2-minute Cambridge video explaining KET parts 1-3, pausing to discuss."
+  ],
+  "prac": "KET Reading Task Carousel: Teams rotate 3 stations (parts 1-3), using strategy checklists. At part 1, they match sentences to pictures; part 2, match descriptions to people; part 3, read short texts for true/false. Support with sentence starters like 'This is part 1, so I need to...'.",
+  "pracAlt": [
+    "KET Strategy Dice: Roll a dice (1=skim, 2=scan) to decide how to approach a task.",
+    "KET Peer Teaching: Stronger learners explain strategies to weaker ones in pairs."
+  ],
+  "ls": "KET Listening Part 1 Practice: Students listen to 5 short conversations and match speakers to pictures, using the same skimming/scanning strategies from reading. Check with a quick 'What did you hear?' round.",
+  "re": "KET Word Jump: Write KET reading keywords (e.g., 'cinema', 'museum') on the floor—students jump to the word when called, shouting the strategy ('Scan!').",
+  "prod": "KET Reading Quiz Show: Teams create 3 KET-style questions (parts 1-3) for others, using today's strategies. They present with 'This tests your skimming skills!'",
+  "rw": "KET Writing Part 1 Practice: Students write a 40-word short message to a friend about a book they read, using past simple and comparatives (e.g., 'It was interesting. The story was better than the movie.').",
+  "st": "Read a short story about a student preparing for KET, then close with: 'Today we learned KET reading strategies—thank you, class!'",
+  "g": [
+    [
+      "KET Sentence Match",
+      "Teams race to match 10 KET part 2 sentences with 5 people descriptions."
+    ],
+    [
+      "KET True/False Race",
+      "Students stand for true, sit for false after a KET part 3 text read aloud."
+    ],
+    [
+      "KET Keyword Hunt",
+      "Find 5 hidden KET reading words in the classroom (e.g., 'library', 'cinema')."
+    ],
+    [
+      "KET Strategy Relay",
+      "Pass a 'strategy' ball—when caught, name a skimming/scanning tip."
+    ],
+    [
+      "KET Reading Bingo",
+      "Mark off KET part 1 tasks as they complete them in teams."
+    ]
+  ],
+  "diff": [
+    "Fast finishers: Create a KET part 1 puzzle with their own drawings.",
+    "Support learners: Use a highlighted KET text with key words circled."
+  ],
+  "hw": [
+    "Interview a family member about KET reading: 'What do you think is hardest about reading in English?' and write 2 sentences.",
+    "Write 3 KET part 2 questions for a classmate about their hobbies.",
+    "Watch a 5-minute KET reading video online and list 2 strategies."
+  ],
+  "tip": "Use Moroccan cultural references (e.g., 'Green March') in KET texts to boost engagement—teens connect better with familiar contexts."
+}

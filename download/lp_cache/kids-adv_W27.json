@@ -1,0 +1,54 @@
+{
+  "wu": "Furniture Relay: Students race to touch named furniture flashcards. Teacher says 'Touch the table!', students run and touch the table flashcard on the wall. Last to touch sits down.",
+  "wuAlt": [
+    "Simon Says: Teacher says 'Simon says put your pen under the chair!', students follow. If no Simon Says, they freeze.",
+    "Find My Spot: Teacher calls out furniture, students quickly move to stand near the real object in class."
+  ],
+  "pres": "Teacher uses a big 'My Bedroom' poster. Points to a teddy bear on the bed and says 'The teddy is on the bed'. Then moves it under the bed and says 'Now the teddy is under the bed'. Uses a box to show 'in the box'. Models sentences: 'The cat is in the box. The cat is on the box. The cat is under the box'. Asks students 'Where is the cat?' to check understanding.",
+  "presAlt": [
+    "Storytime: Teacher reads a short story about a mouse hiding in, on, and under furniture. Uses gestures for prepositions.",
+    "Realia Hunt: Teacher hides a small toy in, on, under classroom furniture. Students ask 'Is it in the box?' and teacher answers 'Yes, it is' or 'No, it isn't'."
+  ],
+  "prac": "Furniture Bingo: Students get bingo grids with furniture pictures. Teacher calls out sentences like 'The book is on the table'. Students cover the picture if it matches. Teacher walks around to help with pronunciation and sentence structure.",
+  "pracAlt": [
+    "Preposition Pairs: Students work in pairs. One student places an object (e.g., a pencil) in, on, under a piece of furniture. The other student says a sentence like 'The pencil is under the chair'.",
+    "Drawing Dictation: Teacher dictates sentences like 'Draw a ball on the bed. Draw a cat under the table'. Students draw and compare."
+  ],
+  "ls": "Listen and Move: Teacher gives directions like 'Walk to the chair. Put your pencil under the chair'. Students follow the instructions with their bodies and a pencil. Teacher checks if they are in the correct spot.",
+  "re": "Furniture Freeze Dance: Play Moroccan pop music. When music stops, teacher shouts a preposition, e.g., 'Under!'. Students must quickly find something to get under. Last one to freeze is out.",
+  "prod": "Furniture Treasure Hunt: In teams, students hide a small toy somewhere in the classroom. They write 3 clues on a piece of paper using 'in', 'on', 'under', e.g., 'It is under the big table'. Another team follows the clues to find the treasure. Teams present their clues.",
+  "rw": "Comic Strip Creation: Students draw a simple comic with 3-4 boxes showing a character moving furniture or hiding things. In each box, they write a speech bubble or a caption using 'in', 'on', 'under', e.g., 'The book is on the bed'.",
+  "st": "Teacher sings 'The Preposition Song' (to the tune of 'Twinkle Twinkle') with gestures. Then reads a short story about a boy looking for his lost toy under the bed, on the table, and in the box. Goodbye routine: Goodbye Song + sticker chart + high-five line.",
+  "g": [
+    [
+      "Furniture Quiz Show",
+      "Teams answer questions like 'Where is the ball? (show picture)' for points."
+    ],
+    [
+      "Hide and Seek with Prepositions",
+      "One student hides an object, others ask 'Is it in the box?' until they find it."
+    ],
+    [
+      "Preposition Hopscotch",
+      "Draw a hopscotch with 'in', 'on', 'under'. Students say the word as they land on it."
+    ],
+    [
+      "Furniture Charades",
+      "Students act out a preposition (e.g., hiding under a chair) for others to guess."
+    ],
+    [
+      "Find the Difference",
+      "Students compare two similar room pictures and spot differences using 'in', 'on', 'under'."
+    ]
+  ],
+  "diff": [
+    "Fast finishers / stronger learners: Write a short story (3-4 sentences) about a lost toy using all three prepositions.",
+    "Support / weaker learners: Cut and paste pictures of furniture and objects, then label them with 'in', 'on', 'under'."
+  ],
+  "hw": [
+    "Draw your bedroom and write 3 sentences about where things are (e.g., 'My teddy is on the bed').",
+    "Create a 'Find My Toy' poster with 3 clues using in, on, under for a friend to solve.",
+    "Write a short dialogue between two friends looking for a lost cat using prepositions."
+  ],
+  "tip": "Use real classroom furniture to make prepositions tangible. For cultural relevance, relate the lesson to Moroccan homes by showing pictures of traditional furniture."
+}

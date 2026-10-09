@@ -1,0 +1,46 @@
+{
+  "wu": "Students play 'Find the Pair' with shopping flashcards. Teacher places 10 item cards on the board. Students take turns finding two matching cards and saying 'I have a [shirt].'",
+  "wuAlt": [
+    "Students play 'Shopping Bingo' with 3x3 grids of food items. Teacher calls out items, students mark them and shout 'Bingo!' when full.",
+    "Students do a quick 'Two Truths and a Lie' about their favorite shops using 'I like...' and 'I don't like...'."
+  ],
+  "pres": "Teacher shows a broken toy and says 'This toy is broken. I need help.' Elicits complaint frames using flashcards: 'This [item] is [problem].' Models 'This T-shirt is too small.' Checks understanding with 'Show me a problem with a bag.'",
+  "presAlt": [
+    "Teacher uses a dialogue video of a customer returning a phone. Pauses to elicit problem phrases.",
+    "Teacher writes a complaint on the board with gaps, students guess the missing words like 'This laptop is not working.'"
+  ],
+  "prac": "Students do 'Problem-Solution Matching' in pairs. They match 6 problem cards ('This phone doesn't charge') to solution cards ('Can I have a refund?'). Teacher monitors and models pronunciation.",
+  "pracAlt": [
+    "Students play 'Dialogue Repair' in groups. They get a jumbled dialogue and reorder it to make a logical complaint conversation.",
+    "Students do 'Chain Complaints' in a circle. Each student adds one problem to the previous one: 'This phone is broken. This charger is lost.'"
+  ],
+  "ls": "Students listen to a shop dialogue and tick the problems they hear (e.g., 'too expensive', 'wrong color'). Teacher plays the audio twice, then checks answers as a class.",
+  "re": "Students play 'Charades' with action words from the lesson (e.g., 'return', 'complain', 'refund'). One student mimes the word, others guess 'Are you returning?'",
+  "prod": "Students roleplay a customer service scenario in pairs. One is a customer with a problem (e.g., 'This dress is torn'), the other is a shop assistant. They must use at least 2 complaint phrases and 1 solution phrase.",
+  "rw": "Students read a short complaint message and circle the problem words. Then, they write their own 6-line complaint dialogue using frames like 'I bought this [item] yesterday. It is [problem]. Can I...?'",
+  "st": "Teacher reads a short story about a man who returns a gift during Ramadan. Students discuss 'What would you do?' and close with 'Today we learned to complain about problems. Thank you, class.'",
+  "g": [
+    [
+      "Problem Race",
+      "Teams race to write 3 problems on the board using 'This [item] is [problem].'",
+      "Memory Match",
+      "Students flip cards to find matching item and problem pairs.",
+      "Complaint Chain",
+      "Each student adds a problem to the previous one: 'This bag is old. This shirt is red.'",
+      "Roleplay Swap",
+      "Pairs swap roles after each complaint practice.",
+      "Find the Error",
+      "Students find the mistake in a written complaint dialogue."
+    ]
+  ],
+  "diff": [
+    "Fast finishers write a second complaint with a different problem.",
+    "Support learners use a sentence frame handout with 'This [item] is [problem].' pre-filled."
+  ],
+  "hw": [
+    "Write a short complaint message to a shop about a broken item.",
+    "Write your Ramadan daily routine in 8 sentences using 'I' and frequency adverbs like 'always'.",
+    "Draw 3 shopping problems and write the complaint for each."
+  ],
+  "tip": "Link the language to Ramadan by discussing shopping routines during the holy month. Use realia like dates or lanterns to make complaints culturally relevant."
+}

@@ -1,0 +1,55 @@
+{
+  "wu": "Speed Review: Students stand in a circle. Teacher shows PET exam flashcards (e.g., 'email', 'interview', 'travel'), students race to say the task type in 10 seconds. Incorrect answers sit down. Last student standing wins.",
+  "wuAlt": [
+    "Word Association: Teacher says 'PET exam', students shout related words (e.g., 'writing', 'speaking', 'timer').",
+    "Quick Quiz: 3 rapid-fire questions: 'How long is the PET speaking test?', 'How many parts?', 'What's the word limit for emails?'"
+  ],
+  "pres": "Teacher displays a sample PET Part 1 email question (e.g., 'Write an email to your friend about a trip'). Model the structure: greeting, purpose, details, closing. Highlight 'I'm writing to...' and 'I look forward to...'. Check understanding: 'What's the first sentence?'",
+  "presAlt": [
+    "Realia Analysis: Show a real email. Students label parts (greeting, body, closing).",
+    "Gap Fill: Project an email with blanks. Students complete it as a class."
+  ],
+  "prac": "Guided Email Draft: Students use a template (greeting, 3 bullet points, closing) to write a 60-word email about their favorite Moroccan festival (e.g., Green March). Teacher circulates, correcting grammar/vocabulary.",
+  "pracAlt": [
+    "Pair Correction: Students swap emails and use a checklist (greeting, 3 details, closing) to peer-review.",
+    "Sentence Scramble: Unscramble email sentences into logical order."
+  ],
+  "ls": "PET Listening Part 1: Play a short audio (2 people planning a trip). Students answer 5 multiple-choice questions (A/B/C) on a worksheet. Replay difficult parts for clarification.",
+  "re": "Stand Up/Sit Down: Teacher calls out PET task names ('Reading!', 'Writing!'). Students stand if they like it, sit if they dislike it. Fast-paced to refocus after break.",
+  "prod": "Speaking Simulation: Students pair up. One is the examiner (asks Part 1 questions: 'Where do you live?', 'What do you like about Oujda?'). The other is the candidate (answers for 1 minute). Swap roles. Use a timer.",
+  "rw": "PET Reading Part 2: Students read a short text about 'Digital Life in Morocco' (150 words). Match headings to paragraphs (5 options). Then write 1 sentence about their own digital habits.",
+  "st": "Close with: 'Today we practiced all PET exam sections. Thank you for your hard work!'",
+  "g": [
+    [
+      "PET Bingo",
+      "Students create 3x3 grids with PET words (e.g., 'email', 'interview', 'travel'). Teacher calls out definitions; students mark matches.",
+      "Find the Mistake",
+      "Teacher writes 3 PET emails with errors. Students race to find and correct them.",
+      "Speed Speaking",
+      "Timer runs for 1 minute. Students take turns saying sentences about exams (e.g., 'I need to practice writing emails').",
+      "Volleyball Review",
+      "Teacher says a PET word (e.g., 'speaking'), students volley back a related word (e.g., 'questions').",
+      "Exam Relay",
+      "Teams race to match PET task types to descriptions (e.g., 'Part 1: Q&A about yourself')."
+    ]
+  ],
+  "diff": [
+    "Fast finishers: Write a 100-word review of a Moroccan cafe (PET Part 1).",
+    "Support learners: Use a sentence frame: 'I live in _______. I like ______ because ______.'"
+  ],
+  "hw": [
+    "Option 1: Complete PET Listening Part 3 (audio + questions).",
+    "Option 2: Write a 70-word email to a teacher about a problem (e.g., 'I missed class').",
+    "Option 3: Practice speaking Part 1 with a family member (record 1 minute)."
+  ],
+  "tip": "For adults, focus on exam strategies (e.g., 'Read questions first in listening') to reduce anxiety. Relate tasks to their goals (work, travel).",
+  "checklist": [
+    "I can write a 70-word email with a clear purpose and closing.",
+    "I can answer 5 multiple-choice listening questions.",
+    "I can speak for 1 minute about my life in Morocco.",
+    "I can match headings to reading paragraphs.",
+    "I can identify PET exam parts and their tasks.",
+    "I can use present perfect for experience (e.g., 'I have visited Casablanca').",
+    "I can use comparatives (e.g., 'Oujda is more beautiful than...')."
+  ]
+}

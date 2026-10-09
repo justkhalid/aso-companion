@@ -1,0 +1,54 @@
+{
+  "wu": "Students stand in a circle. Teacher throws a soft ball to a student and asks 'What time do you wake up?' The student answers and throws the ball to another student who asks a different routine question (e.g., 'What time do you eat lunch?').",
+  "wuAlt": [
+    "Students play 'Routines Bingo' with a grid of activities (wake up, eat breakfast, go to school) and times (6:00, 7:00, 8:00). They ask classmates 'Do you wake up at 6:00?' and mark the grid.",
+    "Teacher shows flashcards of daily routines (brush teeth, go to school). Students race to say the English word when the flashcard is shown."
+  ],
+  "pres": "Teacher projects a survey bar chart showing 'How many students wake up at 6:00, 7:00, 8:00?' and models: 'Quite a few students wake up at 7:00. Really few students wake up at 8:00.' Students repeat the sentences. Teacher checks understanding by asking 'What time do quite a few students wake up?'",
+  "presAlt": [
+    "Teacher uses realia: a clock and flashcards of routines. Sets the clock to 7:00 and holds up 'wake up' card, saying 'I wake up at 7:00. It's quite early.' Students mimic with different times and routines.",
+    "Teacher writes model sentences on the board: 'I wake up at 6:00. It's a bit early. I eat lunch at 1:00. It's quite late.' Students read and match times to routines."
+  ],
+  "prac": "Students work in pairs with a survey worksheet showing 5 routines and 3 time options. They ask their partner 'What time do you [routine]?' and mark the answers. Then they report: 'Mohammed wakes up at 6:00. It's really early.' Teacher circulates to correct pronunciation and model sentence structures.",
+  "pracAlt": [
+    "Students play 'Survey Relay' in teams. Each team gets a paper with 5 routines. They run to ask classmates 'What time do you [routine]?' and write the answers. First team to complete and report wins.",
+    "Teacher gives students a 'Find Someone Who...' grid with routines like 'wakes up before 7:00'. Students mingle, ask questions, and write names. Then they report: 'Fatima wakes up at 6:00. It's really early.'"
+  ],
+  "ls": "Students listen to a recording of a student talking about their school day: 'I start school at 8:30. It's quite early. I finish at 4:00. It's a bit late.' They fill in a gap-fill worksheet with the times and adverbs (quite, really, a bit).",
+  "re": "Students play 'Routine Charades'. Teacher whispers a routine (e.g., 'brush teeth') to a student, who acts it out. Classmates guess 'Do you brush your teeth at 7:00?' The actor nods or shakes their head.",
+  "prod": "Students prepare a 3-minute group presentation with visuals (drawn or printed). They survey their group about 3 routines (wake up, eat dinner, go to bed) and report: 'In our group, quite a few students eat dinner at 8:00. Really few students go to bed at 10:00.' Each group presents to the class.",
+  "rw": "Students read a short article about a Moroccan teen's school day (e.g., 'I wake up at 6:00 for Fajr prayer. I go to school at 8:30. I finish at 4:00. I help my family at 5:00.'). They underline all the times and adverbs (quite, really, a bit). Then they write 3 sentences about their own day using present simple.",
+  "st": "Teacher tells a short story about 'A Day in the Life of a Student in Oujda' using visual aids. Story includes: 'I wake up at 6:00 for Fajr. It's really early! I go to school at 8:30. It's quite busy. I finish at 4:00. I relax at home.' Class repeats key phrases. Close with: 'Today we reported on surveys and described our school day. Thank you, class!'",
+  "g": [
+    [
+      "Survey Bingo",
+      "Students get a bingo grid with times (6:00, 7:00, 8:00). They ask classmates 'What time do you wake up?' and mark the grid if someone matches."
+    ],
+    [
+      "Routine Relay",
+      "Teams race to write 5 routines on the board. First team to finish and say all routines correctly wins."
+    ],
+    [
+      "Time Match",
+      "Students match time cards (e.g., '7:00') to routine cards (e.g., 'wake up') and make sentences."
+    ],
+    [
+      "Adverb Charades",
+      "Students act out adverbs (quite = slow, really = fast) while classmates guess."
+    ],
+    [
+      "Survey Race",
+      "Teams survey classmates about routines and write down the fastest answers. First team to finish wins."
+    ]
+  ],
+  "diff": [
+    "Fast finishers: Write a paragraph comparing their routine to a partner's using 'quite' and 'really'.",
+    "Support learners: Use a sentence frame: 'I [routine] at [time]. It's [adjective].' with a word bank."
+  ],
+  "hw": [
+    "Write 5 sentences about your daily routine using present simple and adverbs (quite, really, a bit).",
+    "Record a 1-minute video talking about your school day. Use: 'I start at... It's quite early.'",
+    "Draw a comic strip of your daily routine with captions in English."
+  ],
+  "tip": "Use local context (e.g., Fajr prayer, family time) to make routines relatable. Encourage students to use Moroccan holidays like Eid to compare routines."
+}

@@ -1,0 +1,54 @@
+{
+  "wu": "Students play 'Two Truths and a Lie' about their 2024: write three sentences (two true, one false) about their year, then guess which is false. Teacher models first with her own year.",
+  "wuAlt": [
+    "Students interview a partner about their best and worst moment of 2024 using 'How was your...?' and 'What did you do?'",
+    "Teacher shows 5 photos of local Oujda events (Green March, Independence Day) and students describe what they see using 'This is...' and 'People are...'."
+  ],
+  "pres": "Teacher introduces 'self-study strategies' with flashcards: 'Listen every day', 'Use a dictionary', 'Write sentences'. Models each sentence and asks 'What does this mean?' with thumbs up/down. Checks understanding with 'What strategy is this?' holding up a flashcard.",
+  "presAlt": [
+    "Teacher draws a mind map on the board: 'How to practice listening?' Students brainstorm ideas in Arabic/English, then teacher adds English labels like 'Podcasts', 'Songs', 'Movies'.",
+    "Teacher shares her personal study plan (photo) and explains 'I listen to 10 minutes of news every day. Why? Because I want to understand more.'"
+  ],
+  "prac": "Students do 'Strategy Match-Up': 6 strategy cards (e.g., 'Listen to songs') and 6 benefit cards (e.g., 'Learn new words'). In pairs, they match them and say 'This is good for...'. Teacher monitors and helps with pronunciation.",
+  "pracAlt": [
+    "Students play 'Strategy Bingo': Teacher calls out strategies (e.g., 'Watch a YouTube video'), students mark them if they do them. First to get a line says 'Bingo! I do these!'",
+    "In groups, students rank 3 strategies from 'easiest' to 'hardest' using 'First, I can... Second, I can... Third, I can...'."
+  ],
+  "ls": "Students listen to a 1-minute KET-style audio about a student's study plan. They tick the strategies he mentions (e.g., 'Listen to podcasts') and write one new idea for themselves.",
+  "re": "After break, students play 'Quick Review': Teacher says a strategy (e.g., 'Read a book'), students stand up if they agree, sit down if they don't. Fast-paced to re-engage.",
+  "prod": "Students interview a partner about their listening habits using 'Do you...?' (e.g., 'Do you listen to music in English?'). They note answers and report back to the class: 'Maria listens to music. Karim doesn't.'",
+  "rw": "Students read a short text (5 sentences) about 'Ahmed's Study Plan' and circle the strategies he uses. Then they write 3 sentences about their own plan using 'I can...' and 'I want to...'.",
+  "st": "Teacher tells a short story about 'Lina's New Year Goal' using simple past verbs (e.g., 'She started listening to English podcasts'). Ends with the goodbye routine: 'Today we made study plans. Thank you, class! Goodbye.'",
+  "g": [
+    [
+      "Strategy Relay",
+      "Two lines race to match strategy cards to benefit cards on the board."
+    ],
+    [
+      "Guess the Habit",
+      "Student mimes an activity (e.g., reading a book), others guess 'Do you...?'"
+    ],
+    [
+      "Plan Bingo",
+      "Teacher reads study plans, students tick if it matches their own."
+    ],
+    [
+      "Memory Match",
+      "Pairs flip over strategy/benefit cards and find matches."
+    ],
+    [
+      "Speed Planning",
+      "Students write 3 study goals in 60 seconds, then share."
+    ]
+  ],
+  "diff": [
+    "Fast finishers / stronger learners: Write a 5-sentence paragraph about why listening is important for them.",
+    "Support / weaker learners: Use sentence frames: 'I can ___. I want to ___. I will ___.'"
+  ],
+  "hw": [
+    "Choose 3 listening files from the class folder (e.g., songs, dialogues) and listen to them this week.",
+    "Write 3 questions you have about listening practice (e.g., 'How can I understand fast speakers?').",
+    "Ask a family member about their study habits in English or Arabic and report back."
+  ],
+  "tip": "Connect strategies to local context: suggest Moroccan podcasts or YouTube channels in English to make self-study relatable and accessible."
+}

@@ -1,0 +1,52 @@
+{
+  "wu": "City Map Race: Students get a simple map of Oujda with landmarks. In pairs, they race to find and say 3 places using 'There is/are', e.g., 'There is a mosque near the old market.'",
+  "wuAlt": [
+    "Neighborhood Bingo: Each student gets a bingo grid with places (park, shop, school). Teacher calls out descriptions, e.g., 'a place where you play football', students mark the matching square.",
+    "Direction Charades: One student mimes an action (e.g., 'turn left'), others guess the imperative and say the full phrase."
+  ],
+  "pres": "Show a photo of Oujda's Medina with arrows. Introduce 'The place where...' and 'The man who...' with model sentences: 'The place where you buy spices is the souk.' 'The man who sells bread is at the corner.' Check understanding by asking 'What/Who...?' questions.",
+  "presAlt": [
+    "Realia Tour: Bring in a Moroccan tea set or a mint bag. Describe it: 'This is the thing which we use for tea.' Students repeat and describe other objects.",
+    "Picture Story: Show a comic strip of someone getting lost. Use relative clauses to explain: 'He is the boy who is lost.'"
+  ],
+  "prac": "Relative Clause Relay: In teams, students take turns adding a relative clause to a sentence about a city place, e.g., 'The café... where you meet friends.' Support with sentence frames on the board.",
+  "pracAlt": [
+    "Find Someone Who...: Students walk around asking 'Find someone who lives in a place where there is a garden.' They write names and check answers.",
+    "Describe and Draw: One student describes a place using 2 relative clauses, partner draws it, then they swap roles."
+  ],
+  "ls": "Listen to a short audio tour of Oujda. Students tick places mentioned and circle the relative clauses used in the transcript. Check answers by having students read aloud the clauses they found.",
+  "re": "Simon Says Directions: After the break, play 'Simon says: Turn left towards the place where there is a fountain.' to reactivate imperatives and prepositions.",
+  "prod": "Neighborhood Guide Project: In groups, students create a 3-slide presentation (paper or digital) about their neighborhood using 'There is/are' and 2 relative clauses per slide, e.g., 'The park where we play football has a new bench.'",
+  "rw": "Read a short city guide paragraph. Underline all relative clauses. Then write 3 original sentences about Oujda using 'which' or 'where'.",
+  "st": "Read a folktale about a lost traveler in Morocco. End with the goodbye routine: 'Today we learned to describe places with relative clauses. Thank you, class!'",
+  "g": [
+    [
+      "Map Directions",
+      "One student gives directions from point A to B using imperatives, partner traces the route on a map."
+    ],
+    [
+      "Place Pictionary",
+      "Students draw a place while others guess using 'Is it the place where...?'"
+    ],
+    [
+      "Relative Clause Chain",
+      "Students build a story by adding one relative clause each turn, e.g., 'I went to a place where...'"
+    ],
+    [
+      "Preposition Hop",
+      "Students hop to different spots in the room following 'Go to the place between... and...'"
+    ],
+    "Find the Clause",
+    "Teacher reads sentences, students stand up if they hear a relative clause."
+  ],
+  "diff": [
+    "Fast finishers: Write a 5-sentence paragraph about their dream neighborhood using 3 relative clauses.",
+    "Support: Use a word bank with 'which', 'where', 'who' to fill in blanks in sentences."
+  ],
+  "hw": [
+    "Find a video about Oujda's landmarks and summarize it in 3 sentences with one relative clause.",
+    "Write an email to a friend describing your favorite place in Oujda using 'there is/are' and 'which/where'.",
+    "Draw a map of your route to school and write 5 directions using imperatives."
+  ],
+  "tip": "Use local landmarks (e.g., the King's Palace, the university) to make relative clauses meaningful and culturally relevant."
+}

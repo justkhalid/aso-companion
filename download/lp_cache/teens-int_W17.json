@@ -1,0 +1,54 @@
+{
+  "wu": "Job Charades: Students take turns miming a job while others guess, saying 'You are a...' or 'Is he a...?' The teacher whispers the job to the mimer (e.g., 'doctor', 'chef') and writes new words on the board.",
+  "wuAlt": [
+    "Job Bingo: Each student draws a 3x3 grid with jobs, the teacher calls out duties (e.g., 'You help sick people'), students mark the matching job.",
+    "Job Pictionary: Students draw a job, others guess using 'Is it a...?'"
+  ],
+  "pres": "Show flashcards of 5 jobs (teacher, chef, doctor, engineer, artist). For each, model sentences: 'A teacher has to work in a school.' 'A chef has to cook food.' Ask 'What does a doctor have to do?' and check understanding with thumbs up/down.",
+  "presAlt": [
+    "Job Story: Tell a short story about a day in the life of a chef, using 'has to' (e.g., 'He has to wake up early').",
+    "Realia: Bring a chef's hat, doctor's stethoscope, etc., and ask 'What does a chef have to wear?'"
+  ],
+  "prac": "Job Duty Drill: In pairs, students take turns picking a job card and saying one duty (e.g., 'A pilot has to fly planes'). The teacher monitors and corrects 'have to' vs 'has to'.",
+  "pracAlt": [
+    "Job Dominoes: Match job cards to duty cards (e.g., 'teacher' -> 'teach students') using 'has to'.",
+    "Job Memory Game: Flip cards, match jobs with duties, saying 'A doctor has to help sick people'."
+  ],
+  "ls": "Listen to a dialogue between two teens talking about their parents' jobs. Students tick the duties they hear (e.g., 'My dad has to work late'). Play twice, check answers in pairs.",
+  "re": "Job Simon Says: 'Simon says a doctor has to wear a coat!' Students mime the action. If Simon doesn't say 'Simon says', they stay still. Fast-paced to refocus after break.",
+  "prod": "Group Poster Project: In groups of 3, create a poster about a dream job with 5 facts using 'have to' (e.g., 'A YouTuber has to make videos'). Include a drawing. Present to the class with follow-up questions like 'Why do you want that job?'",
+  "rw": "Read a short text about a famous Moroccan engineer (e.g., Latifa Laabiss). Students highlight 3 duties using 'has to' and write 2 sentences about her job on a sticky note.",
+  "st": "Sing 'What Do You Want to Be?' (to the tune of 'Twinkle Twinkle') with actions. Close with: 'Today we described jobs using have to. Thank you, class!'",
+  "g": [
+    [
+      "Job Charades",
+      "Mime a job, others guess 'You are a...'"
+    ],
+    [
+      "Job Bingo",
+      "Match duties to jobs on your grid"
+    ],
+    [
+      "Job Duty Drill",
+      "Say 'A ___ has to ___' with job cards"
+    ],
+    [
+      "Job Dominoes",
+      "Match jobs to duties with 'has to'"
+    ],
+    [
+      "Job Pictionary",
+      "Draw a job, others guess"
+    ]
+  ],
+  "diff": [
+    "Fast finishers: Write 3 more dream jobs with duties on the back of their poster.",
+    "Support learners: Use sentence starters like 'A ___ has to ___' on the poster."
+  ],
+  "hw": [
+    "Read the 'Jobs in Morocco' text and circle 5 new words.",
+    "Interview a family member about their job and write 2 duties using 'has to'.",
+    "Draw your dream job and write 3 sentences about it."
+  ],
+  "tip": "Pair strong/weak learners during the poster project to encourage peer teaching; use local jobs like 'artisan' or 'agricultural worker' to connect to their context."
+}

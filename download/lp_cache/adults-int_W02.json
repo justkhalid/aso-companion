@@ -1,0 +1,54 @@
+{
+  "wu": "Habit Race: Students stand in two lines. Teacher calls a habit (e.g., 'wake up early'). The first student in each line races to the board and writes it in present simple. Winners stay, new students come.",
+  "wuAlt": [
+    "Frequency Charades: Teacher acts out an adverb of frequency (e.g., 'always' = exaggerated nod). Students guess and say the sentence (e.g., 'You always wake up early').",
+    "Habit Bingo: Students draw a 3x3 grid and write habits. Teacher calls sentences (e.g., 'I sometimes drink coffee'). Students cross off matches."
+  ],
+  "pres": "Teacher shows two flashcards: 'My brother (picture of sleeping)' vs 'My brother (picture of studying)' and says: 'He sleeps 8 hours. He is studying now.' Elicits the difference (habit vs now). Highlights -s endings and adverbs (always/never). Checks with thumbs up/down for sentences like 'He works here?'",
+  "presAlt": [
+    "Lifestyle Venn Diagram: Teacher draws two circles for 'Me' and 'My Partner'. Students write habits in each circle and the middle. Teacher models: 'I eat couscous. He eats pizza. We both walk.'",
+    "Habit Survey Demo: Teacher asks a student: 'Do you usually exercise?' Student answers. Teacher writes the question/answer on the board, highlighting 'usually'."
+  ],
+  "prac": "Find Someone Who...: Students walk around with a grid. They ask: 'Do you ever...?' (e.g., 'Do you ever eat fast food?'). They write names and check 'always/usually/sometimes/never'. Teacher monitors for -s errors.",
+  "pracAlt": [
+    "Habit Pairs: Students get cards with habits (e.g., 'I drink tea'). They find a partner with a contrasting habit (e.g., 'I drink coffee'). They make a dialogue: 'I drink tea.' 'I drink coffee.' 'We have different habits.'",
+    "Adverb Race: Teacher writes adverbs on the board. Students race to put them in order (never → always). Then they make sentences with teacher prompts (e.g., 'coffee' → 'I never drink coffee')."
+  ],
+  "ls": "Habit Comparison Audio: Students listen to two people (A/B) talking about their daily routines. They tick habits in A's column or B's column. Teacher plays again to check -s endings (e.g., 'A wakes up at 6' vs 'B wake up at 7').",
+  "re": "Habit Switch: Students form two lines. Teacher calls a habit (e.g., 'brush teeth'). Students in line 1 do the action, line 2 does nothing. Teacher switches quickly. Last one standing wins.",
+  "prod": "Lifestyle Interview: Students interview a partner using: 'What do you usually do on weekends?' 'What are you doing this weekend?' They take notes. Then they introduce their partner to the class: 'Maria usually cooks. She is visiting her family this weekend.'",
+  "rw": "Reading: Students read a short article about 'A Day in the Life of a Moroccan Student'. They underline present simple habits (e.g., 'He prays five times') and continuous actions (e.g., 'He is learning English'). Writing: They write 80 words about their own day, using both tenses.",
+  "st": "Teacher tells a short story about 'Hassan's Habits' using target language (e.g., 'Hassan always eats breakfast. He is running now to catch the bus.'). Ends with: 'Today we compared habits. Thank you, class.'",
+  "g": [
+    [
+      "Habit Match",
+      "Students match habit cards with adverb cards (e.g., 'exercise' + 'sometimes')."
+    ],
+    [
+      "Present Simple vs Continuous Relay",
+      "Teams race to write sentences on the board (e.g., 'She reads a book' vs 'She is reading a book')."
+    ],
+    [
+      "Adverb Order Game",
+      "Students put adverb cards in order and make sentences."
+    ],
+    [
+      "Habit Charades",
+      "Students act out habits; others guess using present simple."
+    ],
+    [
+      "Find the Difference",
+      "Students compare two lifestyle pictures and write 3 differences (e.g., 'He is eating vs He eats')."
+    ]
+  ],
+  "diff": [
+    "Fast finishers: Write a 100-word paragraph comparing their habits to a celebrity's.",
+    "Support: Use sentence starters (e.g., 'I usually...') and a word bank for adverbs."
+  ],
+  "hw": [
+    "Interview a family member about their habits. Write 5 sentences in present simple.",
+    "Watch a short video about a Moroccan festival (e.g., Green March). Write 3 sentences about what people do (present simple) and what they are doing now (continuous).",
+    "Do the 'Find Someone Who...' grid with 5 new habits. Bring it next class."
+  ],
+  "tip": "Use Moroccan cultural references (e.g., 'praying', 'family meals') to make habits relatable. Encourage students to share real-life examples to boost engagement."
+}

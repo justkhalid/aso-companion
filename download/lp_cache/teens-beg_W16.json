@@ -1,0 +1,54 @@
+{
+  "wu": "Goal Bingo: Students get a bingo grid with 9 simple semester 1 words (e.g., 'school', 'friend', 'pizza'). Teacher calls out definitions or shows pictures, students mark the word and say it aloud when they get a line.",
+  "wuAlt": [
+    "Word Chain: Students say a word from S1, next student says a word starting with the last letter, e.g., 'book' → 'kite' → 'elephant'.",
+    "Flashcard Race: Two lines of students race to slap the flashcard the teacher names (e.g., 'Show me red!')"
+  ],
+  "pres": "Teacher shows a New Year's resolution poster with 'I want to...' and 'I will try...' (e.g., 'I want to learn English', 'I will try to read more'). Models 3 examples, asks students to repeat. Checks understanding with thumbs up/down: 'Do you want to learn English?'",
+  "presAlt": [
+    "Goal Charades: Teacher acts out a goal (e.g., 'running'), students guess and complete the sentence: 'You want to...'.",
+    "Story Time: Show a short comic strip of a teen making a resolution, students identify the goal language."
+  ],
+  "prac": "Goal-Setting One-Pager: Students fold a paper into 4 sections. In each, they draw/write one S1 topic (e.g., food, school) and a goal using 'I want to... I will try...'. Teacher monitors, helps with spelling.",
+  "pracAlt": [
+    "Goal Match-Up: Cards with 'I want to...' on one side and activities (e.g., 'do homework') on the other. Students match pairs and make sentences.",
+    "Pair Drill: Student A says a goal, Student B asks 'Why?', Student A answers 'Because I want to...'"
+  ],
+  "ls": "Listen and Match: Audio of 4 teens saying goals (e.g., 'I want to play football'). Students match each voice to a picture of the activity on their worksheet.",
+  "re": "Stand Up If...: Teacher calls out goals (e.g., 'Stand up if you want to learn English!'), students stand and repeat the sentence.",
+  "prod": "Goal Survey: Students walk around asking 3 peers 'What do you want to learn this year?' and write down their answers. Report back: 'Fatima wants to...'",
+  "rw": "S1 Review Paragraph: Students read a short text about a teen's semester (e.g., 'I go to school. I have friends. I can play football'). Circle 3 things they can do. Then write 3 sentences about their own semester.",
+  "st": "Song: Play 'Auld Lang Syne' instrumental, teach students to hum along. End with: 'Today we talked about goals. Thank you, class! Goodbye!'",
+  "g": [
+    [
+      "Goal Bingo",
+      "Students mark S1 words on a grid as teacher calls them."
+    ],
+    [
+      "Flashcard Race",
+      "Two lines race to slap the correct S1 flashcard."
+    ],
+    [
+      "Goal Match-Up",
+      "Match 'I want to...' cards to activity pictures."
+    ],
+    [
+      "Stand Up If...",
+      "Stand and repeat goal sentences when called."
+    ],
+    [
+      "Goal Survey",
+      "Ask peers about goals and report back."
+    ]
+  ],
+  "diff": [
+    "Fast finishers: Draw a comic strip of someone achieving their goal.",
+    "Support: Trace or copy goal sentences from the board."
+  ],
+  "hw": [
+    "Write 3 learning goals for the year: 'I want to... I will try...'",
+    "Draw a picture of one goal and write a sentence under it.",
+    "Ask a family member their goal and write it down."
+  ],
+  "tip": "Use local context: link goals to Moroccan events like Green March or Independence Day to increase relevance, e.g., 'I want to learn about Moroccan history.'"
+}

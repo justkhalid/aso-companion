@@ -1,0 +1,48 @@
+{
+  "wu": "Warm-up: 'Find the Landmark' — show flashcards of local Oujda landmarks (e.g., Hassan II Mosque, Prince Square) and students race to point to them on a printed map while saying 'It's near the post office.'",
+  "wuAlt": [
+    "Alternative 1: 'Describe Your Spot' — students draw their favorite local spot and say 'There is a cafe near my school.'",
+    "Alternative 2: 'Simon Says with Directions' — teacher commands like 'Simon says turn left' and students mime the action."
+  ],
+  "pres": "Presentation: Use a large Oujda map on the board; model sentences like 'Go past the mosque, turn right at the fountain.' Check understanding by asking 'Where do I turn?' and having students point.",
+  "presAlt": [
+    "Alternative 1: 'Realia Walk' — place toy buildings on desks; students give directions to move a toy car.",
+    "Alternative 2: 'Photo Tour' — show Google Street View images of Oujda streets; students describe what they see with 'There is a...'."
+  ],
+  "prac": "Guided practice: 'Direction Drill' — pairs get a mini-map with landmarks; one student gives directions like 'Go past the bank, turn opposite the school' and the other traces the path with a finger.",
+  "pracAlt": [
+    "Alternative 1: 'Command Chain' — students sit in a circle; each adds one direction to build a route, e.g., 'Go left... then go past...'",
+    "Alternative 2: 'Flashcard Sort' — students match preposition phrases (e.g., 'next to the mosque') to picture cards."
+  ],
+  "ls": "Listening slot: Play a KET-style audio of someone giving directions to a cafe; students listen and circle the correct starting point on their worksheet.",
+  "re": "Reactivation game: 'Human Maze' — students stand in a grid; teacher calls out directions like 'Turn left past Ali!' and students move accordingly.",
+  "prod": "Production task: 'Roleplay: Lost Tourist' — in groups, one student is a lost tourist asking for directions to a landmark (e.g., the American Space), others give landmarks-based replies like 'It's opposite the library.'",
+  "rw": "Reading and writing slot: Students read a short text about Oujda's old medina; then write 3 sentences describing their neighborhood using 'There is/are' and a landmark.",
+  "st": "Story/Song + goodbye: Sing 'The Directions Song' (to the tune of 'Head, Shoulders, Knees, and Toes') with gestures; close with 'Today we learned to give directions with landmarks. Thank you, class!'",
+  "g": [
+    [
+      "Direction Bingo",
+      "Students mark off landmarks on a bingo card as teacher calls out directions like 'Go past the market.'"
+    ],
+    [
+      "Landmark Pictionary",
+      "Students draw a landmark and others guess its location using 'It's near...'.",
+      "Opposite Charades",
+      "Students mime 'opposite' or 'next to' for others to guess the preposition.",
+      "Find the Route",
+      "Teacher draws a path on the board; students write directions using 2 landmarks.",
+      "Speed Directions",
+      "Students race to give directions from memory to a classmate who draws the path."
+    ]
+  ],
+  "diff": [
+    "Fast finishers: Write a riddle about a local landmark using 'It's opposite...'",
+    "Support learners: Use a word bank with landmarks and prepositions for the writing task."
+  ],
+  "hw": [
+    "Homework 1: Write 5 quiz questions about Oujda directions (e.g., 'What is opposite the train station?')",
+    "Homework 2: Draw a map of your route to school with 2 landmarks and directions.",
+    "Homework 3: Record a voice note giving directions to a friend's house."
+  ],
+  "tip": "Use local landmarks to boost engagement—students will remember directions better when tied to places they know, like the American Space or Prince Square."
+}

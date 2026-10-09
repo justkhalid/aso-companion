@@ -1,0 +1,54 @@
+{
+  "wu": "Weather Charades: Teacher acts out sunny, rainy, windy, cloudy; children guess and shout the word. Props: none. Children say 'It is sunny!' when correct.",
+  "wuAlt": [
+    "Weather Bingo: Teacher calls weather words; children mark the flashcard on their bingo card. Props: bingo cards, weather flashcards.",
+    "Weather Pictionary: Teacher draws weather words; children guess and say the word. Props: whiteboard, markers."
+  ],
+  "pres": "Teacher shows flashcards of sunny, rainy, windy, cloudy while modeling 'What is the weather like? It is sunny.' Then uses a toy globe to point to different seasons, reviewing months. Children repeat chorally. Teacher asks 'What is the weather like in summer?' to check understanding.",
+  "presAlt": [
+    "Weather Story: Teacher tells a short story about a boy who experiences all four weather types, using flashcards to illustrate. Props: weather flashcards, boy puppet.",
+    "Weather Video: Teacher plays a short animated video of a weather forecast, pausing to ask 'What is the weather like?' Props: tablet, projector."
+  ],
+  "prac": "Weather Drill: Children work in pairs. One child holds a flashcard, the other asks 'What is the weather like?' and the other answers 'It is sunny.' Teacher monitors and corrects pronunciation. Props: weather flashcards.",
+  "pracAlt": [
+    "Weather Memory Game: Children flip over weather flashcards to find matching pairs. When they find a pair, they say 'It is sunny.' Props: weather flashcards.",
+    "Weather Board Game: Children roll a die and move to a square with a weather word. They must say 'It is [weather word].' Props: board game, dice, weather flashcards."
+  ],
+  "ls": "Listen and Draw: Teacher describes a simple weather forecast (e.g., 'It will be sunny in Rabat, rainy in Casablanca'). Children draw the weather on a map of Morocco. Props: worksheet with map of Morocco, crayons.",
+  "re": "Weather Relay: Two lines of children race to the board to draw a weather word (sunny, rainy, windy, cloudy) called by the teacher. Props: whiteboard, markers.",
+  "prod": "Weather Survey: Children ask 5 classmates 'What is your favorite season?' and record answers on a simple bar graph. Then they present their findings: 'Mohammed likes summer because it is sunny.' Props: survey worksheet, crayons.",
+  "rw": "Read and Write: Children read a short paragraph about a boy's favorite season and weather. Then they write 2 sentences about their own favorite season and weather. Props: worksheet with paragraph, pencils.",
+  "st": "Weather Song: Sing 'What's the Weather Like Today?' with actions. Props: none. Goodbye routine: Goodbye Song + sticker chart + high-five line.",
+  "g": [
+    [
+      "Weather Bingo",
+      "Teacher calls weather words; children mark the flashcard on their bingo card."
+    ],
+    [
+      "Weather Charades",
+      "Children act out weather words; others guess and say the word."
+    ],
+    [
+      "Weather Relay",
+      "Children race to draw a weather word on the board."
+    ],
+    [
+      "Weather Memory Game",
+      "Children flip over flashcards to find matching pairs and say the word."
+    ],
+    [
+      "Weather Survey",
+      "Children ask classmates about favorite seasons and graph the results."
+    ]
+  ],
+  "diff": [
+    "Fast finishers / stronger learners: Draw a weather map of Morocco with 4 different cities and write a forecast for each.",
+    "Support / weaker learners: Use a word bank to fill in the blanks in the reading paragraph."
+  ],
+  "hw": [
+    "Draw a comic strip with 4 panels showing different weather and seasons with speech bubbles.",
+    "Write 3 sentences about the weather today in Oujda and what you will wear.",
+    "Ask your family about their favorite season and draw a picture of it."
+  ],
+  "tip": "Use local context (e.g., 'It is sunny in Oujda today') to make the language relevant. Celebrate Islamic holidays like Eid with a 'Eid weather' activity to connect with learners' culture."
+}

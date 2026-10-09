@@ -1,0 +1,54 @@
+{
+  "wu": "Routine Relay: Students stand in two lines. Teacher shows a flashcard of a morning routine (e.g., 'brush teeth'). First student in line mimes it and says 'I brush my teeth at 7 AM'. Next student mimes another routine and says their time. Fastest line wins.",
+  "wuAlt": [
+    "Time Bingo: Teacher calls out times (e.g., '8:15 AM'). Students mark them on a bingo grid with pictures of routines.",
+    "Find Someone Who: Students walk around asking 'Do you...?' (e.g., 'Do you exercise at 6 PM?') and find classmates who say 'Yes, I do.'"
+  ],
+  "pres": "Teacher draws a timeline on the board from 6 AM to 10 PM. Uses flashcards of common routines (eat breakfast, go to work, sleep) and places them on the timeline with times. Models 'I eat breakfast at 7 AM'. Checks understanding by asking 'What time do I eat breakfast?' and 'What do I do at 9 AM?'",
+  "presAlt": [
+    "Routine Story: Teacher tells a simple story about their day using present simple and times. Students repeat sentences chorally.",
+    "Adverb Line-Up: Teacher writes 'always' to 'never' on the board. Students place flashcards of routines (e.g., 'pray', 'eat pizza') on the line to show frequency."
+  ],
+  "prac": "Routine Survey Mingle: Students get a worksheet with names and routines. They walk around asking classmates 'What time do you...?' (e.g., 'What time do you pray?') and fill in the times. Teacher monitors and helps with pronunciation.",
+  "pracAlt": [
+    "My-Day Timeline: Students draw a timeline of their own day and label 3-5 activities with times. They practice saying their timeline to a partner.",
+    "Adverb Practice: Teacher gives each student a routine flashcard. Students line up from 'always' to 'never' and say a sentence like 'I always pray.'"
+  ],
+  "ls": "Listen to a short audio of someone describing their daily routine. Students listen and fill in the missing times on a worksheet. Teacher plays audio twice. Checks answers by having students compare with a partner.",
+  "re": "Stand Up Sit Down: Teacher says a routine with an adverb (e.g., 'I always pray'). If it's true for them, students stand up. If false, they sit down. Fast-paced and energetic.",
+  "prod": "My-Day Presentation: Students use their timeline from practice to prepare a short 3-sentence talk about their daily routine. They present to a small group, using 'I... at...'. Teacher provides feedback on pronunciation.",
+  "rw": "Read a short text about a Moroccan's daily routine. Students circle all the time expressions (e.g., 'at 6:30 AM'). Then, they write 3 sentences about their own day using present simple and 'at + time'.",
+  "st": "Teacher tells a short story about the Green March, using simple past tense (e.g., 'In 1975, Morocco went to the Sahara'). Students repeat key sentences. Close with 'Today we learned to describe our daily routine. Thank you, class!'",
+  "g": [
+    [
+      "Routine Relay",
+      "Students race to mime and say a routine with time."
+    ],
+    [
+      "Time Bingo",
+      "Students mark times called by the teacher on their bingo cards."
+    ],
+    [
+      "Find Someone Who",
+      "Students ask 'Do you...?' to find classmates who match routines."
+    ],
+    [
+      "Adverb Line-Up",
+      "Students place routine flashcards on a frequency line."
+    ],
+    [
+      "My-Day Timeline",
+      "Students draw and label their daily routine with times."
+    ]
+  ],
+  "diff": [
+    "Fast finishers: Write 6 sentences about national milestones using 'for' and 'since' (e.g., 'Morocco has had the Sahara since 1975').",
+    "Support learners: Use a sentence frame 'I ____ at ____.' to write their routine."
+  ],
+  "hw": [
+    "Write 6 sentences about national milestones using 'for' and 'since' (e.g., 'Morocco has had the Sahara since 1975').",
+    "Draw a timeline of your family's day and label 5 activities with times.",
+    "Record yourself saying 3 sentences about your daily routine and send it to the teacher."
+  ],
+  "tip": "Connect daily routines to local customs, like prayer times, to make the language relevant. Use the Green March story to introduce 'since' naturally, linking to national identity."
+}

@@ -1,0 +1,54 @@
+{
+  "wu": "Simon Says: Teacher calls out body parts with 'Simon says touch your...' or 'Simon says touch my...'. Students must touch the correct part on themselves or the teacher. If they move without 'Simon says', they sit down. Last student standing wins.",
+  "wuAlt": [
+    "Body Part Bingo: Students draw 6 body parts on a grid. Teacher calls out words, students mark them. First to shout 'Bingo!' wins.",
+    "Flashcard Race: Two lines of students. Teacher shows a body part flashcard, first student to touch the correct part on themselves gets a point for their team."
+  ],
+  "pres": "Teacher uses a large 'Mr. Potato Head' doll or a drawing on the board. Students name each part as it's added (head, shoulders, knees, etc.). Teacher models: 'You have a head. You have shoulders.' Then introduces health problems: 'I have a headache. You should rest.' Teacher asks: 'If I have a headache, what should I do?' to check comprehension.",
+  "presAlt": [
+    "Storytime: Teacher reads a simple story about a character with a stomachache. Students point to the character's stomach. Teacher models: 'He has a stomachache. He shouldn't eat too much.'",
+    "Realia: Teacher brings a bandage and a thermometer. Students guess the body part (knee for bandage, head for thermometer). Teacher models: 'If you have a fever, you should see a doctor.'"
+  ],
+  "prac": "Pair Dictation: Student A has a picture of a body with a problem (e.g., red knee). Student B has a picture of advice (e.g., a bandage). Student A describes the problem: 'I have a sore knee.' Student B writes it down. Then they check with a code (e.g., A=problem, B=advice). Teacher circulates to help with spelling and sentence structure.",
+  "pracAlt": [
+    "Matching Game: Students have cards with body problems on one side and advice on the other. They work in pairs to match them correctly, saying the full sentences: 'A headache? You should drink water.'",
+    "Roleplay Cards: Students pick a card with a problem (e.g., 'My stomach hurts') and a card with an advice role (e.g., 'You are a doctor'). They practice the dialogue: 'What's wrong?' 'I have a stomachache.' 'You should lie down.'"
+  ],
+  "ls": "Students listen to 3 short dialogues between a child and a parent about a health problem. They match each dialogue to a picture of the problem (e.g., Dialogue 1 matches a picture of a child holding their head). Teacher plays the audio twice, then checks answers as a class.",
+  "re": "Head, Shoulders, Knees, and Toes Remix: After the break, students stand in a circle. Teacher sings the song but replaces 'eyes' and 'ears' with 'headache' and 'stomachache'. Students must touch their head when they sing 'headache' and their stomach when they sing 'stomachache'.",
+  "prod": "Health Advice Posters: In groups of 3, students create a mini-poster with 3 health problems and 3 pieces of advice using 'should/shouldn't'. They draw simple pictures (e.g., a sun for 'You should go outside'). Each group presents their poster to the class, saying: 'If you have a headache, you should rest.'",
+  "rw": "Students read 3 short health advice sentences (e.g., 'If you have a cold, you should drink tea.'). They match each sentence to a picture of the problem (e.g., a picture of a child with a runny nose). Then, they write 2 original advice sentences in their notebooks: 'If I have a stomachache, I should...'",
+  "st": "Goodbye routine: Goodbye Song + sticker chart + high-five line. Teacher leads a call-and-response song: 'Goodbye, goodbye, see you next time! Wave your hands and say goodbye!' Students get a sticker for the day and line up for a high-five with the teacher.",
+  "g": [
+    [
+      "Simon Says",
+      "Teacher calls out 'Simon says touch your...' or 'Simon says touch my...'. Students must touch the correct part."
+    ],
+    [
+      "Body Part Bingo",
+      "Students draw 6 body parts on a grid. Teacher calls out words, students mark them. First to shout 'Bingo!' wins."
+    ],
+    [
+      "Flashcard Race",
+      "Two lines of students. Teacher shows a body part flashcard, first student to touch the correct part on themselves gets a point."
+    ],
+    [
+      "Matching Game",
+      "Students match problem cards (e.g., 'sore knee') to advice cards (e.g., 'put a bandage') and say the full sentence."
+    ],
+    [
+      "Roleplay Cards",
+      "Students pick a problem card and an advice role card (e.g., 'doctor') and practice the dialogue."
+    ]
+  ],
+  "diff": [
+    "Fast finishers / stronger learners: Write a dialogue between a doctor and a patient with 4 turns each, using 'should/shouldn't'.",
+    "Support / weaker learners: Use a word bank with body parts and 'should/shouldn't' to complete sentence starters like 'If I have a ___, I should ___.'"
+  ],
+  "hw": [
+    "Interview a family member: Ask 'What do you do when you have a headache?' and write down their answer in English.",
+    "Draw a picture of yourself with a health problem (e.g., a cold) and write one piece of advice for yourself.",
+    "Create a 'My Body' poster with 8 labeled body parts and one health tip."
+  ],
+  "tip": "Use the local context of the American Space Oujda by connecting health advice to common Moroccan home remedies, like 'If you have a stomachache, you should drink mint tea,' to make the language more relevant and memorable."
+}

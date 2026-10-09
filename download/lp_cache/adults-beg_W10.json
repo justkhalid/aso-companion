@@ -1,0 +1,52 @@
+{
+  "wu": "Students play 'Menu Pictionary' in pairs. Teacher shows a food flashcard, student draws it, partner guesses 'Is it...?' and names the dish.",
+  "wuAlt": [
+    "Students play 'Food Bingo' with 9 images on a grid; teacher calls out dishes and students mark them.",
+    "Students play 'Two Truths and a Lie' about their favorite foods using 'I like...' and 'I don't like...'."
+  ],
+  "pres": "Teacher presents a laminated menu with images and prices. Models 'I would like...' and 'Can we have...?' for ordering. Asks comprehension questions 'What would you like?' to check understanding.",
+  "presAlt": [
+    "Teacher uses a story about a person ordering food, highlighting key phrases.",
+    "Teacher acts out a dialogue with a student waiter using real plates and cutlery as props."
+  ],
+  "prac": "Students complete a 'Fill the Gap' worksheet with sentences like 'I ___ like the soup.' They then practice in pairs using a dialogue prompt card with 'Would you like...?' and 'Can we have...?'",
+  "pracAlt": [
+    "Students play 'Restaurant Role Cards' where one is a waiter and the other a customer using a provided menu.",
+    "Students play 'Memory Match' matching food images to their names while saying 'I would like...'."
+  ],
+  "ls": "Students listen to a KET-style audio of a restaurant order and tick the correct dishes on a worksheet. They then listen again and write down the drinks ordered.",
+  "re": "Students play 'Pass the Plate' while saying a food word when the music stops; the student holding the plate must say a full sentence 'I would like...'.",
+  "prod": "Students work in pairs to roleplay a restaurant scenario using laminated menus. One is the waiter, the other is a customer. They must use 'Can we have...?' and 'What is the dish of the day?'",
+  "rw": "Students read a short menu text and match dishes to courses (starter, main, dessert). They then write 3 simple sentences about what they would order, e.g., 'I would like the soup.'",
+  "st": "Teacher tells a short story about a customer who orders food politely and gets a free dessert. Close with 'Today we learned to order food politely. Thank you, class.'",
+  "g": [
+    [
+      "Menu Match",
+      "Students match food flashcards to menu words in a race."
+    ],
+    [
+      "Order Up",
+      "Students race to write correct sentences from spoken prompts."
+    ],
+    [
+      "Food Charades",
+      "Students act out a food word for others to guess using 'Is it...?'"
+    ],
+    [
+      "Dish of the Day",
+      "Students present a dish using flashcards and say 'The dish of the day is...'"
+    ],
+    "Restaurant Relay",
+    "Teams take turns running to a menu to find and write a dish name."
+  ],
+  "diff": [
+    "Fast finishers write a 4-line dialogue with a waiter asking about allergies.",
+    "Support / weaker learners use a sentence frame: 'I would like the ______, please.'"
+  ],
+  "hw": [
+    "Write a 6-line restaurant dialogue between a customer and waiter.",
+    "Draw your ideal meal and write 3 sentences about it.",
+    "Find 5 food words in English and write a sentence for each."
+  ],
+  "tip": "Model polite intonation for 'Would you like...?' as Moroccan learners may use direct translations. Connect to local dining customs like offering tea to guests."
+}

@@ -1,0 +1,54 @@
+{
+  "wu": "Timeline Race: Students form two teams. Teacher writes 'birth', 'school', 'now' on the board. Teams race to write one word each for a past stage (e.g. 'played football') and one for present (e.g. 'work') under the correct column. First team with correct wins.",
+  "wuAlt": [
+    "Find Someone Who...: Students walk around asking 'Did you...?' questions (e.g. 'Did you live in Oujda?') and tally answers on a grid.",
+    "Picture Prompt: Show a baby photo and current photo of a teacher. Students guess 'past' vs 'present' activities."
+  ],
+  "pres": "Teacher draws a personal timeline on the board, labeling 'When I was 5' (past) and 'Now' (present). Uses flashcards of life stages (baby, child, teenager, adult) to model sentences: 'I lived in Casablanca. I work in Oujda.' Checks understanding by asking 'Past or present?' for each sentence.",
+  "presAlt": [
+    "Guest Speaker: Invite a volunteer to share their timeline using simple prompts. Teacher models questions like 'Where did you live?' and 'Where do you work now?'",
+    "Video Clip: Show a short clip of someone talking about their past and present (e.g., a Peace Corps volunteer in Morocco). Students list past/present verbs."
+  ],
+  "prac": "Life Stage Dominoes: Students match past/present sentence halves (e.g. 'I was born...' + '...in 1995'). Teacher monitors and corrects errors. In pairs, they then quiz each other: 'Where did you live?' 'Where do you live now?'",
+  "pracAlt": [
+    "Timeline Gap Fill: Students complete a worksheet with sentences like 'I _____ (live) in a small village. Now I _____ (study) in Oujda.'",
+    "Verb Sort: Cut up past/present verb cards. Students sort them into two columns and make sentences."
+  ],
+  "ls": "Listen to three short audio clips of people talking about their past and present (e.g., a teacher, a shopkeeper, a student). Students match each speaker to a timeline on their worksheet by circling past or present activities.",
+  "re": "Stand Up, Sit Down: Teacher calls out a past activity (e.g., 'rode a camel') and students stand; present activity (e.g., 'use WhatsApp') and students sit. Fast-paced review after break.",
+  "prod": "Guess Whose Life: Students write 3 past and 3 present sentences about their own lives on a paper timeline. In groups, they take turns reading sentences while others guess who the timeline belongs to. Teacher models first: 'I lived in a village. Now I live in the city. Who is it?'",
+  "rw": "Read a short text about Fatima's timeline (e.g., 'Fatima was a student. Now she is a teacher. She lived in Rabat. Now she lives in Oujda.'). Students match each sentence to a picture of her past/present life on a worksheet.",
+  "st": "Sing 'This Is the Life' (simplified lyrics) with actions. End with: 'Today we talked about past and present. Thank you for sharing your stories. Goodbye!'",
+  "g": [
+    [
+      "Timeline Race",
+      "Teams race to write past/present words under correct columns on the board."
+    ],
+    [
+      "Find Someone Who",
+      "Students ask 'Did you...?' questions and tally answers."
+    ],
+    [
+      "Life Stage Dominoes",
+      "Match past/present sentence halves and quiz each other."
+    ],
+    [
+      "Guess Whose Life",
+      "Read timeline sentences; group guesses the person."
+    ],
+    [
+      "Stand Up, Sit Down",
+      "Stand for past verbs, sit for present verbs."
+    ]
+  ],
+  "diff": [
+    "Fast finishers: Write a 6-sentence timeline about a family member.",
+    "Support: Use sentence starters like 'I was... Now I...'. Trace words from the board."
+  ],
+  "hw": [
+    "Option 1: Write 5 sentences about your parent's past and present life (e.g., 'My father was a farmer. Now he is a teacher').",
+    "Option 2: Draw a timeline of your day (past: 'I woke up at 7', present: 'I am studying now').",
+    "Option 3: Record a 30-second audio describing your past and present life using simple sentences."
+  ],
+  "tip": "Respect learners' life experience—some may have moved from rural to urban areas or changed careers. Frame comparisons as positive growth, not 'better/worse'."
+}

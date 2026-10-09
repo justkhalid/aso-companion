@@ -1,0 +1,54 @@
+{
+  "wu": "Play 'Simon Says' with health commands: 'Simon says touch your head', 'Simon says pretend to cough', 'Simon says drink water'. Students stand and follow, sitting if they miss a command.",
+  "wuAlt": [
+    "Play 'Charades' with illness actions: student mimes 'headache', 'stomachache', 'fever', others guess in English.",
+    "Do a quick 'Body Parts Quiz': teacher points to body parts, students shout the English word."
+  ],
+  "pres": "Show flashcards of people with health problems (e.g., headache, cold). Elicit problems in Arabic/English, then model advice: 'You should rest', 'You shouldn't eat ice cream'. Check understanding with thumbs up/down for correct advice.",
+  "presAlt": [
+    "Read a short dialogue between two friends: one says 'I have a sore throat', the other replies 'You should drink tea'. Highlight 'should/shouldn't'.",
+    "Use a role-play: teacher pretends to be sick, student gives advice using target language."
+  ],
+  "prac": "Play 'Advice Relay': teams take turns drawing a health problem flashcard and saying 'You should...' or 'You shouldn't...'. Award points for correct sentences. Monitor and correct pronunciation.",
+  "pracAlt": [
+    "Do 'Match the Problem to the Advice': worksheet with problems on one side, advice on the other; students draw lines.",
+    "Play 'Find Someone Who...': walk around asking 'Should I...?' about health habits, e.g., 'Should I eat vegetables?'"
+  ],
+  "ls": "Listen to a dialogue between a doctor and a patient. Students fill in gaps in a worksheet: 'You should ________' (rest), 'You shouldn't ________' (play sports). Check answers as a class.",
+  "re": "Play 'Health Charades Relay': two lines of students race to mime a health problem (e.g., 'fever') and their partner guesses the word in English. First team to guess correctly wins a point.",
+  "prod": "Pair role-play: Student A is a friend with a health problem (e.g., 'I can't sleep'), Student B gives 2-3 pieces of advice using 'should/shouldn't'. Swap roles. Encourage follow-up questions like 'Why?'",
+  "rw": "Read a short 'Healthy Habits' leaflet. Underline all advice with 'should/shouldn't'. Then write 3 sentences about your own habits, e.g., 'I should drink more water'. Share with a partner.",
+  "st": "Sing 'Head, Shoulders, Knees and Toes' with actions, then end with the goodbye routine: 'Today we learned to give health advice. Thank you, class!'",
+  "g": [
+    [
+      "Advice Relay",
+      "Teams race to say correct 'should/shouldn't' sentences for health problems."
+    ],
+    [
+      "Health Charades",
+      "Students mime illnesses for others to guess in English."
+    ],
+    [
+      "Match the Cards",
+      "Match health problems to advice flashcards."
+    ],
+    [
+      "Find Someone Who",
+      "Ask classmates about health habits using 'should' questions."
+    ],
+    [
+      "Role-play Doctor",
+      "Practice giving advice in pairs using problem cards."
+    ]
+  ],
+  "diff": [
+    "Fast finishers: write a 5-sentence paragraph about 'My best health advice'.",
+    "Support learners: use sentence starters like 'You should ________' on the board."
+  ],
+  "hw": [
+    "Write 5 quiz questions about health advice, e.g., 'What should you do if you have a headache?'",
+    "Draw 3 pictures of health problems and write advice for each.",
+    "Interview a family member about their health habits and write 2 pieces of advice for them."
+  ],
+  "tip": "Use Moroccan cultural references, e.g., 'You should drink mint tea for a sore throat', to make advice relatable. Avoid sensitive topics like alcohol or pork."
+}

@@ -1,0 +1,54 @@
+{
+  "wu": "Students play 'Two Truths and a Lie' about their week, writing three sentences on paper (two true, one false) and guessing which is false. They say 'I went to the market' or 'I watched a movie' to practice past simple.",
+  "wuAlt": [
+    "Students draw a quick picture of their week and label it in English, sharing with a partner",
+    "Students ask 'Did you...?' questions about weekend activities (e.g., 'Did you cook?')"
+  ],
+  "pres": "Show a PET listening task on the board (Part 1: short conversations). Model predicting answers by looking at the question options and circling keywords. Play a sample audio and demonstrate note-taking with symbols (✔/✗, arrows). Check understanding by asking 'What do we listen for first?'",
+  "presAlt": [
+    "Use a transcript with blanks to show how keywords help fill gaps",
+    "Play a short audio without questions and ask students to jot down key words"
+  ],
+  "prac": "Students work in pairs to predict answers for a PET Part 1 task, then listen and check. They use a table to mark 'Predicted' vs 'Heard'. Support with keyword flashcards (e.g., 'appointment', 'library').",
+  "pracAlt": [
+    "Students match question types to listening strategies (e.g., 'When?' = time words)",
+    "Play 'Bingo' with predicted answers"
+  ],
+  "ls": "Students complete a PET Part 2 multiple-choice monologue task. They first predict answers, listen once to check, then listen again to take notes. They compare notes in pairs before final answers.",
+  "re": "Students stand and play 'Simon Says' with listening commands (e.g., 'Simon says touch your ear if you heard 'library'').",
+  "prod": "Students roleplay a job interview, using note-taking to remember questions. One student asks 'Why should we hire you?' and the other answers with past experiences, then reports notes to a partner.",
+  "rw": "Students read a short article about 'Finding a Job in Oujda' and answer inference questions (e.g., 'Why is it hard to find work?'). They then write a 80-word email applying for a job using past experiences.",
+  "st": "Play a short video about 'Workplace Skills' and discuss. Close with 'Today we practiced PET listening strategies—good job! Thank you, class.'",
+  "g": [
+    [
+      "Keyword Match",
+      "Students match question types to listening keywords (e.g., 'Where?' to 'place')"
+    ],
+    [
+      "Note-Taking Race",
+      "Students listen to a short audio and race to write 3 key words"
+    ],
+    [
+      "Prediction Bingo",
+      "Students mark predicted answers on a grid and cross off when heard"
+    ],
+    [
+      "Roleplay Relay",
+      "Teams take turns doing job interview roleplays with notes"
+    ],
+    [
+      "Error Correction",
+      "Students find mistakes in a transcript and explain why"
+    ]
+  ],
+  "diff": [
+    "Fast finishers: Write a new PET listening task for the class",
+    "Support: Use a partially filled note-taking template"
+  ],
+  "hw": [
+    "Complete a PET listening Part 3 task online and record your score",
+    "Listen to a podcast and write 5 notes about main points",
+    "Write a 100-word review of a movie using past tenses"
+  ],
+  "tip": "Encourage students to use Arabic to clarify predictions, then switch to English for note-taking—this builds confidence while targeting exam skills."
+}

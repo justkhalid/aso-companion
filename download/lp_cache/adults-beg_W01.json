@@ -1,0 +1,58 @@
+{
+  "wu": "Human Bingo: Students mingle with bingo cards listing traits like 'likes tea' or 'has a car', asking 'Do you like tea?' and marking names. First to get BINGO wins.",
+  "wuAlt": [
+    "Name Chain: Students stand in a circle, each saying 'I'm [Name] and I like [hobby]', repeating all previous names and hobbies.",
+    "Two Truths and a Lie: Students write three statements about themselves, two true and one false; others guess the lie."
+  ],
+  "pres": "Teacher introduces a self-introduction model: 'I'm [Name]. I'm [Age]. I'm from [City]. I want to learn English for [Job/Travel].' Uses flashcards with flags and job icons. Checks understanding with 'What's my name? Where am I from?'",
+  "presAlt": [
+    "Guest Speaker: A volunteer student (prepped) introduces themselves first, then the teacher breaks down their sentences.",
+    "Video Model: Show a short clip of two people introducing themselves, then pause to elicit key phrases."
+  ],
+  "prac": "Speed Introductions: Students form two lines, facing each other. They introduce themselves with the model, then one line moves. Teacher monitors and corrects 'be' errors. After 5 rounds, students report their partner's name and goal.",
+  "pracAlt": [
+    "Introduction Circle: Students sit in a circle, passing a ball. The holder introduces themselves and asks 'What's your name?' to the next person.",
+    "Fill-in-the-Blank: Students complete a worksheet with 'I ___ [Name]. I ___ from [City]. I ___ to learn English for ___.'"
+  ],
+  "ls": "Listen and Match: Teacher reads 5 short introductions (e.g., 'I'm Ali. I'm 25. I'm from Casablanca. I want to learn English for work.'). Students match each to a photo on their worksheet.",
+  "re": "Stand Up If...: Teacher calls out 'Stand up if you want to learn English for travel!', 'Stand up if you're from Oujda!', etc. Students stand and say 'I want to learn English for [reason]!'",
+  "prod": "Pair Goal Discussion: Students interview their partner using 'Why do you want to learn English?' and note their answers. Then, each student introduces their partner to the class: 'This is [Name]. He/She wants to learn English for [reason].'",
+  "rw": "Classroom Language Matching: Students read 10 phrases ('Can I borrow a pen?', 'Open your book, please.') and match them to classroom situations (e.g., 'Someone needs a pen'). Then, they complete a personal-details form with name, age, phone, email.",
+  "st": "Goodbye Song: Teacher leads 'See You Later, Alligator' with gestures. Recap: 'Today we learned to introduce ourselves and say our goals. Thank you, class! Goodbye!'",
+  "g": [
+    [
+      "Human Bingo",
+      "Students ask 'Do you like...?' to fill their bingo cards.",
+      "Name Chain",
+      "Students repeat names and hobbies in a circle.",
+      "Two Truths and a Lie",
+      "Students guess false statements about peers.",
+      "Stand Up If",
+      "Students stand and state goals for prompts.",
+      "Goal Interview",
+      "Partners ask 'Why learn English?' and report back."
+    ],
+    [
+      "Introduction Circle",
+      "Students pass a ball and introduce themselves.",
+      "Fill-in-the-Blank",
+      "Complete 'I am/are from...' worksheets.",
+      "Listen and Match",
+      "Match audio intros to photos.",
+      "Classroom Language Match",
+      "Match phrases to situations.",
+      "Personal Details Form",
+      "Write name, age, phone, email."
+    ]
+  ],
+  "diff": [
+    "Fast finishers: Write a 5-sentence introduction including a hobby.",
+    "Support learners: Use a sentence frame: 'My name is ___. I am ___. I want to learn English for ___.'"
+  ],
+  "hw": [
+    "Write a 4-sentence self-introduction on paper.",
+    "Record a 30-second video introducing yourself to a friend.",
+    "Find 3 classroom language phrases online and practice them."
+  ],
+  "tip": "Use local examples (e.g., 'I want to learn English for a job at the American Space') to make goals relevant. Avoid correcting every error—focus on communication."
+}

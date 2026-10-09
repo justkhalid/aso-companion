@@ -1,0 +1,53 @@
+{
+  "wu": "Festival Bingo: Students receive bingo cards with pictures of different festivals (Eid, Independence Day, Christmas, etc.). Teacher calls out names, students mark the pictures. First to get a line shouts 'Bingo!' and names the festivals they marked.",
+  "wuAlt": [
+    "Guess the Festival: Teacher describes a festival (e.g., 'It's in November, people celebrate independence, there are parades'), students guess the name. Then students take turns describing Moroccan festivals for others to guess.",
+    "Find Someone Who...: Students walk around asking 'Have you ever celebrated [festival]?' and find classmates who have, writing their names."
+  ],
+  "pres": "Teacher shows a photo of a Moroccan Independence Day celebration and a US Independence Day celebration. Elicits vocabulary like 'parade', 'flag', 'speech', 'family gathering'. Models sentences: 'In Morocco, we celebrate on November 11th. In the US, they celebrate on July 4th.' Asks checking questions: 'When do we celebrate?' 'What do we see?'",
+  "presAlt": [
+    "Festival Comparison Chart: On the board, draw two columns. Students call out words to fill it for Eid and Independence Day (food, clothes, activities).",
+    "Realia Display: Teacher brings in items for a celebration (Moroccan flag, US flag, a small plate of mint tea, a small piece of baklava) and elicits vocabulary and uses for each."
+  ],
+  "prac": "Festival Photo Pairs: Students work in pairs. Each pair gets two photos (one Moroccan festival, one American festival). They use the model sentences to compare them: 'This is Eid. We eat couscous. This is Thanksgiving. They eat turkey.' Teacher monitors and helps with pronunciation.",
+  "pracAlt": [
+    "Match the Words: Students get a worksheet with festival vocabulary (parade, flag, speech, music) and pictures. They draw lines to match the words.",
+    "Sentence Builders: Students get sentence strips with the structure '[Country] celebrates [festival] on [date]. They eat [food].' They arrange the strips to make correct sentences."
+  ],
+  "ls": "Listen and Order: Students listen to a short audio recording of two people making small talk at a festival. They have a jumbled list of sentences (e.g., 'Great food, isn't it?', 'Have you been to the parade before?'). They listen and put the sentences in the correct order to make a conversation.",
+  "re": "Stand Up, Sit Down: Teacher says a statement about festivals (e.g., 'You like parades.'). Students who agree stand up, students who disagree sit down. Teacher says statements using 'By 1956, Morocco had...' to reactivate the past perfect.",
+  "prod": "Small Talk Elevator Game: Students are in pairs. They pretend to be in an elevator at a festival. They have 30 seconds to make small talk using the openers: 'Nice day for a festival, isn't it?', 'Have you been to this before?', 'What's your favorite part?'. They swap partners and repeat with a new topic.",
+  "rw": "Reading and Writing: Students read a short text (5-6 sentences) about the history of Moroccan Independence Day. Then, they write 3 small-talk questions they could ask someone at a celebration, e.g., 'Do you like the music?', 'Is this your first time here?', 'What do you usually do on this day?'",
+  "st": "Teacher tells a short, personal story about a memorable celebration, using simple past tense. Then, the class says goodbye together: 'Today we learned to compare celebrations and make small talk. Thank you, everyone. Have a good day.'",
+  "g": [
+    [
+      "Festival Charades",
+      "Students act out a festival (e.g., waving a flag, eating) and others guess."
+    ],
+    [
+      "Find the Difference",
+      "In pairs, students have two similar festival pictures and take turns asking questions to find five differences."
+    ],
+    [
+      "Speed Dating Small Talk",
+      "Students sit in two lines. They have 1 minute to ask small talk questions, then one line moves."
+    ],
+    [
+      "Festival Quiz",
+      "Teacher asks questions like 'When is Independence Day?' 'What color is the Moroccan flag?' Students answer in teams."
+    ],
+    [
+      "Past Perfect Practice",
+      "Teacher says a prompt like '1956', students race to say a sentence like 'By 1956, Morocco had become independent.'"
+    ]
+  ],
+  "diff": [
+    "Support / weaker learners: Use a sentence frame to write their small talk questions: 'Do you like ___?' 'What is ___?'"
+  ],
+  "hw": [
+    "Write 5 sentences in the past perfect about Moroccan history (e.g., 'By 1956, Morocco had gained its independence.')",
+    "Interview a family member about their favorite celebration and write down 3 things they said.",
+    "Write down 3 small talk questions you could ask a tourist at a festival in Morocco."
+  ],
+  "tip": "Connect the lesson to students' lives by explicitly linking the language of comparison and small talk to their goals of interacting with tourists or international visitors at the American Space."
+}

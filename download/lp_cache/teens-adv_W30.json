@@ -1,0 +1,63 @@
+{
+  "wu": "Students play 'Speed Review' in teams of 4. Each team gets a set of 10 flashcards with key year phrases (e.g., 'I've been to...'). They race to make sentences using the prompts, scoring points for accuracy and speed.",
+  "wuAlt": [
+    "Students do 'Find Someone Who...' with a grid of 8 skills (e.g., 'can write an email') and interview peers to find matches.",
+    "Students play 'Vocabulary Pictionary' with 6 target words from the year (e.g., 'interview', 'labour')."
+  ],
+  "pres": "Teacher introduces the 'Dream Job Interview' task using a model dialogue on the board. Highlights question forms ('What do you like about...?') and reporting answers ('She said she wanted to...'). Checks understanding with thumbs-up/down for sample questions.",
+  "presAlt": [
+    "Teacher uses a short video of a teen mock interview to elicit target language.",
+    "Teacher distributes a 2-sentence handout with question stems and reporting phrases for students to complete."
+  ],
+  "prac": "Students practice in pairs with a 'Job Interview Role Card' (e.g., 'You want to be a video game designer'). They ask 3 questions and report answers using 'He/She told me...'. Teacher monitors and corrects errors.",
+  "pracAlt": [
+    "Students play 'Interview Relay' in teams: one student interviews another, then reports to the group.",
+    "Students use a 'Question Bank' handout to match questions to job topics (e.g., 'travel' for pilot)."
+  ],
+  "ls": "Students listen to a 2-minute audio of a PET-style interview between two teens discussing their dream jobs. They tick 5 correct statements from a list (e.g., 'Maria wants to be a doctor').",
+  "re": "After break, students play 'Stand Up, Sit Down' with 5 job-related adjectives (e.g., 'creative'). Teacher calls an adjective, students stand if it describes their dream job.",
+  "prod": "Students conduct a full 'Dream Job Interview' in pairs (2 minutes each). They prepare 3 questions, interview, then report 2 key answers to the class using 'He/She said...'. Teacher provides a feedback rubric.",
+  "rw": "Students complete a PET-style reading task: a 150-word text about 'Labour Day in Morocco' with 6 multiple-choice questions. Then, they write a 60-word email to a friend about their Labour Day plans.",
+  "st": "Teacher shares a short story about a teen's first job experience. Students discuss 1 question: 'What job would you like to try?' Close with: 'You showed your English progress today. Thank you, class!'",
+  "g": [
+    [
+      "Vocabulary Relay",
+      "Teams race to write 5 job-related words from memory."
+    ],
+    [
+      "Question Chain",
+      "Students ask a question, next student answers and asks a new one."
+    ],
+    [
+      "Job Charades",
+      "Students act out jobs while others guess."
+    ],
+    [
+      "Sentence Auction",
+      "Students bid on correct sentences about jobs."
+    ],
+    [
+      "Progress Quiz",
+      "Teams answer 10 mixed-skill questions for points."
+    ]
+  ],
+  "diff": [
+    "Fast finishers / stronger learners: Write a 50-word paragraph about their ideal job interview.",
+    "Support / weaker learners: Use a sentence starter frame for their interview report (e.g., 'He told me he likes...')."
+  ],
+  "hw": [
+    "Write your dream-job interview Q&A (6 exchanges).",
+    "Review 5 key grammar points from the year (e.g., present perfect).",
+    "Complete the PET reading practice handout."
+  ],
+  "tip": "Use Moroccan Labour Day (May 1st) to connect the theme locally—ask students how their families celebrate or what jobs they admire in Oujda.",
+  "checklist": [
+    "I can ask and answer questions about jobs.",
+    "I can report what someone said using 'He/She told me...'.",
+    "I can understand a 2-minute interview audio.",
+    "I can read a short text about Labour Day.",
+    "I can write a 60-word email about my plans.",
+    "I can use present perfect for experience.",
+    "I can use past continuous for descriptions."
+  ]
+}

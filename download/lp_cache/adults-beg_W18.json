@@ -1,0 +1,52 @@
+{
+  "wu": "Warm-up: 'Service Match' — students stand in two lines; teacher holds flashcards of city services (e.g., police, hospital, taxi); each student says a service and the partner responds with the number; teacher models first: 'Police?' '190!'",
+  "wuAlt": [
+    "Alternative 1: 'Service Charades' — students mime a service (e.g., fixing a pipe) and partners guess the word",
+    "Alternative 2: 'Service Bingo' — teacher calls out services, students cross them off their bingo cards"
+  ],
+  "pres": "Presentation: Show flashcards of a phone and a service (e.g., hospital); model 'Could I speak to a doctor, please?'; drill the phrase with rising intonation; check understanding by asking 'What do we say to be polite?' and 'What number do we call for the hospital?'",
+  "presAlt": [
+    "Alternative 1: Use a real phone prop; dial a fake number and model the request",
+    "Alternative 2: Show a short video clip of someone making a polite service call"
+  ],
+  "prac": "Guided practice: 'Service Request Cards' — students pick cards with service scenarios (e.g., 'My taxi is late'); in pairs, they practice 'Could I...?' requests; teacher circulates and corrects pronunciation",
+  "pracAlt": [
+    "Alternative 1: 'Polite Request Drill' — students repeat after teacher with different services",
+    "Alternative 2: 'Matching Game' — match requests to responses (e.g., 'Could I get a taxi?' to 'Yes, of course')"
+  ],
+  "ls": "Listening slot: Play a KET-style phone dialogue between a caller and a service; students listen and circle the correct service (police/hospital/taxi) on their worksheet; check answers as a class",
+  "re": "Reactivation game: 'Number Relay' — students line up; teacher calls out a service (e.g., 'fire'); first student shouts the number (e.g., '150') and runs to the back of the line",
+  "prod": "Production task: 'Back-to-Back Roleplay' — students sit back-to-back with a partner; one is a caller, the other a service worker; they use 'Could I...?' to make requests and respond; swap roles after 3 minutes",
+  "rw": "Reading and writing slot: Students read short phone scripts and match requests to responses; then write their own polite request for a service (e.g., 'Could I book a table for two, please?')",
+  "st": "Story/Song + Goodbye: Sing 'The Wheels on the Bus' with service-themed verses (e.g., 'The phone on the bus goes ring, ring, ring'); Close with 'Today we learned to make polite phone calls. Thank you, class!'",
+  "g": [
+    [
+      "Service Charades",
+      "Students mime a service (e.g., plumber) and partners guess"
+    ],
+    [
+      "Number Bingo",
+      "Teacher calls out service numbers, students cross them off"
+    ],
+    [
+      "Polite Request Drill",
+      "Students repeat 'Could I...?' with rising intonation"
+    ],
+    [
+      "Service Relay",
+      "Teams race to match services to numbers"
+    ],
+    "Back-to-Back Calls",
+    "Students roleplay phone calls with backs to each other"
+  ],
+  "diff": [
+    "Fast finishers: Write a dialogue for a tricky call (e.g., 'My electricity is out')",
+    "Support: Use sentence starters like 'Could I...?' on a worksheet"
+  ],
+  "hw": [
+    "Option 1: Write 3 polite requests for different services",
+    "Option 2: Record a phone call with a family member",
+    "Option 3: Draw a picture of a service and write the number"
+  ],
+  "tip": "Emphasize rising intonation in 'Could I...?' to sound polite; connect to local services in Oujda (e.g., police number) for relevance."
+}

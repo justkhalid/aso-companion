@@ -1,0 +1,54 @@
+{
+  "wu": "Music Opinions Relay: Write 'I think... because' on the board. Students line up in two teams. Each student runs to the board, writes one word (e.g., 'think', 'because', an adjective like 'good'), and runs back. The team with the correct sentence first wins.",
+  "wuAlt": [
+    "Quick Poll: Ask 'Do you like pop music?' Students stand if yes, sit if no. Ask follow-ups: 'Why?'",
+    "Word Association: Say 'music'. Students say one word (e.g., 'fun', 'loud', 'singing')"
+  ],
+  "pres": "Show flashcards of music genres (pop, rock, rap). Model sentences: 'I think pop is good because it's fun.' Ask students to repeat. Check understanding by asking: 'Is pop good or bad? Why?'",
+  "presAlt": [
+    "Realia: Bring a phone with music. Play a song and say: 'I think this song is great because it's happy.'",
+    "Story: Draw a simple comic of a boy saying 'I think rock is cool because the drums are strong.'"
+  ],
+  "prac": "Lyric Gap-Fill: Distribute lyrics to 'Count on Me' by Bruno Mars (clean version). Remove opinion adjectives (e.g., 'good', 'nice'). Students work in pairs to fill gaps. Check answers as a class.",
+  "pracAlt": [
+    "Matching Game: Cards with opinion adjectives (good, bad, fun, boring) and reasons (because it's fast, because it's slow). Students match them.",
+    "Sentence Builders: Give students word cards to build 'I think... because...' sentences."
+  ],
+  "ls": "Opinion Listening: Play a 1-minute clip of a teen saying: 'I think rap is exciting because the words are strong.' Students write down the opinion and the reason. Check answers together.",
+  "re": "Opinion Line-Up: Call out an opinion (e.g., 'I think music is boring'). Students line up on one side if they agree, the other if they disagree. Quick discussion: 'Why?'",
+  "prod": "Top-5 Band Discussion: Groups of 3. Each group writes their top 3 music genres. They use 'I think... because...' to justify. Groups present their choices to the class.",
+  "rw": "Music Review Reading: Give a short review of a song (e.g., 'This song is great because it's happy and easy to sing.'). Students underline the opinion and the reason. Then write 3 sentences about their favorite song using 'I think... because...'.",
+  "st": "Play the song 'Count on Me' again. Students sing along. Close with: 'Today we learned to say our opinions about music using I think... because. Thank you, class!'",
+  "g": [
+    [
+      "Opinion Bingo",
+      "Students write 5 opinion adjectives (good, bad, fun, boring, loud). Teacher calls out reasons (e.g., 'because it's fast'). Students cross off if they have a matching adjective."
+    ],
+    [
+      "Musical Opinions",
+      "Play music. When it stops, students say an opinion about the last song (e.g., 'I think it's loud!')."
+    ],
+    [
+      "Reason Chain",
+      "Student 1: 'I think pop is good.' Student 2: 'Because it's fun.' Student 3: 'I think rock is cool.' Continue the chain."
+    ],
+    [
+      "Guess the Genre",
+      "Teacher describes a genre (e.g., 'This music is fast and has strong drums'). Students guess: 'Rock!'"
+    ],
+    [
+      "Opinion Relay Race",
+      "Two teams. Each student runs to the board, writes one word to complete 'I think... because...'. First correct team wins."
+    ]
+  ],
+  "diff": [
+    "Fast finishers: Write 3 more sentences about music they don't like.",
+    "Support: Use sentence frames: 'I think ____ is ____ because ____.'"
+  ],
+  "hw": [
+    "Write a 5-line paragraph about your favorite song: 'My favorite song is ___. I think it is ___. because ___. It is ___. I like it.'",
+    "Draw a picture of your favorite song and write 2 sentences about it using 'I think... because...'.",
+    "Interview a family member: 'Do you like music? Why?' Write their answers."
+  ],
+  "tip": "Use Moroccan music examples (e.g., Gnawa) to connect the theme to students' culture, making the language more relevant and memorable."
+}

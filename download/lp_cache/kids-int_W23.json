@@ -1,0 +1,54 @@
+{
+  "wu": "Phonics Pictionary: Teacher draws a picture of a cat on the board, kids shout 'cat!' and spell it. Teacher draws a pen, kids shout 'pen!' and spell it. Teacher draws a snake, kids shout 'snake!' and spell it.",
+  "wuAlt": [
+    "Phonics Bingo: Kids have bingo cards with pictures of cat, pen, snake. Teacher calls out 'C-A-T!', kids cover the cat picture.",
+    "Action Phonics: Teacher says 'Show me a cat!' kids act like a cat. 'Show me a pen!' kids pretend to write. 'Show me a snake!' kids slither."
+  ],
+  "pres": "Teacher shows flashcards for 'stop', 'spin', 'snake'. Teacher models the sounds /st/, /sp/, /sn/. Kids repeat the sounds after the teacher. Teacher points to the letters in each word and says 'S-T-stop', 'S-P-spin', 'S-N-snake'. Kids repeat the letter-sound links.",
+  "presAlt": [
+    "Story Time: Teacher reads a short story about a snake that spins and stops. Teacher points to the words 'snake', 'spin', 'stop' as she reads them.",
+    "Realia: Teacher shows a toy snake, a spinning top, and a stop sign. Teacher says 'This is a snake. S-N-snake. This is a spin. S-P-spin. This is a stop. S-T-stop.'"
+  ],
+  "prac": "Matching Race: Kids are in two teams. Each team gets a set of phonics word cards (stop, spin, snake) and picture cards. On 'Go!', the first kid from each team runs to the board, matches a word card to a picture card, and says the word. The team that matches all cards first wins.",
+  "pracAlt": [
+    "Phonics Hopscotch: Draw a hopscotch grid with letters S, T, P, N. Teacher calls out a word like 'stop'. Kids jump on S, then T, then P, and say the word.",
+    "Build-a-Word: Kids get letter tiles. Teacher calls out a word like 'spin'. Kids build the word with their tiles and say it."
+  ],
+  "ls": "Listen and Circle: Teacher plays a recording of words: 'cat', 'pen', 'stop', 'spin', 'snake', 'dog'. Kids listen and circle the words on their worksheet that have the N-T sounds or st, sp, sn blends.",
+  "re": "Freeze Dance: Play music. Kids dance. When the music stops, the teacher calls out a word like 'stop'. Kids must freeze and say 'stop!'. If they move, they sit down.",
+  "prod": "Eid Greetings Roleplay: Kids work in pairs. One kid is giving a gift. The other kid is receiving it. The giver says 'Eid Mubarak! This is for you.' The receiver says 'Thank you! Eid Mubarak!' They practice the dialogue twice, then swap roles.",
+  "rw": "Worksheet: Kids trace the words 'stop', 'spin', 'snake' in their notebook. Then they copy the words once. Finally, they write the words once on their own. For fast finishers, they draw a picture next to each word.",
+  "st": "Story Time: Teacher reads a short story about a snake celebrating Eid. The snake spins and stops to eat cookies. After the story, the class sings the 'Goodbye Song'. Teacher gives out stickers for good work. Kids line up for a high-five.",
+  "g": [
+    [
+      "Phonics Memory Match",
+      "Kids flip over word cards and picture cards. They take turns flipping two cards to find a match."
+    ],
+    [
+      "Phonics Relay Race",
+      "Teams race to write a blend word (stop, spin, snake) on the board."
+    ],
+    [
+      "Eid Gift Count",
+      "Kids count cookies on a worksheet and say 'I have 3 cookies.'"
+    ],
+    [
+      "Phonics I Spy",
+      "Teacher says 'I spy with my little eye something that starts with /sp/.' Kids guess 'spin!'"
+    ],
+    [
+      "Eid Card Match",
+      "Kids match pictures of gifts to the words 'gift' and 'cookie'."
+    ]
+  ],
+  "diff": [
+    "Fast finishers / stronger learners: Write a sentence using one of the phonics words, e.g., 'The snake can spin.'",
+    "Support / weaker learners: Trace the letters with their finger on a flashcard while saying the sound."
+  ],
+  "hw": [
+    "Write the phonics words 'stop', 'spin', 'snake' twice in your notebook, once in rainbow colours.",
+    "Finish the Eid greeting card we started in class. Draw a picture of a gift and write 'Eid Mubarak!'",
+    "Ask your family 'What is your favourite cookie?' and tell me the answer in class."
+  ],
+  "tip": "Use the Eid theme to make phonics practice culturally relevant. Kids are more motivated to learn words like 'gift' and 'cookie' when connected to a celebration they know."
+}

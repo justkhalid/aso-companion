@@ -1,0 +1,54 @@
+{
+  "wu": "Family Charades: Teacher acts out a family member (e.g., cooking, playing football) and students shout the word in English. Students then take turns in pairs acting out a family member while their partner guesses.",
+  "wuAlt": [
+    "Family Bingo: Teacher calls out family words (mother, father, sister, brother) and students cross them off their bingo cards. First to shout 'Bingo!' wins.",
+    "Family Chain: Students sit in a circle. Student 1 says 'I have a mother.' Student 2 says 'Student 1 has a mother. I have a father.' and so on, building a chain."
+  ],
+  "pres": "Teacher shows flashcards of family members (mother, father, sister, brother). Teacher models: 'This is my mother. She is kind.' Students repeat. Teacher introduces possessive 's: 'This is my mother. She is my father's wife.' Teacher checks understanding by asking: 'Who is kind?' and 'Whose wife is she?'",
+  "presAlt": [
+    "Family Photo Story: Teacher brings a real photo of her family and tells a short story using the target language: 'This is my sister. She is tall and funny. She has got a dog.' Students ask questions.",
+    "Puppet Show: Teacher uses puppets to act out a family scene. Puppet 1 says 'I am tall. I am kind.' Puppet 2 says 'He is my brother. He has got a blue shirt.'"
+  ],
+  "prac": "Adjective Matching Relay: Students line up in two teams. At the front, there are two sets of cards: family member pictures and adjective cards (tall, kind, funny). The first student runs to match a family member with an adjective (e.g., 'My father is tall.'), runs back, and tags the next student. The first team to match all cards wins.",
+  "pracAlt": [
+    "Find Your Partner: Each student gets a card with either a family member or an adjective. They walk around asking 'Who has got...?' or 'What are you?' to find their match and form a complete sentence.",
+    "Sentence Building Race: In pairs, students get jumbled sentence cards (e.g., 'my / brother / is / funny'). They race to arrange them correctly and read the sentence aloud."
+  ],
+  "ls": "Listen and Draw: Teacher describes a family member: 'This is my sister. She is tall. She has got long hair. She is kind.' Students draw the person. Teacher then shows a picture to check. This checks comprehension of listening for details.",
+  "re": "Stand Up If...: Teacher says 'Stand up if you have got a brother.' 'Stand up if your mother is kind.' Students stand up or sit down. This reactivates the language physically after the break.",
+  "prod": "Guess Who?: In pairs, Student A thinks of a family member. Student B asks questions: 'Is he tall? Is she funny? Has he got a car?' Student A answers: 'Yes, he is. No, she isn't. Yes, he has.' Student B guesses who it is. This encourages freer use of the language.",
+  "rw": "Read and Match: Students read 3 short family profiles (e.g., 'My name is Amina. I have a brother. His name is Karim. He is tall and funny.'). They match each profile to a picture. Then, they write 3 sentences about their own family using 'have got' and adjectives.",
+  "st": "Teacher sings a simple family song like 'The Family in the House' with gestures. Then, the teacher says: 'Today we learned to describe family members. Thank you for your hard work. See you next week!'",
+  "g": [
+    [
+      "Family Charades",
+      "Students act out a family member (e.g., cooking, playing football) and their partner guesses the word."
+    ],
+    [
+      "Adjective Relay",
+      "Teams race to match family member pictures with adjective cards to make sentences."
+    ],
+    [
+      "Find Your Partner",
+      "Students with family member and adjective cards find their match to form a sentence."
+    ],
+    [
+      "Guess Who?",
+      "Students ask yes/no questions to guess which family member their partner is thinking of."
+    ],
+    [
+      "Stand Up If...",
+      "Teacher gives clues about family members and students stand up if it applies to them."
+    ]
+  ],
+  "diff": [
+    "Fast finishers / stronger learners: Write a description of a famous Moroccan celebrity or athlete.",
+    "Support / weaker learners: Use a sentence frame: 'My _______ is _______ and _______. He/She has got _______.'"
+  ],
+  "hw": [
+    "Draw your family tree and write 3 sentences: 'My _______ is _______. He/She has got _______. He/She is _______.'",
+    "Interview a family member in Arabic and write 3 simple facts in English about them.",
+    "Write a short paragraph (3-4 sentences) about your best friend using 'have got' and adjectives."
+  ],
+  "tip": "Use realia like family photos to make the lesson personal and relatable. For Moroccan learners, connect the theme to local family values, like respect for elders, which are universal but can be highlighted in English."
+}

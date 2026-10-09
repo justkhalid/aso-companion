@@ -1,0 +1,52 @@
+{
+  "wu": "Predict the Weather: Students stand in a circle. Teacher shows a flashcard (sun, rain, snow) and asks 'What will the weather be like tomorrow?' Students reply 'It will be sunny/rainy/snowy.'",
+  "wuAlt": [
+    "Future Timeline: Draw a line on the board from 2024 to 2035. Students write one prediction for each year.",
+    "Prediction Pictionary: Teacher draws a simple future event (e.g., flying car), students guess 'You will fly to school.'"
+  ],
+  "pres": "Show a news clip about AI in Morocco. Model sentences: 'AI will probably help doctors.' 'Robots won't replace teachers.' 'Self-driving cars are likely to arrive by 2030.' Check understanding with thumbs up/down for true/false predictions.",
+  "presAlt": [
+    "Future Jobs Poster: Display jobs (doctor, farmer, influencer). Ask 'Will this job exist in 2040?' Students use 'probably/likely to'.",
+    "Morocco 2050 Video: Play a silent clip of futuristic Oujda. Students predict using 'will/won't'."
+  ],
+  "prac": "Prediction Relay: Teams race to write sentences on the board about Moroccan festivals (e.g., 'Next Green March, drones will fly over the city.'). Correct spelling/grammar earns points.",
+  "pracAlt": [
+    "Probability Dice: Roll a die (1=won't, 2-3=maybe, 4-5=probably, 6=will). Students make predictions about school life (e.g., 'We will have more exams.').",
+    "Find Someone Who...: Walk around asking 'Will you...?' questions (e.g., 'Will you travel abroad next year?')."
+  ],
+  "ls": "Listen to a podcast about future tech in Africa. Students tick predictions heard: 'Solar panels will power homes.' 'People won't use cash.'",
+  "re": "Future Charades: Act out a future action (e.g., 'flying to Casablanca'). Class guesses 'You will travel by plane!'",
+  "prod": "2035 Morocco Project: Groups create a poster with 5 predictions about life in Morocco (e.g., 'Electric cars will be common.'). Justify each with 'because...'. Present to class.",
+  "rw": "Read a short article about AI in Moroccan schools. Underline all uses of 'likely to'. Then write 3 predictions about your own school using 'will/won't'.",
+  "st": "Read 'The Boy Who Predicted the Future' story (about a boy predicting Morocco's first satellite launch). End with: 'Today we learned to make predictions. Thank you, class!'",
+  "g": [
+    [
+      "Prediction Pass",
+      "Pass a ball and say a prediction about the next student (e.g., 'You will answer a question well.')"
+    ],
+    [
+      "Future Bingo",
+      "Write 9 predictions in a grid. Cross off when a classmate admits it's true."
+    ],
+    [
+      "Maybe Chain",
+      "Start with 'Maybe I will...' and each student adds one prediction to the chain."
+    ],
+    [
+      "Won't Happen",
+      "Students brainstorm 3 things that definitely won't happen by 2030 (e.g., 'Camels won't drive cars.')"
+    ],
+    "Likely or Not",
+    "Show scenarios (e.g., 'Morocco wins the World Cup'). Students hold up 'likely' or 'not likely' cards."
+  ],
+  "diff": [
+    "Fast finishers: Write a 50-word story about a future day in Oujda using 5 'will' predictions.",
+    "Support: Use sentence starters like 'I think... will...' and 'It will probably... because...'."
+  ],
+  "hw": [
+    "Record a 1-minute video predicting your life in 2035 (e.g., 'I will be a doctor.').",
+    "Write 5 predictions about a famous Moroccan person (e.g., 'Ronaldo will visit Morocco.').",
+    "Interview a family member about their future predictions and write 3 sentences."
+  ],
+  "tip": "Use local context (e.g., 'Will the new high-speed train change travel?') to make predictions relevant. Teens engage more when discussing their own future in Morocco."
+}

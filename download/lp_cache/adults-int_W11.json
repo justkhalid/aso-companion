@@ -1,0 +1,52 @@
+{
+  "wu": "Play 'Rules Pictionary': write 'must', 'mustn't', 'should', 'have to', 'don't have to' on slips, students draw the rule (e.g., 'must wear uniform'), others guess the modal and the rule.",
+  "wuAlt": [
+    "Play 'Modal Hot Seat': students describe rules/advice using modals, teammates guess the situation",
+    "Play 'Find Someone Who...': mingle to find people who 'must wake up early' or 'should study more', using target language"
+  ],
+  "pres": "Show flashcards of signs (no smoking, fasten seatbelt, quiet please) and elicit the rule, model sentences like 'You mustn't smoke here', 'You have to wear a seatbelt', 'You should be quiet', check understanding with 'What does this sign mean?' and 'Which modal is for rules? Advice?'",
+  "presAlt": [
+    "Use a story about a new employee at a Moroccan café, highlight rules with modals",
+    "Bring in real objects (helmet, phone, book) and give rules/advice using modals"
+  ],
+  "prac": "Do 'Modal Match-Up': worksheet with signs and modal sentences, students match them, then drill in pairs saying the rule, play 'Modal Relay' in teams: one student says a rule, next adds another, no repeats.",
+  "pracAlt": [
+    "Play 'Modal Charades': students act out rules/advice, others guess using modals",
+    "Do 'Sentence Scramble': unjumble sentences like 'You / must / homework / do' into correct order"
+  ],
+  "ls": "Listen to a dialogue between a teacher and student about school rules, students tick the rules mentioned (e.g., 'You must be on time', 'You should bring your books'), check answers in pairs.",
+  "re": "Play 'Simon Says' with modals: 'Simon says you must jump!', 'Simon says you should touch your nose' – those who follow the wrong modal are out.",
+  "prod": "Run a 'Rules Debate': split into groups (home/school/work), discuss and write 3 rules using must/mustn't/should/have to, then present to class with reasons (e.g., 'Students must wear uniforms because...')",
+  "rw": "Read short notices from American Space Oujda (e.g., 'You must register for events', 'You should keep the library quiet'), underline all modal verbs, then write 2 sentences giving advice for using the space.",
+  "st": "Read a short story about a visitor to Oujda who breaks rules (e.g., 'He didn't have to remove shoes, but he should have'), end with 'Today we learned to give rules and advice using must/mustn't/should/have to. Thank you, class!'",
+  "g": [
+    [
+      "Modal Bingo",
+      "Students write 9 rules with modals, teacher calls out situations, they cross off matching rules"
+    ],
+    [
+      "Rule Relay Race",
+      "Teams race to write modal rules on the board for given situations"
+    ],
+    [
+      "What's the Rule?",
+      "Student acts out a rule, others guess using modals"
+    ],
+    [
+      "Modal Board Game",
+      "Roll dice, land on square, make a sentence with the modal and topic"
+    ],
+    "Advice Auction",
+    "Groups 'bid' on giving the best advice for problems using modals"
+  ],
+  "diff": [
+    "Fast finishers: write a 100-word email to the American Space Oujda manager suggesting 3 new rules using modals",
+    "Support: use a sentence frame 'You ______ (modal) ______ (rule)' to write sentences"
+  ],
+  "hw": [
+    "Write 5 rules for your ideal school using must/mustn't/should/have to",
+    "Record a 1-minute video giving advice for tourists visiting Morocco using modals",
+    "Find 5 examples of modals in English signs around Oujda and write them down"
+  ],
+  "tip": "Use Moroccan cultural context (e.g., 'You must remove shoes in mosques') to make rules relatable, and encourage students to compare with American Space rules to bridge cultures."
+}

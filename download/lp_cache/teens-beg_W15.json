@@ -1,0 +1,63 @@
+{
+  "wu": "Students play 'Stand Up If...' with teacher calling out S1 review prompts: 'Stand up if you like pizza', 'Stand up if you can swim', 'Stand up if you have a brother'. Students stand and say 'Yes, I do' or 'No, I don't'.",
+  "wuAlt": [
+    "Students play 'Find Someone Who...' with a grid of S1 verbs (like, play, have, can) and mingle to find classmates who match.",
+    "Students play 'Quick Quiz' with flashcards showing S1 vocabulary (food, school items, free time activities) and race to name them."
+  ],
+  "pres": "Teacher shows a sample KET-style writing task prompt on the board: 'Write about your best friend. Name, age, what you like to do together'. Models 2-3 sentences: 'My best friend is Ali. He is 13. We like football'. Checks understanding by asking 'What do you write about?'",
+  "presAlt": [
+    "Teacher distributes a guided writing worksheet with sentence starters: 'My name is... I am... I like... I can...' and students complete it.",
+    "Teacher shows a model speaking task video and highlights key phrases: 'This is my friend. He/She is... We like...'"
+  ],
+  "prac": "Students complete a 35-minute written paper with 4 parts: matching, sentence completion, short email, and guided writing. Teacher circulates to clarify instructions but not help with answers.",
+  "pracAlt": [
+    "Students work in pairs to practice a speaking task from the assessment kit: 'Describe your family' using prompts (mother, father, brother, sister).",
+    "Students do a peer review of each other's guided writing tasks using a simple checklist (name, age, activity)."
+  ],
+  "ls": "Students listen to a short audio about a boy's daily routine (S1 topic) and number the pictures in order (wake up, eat breakfast, go to school, play football, do homework). Teacher pauses to check comprehension.",
+  "re": "Students play 'Simon Says' with S1 action verbs: 'Simon says stand up', 'Simon says jump', 'Simon says touch your nose'. The game is fast-paced to re-energize after the break.",
+  "prod": "Students take turns in pairs doing the KET-style speaking task: 'Describe your best friend' using the prompt card. They ask and answer 3-4 questions each (What's his/her name? How old is he/she? What do you like to do?). Teacher uses a checklist to assess.",
+  "rw": "Students read a short text about a girl's free time (S1 topic) and answer 3 multiple-choice questions. Then, they write 5 sentences about their own free time using the text as a model.",
+  "st": "Teacher tells a simple story about a boy's first day at school using S1 vocabulary (new friend, classroom, lunch). Ends with the goodbye routine: 'Today we did our assessment. Well done, everyone! Thank you, class.'",
+  "g": [
+    [
+      "Bingo",
+      "Students write 6 S1 words on a grid and listen as teacher calls them out; first to cross all 3 in a row wins."
+    ],
+    [
+      "Quiz-Quiz-Trade",
+      "Students get a flashcard with a S1 question, quiz a partner, trade cards, and repeat."
+    ],
+    [
+      "Chain Reaction",
+      "Students sit in a circle and say 'I like...' adding one new word each turn (e.g., 'I like football', 'I like football and pizza')."
+    ],
+    [
+      "Word Race",
+      "Teacher calls out S1 verbs; students race to write them on the board."
+    ],
+    [
+      "Sentence Building",
+      "Students use word cards to make correct sentences about S1 topics."
+    ]
+  ],
+  "diff": [
+    "Fast finishers / stronger learners: Write 3 more sentences about their best friend including 'He/She can...' and 'He/She has got...'.",
+    "Support / weaker learners: Use a sentence frame: 'My best friend is ___. He/She is ___. We like ___.'"
+  ],
+  "hw": [
+    "Review S1 vocabulary flashcards (15 mins).",
+    "Write 5 sentences about your family using 'have got' and 'can'.",
+    "Practice the speaking task prompt with a family member."
+  ],
+  "tip": "For Moroccan teens, connect assessment to their goals (e.g., 'This helps you pass KET for university abroad'). Use local examples like 'Write about your friend who likes couscous' to make it relevant.",
+  "checklist": [
+    "I can write 5-6 sentences about myself or a friend.",
+    "I can understand a short audio about daily routines.",
+    "I can read a short text and answer simple questions.",
+    "I can ask and answer questions about family and friends.",
+    "I can use 'have got', 'can', and 'like' correctly.",
+    "I can follow instructions for a KET-style task.",
+    "I can work with a partner to complete a speaking task."
+  ]
+}

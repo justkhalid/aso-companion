@@ -1,0 +1,54 @@
+{
+  "wu": "Christmas Pictionary: Teacher draws 3 Christmas words (tree, star, gift), students shout the English words. Then students draw 1 word each in pairs, guessing 'What is it? It is a __.'",
+  "wuAlt": [
+    "Christmas Bingo: Students mark Christmas vocabulary pictures on their bingo cards as teacher calls words.",
+    "Christmas Memory: Students flip over flashcards to match pairs, saying 'I see a __.'"
+  ],
+  "pres": "Teacher shows a Santa flashcard and models 'I would like a bike, please.' Students repeat. Then teacher holds a 'present' box and asks 'What would you like?' Students practice 'I would like __, please.' Teacher nods for correct requests.",
+  "presAlt": [
+    "Santa's Sack: Teacher pulls out toys from a sack, asking 'What is it?' Students answer 'It is a __.'",
+    "Polite Requests Poster: Teacher writes 'I would like ___' on the board with a 'please' bubble, students fill in blanks with toy words."
+  ],
+  "prac": "Santa's Workshop: Students sit in groups with toy flashcards. They take turns being Santa and saying 'What would you like?' The shopper replies 'I would like a __, please.' Teacher monitors for polite language.",
+  "pracAlt": [
+    "Pass the Present: Students pass a wrapped box while music plays. When it stops, they open it and say 'I would like a __, please.'",
+    "Christmas Roleplay Cards: Students draw cards with roles (child/Santa) and act out polite requests."
+  ],
+  "ls": "Listen and Color: Teacher describes a Christmas picture ( 'Color the star yellow. Draw a gift under the tree.') Students color their pictures, checking comprehension by raising hands for each instruction.",
+  "re": "Reindeer Hop: Students hop like reindeer while teacher calls 'Red reindeer!' or 'Green reindeer!' Students touch the correct colored paper on the floor.",
+  "prod": "Show-and-Tell Christmas: Students bring a small toy or draw a picture. They stand up and say two sentences: 'This is a __. I would like a __ for Christmas.' Teacher gives stickers for full sentences.",
+  "rw": "Christmas List Writing: Students trace 'I would like ___' on a worksheet, then copy 3 sentences with their desired presents (e.g., 'I would like a ball. I would like a book.'). Fast finishers draw their presents.",
+  "st": "Teacher reads a short Christmas story with picture frames, pausing for students to repeat key phrases like 'Merry Christmas!' Then the class sings 'Jingle Bells' with actions. Goodbye routine: Goodbye Song + sticker chart + high-five line.",
+  "g": [
+    [
+      "Christmas Vocabulary Relay",
+      "Teams race to match word cards to picture cards on the board."
+    ],
+    [
+      "What's in the Stocking?",
+      "Students feel inside a stocking and guess 'Is it a __?' using 'Yes/No' answers."
+    ],
+    [
+      "Pin the Nose on Rudolph",
+      "Blindfolded students stick a red nose on a Rudolph poster, saying 'Merry Christmas!'"
+    ],
+    [
+      "Christmas Charades",
+      "Students act out Christmas words (tree, gift, star) for classmates to guess."
+    ],
+    [
+      "Roll and Say",
+      "Students roll a dice and say a Christmas word or phrase matching the number (1=tree, 2=star, etc.)."
+    ]
+  ],
+  "diff": [
+    "Fast finishers / stronger learners: Write 5 sentences about what they would like for Christmas and why.",
+    "Support / weaker learners: Use a word bank with picture clues to fill in 'I would like a __.'"
+  ],
+  "hw": [
+    "Find and label 5 Christmas pictures from magazines (e.g., tree, star, gift).",
+    "Draw 3 presents you would like and write 'I would like a __.' under each.",
+    "Ask your family 'What would you like for Christmas?' and draw their answers."
+  ],
+  "tip": "Use Moroccan Christmas context: Compare Christmas with Eid gift-giving traditions to build cultural bridges. Emphasize 'please/thank you' as universal polite routines."
+}

@@ -1,0 +1,54 @@
+{
+  "wu": "Human Bingo: Students walk around with bingo cards containing facts like 'has a pet' or 'likes football'. They ask classmates 'Do you have a pet?' and mark squares if the answer is yes. First to get a line wins.",
+  "wuAlt": [
+    "Two Truths and a Lie: Students write three statements about themselves, two true and one false. Partners guess which is the lie.",
+    "Name Chain: Students stand in a circle and say their name plus an adjective starting with the same letter (e.g., 'I'm Amazing Ali')."
+  ],
+  "pres": "Use flashcards showing people with different hobbies and nationalities. Model sentences: 'What's your name? I'm Ali. Where are you from? I'm from Morocco. How old are you? I'm 14.' Check understanding by asking students to repeat and translate the questions.",
+  "presAlt": [
+    "Realia: Show objects representing hobbies (football, book, guitar) and ask 'What's your hobby?' Model answers with 'I like football.'",
+    "Dialogue: Read a short conversation between two teens meeting for the first time, highlighting the target questions and answers."
+  ],
+  "prac": "Find Someone Who... worksheet with prompts like 'Find someone who speaks French.' Students walk around asking 'Do you speak French?' and writing names. Monitor and correct errors in question forms.",
+  "pracAlt": [
+    "Question Cards: Students draw cards with Wh- questions (e.g., 'Where do you live?') and ask partners. Partners answer in full sentences.",
+    "Interview Relay: In pairs, Student A asks 3 questions, Student B answers, then they swap roles."
+  ],
+  "ls": "Listen to a KET-style audio of two teens introducing themselves. Students complete a profile worksheet with details like name, age, and hobbies. Play twice for comprehension.",
+  "re": "Stand Up Sit Down: Call out facts like 'Stand up if you have a sister.' Students stand or sit, practicing 'Do you have a sister?' responses.",
+  "prod": "Group Poster Project: Groups of 3 create a poster titled 'Getting to Know Us' with 5 facts per member (e.g., 'Ali is 14 and likes football'). They present their poster to the class.",
+  "rw": "Read a short KET-style profile about a teen named Sara. Answer 3 multiple-choice questions about her details (name, age, hobby). Then write a 40-word paragraph introducing yourself using the same structure.",
+  "st": "Sing 'Hello, Hello' with actions. End with the goodbye routine: 'Today we learned to ask and answer getting-to-know-you questions. Thank you, class! Goodbye!'",
+  "g": [
+    [
+      "Bingo",
+      "Students mark squares on bingo cards when their classmates say facts matching the prompts."
+    ],
+    [
+      "Question Chain",
+      "Students sit in a circle and ask the next student a Wh- question, who answers and asks the next."
+    ],
+    [
+      "Guess Who",
+      "Students describe a classmate using 'He/She is...' and others guess who it is."
+    ],
+    [
+      "Speed Interview",
+      "Students interview 3 different partners in 2 minutes each, writing down answers."
+    ],
+    [
+      "Memory Game",
+      "Students sit in a circle and say 'My name is [name] and I like [hobby]' each person repeats all previous names and hobbies."
+    ]
+  ],
+  "diff": [
+    "Fast finishers: Add a 6th question to their poster, e.g., 'What do you want to be in the future?'",
+    "Support weaker learners: Use sentence starters like 'My name is ___. I am ___ years old. I like ___.' on their worksheet."
+  ],
+  "hw": [
+    "Record a 1-minute video introducing yourself with 5 facts (name, age, family, hobbies, future dream).",
+    "Write a 50-word paragraph about a new friend you met in class today.",
+    "Interview a family member in English and write down 3 things you learned about them."
+  ],
+  "tip": "Encourage students to use Moroccan cultural references (e.g., 'I like couscous' or 'I celebrate Eid') to make personal connections and build confidence."
+}

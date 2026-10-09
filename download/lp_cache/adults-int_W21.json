@@ -1,0 +1,54 @@
+{
+  "wu": "Students stand in a circle and play 'Two Truths and a Lie' about their recent reading habits, e.g., 'I read a news article yesterday,' 'I love scanning for numbers,' 'I never skim headings.'",
+  "wuAlt": [
+    "Students share one reading strategy they used this week with a partner.",
+    "Students quickly list 3 things they remember about PET reading parts from last class."
+  ],
+  "pres": "Display a PET reading part 1 text on the board. Model skimming (reading headings in 30 sec), scanning (finding dates in 20 sec), and detail reading (answering Q3 in 45 sec). Check understanding by asking: 'Which strategy finds specific info?'",
+  "presAlt": [
+    "Hand out a short article with questions; model marking the text for each strategy.",
+    "Use a think-aloud: 'I see the title, so I'll skim first...'"
+  ],
+  "prac": "Students work in pairs to time each other on a PET reading part 1 text (3 min). They swap papers and use a checklist to mark which strategy their partner used. Teacher circulates to monitor timing.",
+  "pracAlt": [
+    "Students race to scan for answers in different texts, then compare with the answer key.",
+    "Groups complete a 'strategy match' worksheet linking questions to skimming/scanning/detail."
+  ],
+  "ls": "Students listen to a short audio recording of someone discussing their reading strategies (2 min). They tick the strategies mentioned (skimming, scanning, etc.) and discuss in pairs if they agree.",
+  "re": "Students play 'Strategy Charades'—one student acts out skimming (fast hand movements over text) or scanning (pointing quickly), others guess the term.",
+  "prod": "In trios, students take turns explaining how they would solve a PET reading part 2 text (matching headings to paragraphs). They justify their choices using 'I skimmed the headings first...' or 'I scanned for keywords...'",
+  "rw": "Students complete a timed PET reading part 3 text (multiple-choice) individually (7 min). They then swap papers and discuss answers in pairs, explaining their reasoning using 'I chose B because...'",
+  "st": "Read a short story about a student who improved their PET score using better strategies. End with: 'Today we practiced timed PET reading strategies. Thank you for your hard work!'",
+  "g": [
+    [
+      "Speed Skim",
+      "Students race to find the main idea of a text in 30 sec."
+    ],
+    [
+      "Scan Race",
+      "Students scan for numbers/words and call them out."
+    ],
+    [
+      "Detail Detective",
+      "Students find and underline answers to detail questions."
+    ],
+    [
+      "Strategy Sort",
+      "Groups sort questions into skimming/scanning/detail piles."
+    ],
+    [
+      "PET Quiz",
+      "Teams answer questions about PET reading parts."
+    ]
+  ],
+  "diff": [
+    "Fast finishers: Write 2 tips for timed reading success.",
+    "Support learners: Use a highlighter to mark key words before answering."
+  ],
+  "hw": [
+    "Complete a timed PET reading part 1 at home and record your score.",
+    "Write 3 sentences about which strategy you found easiest/hardest.",
+    "Review the PET reading strategies in your folder."
+  ],
+  "tip": "Encourage students to reflect on their timing—many spend too long on one part. A stopwatch is your best tool for building exam pace."
+}

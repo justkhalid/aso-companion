@@ -1,0 +1,677 @@
+     1→/* ================= Exports: Excel (.xlsx) + Word (.doc) + app update ================= */
+     2→
+     3→/* ---------- tiny ZIP (store, no compression) ---------- */
+     4→const CRC_T = (function(){ const t = new Uint32Array(256); for(let n = 0; n < 256; n++){ let c = n; for(let k = 0; k < 8; k++) c = (c & 1) ? (0xEDB88320 ^ (c >>> 1)) : (c >>> 1); t[n] = c; } return t; })();
+     5→function crc32(u8){ let c = 0xFFFFFFFF; for(let i = 0; i < u8.length; i++) c = CRC_T[(c ^ u8[i]) & 0xFF] ^ (c >>> 8); return (c ^ 0xFFFFFFFF) >>> 0; }
+     6→function zipBuild(files){
+     7→  const enc = new TextEncoder(), chunks = [], central = []; let off = 0;
+     8→  const u16 = v => [v & 255, (v >>> 8) & 255], u32 = v => [v & 255, (v >>> 8) & 255, (v >>> 16) & 255, (v >>> 24) & 255];
+     9→  files.forEach(f => {
+    10→    const name = enc.encode(f.name), d = (f.data instanceof Uint8Array) ? f.data : enc.encode(f.data), crc = crc32(d);
+    11→    const lh = new Uint8Array([80,75,3,4].concat(u16(20), u16(0), u16(0), u16(0), u16(0), u32(crc), u32(d.length), u32(d.length), u16(name.length), u16(0)));
+    12→    chunks.push(lh, name, d);
+    13→    central.push({name, crc, size: d.length, off});
+    14→    off += lh.length + name.length + d.length;
+    15→  });
+    16→  const cdStart = off; let cdSize = 0;
+    17→  central.forEach(c => {
+    18→    const ch = new Uint8Array([80,75,1,2].concat(u16(20), u16(20), u16(0), u16(0), u16(0), u16(0), u32(c.crc), u32(c.size), u32(c.size), u16(c.name.length), u16(0), u16(0), u16(0), u16(0), u32(0), u32(c.off)));
+    19→    chunks.push(ch, c.name); cdSize += ch.length + c.name.length;
+    20→  });
+    21→  chunks.push(new Uint8Array([80,75,5,6].concat(u16(0), u16(0), u16(central.length), u16(central.length), u32(cdSize), u32(cdStart), u16(0))));
+    22→  return new Blob(chunks, {type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'});
+    23→}
+    24→function iOSLike(){ /* v2.8: iPhone / iPad - the only place blob downloads silently fail */
+    25→  try{
+    26→    const ua = navigator.userAgent || '';
+    27→    if(/iPad|iPhone|iPod/.test(ua)) return true;
+    28→    if(navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1) return true; /* iPadOS 13+ */
+    29→  }catch(e){}
+    30→  return false;
+    31→}
+    32→function downloadBlob(blob, name){
+    33→  /* v2.8: on iPhone/iPad a programmatic blob anchor click is ignored, which is
+    34→     why exports "did nothing" there. Hand the file to the share sheet instead
+    35→     (Save Image / Save to Files); everywhere else the normal download runs. */
+    36→  try{
+    37→    if(iOSLike() && navigator.canShare){
+    38→      const f = new File([blob], name, {type: blob.type || 'application/octet-stream'});
+    39→      if(navigator.canShare({files: [f]})){
+    40→        navigator.share({files: [f]}).catch(() => {});
+    41→        return;
+    42→      }
+    43→    }
+    44→  }catch(e){}
+    45→  const a = document.createElement('a');
+    46→  a.href = URL.createObjectURL(blob); a.download = name; a.rel = 'noopener';
+    47→  document.body.appendChild(a); a.click(); a.remove();
+    48→  setTimeout(() => URL.revokeObjectURL(a.href), 4000);
+    49→}
+    50→function safeName(s){ return String(s).replace(/[^A-Za-z0-9]+/g, '_').replace(/^_+|_+$/g, '') || 'Export'; }
+    51→
+    52→/* ---------- xlsx XML pieces ---------- */
+    53→const X_ESC = s => String(s == null ? '' : s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/[\x00-\x08\x0B\x0C\x0E-\x1F]/g,'');
+    54→function colLetter(i){ let s = ''; while(i > 0){ s = String.fromCharCode(65 + (i - 1) % 26) + s; i = Math.floor((i - 1) / 26); } return s; }
+    55→
+    56→const CT_XML = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>\n' +
+    57→'<Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types">' +
+    58→'<Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/>' +
+    59→'<Default Extension="xml" ContentType="application/xml"/>' +
+    60→'<Default Extension="png" ContentType="image/png"/>' +
+    61→'<Override PartName="/xl/workbook.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml"/>' +
+    62→'<Override PartName="/xl/styles.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.styles+xml"/>' +
+    63→'{THEME}{SST}{SHEETS}{DRAWINGS}</Types>';
+    64→const RELS_ROOT = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>\n' +
+    65→'<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">' +
+    66→'<Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="xl/workbook.xml"/></Relationships>';
+    67→/* STYLES_XML + THEME_XML are provided by p5_styles_xml.js (openpyxl-generated,
+    68→   proven to render identically in LibreOffice, Excel and Google Sheets). */
+    69→
+    70→/* style ids: 1 title, 2 subtitle, 3 header, 4 body, 5 zebra, 6 wk, 7 wk-zebra,
+    71→   8 red, 9 red-zebra, 10 dates, 11 dates-zebra, 12 note, 13 note-zebra */
+    72→function buildSheetXml(sheet, pool){
+    73→  const cols = sheet.cols.map((w, i) => '<col min="' + (i + 1) + '" max="' + (i + 1) + '" width="' + w + '" customWidth="1"/>').join('');
+    74→  let rows = '';
+    75→  sheet.rows.forEach((r, ri) => {
+    76→    let cells = '';
+    77→    (r.cells || []).forEach(c => {
+    78→      if(c === null || c === undefined) return;
+    79→      const v = c.v;
+    80→      if(v === '' || v === null || v === undefined) return;   // skip empties
+    81→      const ref = colLetter(c.col) + (ri + 1);
+    82→      /* +1: the openpyxl-generated styles.xml has its own default xf at index 0,
+    83→         so our style k (0..13) lives at cellXfs index k+1 */
+    84→      const st = (c.s == null ? -1 : c.s) + 1;
+    85→      if(typeof v === 'number' && isFinite(v)){
+    86→        cells += '<c r="' + ref + '" s="' + st + '"><v>' + v + '</v></c>';
+    87→      } else {
+    88→        const key = String(v);
+    89→        if(!pool.has(key)) pool.set(key, pool.size);
+    90→        cells += '<c r="' + ref + '" t="s" s="' + st + '"><v>' + pool.get(key) + '</v></c>';
+    91→      }
+    92→    });
+    93→    rows += '<row r="' + (ri + 1) + '"' + (r.h ? ' ht="' + r.h + '" customHeight="1"' : '') + '>' + cells + '</row>';
+    94→  });
+    95→  let merges = '';
+    96→  if(sheet.merges && sheet.merges.length){
+    97→    merges = '<mergeCells count="' + sheet.merges.length + '">' + sheet.merges.map(m => '<mergeCell ref="' + m + '"/>').join('') + '</mergeCells>';
+    98→  }
+    99→  return '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>\n' +
+   100→    '<worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships">' +
+   101→    '<sheetViews><sheetView workbookViewId="0" showGridLines="0"><pane ySplit="' + sheet.freeze + '" topLeftCell="A' + (sheet.freeze + 1) + '" activePane="bottomLeft" state="frozen"/></sheetView></sheetViews>' +
+   102→    '<sheetFormatPr defaultRowHeight="15"/>' +
+   103→    '<cols>' + cols + '</cols>' +
+   104→    '<sheetData>' + rows + '</sheetData>' +
+   105→    merges +
+   106→    '<drawing r:id="rId1"/></worksheet>';
+   107→}
+   108→function buildDrawingXml(){
+   109→  return '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>\n' +
+   110→    '<xdr:wsDr xmlns:xdr="http://schemas.openxmlformats.org/drawingml/2006/spreadsheetDrawing" xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships">' +
+   111→    '<xdr:oneCellAnchor>' +
+   112→    '<xdr:from><xdr:col>0</xdr:col><xdr:colOff>38100</xdr:colOff><xdr:row>0</xdr:row><xdr:rowOff>19050</xdr:rowOff></xdr:from>' +
+   113→    '<xdr:ext cx="1524000" cy="838200"/>' +
+   114→    '<xdr:pic><xdr:nvPicPr><xdr:cNvPr id="1001" name="ASO logo"/><xdr:cNvPicPr><a:picLocks noChangeAspect="1"/></xdr:cNvPicPr></xdr:nvPicPr>' +
+   115→    '<xdr:blipFill><a:blip r:embed="rId1"/><a:stretch><a:fillRect/></a:stretch></xdr:blipFill>' +
+   116→    '<xdr:spPr><a:prstGeom prst="rect"><a:avLst/></a:prstGeom></xdr:spPr></xdr:pic>' +
+   117→    '<xdr:clientData/></xdr:oneCellAnchor></xdr:wsDr>';
+   118→}
+   119→function b64ToU8(b64){
+   120→  const bin = atob(b64), u8 = new Uint8Array(bin.length);
+   121→  for(let i = 0; i < bin.length; i++) u8[i] = bin.charCodeAt(i);
+   122→  return u8;
+   123→}
+   124→
+   125→/* Build the workbook: sheets = [{name, rows, cols, merges, freeze}] */
+   126→function xlsxDownload(sheets, filename){
+   127→  const logoB64 = LOGO.split(',')[1];
+   128→  const pool = new Map();                        // shared strings (LibreOffice drops inlineStr styles)
+   129→  const sheetXmls = sheets.map(s => buildSheetXml(s, pool));
+   130→  const sst = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>\n' +
+   131→    '<sst xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" count="' + pool.size + '" uniqueCount="' + pool.size + '">' +
+   132→    Array.from(pool.keys()).map(k => '<si><t xml:space="preserve">' + X_ESC(k) + '</t></si>').join('') + '</sst>';
+   133→  const files = [
+   134→    {name:'[Content_Types].xml', data: CT_XML
+   135→      .replace('{SHEETS}', sheets.map((s, i) => '<Override PartName="/xl/worksheets/sheet' + (i + 1) + '.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/>').join(''))
+   136→      .replace('{DRAWINGS}', sheets.map((s, i) => '<Override PartName="/xl/drawings/drawing' + (i + 1) + '.xml" ContentType="application/vnd.openxmlformats-officedocument.drawing+xml"/>').join(''))
+   137→      .replace('{THEME}', '<Override PartName="/xl/theme/theme1.xml" ContentType="application/vnd.openxmlformats-officedocument.theme+xml"/>')
+   138→      .replace('{SST}', '<Override PartName="/xl/sharedStrings.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.sharedStrings+xml"/>')},
+   139→    {name:'_rels/.rels', data: RELS_ROOT},
+   140→    {name:'xl/workbook.xml', data: '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>\n' +
+   141→      '<workbook xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships"><sheets>' +
+   142→      sheets.map((s, i) => '<sheet name="' + X_ESC(s.name.slice(0, 31)) + '" sheetId="' + (i + 1) + '" r:id="rId' + (i + 1) + '"/>').join('') +
+   143→      '</sheets></workbook>'},
+   144→    {name:'xl/_rels/workbook.xml.rels', data: '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>\n' +
+   145→      '<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">' +
+   146→      sheets.map((s, i) => '<Relationship Id="rId' + (i + 1) + '" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet' + (i + 1) + '.xml"/>').join('') +
+   147→      '<Relationship Id="rId' + (sheets.length + 1) + '" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/sharedStrings" Target="sharedStrings.xml"/>' +
+   148→      '<Relationship Id="rId' + (sheets.length + 2) + '" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/styles" Target="styles.xml"/>' +
+   149→      '<Relationship Id="rId' + (sheets.length + 3) + '" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/theme" Target="theme/theme1.xml"/></Relationships>'},
+   150→    {name:'xl/styles.xml', data: STYLES_XML},
+   151→    {name:'xl/theme/theme1.xml', data: THEME_XML},
+   152→    {name:'xl/sharedStrings.xml', data: sst},
+   153→    {name:'xl/media/image1.png', data: b64ToU8(logoB64)},
+   154→  ];
+   155→  sheets.forEach((s, i) => {
+   156→    files.push({name:'xl/worksheets/sheet' + (i + 1) + '.xml', data: sheetXmls[i]});
+   157→    files.push({name:'xl/worksheets/_rels/sheet' + (i + 1) + '.xml.rels', data: '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>\n' +
+   158→      '<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">' +
+   159→      '<Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/drawing" Target="../drawings/drawing' + (i + 1) + '.xml"/></Relationships>'});
+   160→    files.push({name:'xl/drawings/drawing' + (i + 1) + '.xml', data: buildDrawingXml()});
+   161→    files.push({name:'xl/drawings/_rels/drawing' + (i + 1) + '.xml.rels', data: '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>\n' +
+   162→      '<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">' +
+   163→      '<Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/image" Target="../media/image1.png"/></Relationships>'});
+   164→  });
+   165→  downloadBlob(zipBuild(files), filename);
+   166→}
+   167→
+   168→/* ---------- scheme sheet layout (matches the Schemes of Work template) ---------- */
+   169→function schemeSheetRows(lv){
+   170→  const n1 = s1Weeks();
+   171→  const HDR = ['Week', 'Dates', 'Theme', 'Objectives — by the end, students can…', 'Key language', 'Skills — L / S / R / W', 'Resources (Drive library)', 'Activities', 'Homework', 'Note'];
+   172→  const COLS = [2.5, 7, 12, 30, 40, 28, 26, 30, 32, 24, 22];
+   173→  const rows = [];
+   174→  const C = (col, v, s) => ({col, v, s});
+   175→  rows.push({cells: [C(1, ''), C(4, 'ELTASO — ' + lv.label + ' · Schemes of Work', 1)], h: 26});
+   176→  rows.push({cells: [C(1, ''), C(4, state.settings.institute + ' · ' + state.settings.year + ' · ' + lv.weeks.length + ' weeks · ' + (lv.cefr || '') + ' · exported from ELTASO Companion v' + APP_VERSION, 2)], h: 16});
+   177→  rows.push({cells: [], h: 6});
+   178→  rows.push({cells: [], h: 40});
+   179→  rows.push({cells: HDR.map((t, i) => C(i + 2, t, 3)), h: 30});
+   180→  lv.weeks.forEach((w, wi) => {
+   181→    const zebra = wi % 2 === 1;
+   182→    const assess = /assessment/i.test(w.theme || '') || /ASSESSMENT/i.test(noteFor(wi));
+   183→    const sBody = assess ? 8 : (zebra ? 5 : 4);
+   184→    const sWk = zebra ? 7 : 6;
+   185→    const sDate = zebra ? 11 : 10;
+   186→    const sNote = assess ? 12 : (zebra ? 13 : 12);
+   187→    const d = fmtD(weekMonday(wi), {day:'numeric', month:'short'});
+   188→    rows.push({cells: [
+   189→      C(1, ''),
+   190→      C(2, wi + 1, sWk),
+   191→      C(3, d, sDate),
+   192→      C(4, w.theme || '', assess ? 8 : (zebra ? 5 : 4)),
+   193→      C(5, w.obj || '', sBody),
+   194→      C(6, w.lang || '', sBody),
+   195→      C(7, skillsText(w), sBody),
+   196→      C(8, w.res || '', sBody),
+   197→      C(9, w.act || '', sBody),
+   198→      C(10, w.hw || '', sBody),
+   199→      C(11, noteFor(wi), sNote),
+   200→    ]});
+   201→  });
+   202→  return {name: lv.label, rows, cols: COLS, merges: ['D1:K1', 'D2:K2'], freeze: 5};
+   203→}
+   204→
+   205→function exportLevelXlsx(lv){
+   206→  try{
+   207→    xlsxDownload([schemeSheetRows(lv)], 'ELTASO_' + safeName(lv.label) + '_Schemes_' + safeName(state.settings.year) + '.xlsx');
+   208→    toast('Excel exported');
+   209→  }catch(e){ console.error(e); toast('Export failed', false); }
+   210→}
+   211→function exportAllXlsx(){
+   212→  try{
+   213→    xlsxDownload(state.levels.map(lv => schemeSheetRows(lv)), 'ELTASO_All_Levels_Schemes_' + safeName(state.settings.year) + '.xlsx');
+   214→    toast('Excel exported — ' + state.levels.length + ' sheets');
+   215→  }catch(e){ console.error(e); toast('Export failed', false); }
+   216→}
+   217→
+   218→/* ---------- Word (.doc) export — same brand template as the program documents ---------- */
+   219→function docTableRows(lv, off){
+   220→  let h = '';
+   221→  lv.weeks.forEach((w, i0) => {
+   222→    const wi = i0 + (off || 0);
+   223→    const assess = /assessment/i.test(w.theme || '') || /ASSESSMENT/i.test(noteFor(wi));
+   224→    const d = fmtD(weekMonday(wi), {day:'numeric', month:'short'});
+   225→    const note = noteFor(wi);
+   226→    h += '<tr>' +
+   227→      '<td class="wk">' + (wi + 1) + '</td>' +
+   228→      '<td style="text-align:center">' + d + '</td>' +
+   229→      '<td class="' + (assess ? 'red' : '') + '">' + X_ESC(w.theme || '') + '</td>' +
+   230→      '<td>' + X_ESC(w.obj || '') + '</td>' +
+   231→      '<td>' + X_ESC(w.lang || '') + '</td>' +
+   232→      '<td>' + X_ESC(skillsText(w)) + '</td>' +
+   233→      '<td>' + X_ESC(w.res || '') + '</td>' +
+   234→      '<td>' + X_ESC(w.act || '') + '</td>' +
+   235→      '<td>' + X_ESC(w.hw || '') + '</td>' +
+   236→      '<td class="note">' + X_ESC(note) + '</td></tr>';
+   237→  });
+   238→  return h;
+   239→}
+   240→function exportLevelDoc(lv){
+   241→  const n1 = s1Weeks();
+   242→  const html = '<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:w="urn:schemas-microsoft-com:office:word"><head>' +
+   243→    '<meta charset="utf-8"><title>ELTASO ' + X_ESC(lv.label) + ' Schemes of Work</title>' +
+   244→    '<!--[if gte mso 9]><xml><w:WordDocument><w:View>Print</w:View><w:Zoom>100</w:Zoom></w:WordDocument></xml><![endif]-->' +
+   245→    '<style>' +
+   246→    '@page Section1 {size:29.7cm 21.0cm; margin:1.4cm 1.4cm 1.4cm 1.4cm; mso-page-orientation:landscape;}' +
+   247→    'div.Section1 {page:Section1;}' +
+   248→    'body{font-family:Calibri,Arial,sans-serif;font-size:9.5pt;color:#1C1C1E;}' +
+   249→    'h1{color:#1B2A55;font-size:19pt;margin:0 0 2pt 0;}' +
+   250→    'h2{color:#C1272D;font-size:13pt;margin:16pt 0 6pt 0;}' +
+   251→    '.sub{color:#6E6E73;font-size:10pt;margin:0 0 8pt 0;}' +
+   252→    'table.plan{border-collapse:collapse;width:100%;}' +
+   253→    'table.plan th{background:#1B2A55;color:white;font-size:9pt;padding:5px 6px;border:1px solid #1B2A55;text-align:left;}' +
+   254→    'table.plan td{border:1px solid #D9D9E0;padding:5px 6px;font-size:9pt;vertical-align:top;}' +
+   255→    'td.wk{font-weight:bold;color:#1B2A55;text-align:center;}' +
+   256→    'td.red{color:#C1272D;font-weight:bold;}' +
+   257→    'td.note{color:#8A6A00;font-weight:bold;}' +
+   258→    '</style></head><body><div class="Section1">' +
+   259→    '<table style="border-collapse:collapse;width:100%;margin-bottom:6pt;"><tr>' +
+   260→    '<td style="border:none;width:130px;padding:0;"><img src="' + LOGO + '" width="118" alt="American Space Oujda"></td>' +
+   261→    '<td style="border:none;vertical-align:middle;padding:0 0 0 10px;"><h1>ELTASO — ' + X_ESC(lv.label) + ' · Schemes of Work</h1>' +
+   262→    '<p class="sub">' + X_ESC(state.settings.institute) + ' · ' + X_ESC(state.settings.year) + ' · ' + lv.weeks.length + ' weeks · ' + X_ESC(lv.cefr || '') + ' · exported from ELTASO Companion v' + APP_VERSION + '</p></td>' +
+   263→    '</tr></table>' +
+   264→    '<h2>Semester 1 · Weeks 1–' + n1 + '</h2>' +
+   265→    '<table class="plan"><tr><th>Week</th><th>Dates</th><th>Theme</th><th>Objectives</th><th>Key language</th><th>Skills (L·S·R·W)</th><th>Resources (Drive)</th><th>Activities</th><th>Homework</th><th>Note</th></tr>' +
+   266→    docTableRows({weeks: lv.weeks.slice(0, n1)}, 0) + '</table>' +
+   267→    '<h2>Semester 2 · Weeks ' + (n1 + 1) + '–' + lv.weeks.length + '</h2>' +
+   268→    '<table class="plan"><tr><th>Week</th><th>Dates</th><th>Theme</th><th>Objectives</th><th>Key language</th><th>Skills (L·S·R·W)</th><th>Resources (Drive)</th><th>Activities</th><th>Homework</th><th>Note</th></tr>' +
+   269→    docTableRows({weeks: lv.weeks.slice(n1)}, n1) + '</table>' +
+   270→    '</div></body></html>';
+   271→  downloadBlob(new Blob(['\ufeff' + html], {type:'application/msword'}), 'ELTASO_' + safeName(lv.label) + '_Plan_' + safeName(state.settings.year) + '.doc');
+   272→  toast('Word exported');
+   273→}
+   274→function exportAllDoc(){
+   275→  const n1 = s1Weeks();
+   276→  let body = '';
+   277→  state.levels.forEach(lv => {
+   278→    body += '<h1 style="color:#1B2A55;font-size:17pt;margin:18pt 0 2pt 0;">ELTASO — ' + X_ESC(lv.label) + ' · Schemes of Work</h1>' +
+   279→      '<p class="sub">' + X_ESC(state.settings.institute) + ' · ' + X_ESC(state.settings.year) + ' · ' + X_ESC(lv.cefr || '') + '</p>' +
+   280→      '<table class="plan"><tr><th>Week</th><th>Dates</th><th>Theme</th><th>Objectives</th><th>Key language</th><th>Skills (L·S·R·W)</th><th>Resources (Drive)</th><th>Activities</th><th>Homework</th><th>Note</th></tr>' +
+   281→      docTableRows(lv, 0) + '</table>';
+   282→  });
+   283→  const html = '<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:w="urn:schemas-microsoft-com:office:word"><head>' +
+   284→    '<meta charset="utf-8"><title>ELTASO Schemes of Work</title>' +
+   285→    '<!--[if gte mso 9]><xml><w:WordDocument><w:View>Print</w:View><w:Zoom>100</w:Zoom></w:WordDocument></xml><![endif]-->' +
+   286→    '<style>' +
+   287→    '@page Section1 {size:29.7cm 21.0cm; margin:1.4cm 1.4cm 1.4cm 1.4cm; mso-page-orientation:landscape;}' +
+   288→    'div.Section1 {page:Section1;}' +
+   289→    'body{font-family:Calibri,Arial,sans-serif;font-size:9.5pt;color:#1C1C1E;}' +
+   290→    'h1{color:#1B2A55;font-size:17pt;margin:18pt 0 2pt 0;}' +
+   291→    '.sub{color:#6E6E73;font-size:10pt;margin:0 0 8pt 0;}' +
+   292→    'table.plan{border-collapse:collapse;width:100%;}' +
+   293→    'table.plan th{background:#1B2A55;color:white;font-size:9pt;padding:5px 6px;border:1px solid #1B2A55;text-align:left;}' +
+   294→    'table.plan td{border:1px solid #D9D9E0;padding:5px 6px;font-size:9pt;vertical-align:top;}' +
+   295→    'td.wk{font-weight:bold;color:#1B2A55;text-align:center;}' +
+   296→    'td.red{color:#C1272D;font-weight:bold;}' +
+   297→    'td.note{color:#8A6A00;font-weight:bold;}' +
+   298→    '</style></head><body><div class="Section1">' +
+   299→    '<table style="border-collapse:collapse;width:100%;margin-bottom:6pt;"><tr>' +
+   300→    '<td style="border:none;width:130px;padding:0;"><img src="' + LOGO + '" width="118" alt="American Space Oujda"></td>' +
+   301→    '<td style="border:none;vertical-align:middle;padding:0 0 0 10px;"><h1 style="font-size:19pt;margin:0;">ELTASO · All Levels — Schemes of Work</h1>' +
+   302→    '<p class="sub">' + X_ESC(state.settings.institute) + ' · ' + X_ESC(state.settings.year) + ' · exported from ELTASO Companion v' + APP_VERSION + '</p></td>' +
+   303→    '</tr></table>' + body + '</div></body></html>';
+   304→  downloadBlob(new Blob(['\ufeff' + html], {type:'application/msword'}), 'ELTASO_All_Levels_Plan_' + safeName(state.settings.year) + '.doc');
+   305→  toast('Word exported — all levels');
+   306→}
+   307→
+   308→/* ---------- app update ---------- */
+   309→function installDataUpdate(parsed){
+   310→  if(parsed && parsed.eltaso_update && parsed.v === 1){
+   311→    ['levels','classes','team','library','notes','clubs','volunteers'].forEach(k => { if(Array.isArray(parsed[k])) state[k] = parsed[k]; });
+   312→    if(parsed.settings && typeof parsed.settings === 'object') Object.assign(state.settings, parsed.settings);
+   313→  } else if(parsed && parsed.v === 1 && Array.isArray(parsed.levels) && parsed.settings){
+   314→    state = parsed;                       // full backup file = full restore
+   315→  } else {
+   316→    return false;
+   317→  }
+   318→  if(!state.settings.updUrl) state.settings.updUrl = state.rootUrl || '';
+   319→  migrateLevels(state, true);
+   320→  migrateSkills(state, true);
+   321→  migrateLpIntern(state, true);                /* four-skills plan + full Drive library (v1.4) */               /* expand old 4-level program to 9 band tiers */
+   322→  const keys = state.levels.map(l => l.key);
+   323→  Object.keys(state.prep).forEach(k => { if(keys.indexOf(k.split(':')[0]) === -1) delete state.prep[k]; });
+   324→  lvSeg = 0; lvOpen.clear();
+   325→  save(); applyTheme(); navHTML(); render();
+   326→  return true;
+   327→}
+   328→
+   329→/* ================= PNG exports (v1.7 + v2.1 A4 edition) ================= */
+   330→const TONE_PNG = [
+   331→  ['rgba(11,92,230,.16)', '#0A54C4'],
+   332→  ['rgba(255,149,0,.20)', '#A85700'],
+   333→  ['rgba(52,199,89,.18)', '#1E7A3A'],
+   334→  ['rgba(175,82,222,.15)', '#8E44B3'],
+   335→  ['rgba(88,86,214,.15)', '#4A48B8'],
+   336→  ['rgba(255,45,85,.14)', '#C81E45'],
+   337→  ['rgba(48,176,199,.17)', '#0F7A8C'],
+   338→  ['rgba(255,204,0,.22)', '#8A6D00'],
+   339→  ['rgba(120,120,128,.18)', '#5A5A66']
+   340→];
+   341→function toneIdx(label){
+   342→  let i = state.levels.findIndex(l => l.label === label);
+   343→  if(i < 0){ const str = String(label || '?'); let h = 0; for(let k = 0; k < str.length; k++) h = (h * 31 + str.charCodeAt(k)) >>> 0; i = h; }
+   344→  return i % 9;
+   345→}
+   346→function clubToneIdx(id){
+   347→  let i = (state.clubs || []).findIndex(c => c.id === id);
+   348→  if(i < 0){ i = 0; const str = String(id || ''); for(let k = 0; k < str.length; k++) i += str.charCodeAt(k); }
+   349→  return i % 9;
+   350→}
+   351→function roomFloor(room){ /* v2.6: the four ASO spaces carry their real floor */
+   352→  return venueFloor(room);
+   353→}
+   354→function roomsLine(){ /* v2.6: the building itself, printed on every export */
+   355→  let line = 'ASO spaces \u2014 ' + ASO_VENUES.map(v => v.name + ': ' + v.short).join(' \u00b7 ');
+   356→  const extras = [];
+   357→  [].concat(state.classes || [], state.clubs || []).forEach(c => { if(c.room && !venueKnown(c.room) && extras.indexOf(c.room) < 0) extras.push(c.room); });
+   358→  (state.events || []).forEach(e => { if(e.place && !venueKnown(e.place) && extras.indexOf(e.place) < 0) extras.push(e.place); });
+   359→  if(extras.length) line += ' \u00b7 Also: ' + extras.join(' \u00b7 ');
+   360→  return line;
+   361→}
+   362→function loadLogo(){
+   363→  return new Promise(res => {
+   364→    const im = new Image();
+   365→    im.onload = () => res(im);
+   366→    im.onerror = () => res(null);
+   367→    im.src = LOGO;
+   368→  });
+   369→}
+   370→function gridDataFrom(list, isClubs){
+   371→  const slots = [], seen = {};
+   372→  list.forEach(c => { const s = parseSlot(c.time); if(!seen[s.k]){ seen[s.k] = 1; slots.push(s); } });
+   373→  slots.sort((a, b) => a.mins - b.mins || a.label.localeCompare(b.label));
+   374→  const cells = {};
+   375→  slots.forEach(sl => { cells[sl.k] = {}; DAY_KEYS.forEach(d => cells[sl.k][d] = []); });
+   376→  const counters = {};
+   377→  let maxChips = 1;
+   378→  list.forEach(c => {
+   379→    const s = parseSlot(c.time);
+   380→    (c.days || []).forEach(d => {
+   381→      let top, main, meta, tone, icon;
+   382→      if(isClubs){
+   383→        top = '';
+   384→        main = c.name || '';
+   385→        meta = [c.lead ? c.lead : '\u26a0 needs a lead', c.room].filter(Boolean).join(' \u00b7 ');
+   386→        tone = clubToneIdx(c.id);
+   387→        icon = clubIconKind(c); /* v2.7: theme icon rides along, drawn when themed */
+   388→      } else {
+   389→        counters[c.level] = (counters[c.level] || 0) + 1;
+   390→        top = c.level + ' \u00b7 ' + counters[c.level];
+   391→        main = [c.teacher, c.room].filter(Boolean).join(' \u00b7 ');
+   392→        meta = '';
+   393→        tone = toneIdx(c.level);
+   394→      }
+   395→      cells[s.k][d].push({tone, top, main, meta, icon});
+   396→      maxChips = Math.max(maxChips, cells[s.k][d].length);
+   397→    });
+   398→  });
+   399→  return {slots, cells, maxChips};
+   400→}
+   401→function rrPath(ctx, x, y, w, h, r){
+   402→  ctx.beginPath();
+   403→  ctx.moveTo(x + r, y);
+   404→  ctx.arcTo(x + w, y, x + w, y + h, r);
+   405→  ctx.arcTo(x + w, y + h, x, y + h, r);
+   406→  ctx.arcTo(x, y + h, x, y, r);
+   407→  ctx.arcTo(x, y, x + w, y, r);
+   408→  ctx.closePath();
+   409→}
+   410→function clipTo(ctx, t, w){
+   411→  const s = String(t == null ? '' : t);
+   412→  if(ctx.measureText(s).width <= w) return s;
+   413→  while(s.length > 1 && ctx.measureText(s + '\u2026').width > w) s = s.slice(0, -1);
+   414→  return s + '\u2026';
+   415→}
+   416→const FONT_PNG = '-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif';
+   417→/* v2.7: club themes - every club gets a drawn icon matching its theme */
+   418→function clubIconKind(c){
+   419→  const s = ((c.name || '') + ' ' + (c.desc || '')).toLowerCase();
+   420→  const has = a => a.some(k => s.indexOf(k) > -1);
+   421→  if(has(['chess'])) return 'chess';
+   422→  if(has(['code', 'coding', 'robot', 'tech', 'stem', 'science', 'math'])) return 'science';
+   423→  if(has(['book', 'read', 'story', 'literat', 'poetry'])) return 'book';
+   424→  if(has(['movie', 'film', 'cinema'])) return 'film';
+   425→  if(has(['debate', 'talk', 'conversation', 'speech', 'toast'])) return 'mic';
+   426→  if(has(['art', 'draw', 'paint', 'design', 'craft'])) return 'art';
+   427→  if(has(['music', 'song', 'sing', 'guitar', 'choir'])) return 'music';
+   428→  if(has(['writ', 'journal'])) return 'pen';
+   429→  if(has(['game', 'gam', 'esport'])) return 'game';
+   430→  if(has(['homework', 'tutor', 'study', 'help'])) return 'study';
+   431→  return 'star';
+   432→}
+   433→function drawThemeIcon(ctx, kind, x, y, col){
+   434→  ctx.strokeStyle = col; ctx.fillStyle = col;
+   435→  ctx.lineWidth = 1.7; ctx.lineCap = 'round'; ctx.lineJoin = 'round';
+   436→  const L = (a, b, c, d) => { ctx.beginPath(); ctx.moveTo(a, b); ctx.lineTo(c, d); ctx.stroke(); };
+   437→  const C = (a, b, r, fill) => { ctx.beginPath(); ctx.arc(a, b, r, 0, 7); fill ? ctx.fill() : ctx.stroke(); };
+   438→  if(kind === 'star'){
+   439→    ctx.beginPath();
+   440→    for(let i = 0; i < 10; i++){
+   441→      const r = i % 2 ? 2.8 : 6.5, a = -Math.PI / 2 + i * Math.PI / 5;
+   442→      const px = x + r * Math.cos(a), py = y + r * Math.sin(a);
+   443→      i ? ctx.lineTo(px, py) : ctx.moveTo(px, py);
+   444→    }
+   445→    ctx.closePath(); ctx.stroke();
+   446→  } else if(kind === 'book'){
+   447→    L(x, y - 6, x - 7, y - 4); L(x - 7, y - 4, x - 7, y + 6); L(x - 7, y + 6, x, y + 4);
+   448→    L(x, y - 6, x + 7, y - 4); L(x + 7, y - 4, x + 7, y + 6); L(x + 7, y + 6, x, y + 4);
+   449→  } else if(kind === 'film'){
+   450→    ctx.strokeRect(x - 7, y - 5.5, 14, 11);
+   451→    C(x - 4, y - 2.5, 1, true); C(x - 4, y + 1.5, 1, true); C(x + 4, y - 2.5, 1, true); C(x + 4, y + 1.5, 1, true);
+   452→  } else if(kind === 'mic'){
+   453→    C(x, y - 3, 3);
+   454→    ctx.beginPath(); ctx.arc(x, y - 3, 5.5, 0.5, Math.PI - 0.5); ctx.stroke();
+   455→    L(x, y + 2, x, y + 6); L(x - 3.5, y + 6, x + 3.5, y + 6);
+   456→  } else if(kind === 'chess'){
+   457→    C(x, y - 3.5, 2.8);
+   458→    L(x - 1.6, y - 1.5, x - 3.5, y + 3); L(x + 1.6, y - 1.5, x + 3.5, y + 3);
+   459→    L(x - 5.5, y + 5.5, x + 5.5, y + 5.5);
+   460→  } else if(kind === 'science'){
+   461→    ctx.beginPath();
+   462→    ctx.moveTo(x - 2, y - 7); ctx.lineTo(x - 2, y - 2); ctx.lineTo(x - 6, y + 5.5);
+   463→    ctx.lineTo(x + 6, y + 5.5); ctx.lineTo(x + 2, y - 2); ctx.lineTo(x + 2, y - 7);
+   464→    ctx.stroke(); L(x - 3.5, y - 7, x + 3.5, y - 7);
+   465→  } else if(kind === 'art'){
+   466→    L(x - 6, y + 6, x + 6, y - 6);
+   467→    ctx.beginPath(); ctx.moveTo(x - 7.5, y + 7.5); ctx.lineTo(x - 6.2, y + 4); ctx.lineTo(x - 4, y + 6.2); ctx.closePath(); ctx.stroke();
+   468→  } else if(kind === 'music'){
+   469→    C(x - 3, y + 4.5, 2.1, true);
+   470→    L(x - 1, y + 4.5, x - 1, y - 6);
+   471→    ctx.beginPath(); ctx.moveTo(x - 1, y - 6); ctx.quadraticCurveTo(x + 3, y - 5, x + 5, y - 2.5); ctx.stroke();
+   472→  } else if(kind === 'game'){
+   473→    ctx.strokeRect(x - 6, y - 6, 12, 12);
+   474→    C(x - 2.5, y - 2.5, 1, true); C(x, y, 1, true); C(x + 2.5, y + 2.5, 1, true);
+   475→  } else if(kind === 'pen'){
+   476→    L(x - 6, y + 6, x + 6, y - 6);
+   477→    C(x - 6, y + 6, 1.2, true);
+   478→    L(x + 3, y - 3, x + 6, y - 6);
+   479→  } else if(kind === 'study'){
+   480→    ctx.beginPath(); ctx.moveTo(x, y - 6); ctx.lineTo(x + 7.5, y - 1.5); ctx.lineTo(x, y + 3); ctx.lineTo(x - 7.5, y - 1.5); ctx.closePath(); ctx.stroke();
+   481→    L(x, y + 3, x, y + 6.5); C(x, y + 7.3, 0.9, true);
+   482→  }
+   483→}
+   484→function drawChipRow(ctx, c, cx, cy, cw, chipH, compact, themed){
+   485→  const tone = TONE_PNG[c.tone] || TONE_PNG[0];
+   486→  ctx.fillStyle = tone[0];
+   487→  rrPath(ctx, cx, cy, cw, chipH, Math.min(10, chipH / 2));
+   488→  ctx.fill();
+   489→  if(themed && c.icon){ /* v2.7: theme icon in a coloured disc, text shifted right */
+   490→    ctx.fillStyle = tone[1];
+   491→    ctx.beginPath(); ctx.arc(cx + 15, cy + chipH / 2, 10.5, 0, 7); ctx.fill();
+   492→    drawThemeIcon(ctx, c.icon, cx + 15, cy + chipH / 2, '#FFFFFF');
+   493→    if(c.main){
+   494→      ctx.font = (compact ? '800 11.5px ' : '800 13px ') + FONT_PNG;
+   495→      ctx.fillText(clipTo(ctx, c.main, cw - 46), cx + 31, compact ? cy + chipH / 2 + 4 : cy + 21);
+   496→    }
+   497→    if(c.meta && !compact){
+   498→      ctx.font = '600 10.5px ' + FONT_PNG;
+   499→      ctx.globalAlpha = .78;
+   500→      ctx.fillText(clipTo(ctx, c.meta, cw - 42), cx + 31, cy + 37);
+   501→      ctx.globalAlpha = 1;
+   502→    }
+   503→    return;
+   504→  }
+   505→  ctx.fillStyle = tone[1];
+   506→  ctx.beginPath(); ctx.arc(cx + 13, cy + 13, 3.5, 0, 7); ctx.fill();
+   507→  let used = 0;
+   508→  if(c.top && !compact){
+   509→    ctx.font = '600 10.5px ' + FONT_PNG;
+   510→    ctx.globalAlpha = .85;
+   511→    ctx.fillText(clipTo(ctx, c.top, cw - 36), cx + 22, cy + 16);
+   512→    ctx.globalAlpha = 1;
+   513→    used = 1;
+   514→  }
+   515→  if(c.main){
+   516→    ctx.font = (compact ? '800 11.5px ' : '800 13px ') + FONT_PNG;
+   517→    ctx.fillText(clipTo(ctx, c.main, cw - 20), cx + 10, compact ? cy + chipH / 2 + 4 : cy + (used ? 35 : 21));
+   518→  }
+   519→  if(c.meta && !compact){
+   520→    let m = c.meta;
+   521→    if(ctx.measureText(m).width > cw - 22){
+   522→      ctx.font = '600 10px ' + FONT_PNG;
+   523→    } else {
+   524→      ctx.font = '600 10.5px ' + FONT_PNG;
+   525→    }
+   526→    ctx.globalAlpha = .78;
+   527→    ctx.fillText(clipTo(ctx, m, cw - 22), cx + 10, cy + (used ? 51 : 37));
+   528→    ctx.globalAlpha = 1;
+   529→  }
+   530→}
+   531→function pngHeader(ctx, o, W, withDates){
+   532→  /* logo + title lockup, returns header bottom y */
+   533→  const logo = o.logo;
+   534→  let x = 56;
+   535→  if(logo){
+   536→    const h = 64, w = h * (logo.width / logo.height);
+   537→    ctx.drawImage(logo, x, 26, w, h);
+   538→    x += w + 22;
+   539→  } else x += 8;
+   540→  ctx.fillStyle = '#1C1C1E';
+   541→  ctx.font = '800 30px ' + FONT_PNG;
+   542→  ctx.fillText(o.title, x, 62);
+   543→  ctx.fillStyle = '#66666E';
+   544→  ctx.font = '500 15px ' + FONT_PNG;
+   545→  ctx.fillText(o.subtitle, x, 88);
+   546→  return 118;
+   547→}
+   548→function drawGrid(ctx, o, W, ty, TIMEW, TH, rowH, chipH, compact){
+   549→  const PAD = 56;
+   550→  const dw = (W - PAD * 2 - TIMEW) / 7;
+   551→  /* head row */
+   552→  ctx.fillStyle = '#1C1C1E';
+   553→  ctx.font = '700 16px ' + FONT_PNG;
+   554→  ctx.textAlign = 'center';
+   555→  DAY_KEYS.forEach((d, i) => {
+   556→    ctx.fillText(d, PAD + TIMEW + i * dw + dw / 2, ty + TH / 2 + 6);
+   557→  });
+   558→  ctx.strokeStyle = 'rgba(60,60,67,.18)';
+   559→  ctx.beginPath(); ctx.moveTo(PAD, ty + TH + .5); ctx.lineTo(W - PAD, ty + TH + .5); ctx.stroke();
+   560→  ctx.beginPath(); ctx.moveTo(PAD, ty + .5); ctx.lineTo(W - PAD, ty + .5); ctx.stroke();
+   561→  ctx.textAlign = 'left';
+   562→  /* rows */
+   563→  o.slots.forEach((slot, r) => {
+   564→    const y = ty + TH + r * rowH;
+   565→    if(compact && r % 2 === 1){
+   566→      ctx.fillStyle = 'rgba(120,120,128,.055)';
+   567→      ctx.fillRect(PAD + 1, y, W - PAD * 2 - 2, rowH);
+   568→    }
+   569→    if(r > 0){
+   570→      ctx.strokeStyle = 'rgba(60,60,67,.07)';
+   571→      ctx.beginPath(); ctx.moveTo(PAD, y + .5); ctx.lineTo(W - PAD, y + .5); ctx.stroke();
+   572→    }
+   573→    /* time label - compact 24h, one line, inside its column */
+   574→    ctx.textAlign = 'center';
+   575→    ctx.fillStyle = '#66666E';
+   576→    ctx.font = (compact ? '700 10px ' : '700 12.5px ') + FONT_PNG;
+   577→    ctx.fillText(clipTo(ctx, slot.label || '', TIMEW - 8), PAD + TIMEW / 2, y + rowH / 2 + 4);
+   578→    ctx.textAlign = 'left';
+   579→    for(let d = 0; d < 7; d++){
+   580→      const x = PAD + TIMEW + d * dw;
+   581→      const chips = (o.cells[slot.k] && o.cells[slot.k][DAY_KEYS[d]]) || [];
+   582→      const n = compact ? Math.min(chips.length, o.maxChips) : chips.length;
+   583→      const stack = n * (chipH + 6) - 6;
+   584→      let cy = y + Math.max(6, Math.floor((rowH - stack) / 2));
+   585→      chips.slice(0, compact ? o.maxChips : chips.length).forEach(c => {
+   586→        drawChipRow(ctx, c, x + 8, cy, dw - 16, chipH, compact, o.themed);
+   587→        cy += chipH + 6;
+   588→      });
+   589→    }
+   590→  });
+   591→  return ty + TH + o.slots.length * rowH;
+   592→}
+   593→function drawLegend(ctx, o, W, y, center){
+   594→  const PAD = 56;
+   595→  ctx.font = '600 12px ' + FONT_PNG;
+   596→  const items = o.legend.map(l => ({w: 20 + ctx.measureText(l.label).width, l}));
+   597→  const total = items.reduce((m, i) => m + i.w + 24, -24);
+   598→  let x = center ? Math.max(PAD, (W - total) / 2) : PAD;
+   599→  ctx.textAlign = 'left';
+   600→  items.forEach(i => {
+   601→    ctx.fillStyle = TONE_PNG[i.l.tone][1];
+   602→    ctx.beginPath(); ctx.arc(x + 4, y - 4, 4.5, 0, 7); ctx.fill();
+   603→    ctx.fillStyle = '#66666E';
+   604→    ctx.fillText(i.l.label, x + 14, y);
+   605→    x += i.w + 24;
+   606→  });
+   607→  return y + 12;
+   608→}
+   609→/* v2.4: HD - every PNG renders at 2x (3508px wide), crisp on screens, projectors and print.
+   610→   The A4 print edition is retired: one format, one click. */
+   611→async function renderTimetablePNG(o){
+   612→  const logo = await loadLogo();
+   613→  const SCALE = 2;
+   614→  const W = 1754;
+   615→  const cv = document.createElement('canvas');
+   616→  const ctx = cv.getContext('2d');
+   617→  o.logo = logo;
+   618→  {
+   619→    const TIMEW = 112, TH = 54, chipH = 48;
+   620→    const rowH = Math.max(104, o.maxChips * (chipH + 6) + 16);
+   621→    const HEADH = 118;
+   622→    const legendY = HEADH + TH + o.slots.length * rowH + 30;
+   623→    const roomsH = o.rooms ? 40 : 0;
+   624→    const H = legendY + 20 + roomsH + 10;
+   625→    cv.width = W * SCALE; cv.height = H * SCALE;
+   626→    ctx.scale(SCALE, SCALE);
+   627→    ctx.fillStyle = '#FFFFFF'; ctx.fillRect(0, 0, W, H);
+   628→    const headB = pngHeader(ctx, o, W);
+   629→    const endY = drawGrid(ctx, o, W, headB, TIMEW, TH, rowH, chipH, false);
+   630→    let y = Math.max(legendY, endY + 30);
+   631→    y = drawLegend(ctx, o, W, y, false);
+   632→    if(o.rooms){
+   633→      ctx.fillStyle = '#A6A6AD';
+   634→      ctx.font = '500 12px ' + FONT_PNG;
+   635→      ctx.fillText(o.rooms, 56, y + 10);
+   636→    }
+   637→  }
+   638→  return await new Promise(res => cv.toBlob(res, 'image/png'));
+   639→}
+   640→function pngExportName(kind){
+   641→  const year = safeName(state.settings.year || '');
+   642→  const p = kind === 'sched' ? 'ELTASO_Weekly_Program_'
+   643→    : kind === 'clubsIcons' ? 'ASO_Clubs_Events_Weekly_Icons_' : 'ASO_Clubs_Events_Weekly_';
+   644→  return p + year + '_HD.png';
+   645→}
+   646→async function runPngExport(kind, data){
+   647→  const isSched = kind === 'sched';
+   648→  const year = state.settings.year || '';
+   649→  const o = {
+   650→    title: isSched ? 'ELTASO \u2014 Weekly Program' : 'ASO \u2014 Clubs & Events',
+   651→    subtitle: isSched
+   652→      ? state.settings.institute + ' \u00b7 ' + year + ' \u00b7 ' + (state.classes || []).length + ' classes \u00b7 ' + data.slots.length + ' time slots'
+   653→      : state.settings.institute + ' \u00b7 ' + year + ' \u00b7 ' + (state.clubs || []).length + ' clubs \u00b7 ' +
+   654→        (state.clubs || []).reduce((n, c) => n + (c.days || []).length, 0) + ' sessions / week' +
+   655→        (kind === 'clubsIcons' ? ' \u00b7 each club with its theme icon' : ''),
+   656→    slots: data.slots, cells: data.cells, maxChips: data.maxChips,
+   657→    legend: isSched
+   658→      ? (function(){ /* v2.2: PNG legend = levels actually used */ const used = []; state.classes.forEach(c => { if(c.level && used.indexOf(c.level) === -1) used.push(c.level); }); return used.map(l => ({tone: toneIdx(l), label: l})); })()
+   659→      : (state.clubs || []).map(c => ({tone: clubToneIdx(c.id), label: c.name})),
+   660→    rooms: roomsLine(),
+   661→    themed: kind === 'clubsIcons' /* v2.7 */
+   662→  };
+   663→  toast('Rendering the PNG…');
+   664→  const blob = await renderTimetablePNG(o);
+   665→  if(!blob){ toast('Export failed - try again', false); return; }
+   666→  downloadBlob(blob, pngExportName(kind));
+   667→  toast('PNG exported (HD)');
+   668→}
+   669→/* v2.4: one click, one HD PNG - no chooser sheet anymore */
+   670→function exportPng(kind){
+   671→  const isSched = kind === 'sched';
+   672→  const list = isSched
+   673→    ? (state.classes || [])
+   674→    : (state.clubs || []).filter(c => (c.days || []).length && c.time);
+   675→  runPngExport(kind, gridDataFrom(list, !isSched));
+   676→}
+   677→

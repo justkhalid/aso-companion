@@ -1,0 +1,54 @@
+{
+  "wu": "Human Bingo: Students mingle asking 'What's your name? How old are you? Where do you live?' to fill bingo cards with classmates' details.",
+  "wuAlt": [
+    "Alphabet Chain: Students stand in a circle and say 'A is for apple, B is for banana...' taking turns.",
+    "Number Race: Teacher calls out numbers 0-20, students write them on mini-boards."
+  ],
+  "pres": "Show a sample registration form on the board; model filling it with your details ('My name is... I am... years old. I live at...'); drill pronunciation of 'name', 'age', 'address'.",
+  "presAlt": [
+    "Realia props: Hold up an ID card, ask 'What's this? It's my ID. My name is...'; students repeat.",
+    "Dialogue: Roleplay a registration scene with a student ('Hello, what's your name? My name is...')."
+  ],
+  "prac": "Form-filling pairs: Students get blank forms, take turns asking and writing partner's details; teacher circulates to correct spelling and pronunciation.",
+  "pracAlt": [
+    "Spelling Bee: Teacher says a name/city (e.g., 'Oujda'), students spell it aloud; fastest wins a point.",
+    "Number Dictation Race: Dictate ages (e.g., 'twenty-five'), students write numbers on paper; first pair correct wins."
+  ],
+  "ls": "Listen and fill: Play a dialogue where two people exchange personal details; students listen and complete a half-filled form with missing letters/numbers.",
+  "re": "Alphabet Jump: Teacher calls out a letter (e.g., 'G'), students jump and say a word starting with it; repeat with numbers (e.g., '15' = 'Fifteen!').",
+  "prod": "Registration Roleplay: Students pretend to register at the American Space Oujda; one asks 'What's your name? How old are you? Where do you live?', the other answers and fills a form.",
+  "rw": "Read and Match: Students read short form fields ('Name: __', 'Age: __') and match them to answers ('Fatima', '25') from a list; then copy the completed form.",
+  "st": "Close with a song: 'Hello, Hello, What's Your Name?' (to the tune of 'Twinkle Twinkle') + recap: 'Today we learned to give and spell personal information. Thank you, class!'",
+  "g": [
+    [
+      "Alphabet Relay",
+      "Teams race to write the alphabet on the board, one letter per student."
+    ],
+    [
+      "Number Bingo",
+      "Teacher calls numbers, students cross them off cards; first to shout 'Bingo!' wins."
+    ],
+    [
+      "Spelling Ladder",
+      "Students spell names in a line; one mistake and they sit down."
+    ],
+    [
+      "Address Puzzle",
+      "Students unscramble address words (e.g., 'STREET' from 'TEERTS')."
+    ],
+    [
+      "Age Guess",
+      "Students guess teacher's age by asking 'Are you 20? 25? 30?' until correct."
+    ]
+  ],
+  "diff": [
+    "Fast finishers: Write a short paragraph introducing themselves (e.g., 'My name is... I am... I live at...').",
+    "Support: Use a word bank with alphabet letters and numbers 0-20 for spelling practice."
+  ],
+  "hw": [
+    "Complete the sample registration form from class (write name, age, address).",
+    "Interview a family member: Ask their name, age, address and write it down.",
+    "Write 5 names and 5 ages in English (e.g., 'Layla: 22', 'Omar: 30')."
+  ],
+  "tip": "Use Moroccan names and addresses (e.g., 'Oujda, Morocco') to make the task relevant; praise effort over accuracy to build confidence."
+}

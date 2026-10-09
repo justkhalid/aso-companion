@@ -1,0 +1,54 @@
+{
+  "wu": "Students play 'Two Truths and a Lie' about their recent experiences using present perfect (e.g., 'I've visited Chefchaouen,' 'I've learned to make tagine,' 'I've met a tourist from America'). They guess which statement is false.",
+  "wuAlt": [
+    "Students share one 'first time' using past simple (e.g., 'The first time I tried American food was...')",
+    "Students play 'Find Someone Who' using present perfect (e.g., 'Find someone who has visited the American Space')"
+  ],
+  "pres": "Display a PET reading part 1 text on the board. Model skimming for gist and scanning for specific information. Elicit strategies like 'read questions first' and 'underline keywords'. Check understanding with quick thumbs up/down for 'Do we read every word?'",
+  "presAlt": [
+    "Show a sample PET writing task (email) and highlight structure: opening, purpose, details, closing",
+    "Play a short PET listening part 1 audio and model predicting answers before listening"
+  ],
+  "prac": "Students complete a timed PET reading part 2 (multiple-choice cloze) in pairs, discussing answers. Monitor and provide support with vocabulary hints. Then, they swap papers and mark using the answer key.",
+  "pracAlt": [
+    "Students practice PET speaking part 1 (interview) with a partner, using prompt cards about travel and hobbies",
+    "Complete a guided PET listening part 2 gap-fill with word bank support"
+  ],
+  "ls": "Students listen to a PET listening part 3 (multiple matching) audio about a local festival (e.g., Green March). They match speakers to statements and then compare answers in pairs. Play audio twice.",
+  "re": "Students stand in a circle. Teacher says a PET task type (e.g., 'Reading Part 1!'), and students quickly mime the action (e.g., 'skimming' with hands). Fast-paced to re-energize.",
+  "prod": "Students work in groups to create a 3-minute PET speaking part 2 (long turn) prompt about 'a place you recommend in Morocco'. They take turns describing the photo and answering partner questions.",
+  "rw": "Students write a timed PET writing part 1 (email) to a friend about a recent trip to Casablanca (80-100 words). Include past simple and descriptive adjectives. Peer-check for structure and word count.",
+  "st": "Teacher shares a short video clip of an American tourist in Morocco, then closes with: 'Today we practiced PET test strategies. Thank you for your hard work. See you next week!'",
+  "g": [
+    [
+      "PET Speed Quiz",
+      "Teams race to answer PET-style questions (reading, grammar, vocab) on the board"
+    ],
+    [
+      "Vocabulary Pictionary",
+      "Students draw PET-related words (e.g., 'examination', 'certificate') for teammates to guess"
+    ],
+    [
+      "Error Correction Relay",
+      "Teams correct mistakes in PET sample sentences, then run to write the correct version"
+    ],
+    [
+      "Speaking Prompt Cards",
+      "Students draw cards with PET speaking topics and respond for 1 minute"
+    ],
+    [
+      "Reading Jigsaw",
+      "Groups read different PET reading texts and summarize key points for the class"
+    ]
+  ],
+  "diff": [
+    "Fast finishers: Write a second PET email draft with more complex adjectives",
+    "Support learners: Use a sentence frame for the writing task (e.g., 'I went to... It was... because...')"
+  ],
+  "hw": [
+    "Complete a full PET reading part 4 at home and score yourself",
+    "Record yourself answering a PET speaking part 2 prompt and self-reflect",
+    "Review PET writing samples and write down 3 tips for improvement"
+  ],
+  "tip": "For Moroccan learners, connect PET tasks to local contexts (e.g., describing a souk, writing about Islamic holidays) to boost engagement and confidence."
+}
