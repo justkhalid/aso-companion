@@ -132,19 +132,8 @@ function pickNewer(a: State, b: State): State {
   return rb >= ra ? b : a
 }
 
-/* apply the theme to the <html> class */
-function applyTheme(theme: Theme) {
-  if (typeof window === 'undefined') return
-  const root = document.documentElement
-  const effective =
-    theme === 'auto'
-      ? window.matchMedia('(prefers-color-scheme: dark)').matches
-        ? 'dark'
-        : 'light'
-      : theme
-  if (effective === 'dark') root.classList.add('dark')
-  else root.classList.remove('dark')
-}
+/* the theme is a per-device choice kept by next-themes (light by default); the shared data no longer sets it */
+function applyTheme(_theme: Theme) {}
 
 /* autosave: wait for a quiet moment so a burst of edits becomes one save
    (one commit) instead of one request per keystroke or click */

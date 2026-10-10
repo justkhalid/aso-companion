@@ -3,7 +3,6 @@ import { Inter, JetBrains_Mono, Playfair_Display } from "next/font/google";
 import "./globals.css";
 import { Toaster } from "@/components/ui/toaster";
 import { ThemeProvider } from "@/components/theme-provider";
-import { ThemeSync } from "@/components/theme-toggle";
 import { CursorGlow } from "@/components/cursor-glow";
 
 const interSans = Inter({
@@ -63,10 +62,10 @@ export default function RootLayout({
         <ThemeProvider
           attribute="class"
           defaultTheme="light"
+          storageKey="aso-theme"
           enableSystem={false}
           disableTransitionOnChange
         >
-          <ThemeSync />
           <CursorGlow />
           {children}
           <Toaster />

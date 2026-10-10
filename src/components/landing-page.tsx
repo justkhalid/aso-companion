@@ -1,7 +1,7 @@
 'use client'
 
 import * as React from 'react'
-import { CalendarDays, ChevronRight, Clock, Download, GraduationCap, Sparkles } from 'lucide-react'
+import { CalendarDays, ChevronRight, Clock, Download, GraduationCap, Lock, Sparkles } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { downloadClubsPng } from '@/lib/clubs-sheet'
 import { Logo } from './logo'
@@ -149,28 +149,38 @@ export function LandingPage() {
 
         {/* the way in for teachers, interns and volunteers (the admin can switch it off in Settings) */}
         {state.settings.showAccessBox !== false && (
-          <section className="mx-auto max-w-6xl px-4 pb-2">
-            <div className="rounded-2xl border border-border bg-card p-5 shadow-sm sm:p-6">
-              <h2 className="text-base font-extrabold tracking-tight">Are you a teacher, an intern or a volunteer?</h2>
-              <p className="mt-0.5 text-sm text-muted-foreground">Access your dedicated pages here.{state.settings.teacherLoginRequired === false && state.settings.internLoginRequired === false ? '' : ' You will need the access code you were given.'}</p>
-              <div className="mt-4 grid gap-3 sm:grid-cols-2">
+          <section aria-labelledby="access-title" className="mx-auto max-w-6xl px-4 pb-2">
+            <div className="rounded-3xl border border-primary/25 bg-primary/[0.06] p-5 shadow-sm sm:p-7">
+              <h2 id="access-title" className="text-xl font-extrabold tracking-tight sm:text-2xl">Teacher, intern or volunteer?</h2>
+              <p className="mt-1 text-sm text-muted-foreground sm:text-base">
+                {state.settings.teacherLoginRequired === false && state.settings.internLoginRequired === false
+                  ? 'Open your own page.'
+                  : 'Sign in to your own page with the access code you were given.'}
+              </p>
+              <div className="mt-5 grid gap-4 sm:grid-cols-2">
                 {[
-                  { icon: GraduationCap, title: 'Teachers', text: 'Weekly plans, the library and the class calendar', go: () => setView('home') },
-                  { icon: Sparkles, title: 'Interns and volunteers', text: 'Clubs, events and which rooms are free', go: () => setView('intern-public') },
+                  { icon: GraduationCap, title: 'Teachers', text: 'Weekly plans, the library and the class calendar', go: () => setView('home'), tone: 'aso-nav-pill', needs: state.settings.teacherLoginRequired !== false },
+                  { icon: Sparkles, title: 'Interns and volunteers', text: 'Clubs, events, free rooms and how to report', go: () => setView('intern-public'), tone: 'bg-gradient-to-br from-emerald-700 to-teal-600 text-white shadow-[0_2px_10px_rgba(4,120,87,.35)]', needs: state.settings.internLoginRequired !== false },
                 ].map((t) => (
                   <button
                     key={t.title}
                     onClick={t.go}
-                    className="group flex items-center gap-3.5 rounded-2xl border border-border bg-secondary/40 p-4 text-left transition hover:border-primary/40 hover:bg-secondary active:scale-[0.99]"
+                    className={`group flex min-h-[120px] flex-col justify-between gap-4 rounded-2xl p-5 text-left transition hover:brightness-110 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-ring/50 active:scale-[0.99] ${t.tone}`}
                   >
-                    <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary">
-                      <t.icon className="h-5 w-5" />
+                    <span className="flex items-start gap-3.5">
+                      <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-white/20">
+                        <t.icon className="h-6 w-6" aria-hidden />
+                      </span>
+                      <span className="min-w-0">
+                        <span className="block text-lg font-extrabold leading-tight">{t.title}</span>
+                        <span className="mt-1 block text-sm leading-snug text-white/90">{t.text}</span>
+                      </span>
                     </span>
-                    <span className="min-w-0 flex-1">
-                      <span className="block text-[15px] font-bold leading-tight">{t.title}</span>
-                      <span className="mt-0.5 block text-[13px] leading-snug text-muted-foreground">{t.text}</span>
+                    <span className="inline-flex w-fit items-center gap-1.5 rounded-full bg-white px-4 py-1.5 text-sm font-bold text-neutral-900">
+                      {t.needs && <Lock className="h-3.5 w-3.5" aria-hidden />}
+                      {t.needs ? 'Sign in' : 'Open'}
+                      <ChevronRight className="h-4 w-4 transition group-hover:translate-x-0.5" aria-hidden />
                     </span>
-                    <ChevronRight className="h-5 w-5 shrink-0 text-muted-foreground transition group-hover:translate-x-0.5 group-hover:text-primary" />
                   </button>
                 ))}
               </div>

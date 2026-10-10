@@ -61,7 +61,7 @@ export function SettingsPage() {
   const syncing = useStore((s) => s.syncing)
   const lastSync = useStore((s) => s.lastSync)
 
-  const { setTheme } = useTheme()
+  const { theme: deviceTheme, setTheme } = useTheme()
   const fileRef = React.useRef<HTMLInputElement>(null)
   const [newNoteWeek, setNewNoteWeek] = React.useState('')
   const [newNoteText, setNewNoteText] = React.useState('')
@@ -97,12 +97,9 @@ export function SettingsPage() {
   const s = state.settings
   const [tab, setTab] = React.useState<'general' | 'access' | 'data'>('general')
 
-  const setThemeVal = (t: Theme) => {
-    setSettings((x) => {
-      x.theme = t
-    })
-    setTheme(t === 'auto' ? 'system' : t)
-  }
+  /* the theme is chosen per device; the site opens in light mode */
+  const setThemeVal = (t: Theme) => setTheme(t === 'auto' ? 'system' : t)
+  const shownTheme: Theme = deviceTheme === 'system' ? 'auto' : deviceTheme === 'dark' ? 'dark' : 'light'
 
   const onSaveCloud = async () => {
     const r = await saveToCloud()
@@ -183,7 +180,7 @@ export function SettingsPage() {
       {/* appearance */}
       <Section title="Appearance" icon={<Sun className="h-4 w-4" />}>
         <div className="flex items-center gap-2">
-          <span className="text-sm font-semibold">Theme</span>
+          <span className="text-sm font-semibold">Theme on this device</span>
           <div className="ml-auto grid grid-cols-3 gap-1 rounded-full bg-secondary p-1">
             {(['light', 'dark', 'auto'] as Theme[]).map((t) => (
               <button
@@ -191,7 +188,7 @@ export function SettingsPage() {
                 onClick={() => setThemeVal(t)}
                 className={cn(
                   'flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-bold capitalize transition',
-                  s.theme === t ? 'bg-background shadow-sm' : 'text-muted-foreground',
+                  shownTheme === t ? 'bg-background shadow-sm' : 'text-muted-foreground',
                 )}
               >
                 {t === 'light' ? <Sun className="h-3.5 w-3.5" /> : t === 'dark' ? <Moon className="h-3.5 w-3.5" /> : <Smartphone className="h-3.5 w-3.5" />}
