@@ -13,7 +13,9 @@ export interface Settings {
   s1Start: string // ISO date
   s2Start: string
   s1Weeks: number
-  adminCode: string
+  /** Only present in admin responses; the server strips both codes for visitors. */
+  adminCode?: string
+  teacherCode?: string
   ghToken?: string
   ghRepo?: string
   ghBranch?: string

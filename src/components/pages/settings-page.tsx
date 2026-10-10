@@ -233,7 +233,7 @@ export function SettingsPage() {
       <Section title="Access" icon={<KeyRound className="h-4 w-4" />}>
         <FieldText
           label="Admin code (4 digits)"
-          value={s.adminCode}
+          value={s.adminCode ?? ''}
           onChange={(v) => setSettings((x) => { x.adminCode = v })}
           placeholder="1234"
           type="text"

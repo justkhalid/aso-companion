@@ -144,6 +144,7 @@ export const LP_STAGES_TEENS = {
 /* ---- local storage keys ---- */
 export const LS_KEY = 'aso-companion-v1'
 export const ROLE_KEY = 'aso-role' // 'admin' | 'pub'
+export const ADMIN_SEEN_KEY = 'aso-admin-seen' // set after a successful server login; enables offline sign-in on this device
 
 /* lesson stage labels for the Drive kit attached to each week */
 export const KIT_STAGE_LABELS: Record<string, string> = {
