@@ -22038,6 +22038,11 @@
         "S",
         "R",
         "W"
+      ],
+      "cat": "selfstudy",
+      "bands": [
+        "Teens",
+        "Adults"
       ]
     },
     {
@@ -22045,24 +22050,16 @@
       "name": "Teacher training booklets",
       "desc": "How-to-teach booklets: methodology, classroom management, lesson planning, and skill teaching.",
       "url": "https://drive.google.com/drive/folders/19fUKeNlyl14l4qA2CziIxFEG0qoE4ocU",
-      "sk": [
-        "L",
-        "S",
-        "R",
-        "W"
-      ]
+      "sk": [],
+      "cat": "teacher"
     },
     {
       "id": "l13",
       "name": "Teacher's guides",
       "desc": "158 methodology and CPD titles",
       "url": "https://drive.google.com/drive/folders/0B2Q8XuO2ebzxVHJOWGFPLUFHWlU?resourcekey=0-WpCTb-1r_-nnYZ4iWCCmCA",
-      "sk": [
-        "L",
-        "S",
-        "R",
-        "W"
-      ]
+      "sk": [],
+      "cat": "teacher"
     },
     {
       "id": "l1",
@@ -22074,7 +22071,8 @@
         "S",
         "R",
         "W"
-      ]
+      ],
+      "cat": "courses"
     },
     {
       "id": "n_wg",
@@ -22083,6 +22081,11 @@
       "url": "https://drive.google.com/drive/folders/1asIfN9-BwrKO9YrtYN-Cjz1qzNUddeKa",
       "sk": [
         "W"
+      ],
+      "cat": "worksheets",
+      "bands": [
+        "Teens",
+        "Adults"
       ]
     },
     {
@@ -22095,6 +22098,11 @@
         "S",
         "R",
         "W"
+      ],
+      "cat": "courses",
+      "bands": [
+        "Kids",
+        "Teens"
       ]
     },
     {
@@ -22107,7 +22115,8 @@
         "S",
         "R",
         "W"
-      ]
+      ],
+      "cat": "courses"
     },
     {
       "id": "n_eb",
@@ -22115,10 +22124,12 @@
       "desc": "General English learning books: grammar, vocabulary, coursebooks, and reference materials.",
       "url": "https://drive.google.com/drive/folders/1gbeyiyyscRq5UcxwjELLXlBzVZx_C5kZ",
       "sk": [
-        "L",
-        "S",
-        "R",
-        "W"
+        "R"
+      ],
+      "cat": "books",
+      "bands": [
+        "Teens",
+        "Adults"
       ]
     },
     {
@@ -22131,6 +22142,10 @@
         "S",
         "R",
         "W"
+      ],
+      "cat": "tests",
+      "bands": [
+        "Adults"
       ]
     },
     {
@@ -22143,6 +22158,10 @@
         "S",
         "R",
         "W"
+      ],
+      "cat": "teacher",
+      "bands": [
+        "Kids"
       ]
     },
     {
@@ -22153,6 +22172,11 @@
       "sk": [
         "S",
         "R"
+      ],
+      "cat": "visuals",
+      "bands": [
+        "Kids",
+        "Teens"
       ]
     },
     {
@@ -22165,6 +22189,10 @@
         "S",
         "R",
         "W"
+      ],
+      "cat": "worksheets",
+      "bands": [
+        "Kids"
       ]
     },
     {
@@ -22175,6 +22203,10 @@
       "sk": [
         "R",
         "W"
+      ],
+      "cat": "worksheets",
+      "bands": [
+        "Kids"
       ]
     },
     {
@@ -22187,6 +22219,11 @@
         "S",
         "R",
         "W"
+      ],
+      "cat": "visuals",
+      "bands": [
+        "Kids",
+        "Teens"
       ]
     },
     {
@@ -22197,7 +22234,8 @@
       "sk": [
         "R",
         "W"
-      ]
+      ],
+      "cat": "worksheets"
     },
     {
       "id": "n1",
@@ -22207,6 +22245,11 @@
       "sk": [
         "L",
         "R"
+      ],
+      "cat": "media",
+      "bands": [
+        "Kids",
+        "Teens"
       ]
     },
     {
@@ -22216,6 +22259,11 @@
       "url": "https://drive.google.com/drive/folders/12DEY26dn-26u-nzcqHaLv11sxLCtiT4c",
       "sk": [
         "L"
+      ],
+      "cat": "media",
+      "bands": [
+        "Teens",
+        "Adults"
       ]
     },
     {
@@ -22226,6 +22274,10 @@
       "sk": [
         "L",
         "S"
+      ],
+      "cat": "media",
+      "bands": [
+        "Kids"
       ]
     },
     {
@@ -22235,6 +22287,11 @@
       "url": "https://drive.google.com/drive/folders/1bbyRhpsY7lK3D_o6BtfjY9K5pT5EmM7l",
       "sk": [
         "L"
+      ],
+      "cat": "media",
+      "bands": [
+        "Teens",
+        "Adults"
       ]
     },
     {
@@ -22245,7 +22302,8 @@
       "sk": [
         "L",
         "S"
-      ]
+      ],
+      "cat": "media"
     },
     {
       "id": "n3",
@@ -22254,7 +22312,8 @@
       "url": "https://drive.google.com/drive/folders/0B2Q8XuO2ebzxZTE3RWU2c2ZiQWM?resourcekey=0-GuwTW6hwto-1mycNtLDbHw",
       "sk": [
         "R"
-      ]
+      ],
+      "cat": "books"
     },
     {
       "id": "n2",
@@ -22263,6 +22322,11 @@
       "url": "https://drive.google.com/drive/folders/0B2Q8XuO2ebzxX1BZZlE2Q1FwY2M?resourcekey=0-r302DQLgl_4bG4rBbiw-Tg",
       "sk": [
         "R"
+      ],
+      "cat": "worksheets",
+      "bands": [
+        "Kids",
+        "Teens"
       ]
     },
     {
@@ -22272,6 +22336,11 @@
       "url": "https://drive.google.com/drive/folders/1uIjRaIicjf9AZ21etdZsWTJYj1JWIIaR",
       "sk": [
         "R"
+      ],
+      "cat": "worksheets",
+      "bands": [
+        "Teens",
+        "Adults"
       ]
     },
     {
@@ -22281,6 +22350,11 @@
       "url": "https://drive.google.com/drive/folders/1iqCnZn5CGvp1nr9nkPvvS_e1Q7DhQm16",
       "sk": [
         "W"
+      ],
+      "cat": "worksheets",
+      "bands": [
+        "Teens",
+        "Adults"
       ]
     },
     {
@@ -22292,6 +22366,11 @@
         "S",
         "R",
         "W"
+      ],
+      "cat": "games",
+      "bands": [
+        "Teens",
+        "Adults"
       ]
     },
     {
@@ -22302,7 +22381,8 @@
       "sk": [
         "S",
         "L"
-      ]
+      ],
+      "cat": "games"
     },
     {
       "id": "n5",
@@ -22312,7 +22392,8 @@
       "sk": [
         "S",
         "R"
-      ]
+      ],
+      "cat": "visuals"
     },
     {
       "id": "n7",
@@ -22324,6 +22405,10 @@
         "S",
         "R",
         "W"
+      ],
+      "cat": "tests",
+      "bands": [
+        "Adults"
       ]
     },
     {
@@ -22336,6 +22421,11 @@
         "S",
         "R",
         "W"
+      ],
+      "cat": "tests",
+      "bands": [
+        "Teens",
+        "Adults"
       ]
     },
     {
@@ -22348,6 +22438,11 @@
         "S",
         "R",
         "W"
+      ],
+      "cat": "tests",
+      "bands": [
+        "Teens",
+        "Adults"
       ]
     },
     {
@@ -22360,6 +22455,10 @@
         "S",
         "R",
         "W"
+      ],
+      "cat": "tests",
+      "bands": [
+        "Teens"
       ]
     },
     {
@@ -22372,6 +22471,11 @@
         "S",
         "R",
         "W"
+      ],
+      "cat": "tests",
+      "bands": [
+        "Teens",
+        "Adults"
       ]
     },
     {
@@ -22384,6 +22488,11 @@
         "S",
         "R",
         "W"
+      ],
+      "cat": "selfstudy",
+      "bands": [
+        "Teens",
+        "Adults"
       ]
     },
     {
@@ -22396,6 +22505,10 @@
         "S",
         "R",
         "W"
+      ],
+      "cat": "selfstudy",
+      "bands": [
+        "Adults"
       ]
     },
     {
@@ -22408,7 +22521,8 @@
         "S",
         "R",
         "W"
-      ]
+      ],
+      "cat": "selfstudy"
     },
     {
       "id": "n12",
@@ -22420,7 +22534,8 @@
         "S",
         "R",
         "W"
-      ]
+      ],
+      "cat": "selfstudy"
     },
     {
       "id": "n_sl",
@@ -22432,6 +22547,10 @@
         "S",
         "R",
         "W"
+      ],
+      "cat": "courses",
+      "bands": [
+        "Teens"
       ]
     },
     {
@@ -22444,6 +22563,11 @@
         "S",
         "R",
         "W"
+      ],
+      "cat": "courses",
+      "bands": [
+        "Teens",
+        "Adults"
       ]
     },
     {
@@ -22456,6 +22580,10 @@
         "S",
         "R",
         "W"
+      ],
+      "cat": "courses",
+      "bands": [
+        "Teens"
       ]
     },
     {
@@ -22463,12 +22591,8 @@
       "name": "How-to-teach series",
       "desc": "A series of how-to-teach booklets covering methodology, classroom management, and teaching each skill.",
       "url": "https://drive.google.com/drive/folders/1KFAMZcg6IzaJhsiChiqe4GK2sFg2oCFo",
-      "sk": [
-        "L",
-        "S",
-        "R",
-        "W"
-      ]
+      "sk": [],
+      "cat": "teacher"
     },
     {
       "id": "n_gram",
@@ -22478,6 +22602,11 @@
       "sk": [
         "R",
         "W"
+      ],
+      "cat": "worksheets",
+      "bands": [
+        "Teens",
+        "Adults"
       ]
     },
     {
@@ -22487,6 +22616,11 @@
       "url": "https://drive.google.com/drive/folders/1jp3szgjmMXkIc9MaPZ09kx0AqkcfRqIb",
       "sk": [
         "S"
+      ],
+      "cat": "games",
+      "bands": [
+        "Kids",
+        "Teens"
       ]
     },
     {
@@ -22499,6 +22633,11 @@
         "S",
         "R",
         "W"
+      ],
+      "cat": "courses",
+      "bands": [
+        "Teens",
+        "Adults"
       ]
     },
     {
@@ -22511,6 +22650,11 @@
         "S",
         "R",
         "W"
+      ],
+      "cat": "selfstudy",
+      "bands": [
+        "Teens",
+        "Adults"
       ]
     },
     {
@@ -22519,10 +22663,12 @@
       "desc": "A general collection of English learning books · grammar, vocabulary, coursebooks, and graded readers.",
       "url": "https://drive.google.com/drive/folders/0B7OmNithn8yCczMwcnFuZ2ZlaXM",
       "sk": [
-        "L",
-        "S",
-        "R",
-        "W"
+        "R"
+      ],
+      "cat": "books",
+      "bands": [
+        "Teens",
+        "Adults"
       ]
     }
   ],
@@ -22714,5 +22860,5 @@
   ],
   "reports": [],
   "libraryPins": [],
-  "_rev": 1791640858284
+  "_rev": 1791641718021
 }

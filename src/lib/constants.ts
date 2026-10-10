@@ -22,28 +22,29 @@ export const SKILLS = [
 
 export const LIB_SKILLS = ['', 'L', 'S', 'R', 'W'] as const
 
-/* Library categories in display order (importance): teacher resources first,
-   then planning, coursebooks, exams, learner materials, media, reading,
-   writing, speaking, and everything else last. */
-export const LIB_CATEGORIES = [
-  { k: 'teacher', label: 'Teacher resources', match: ['teacher', "teacher's guide"] },
-  { k: 'planning', label: 'Planning', match: ['lesson plan', 'writing guide'] },
-  { k: 'course', label: 'Coursebooks', match: ['coursebook', 'cambridge global', 'english books', 'ready for'] },
-  { k: 'exams', label: 'Tests & exams', match: ['test', 'quiz', 'ket', 'pet', 'ielts'] },
-  { k: 'learner', label: 'Learner materials', match: ['kids english', 'flashcard', 'worksheet', 'maths', 'autism', 'seasonal'] },
-  { k: 'media', label: 'Listening & media', match: ['listening', 'podcast', 'audiobook', 'video', 'music', 'song'] },
-  { k: 'reading', label: 'Reading', match: ['reading', 'comprehension', 'book'] },
-  { k: 'writing', label: 'Writing', match: ['writing', 'creative'] },
-  { k: 'speaking', label: 'Speaking & activities', match: ['speaking', 'game', 'powerpoint', 'critical'] },
-  { k: 'other', label: 'Other', match: ['business', 'app', 'misc', 'contribution'] },
+/* Library groups in display order, organised by what a teacher needs: lessons
+   first, then visuals, games, media, practice, reading, tests, teacher
+   support and self-study last. */
+export const LIB_GROUPS = [
+  { k: 'courses', label: 'Coursebooks and lesson plans', hint: 'Ready-made lessons, units and coursebooks', match: ['lesson plan', 'lesson unit', 'coursebook', 'cambridge global', 'american english file', 'english file', 'spotlight'] },
+  { k: 'visuals', label: 'Flashcards and visuals', hint: 'Picture sets, slides and seasonal packs', match: ['flashcard', 'powerpoint', 'seasonal'] },
+  { k: 'games', label: 'Games and speaking activities', hint: 'Games, speaking cards and thinking tasks', match: ['game', 'speaking', 'critical'] },
+  { k: 'media', label: 'Songs, video and audio', hint: 'Songs, videos, listening and podcasts', match: ['song', 'music', 'video', 'listening', 'podcast', 'audiobook'] },
+  { k: 'worksheets', label: 'Worksheets and practice', hint: 'Printable practice, grammar and writing help', match: ['worksheet', 'kids english', 'comprehension', 'reading task', 'creative', 'writing', 'grammar', 'maths'] },
+  { k: 'books', label: 'Books and reading', hint: 'Readers, books and reference libraries', match: ['book'] },
+  { k: 'tests', label: 'Tests and exams', hint: 'Test banks, quizzes and exam preparation', match: ['test', 'quiz', 'ket', 'pet', 'ielts', 'ready for'] },
+  { k: 'teacher', label: 'Teacher training and support', hint: 'Methodology, how-to guides and inclusive materials', match: ['teacher', 'how-to', 'autism'] },
+  { k: 'selfstudy', label: 'Self-study and extras', hint: 'For students at home, business English and everything else', match: ['app', 'learn english', 'business', 'awesome', 'contribution', 'misc'] },
 ] as const
 
-export function libCategory(name: string) {
-  const n = String(name || '').toLowerCase()
-  for (const c of LIB_CATEGORIES) {
-    if (c.match.some((kw) => n.indexOf(kw) > -1)) return c
+export function libGroup(l: { name: string; cat?: string }) {
+  const byKey = LIB_GROUPS.find((g) => g.k === l.cat)
+  if (byKey) return byKey
+  const n = String(l.name || '').toLowerCase()
+  for (const g of LIB_GROUPS) {
+    if (g.match.some((kw) => n.indexOf(kw) > -1)) return g
   }
-  return LIB_CATEGORIES[LIB_CATEGORIES.length - 1] // Other
+  return LIB_GROUPS[LIB_GROUPS.length - 1]
 }
 
 /* ---- 24h time options in 30-minute steps (for the time picker) ---- */

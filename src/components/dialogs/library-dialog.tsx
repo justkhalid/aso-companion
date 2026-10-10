@@ -15,7 +15,8 @@ import { Textarea } from '@/components/ui/textarea'
 import { SkillPicker } from '@/components/forms/form-controls'
 import { useStore } from '@/lib/store'
 import { uid } from '@/lib/app-utils'
-import type { LibraryFolder } from '@/lib/types'
+import { LIB_GROUPS, libGroup } from '@/lib/constants'
+import type { LibBand, LibraryFolder } from '@/lib/types'
 
 export function LibraryDialog({
   open,
@@ -34,6 +35,8 @@ export function LibraryDialog({
   const [desc, setDesc] = React.useState('')
   const [url, setUrl] = React.useState('')
   const [sk, setSk] = React.useState<string[]>([])
+  const [cat, setCat] = React.useState('')
+  const [bands, setBands] = React.useState<LibBand[]>([])
 
   React.useEffect(() => {
     if (!open) return
@@ -41,6 +44,8 @@ export function LibraryDialog({
     setDesc(folder?.desc || '')
     setUrl(folder?.url || '')
     setSk(folder?.sk || [])
+    setCat(folder?.cat || (folder ? libGroup(folder).k : ''))
+    setBands(folder?.bands || [])
   }, [open, folder])
 
   const save = () => {
@@ -58,6 +63,8 @@ export function LibraryDialog({
       desc: desc.trim(),
       url: url.trim(),
       sk,
+      cat: cat || undefined,
+      bands: bands.length ? bands : undefined,
     }
     patch((draft) => {
       if (isNew) draft.library.push(entry)
@@ -90,7 +97,37 @@ export function LibraryDialog({
             <Input id="l-url" value={url} onChange={(e) => setUrl(e.target.value)} placeholder="https://drive.google.com/..." />
           </div>
           <div className="flex flex-col gap-1.5">
-            <Label>Skill tags</Label>
+            <Label htmlFor="l-cat">Group</Label>
+            <select
+              id="l-cat"
+              value={cat}
+              onChange={(e) => setCat(e.target.value)}
+              className="h-9 rounded-md border border-input bg-background px-2 text-sm"
+            >
+              <option value="">Choose automatically</option>
+              {LIB_GROUPS.map((g) => (
+                <option key={g.k} value={g.k}>{g.label}</option>
+              ))}
+            </select>
+          </div>
+          <div className="flex flex-col gap-1.5">
+            <Label>Ages (leave empty for all)</Label>
+            <div className="flex gap-1.5">
+              {(['Kids', 'Teens', 'Adults'] as LibBand[]).map((b) => (
+                <Button
+                  key={b}
+                  type="button"
+                  size="sm"
+                  variant={bands.includes(b) ? 'default' : 'outline'}
+                  onClick={() => setBands((cur) => (cur.includes(b) ? cur.filter((x) => x !== b) : cur.concat(b)))}
+                >
+                  {b}
+                </Button>
+              ))}
+            </div>
+          </div>
+          <div className="flex flex-col gap-1.5">
+            <Label>Skill tags (only the skills it really trains)</Label>
             <SkillPicker value={sk} onChange={setSk} />
           </div>
         </div>

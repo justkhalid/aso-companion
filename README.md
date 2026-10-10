@@ -47,6 +47,23 @@ browser of the admin who entered it.
 PAT from localStorage. Use a fine-grained PAT scoped to only this repo, and
 sign out (top of the sidebar) when you are done on a shared computer.
 
+## Library index
+
+The Library page groups the Drive folders by what a teacher needs, filters by age and
+skill, shows a "most used" shelf for each age band (taken from the Teacher kits), lets
+you browse subfolders and search ~21,000 file names. The folder tree and file names come
+from `public/library-index.json`, a snapshot of the Drive.
+
+Rebuild it whenever the Drive changes (the folders must be shared with "anyone with the link"):
+
+```bash
+python3 scripts/build_library_index.py              # 5 folder levels deep
+python3 scripts/build_library_index.py --max-depth 6
+```
+
+Group, age bands and skill tags for each folder are edited in **Library -> Edit folder**.
+The Drive itself is never changed by the app.
+
 ## Export buttons (PNG, Excel, Word)
 
 - The **Clubs & Events** PNG export includes **both clubs and weekly recurring

@@ -3,32 +3,14 @@
 import * as React from 'react'
 import { ExternalLink, Copy, FileText, CalendarDays, Pencil, Users, CheckSquare, LayoutGrid, MessageSquare, FolderOpen } from 'lucide-react'
 import { useStore } from '@/lib/store'
-import { libCategory, LIB_CATEGORIES, SKILLS, REPORT_STEPS, REPORT_SYSTEM_URL, REPORT_EXAMPLE } from '@/lib/constants'
+import { REPORT_STEPS, REPORT_SYSTEM_URL, REPORT_EXAMPLE } from '@/lib/constants'
+import { LibraryBrowser } from '@/components/library-browser'
 import { PageHead, SectionHeader, Chip } from '@/components/ui-bits'
 import { Button } from '@/components/ui/button'
-import { cn } from '@/lib/utils'
-
-const SKILL_NAMES: Record<string, string> = { L: 'Listening', S: 'Speaking', R: 'Reading', W: 'Writing' }
 
 export function ResourcesPage() {
   const state = useStore((s) => s.state)
   const toast = useStore((s) => s.toast)
-  const [filter, setFilter] = React.useState<string>('') // '' | 'L' | 'S' | 'R' | 'W'
-
-  const lib = filter ? state.library.filter((l) => (l.sk || []).includes(filter)) : state.library.slice()
-
-  // group by category in canonical importance order (LIB_CATEGORIES),
-  // alphabetical within each group; empty categories are skipped
-  const byCat: Record<string, typeof lib> = {}
-  lib.forEach((l) => {
-    const cat = libCategory(l.name)
-    ;(byCat[cat.label] ||= []).push(l)
-  })
-  const groups: { label: string; folders: typeof lib }[] = LIB_CATEGORIES.map((c) => ({
-    label: c.label,
-    folders: (byCat[c.label] || []).slice().sort((a, b) => a.name.localeCompare(b.name)),
-  })).filter((g) => g.folders.length > 0)
-
   return (
     <div className="mx-auto max-w-5xl px-4 py-6 sm:py-8">
       <PageHead
@@ -41,64 +23,11 @@ export function ResourcesPage() {
         title="Library"
         right={
           <span className="text-xs font-semibold text-muted-foreground">
-            {state.library.length} folders · grouped by category
+            {state.library.length} folders · grouped by what you need
           </span>
         }
       />
-      <div className="mb-4 flex flex-wrap items-center gap-1.5">
-        <FilterPill active={filter === ''} onClick={() => setFilter('')}>All skills</FilterPill>
-        {SKILLS.map((s) => (
-          <FilterPill key={s.k} active={filter === s.k} onClick={() => setFilter(s.k)}>
-            {s.k} · {s.name}
-          </FilterPill>
-        ))}
-        <span className="ml-auto text-xs font-semibold text-muted-foreground">
-          {lib.length} of {state.library.length} folders
-        </span>
-      </div>
-
-      {groups.map((g) => (
-        <div key={g.label} className="mb-5">
-          <div className="mb-2 text-xs font-bold uppercase tracking-wider text-muted-foreground">
-            {g.label}
-          </div>
-          <div className="grid gap-2">
-            {g.folders.map((l) => (
-              <a
-                key={l.id}
-                href={l.url}
-                target="_blank"
-                rel="noopener"
-                className="flex items-start gap-3 rounded-2xl border border-border bg-card p-4 transition hover:border-primary/40"
-              >
-                <div className="mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary">
-                  <FolderOpen className="h-4 w-4" />
-                </div>
-                <div className="min-w-0 flex-1">
-                  <div className="font-bold">{l.name}</div>
-                  <div className="text-sm text-muted-foreground">{l.desc}</div>
-                  {(l.sk || []).length > 0 && (
-                    <div className="mt-1.5 flex flex-wrap gap-1">
-                      {l.sk.map((k) => (
-                        <span key={k} className={cn('sk-' + k, 'inline-flex items-center rounded-full px-1.5 py-0.5 text-[10px] font-extrabold')}>
-                          {k} · {SKILL_NAMES[k]}
-                        </span>
-                      ))}
-                    </div>
-                  )}
-                </div>
-                <ExternalLink className="h-4 w-4 shrink-0 text-muted-foreground" />
-              </a>
-            ))}
-          </div>
-        </div>
-      ))}
-
-      {lib.length === 0 && (
-        <div className="rounded-2xl border border-border bg-card p-10 text-center text-sm text-muted-foreground">
-          Nothing for this skill yet · pick another skill.
-        </div>
-      )}
+      <LibraryBrowser />
 
       <div className="mt-2">
         <a href={state.rootUrl || 'https://drive.google.com/'} target="_blank" rel="noopener">
@@ -205,26 +134,3 @@ export function ResourcesPage() {
   )
 }
 
-function FilterPill({
-  active,
-  onClick,
-  children,
-}: {
-  active: boolean
-  onClick: () => void
-  children: React.ReactNode
-}) {
-  return (
-    <button
-      onClick={onClick}
-      className={cn(
-        'rounded-full border px-3 py-1 text-xs font-bold transition',
-        active
-          ? 'border-primary bg-primary text-primary-foreground'
-          : 'border-border bg-secondary text-muted-foreground hover:bg-secondary/80',
-      )}
-    >
-      {children}
-    </button>
-  )
-}
