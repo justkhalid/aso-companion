@@ -16,6 +16,7 @@ import { ResourcesPage } from './pages/resources-page'
 import { SettingsPage } from './pages/settings-page'
 import { ClassesPage } from './pages/classes-page'
 import { TeamPage } from './pages/team-page'
+import { RoomsPage } from './pages/rooms-page'
 import { LibraryPage } from './pages/library-page'
 import { ReportsPage } from './pages/reports-page'
 import { InternOverview } from './pages/intern-overview'
@@ -172,6 +173,8 @@ function PageBody({ view, admin }: { view: View; admin: boolean }) {
       return admin ? <ClassesPage /> : <HomePage admin={false} />
     case 'team':
       return admin ? <TeamPage /> : <HomePage admin={false} />
+    case 'rooms':
+      return admin ? <RoomsPage /> : <HomePage admin={false} />
     case 'library':
       return admin ? <LibraryPage /> : <ResourcesPage />
     case 'reports':
