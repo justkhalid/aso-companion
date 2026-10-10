@@ -197,7 +197,7 @@ function SidebarBody({ onNavigate }: { onNavigate?: () => void }) {
           <button
             onClick={() => {
               setPubView(true)
-              setView('home')
+              setView('landing')
               onNavigate?.()
             }}
             className="flex items-center gap-2.5 rounded-full px-2.5 py-2 text-left text-[13.5px] font-semibold text-foreground/80 hover:bg-secondary"

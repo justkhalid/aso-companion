@@ -12,6 +12,7 @@ import { EltasoPage } from './pages/eltaso-page'
 import { LevelDetailPage } from './pages/level-detail-page'
 import { ClubsPage } from './pages/clubs-page'
 import { InternShell } from './intern-shell'
+import { LandingPage } from './landing-page'
 import { ResourcesPage } from './pages/resources-page'
 import { SettingsPage } from './pages/settings-page'
 import { ClassesPage } from './pages/classes-page'
@@ -46,7 +47,7 @@ export function AppShell({ initialView }: { initialView?: View }) {
   // (no-op when the URL is /, the default home). Runs before the boot
   // splash lifts, so the first real paint is already the requested tab.
   React.useEffect(() => {
-    if (initialView && initialView !== 'home') setView(initialView)
+    if (initialView) setView(initialView)
   }, [])
 
   // browser back / forward walks through public tab paths
@@ -68,6 +69,16 @@ export function AppShell({ initialView }: { initialView?: View }) {
   }
 
   const ev: View = computeView(view, admin, pubView)
+
+  /* /: the main page for the general public (classes, clubs and events on offer) */
+  if (ev === 'landing') {
+    return (
+      <>
+        <LandingPage />
+        <AppToaster />
+      </>
+    )
+  }
 
   /* /interns: clubs and events only, in its own minimal page (no tabs, no admin chrome) */
   if (ev === 'intern-public') {
@@ -147,11 +158,11 @@ function BootSplash() {
 }
 
 function computeView(view: View, admin: boolean, pubView: boolean): View {
-  const allowedPublic: View[] = ['home', 'eltaso', 'level-detail', 'resources', 'intern-public', 'reports', 'login']
+  const allowedPublic: View[] = ['landing', 'home', 'eltaso', 'level-detail', 'resources', 'intern-public', 'reports', 'login']
   if (!admin) return allowedPublic.includes(view) ? view : 'home'
-  if (pubView) return ['home', 'eltaso', 'level-detail', 'resources', 'intern-public', 'reports'].includes(view) ? view : 'home'
-  /* a signed-in admin never sees the sign-in screen */
-  return view === 'login' ? 'home' : view
+  if (pubView) return ['landing', 'home', 'eltaso', 'level-detail', 'resources', 'intern-public', 'reports'].includes(view) ? view : 'home'
+  /* a signed-in admin never sees the sign-in screen or the public main page inside the admin shell */
+  return view === 'login' || view === 'landing' ? 'home' : view
 }
 
 function PageBody({ view, admin }: { view: View; admin: boolean }) {
@@ -164,6 +175,8 @@ function PageBody({ view, admin }: { view: View; admin: boolean }) {
       return <LevelDetailPage admin={admin} />
     case 'clubs':
       return <ClubsPage admin={admin} />
+    case 'landing':
+      return <HomePage admin={admin} />
     case 'intern-public':
       return <ClubsPage admin={false} internMode />
     case 'resources':

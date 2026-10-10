@@ -209,6 +209,7 @@ export interface State {
 
 /* ---- view routing (single-page app) ---- */
 export type View =
+  | 'landing'
   | 'home'
   | 'eltaso'
   | 'level-detail'

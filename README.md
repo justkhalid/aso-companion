@@ -117,3 +117,12 @@ of visitors does not hit GitHub or Blob each time. Public images are cached for 
 
 - `/interns` is a page for ASO interns with the clubs and events section only (weekly calendar, upcoming events, all clubs, volunteer steps, and which rooms are free each day). It has no teacher tabs, no admin menu and no sign-in link, and it is not indexed by search engines. Share that link with interns. It hides the other sections; it does not make them private.
 - Only `main` deploys. `vercel.json` skips the build for every other branch, so there are no preview deployments. Merging a pull request into `main` is what updates the live site.
+
+## Pages
+
+- `/` is the main page for the general public: the classes (with days and times), the clubs and the coming events. No teacher names, class codes or admin tools.
+- `/teachers` is the teachers' site: home calendar, ELTASO (weekly plans), Resources.
+- `/interns` is for ASO interns: clubs, events and free rooms.
+- The admin signs in from the footer of the main page or the teachers' site. A remembered admin sees the public page with a bar to open the admin menu.
+- `/clubs` redirects to `/interns`.
+- Previews: `vercel.json` builds only `main` and the working branch `claude/nice-ramanujan-hntc39`. Vercel previews are visible only to people signed in to the Vercel account. Remove the branch name from `ignoreCommand` once the preview is no longer needed.

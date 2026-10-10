@@ -484,7 +484,24 @@ function ClubListCard({
   )
 }
 
-function ClubGridCard({
+/* a description that never just stops: three lines, then a visible Read more that opens the rest in place */
+function ClampedText({ text }: { text: string }) {
+  const [more, setMore] = React.useState(false)
+  const long = text.length > 150 || text.split('\n').length > 3
+  return (
+    <div className="text-[13px] text-muted-foreground" dir="auto" onClick={(e) => e.stopPropagation()}>
+      <p className={cn('whitespace-pre-line break-words', long && !more && 'line-clamp-3')}>{text}</p>
+      {long && (
+        <button type="button" onClick={() => setMore((m) => !m)} className="mt-1 inline-flex items-center gap-1 text-xs font-bold text-primary">
+          <ChevronDown className={cn('h-3.5 w-3.5 transition', more && 'rotate-180')} />
+          {more ? 'Show less' : 'Read more'}
+        </button>
+      )}
+    </div>
+  )
+}
+
+export function ClubGridCard({
   club,
   admin,
   onExpand,
@@ -522,7 +539,7 @@ function ClubGridCard({
         <ClubFreqLine club={club} />
         <LeadLine club={club} />
 
-        {club.desc && <p className="line-clamp-2 text-[13px] text-muted-foreground" dir="auto">{club.desc}</p>}
+        {club.desc && <ClampedText text={club.desc} />}
 
         {(vol || club.url) && (
           <div className="text-xs font-semibold text-muted-foreground">
@@ -561,7 +578,7 @@ function ClubGridCard({
 /* -------------------------------------------------------------------------
    Elegant expand overlay: the whole club in one calm card with an X to close
    ------------------------------------------------------------------------- */
-function ClubExpandOverlay({
+export function ClubExpandOverlay({
   club,
   onClose,
   admin,
@@ -825,7 +842,7 @@ function splitTime(t: string): { start: string; end: string; length: string } | 
   return { start: m[1].padStart(2, '0') + ':' + m[2], end: m[3].padStart(2, '0') + ':' + m[4], length }
 }
 
-function EventCard({
+export function EventCard({
   event,
   nextDate,
   admin,

@@ -38,7 +38,7 @@ export function PublicNav() {
       <div className="mx-auto grid h-14 max-w-6xl grid-cols-[1fr_auto_1fr] items-center gap-3 px-4 md:gap-2">
         {/* logo (left) */}
         <button
-          onClick={() => go('home')}
+          onClick={() => go('landing')}
           className="col-start-1 flex w-fit items-center gap-2 rounded-full pr-2 text-left"
           aria-label="ASO Companion home"
         >

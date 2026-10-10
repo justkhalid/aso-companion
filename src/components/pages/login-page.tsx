@@ -78,7 +78,7 @@ export function LoginPage() {
           <button
             onClick={() => {
               setPubView(true)
-              setView('home')
+              setView('landing')
               toast('Public view · tap "Open admin menu" to return')
             }}
             className="inline-flex items-center gap-1.5 text-xs font-bold text-primary hover:underline"

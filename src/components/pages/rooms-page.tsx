@@ -166,7 +166,7 @@ export function RoomsPage({ embedded = false }: { embedded?: boolean }) {
   const mode = picked === ALL || rooms.includes(picked) ? picked : ALL
   const all = mode === ALL
   const shown = all ? rooms : [mode]
-  const CHIP_H = all ? 38 : 50
+  const CHIP_H = all ? 38 : 74
 
   const sunday = new Date(monday)
   sunday.setDate(sunday.getDate() + 6)
@@ -355,7 +355,7 @@ export function RoomsPage({ embedded = false }: { embedded?: boolean }) {
                                 <span aria-hidden className="absolute left-[3px] top-1 bottom-1 w-[3px] rounded-full" style={{ background: 'var(--tone-txt)', opacity: 0.45 }} />
                                 <span className="flex w-full items-center gap-1 text-[11px] font-bold leading-[13px]">
                                   {Icon ? <Icon className="h-3 w-3 shrink-0" /> : <i className="inline-block h-1.5 w-1.5 shrink-0 rounded-full" style={{ background: 'var(--tone-txt)' }} />}
-                                  <span className="truncate" dir="auto">{b.label}</span>
+                                  <span className={all ? 'truncate' : 'line-clamp-3 break-words leading-[12px]'} dir="auto">{b.label}</span>
                                 </span>
                                 <span className="truncate text-[10px] font-semibold leading-[12px] tabular-nums" style={{ opacity: 0.92 }}>
                                   {fmt(b.start)}-{fmt(b.end)}{b.note ? ' · ' + b.note : ''}

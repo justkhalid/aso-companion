@@ -211,9 +211,9 @@ export const useStore = create<UIStore>((set, get) => ({
     return true
   },
   logout: () => {
-    set({ admin: false, pubView: false, view: 'home', side: 'elt' })
+    set({ admin: false, pubView: false, view: 'landing', side: 'elt' })
     lsDel(ROLE_KEY)
-    syncViewUrl('home', 'replace')
+    syncViewUrl('landing', 'replace')
     void fetch('/api/logout', { method: 'POST' }).catch(() => {})
   },
   refreshSecrets: async () => {
@@ -455,11 +455,11 @@ export const useStore = create<UIStore>((set, get) => ({
 export function effectiveView(store: UIStore): View {
   if (!store.admin) {
     // public: only home/eltaso/level-detail/clubs/resources/login
-    const allowed: View[] = ['home', 'eltaso', 'level-detail', 'resources', 'intern-public', 'login']
+    const allowed: View[] = ['landing', 'home', 'eltaso', 'level-detail', 'resources', 'intern-public', 'login']
     return allowed.includes(store.view) ? store.view : 'home'
   }
   if (store.pubView) {
-    const allowed: View[] = ['home', 'eltaso', 'level-detail', 'resources', 'intern-public']
+    const allowed: View[] = ['landing', 'home', 'eltaso', 'level-detail', 'resources', 'intern-public']
     return allowed.includes(store.view) ? store.view : 'home'
   }
   return store.view
