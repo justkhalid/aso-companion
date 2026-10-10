@@ -1,4 +1,5 @@
 import { DAY_FULL } from './constants'
+import { clubDayOrder } from './app-utils'
 import type { Club, State } from './types'
 
 /* Clubs export: one PNG with every club on a single page. */
@@ -14,7 +15,8 @@ export function whenOf(c: Club): string {
 /* One PNG with every club side by side, four to a row: poster in full (never cropped),
    name, days and time, and place underneath. Returns false when there is nothing to draw. */
 export async function downloadClubsPng(state: State): Promise<boolean> {
-  const clubs = (state.clubs || []).filter((c) => !c.placeholder)
+  /* in week order: Monday first, then by time */
+  const clubs = (state.clubs || []).filter((c) => !c.placeholder).sort((a, b) => clubDayOrder(a) - clubDayOrder(b))
   if (!clubs.length) return false
   const COLS = 4
   const CW = 560 // column width
@@ -34,14 +36,6 @@ export async function downloadClubsPng(state: State): Promise<boolean> {
 
   g.fillStyle = '#ffffff'
   g.fillRect(0, 0, W, H)
-  g.fillStyle = '#1c1c1e'
-  g.font = font(800, 64)
-  g.textBaseline = 'top'
-  g.fillText(`${state.settings.institute} clubs`, M, 64)
-  g.fillStyle = '#5c5c63'
-  g.font = font(500, 34)
-  g.fillText(`${clubs.length} clubs · ${state.settings.year}`, M, 142)
-
   const load = (src: string) =>
     new Promise<HTMLImageElement | null>((res) => {
       const im = new Image()
@@ -50,7 +44,35 @@ export async function downloadClubsPng(state: State): Promise<boolean> {
       im.onerror = () => res(null)
       im.src = src
     })
-  const imgs = await Promise.all(clubs.map((c) => (c.poster ? load(c.poster) : Promise.resolve(null))))
+  const [imgs, logo] = await Promise.all([
+    Promise.all(clubs.map((c) => (c.poster ? load(c.poster) : Promise.resolve(null)))),
+    load('/aso-logo.png'),
+  ])
+
+  /* header: the logo to the left of the title, the pair centred on the page */
+  const title = `${state.settings.institute} clubs`
+  const sub = `${clubs.length} clubs · ${state.settings.year}`
+  const LOGO = 120
+  g.font = font(800, 64)
+  const wTitle = g.measureText(title).width
+  g.font = font(500, 34)
+  const wSub = g.measureText(sub).width
+  const textW = Math.max(wTitle, wSub)
+  const gapL = logo ? 28 : 0
+  const startX = (W - ((logo ? LOGO : 0) + gapL + textW)) / 2
+  const hy = 36
+  if (logo) {
+    const k = Math.min(LOGO / logo.width, LOGO / logo.height)
+    g.drawImage(logo, startX + (LOGO - logo.width * k) / 2, hy + (LOGO - logo.height * k) / 2, logo.width * k, logo.height * k)
+  }
+  const tx = startX + (logo ? LOGO + gapL : 0)
+  g.textBaseline = 'top'
+  g.fillStyle = '#1c1c1e'
+  g.font = font(800, 64)
+  g.fillText(title, tx, hy + 4)
+  g.fillStyle = '#5c5c63'
+  g.font = font(500, 34)
+  g.fillText(sub, tx, hy + 82)
 
   const wrap = (text: string, max: number, maxLines: number) => {
     const words = text.split(/\s+/)
@@ -106,22 +128,11 @@ export async function downloadClubsPng(state: State): Promise<boolean> {
     g.fillStyle = '#0b5ce6'
     g.font = font(600, 28)
     g.fillText(whenOf(c) || 'To be confirmed', x + CW / 2, y + PH + 22 + nameLines * 42 + 8, CW)
-    /* the place (room) in bold, the institute name in regular weight after it */
+    /* the place, in bold */
     const ly = y + PH + 22 + nameLines * 42 + 50
-    const room = c.room || ''
-    const tail = (room ? ' · ' : '') + (state.settings.institute || '')
-    g.textAlign = 'left'
-    g.font = font(800, 26)
-    const wRoom = room ? g.measureText(room).width : 0
-    g.font = font(500, 26)
-    const wTail = g.measureText(tail).width
-    const sx = x + CW / 2 - (wRoom + wTail) / 2
     g.fillStyle = '#1c1c1e'
-    g.font = font(800, 26)
-    if (room) g.fillText(room, sx, ly)
-    g.fillStyle = '#5c5c63'
-    g.font = font(500, 26)
-    g.fillText(tail, sx + wRoom, ly)
+    g.font = font(800, 28)
+    if (c.room) g.fillText(c.room, x + CW / 2, ly, CW)
     g.textAlign = 'left'
   })
 
