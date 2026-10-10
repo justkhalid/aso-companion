@@ -4,6 +4,7 @@ import "./globals.css";
 import { Toaster } from "@/components/ui/toaster";
 import { ThemeProvider } from "@/components/theme-provider";
 import { ThemeSync } from "@/components/theme-toggle";
+import { CursorGlow } from "@/components/cursor-glow";
 
 const interSans = Inter({
   variable: "--font-geist-sans",
@@ -66,6 +67,7 @@ export default function RootLayout({
           disableTransitionOnChange
         >
           <ThemeSync />
+          <CursorGlow />
           {children}
           <Toaster />
         </ThemeProvider>
