@@ -18,7 +18,7 @@ function buildLpText(level: Level, wi: number): string {
   const p = w.lp
   if (!p) return ''
   const isKids = level.band === 'Kids' || level.key.indexOf('kids') === 0
-  const dur = isKids ? '2 hours' : '90 minutes'
+  const dur = '2 hours'
   let t = `WEEK ${wi + 1} · ${w.theme || ''} (${level.label})\n`
   t += `Objectives: students can ${w.obj || ''}\n\nLESSON PLAN (${dur})\n`
   const stages = isKids
@@ -37,14 +37,14 @@ function buildLpText(level: Level, wi: number): string {
     : ([
         ['0:00-0:05 Hello & routine', ''],
         ['0:05-0:15 Warm-up review', p.wu],
-        ['0:15-0:30 Presentation', p.pres],
-        ['0:30-0:45 Practice (guided)', p.prac],
-        ['0:45-0:55 Listening slot', p.ls],
+        ['0:15-0:35 Presentation', p.pres],
+        ['0:35-0:55 Practice (guided)', p.prac],
+        ['0:55-1:05 Listening slot', p.ls],
         ['BREAK', ''],
-        ['1:00-1:08 Reactivation game', p.re],
-        ['1:08-1:22 Production task', p.prod],
-        ['1:22-1:28 Reading & writing', p.rw],
-        ['1:28-1:30 Story/song + goodbye', p.st],
+        ['1:15-1:25 Reactivation game', p.re],
+        ['1:25-1:45 Production task', p.prod],
+        ['1:45-1:55 Reading & writing', p.rw],
+        ['1:55-2:00 Story/song + goodbye', p.st],
       ] as [string, string][])
   stages.forEach((r) => {
     t += r[0] + (r[1] ? ': ' + r[1] : '') + '\n'
@@ -85,10 +85,10 @@ function KitLink({ k }: { k: KitItem }) {
       href={k.u}
       target="_blank"
       rel="noopener"
-      className="inline-flex max-w-full items-center gap-1 rounded-md border border-border bg-secondary px-2 py-0.5 text-[12px] font-semibold text-primary hover:underline"
+      className="inline-flex max-w-full items-start gap-1 rounded-md border border-border bg-secondary px-2 py-0.5 text-left text-[12px] font-semibold text-primary hover:underline"
     >
-      <Icon className="h-3 w-3 shrink-0" />
-      <span className="truncate">{k.l}</span>
+      <Icon className="mt-0.5 h-3 w-3 shrink-0" />
+      <span className="min-w-0 break-words">{k.l}</span>
     </a>
   )
 }
@@ -129,7 +129,7 @@ export function LessonPlanDialog({
   const kit: KitItem[] = w.kit || []
   const isKids = level.band === 'Kids' || level.key.indexOf('kids') === 0
   const T = isKids ? LP_STAGES_KIDS : LP_STAGES_TEENS
-  const dur = isKids ? '2 hours' : '90 minutes'
+  const dur = '2 hours'
 
   const helloTxt =
     weekIndex === 0
