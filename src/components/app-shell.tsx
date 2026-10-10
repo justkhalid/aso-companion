@@ -203,7 +203,7 @@ function PageBody({ view, admin }: { view: View; admin: boolean }) {
     case 'landing':
       return <HomePage admin={admin} />
     case 'teacher-rooms':
-      return <RoomsPage focus={['Room 1', 'Room 2']} />
+      return <RoomsPage focus={['Room 1', 'Room 2']} only />
     case 'intern-public':
       return <ClubsPage admin={false} internMode />
     case 'resources':

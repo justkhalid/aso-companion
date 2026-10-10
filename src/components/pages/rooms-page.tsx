@@ -153,7 +153,8 @@ function withLanes(list: Booking[]): { b: Booking; lane: number }[] {
   })
 }
 
-export function RoomsPage({ embedded = false, focus }: { embedded?: boolean; focus?: string[] }) {
+/* focus: rooms that get a combined first tab; only: show nothing but those rooms (teachers see Room 1 and Room 2) */
+export function RoomsPage({ embedded = false, focus, only = false }: { embedded?: boolean; focus?: string[]; only?: boolean }) {
   const state = useStore((s) => s.state)
   const [monday, setMonday] = React.useState(() => mondayOf(new Date()))
   const [picked, setPicked] = React.useState<string>(focus ? FOCUS : ALL)
@@ -162,11 +163,12 @@ export function RoomsPage({ embedded = false, focus }: { embedded?: boolean; foc
   const rooms = React.useMemo(() => {
     const set = new Set<string>(roomOptionsFor(state))
     bookings.forEach((b) => set.add(b.room))
-    return Array.from(set)
-  }, [state, bookings])
+    const all = Array.from(set)
+    return only && focus ? focus.filter((f) => all.includes(f)) : all
+  }, [state, bookings, only, focus])
   const focusRooms = (focus || []).filter((f) => rooms.includes(f))
   const hasFocus = focusRooms.length > 1
-  const mode = picked === ALL || (picked === FOCUS && hasFocus) || rooms.includes(picked) ? picked : hasFocus ? FOCUS : ALL
+  const mode = (picked === ALL && !only) || (picked === FOCUS && hasFocus) || rooms.includes(picked) ? picked : hasFocus ? FOCUS : only ? rooms[0] : ALL
   const all = mode === ALL || mode === FOCUS // several rooms in one calendar
   const shown = mode === ALL ? rooms : mode === FOCUS ? focusRooms : [mode]
   const CHIP_H = all ? 38 : 74
@@ -237,7 +239,7 @@ export function RoomsPage({ embedded = false, focus }: { embedded?: boolean; foc
 
       {/* all rooms, or one room */}
       <div className="mb-3 flex gap-1 overflow-x-auto rounded-[10px] bg-black/[0.06] p-0.5 dark:bg-white/10 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden" role="tablist" aria-label="Room">
-        {[...(hasFocus ? [FOCUS] : []), ALL, ...rooms].map((r) => {
+        {[...(hasFocus ? [FOCUS] : []), ...(only ? [] : [ALL]), ...rooms].map((r) => {
           const on = r === mode
           return (
             <button
