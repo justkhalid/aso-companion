@@ -219,6 +219,7 @@ export type View =
   | 'clubs'
   | 'resources'
   | 'intern-public'
+  | 'teacher-rooms'
   | 'login'
   | 'settings'
   | 'intern'

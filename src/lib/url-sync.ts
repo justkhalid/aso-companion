@@ -21,6 +21,7 @@ const PATH_FOR_VIEW: Partial<Record<View, string>> = {
   'level-detail': '/eltaso',
   resources: '/resources',
   'intern-public': '/interns',
+  'teacher-rooms': '/teachers/rooms',
 }
 
 /** reverse map: which public view a path stands for (never level-detail) */
@@ -32,6 +33,7 @@ export function viewFromPath(pathname: string): View | null {
   if (p === '/eltaso') return 'eltaso'
   if (p === '/resources') return 'resources'
   if (p === '/interns') return 'intern-public'
+  if (p === '/teachers/rooms') return 'teacher-rooms'
   return null
 }
 

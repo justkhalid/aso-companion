@@ -500,11 +500,11 @@ export const useStore = create<UIStore>((set, get) => ({
 export function effectiveView(store: UIStore): View {
   if (!store.admin) {
     // public: only home/eltaso/level-detail/clubs/resources/login
-    const allowed: View[] = ['landing', 'home', 'eltaso', 'level-detail', 'resources', 'intern-public', 'login']
+    const allowed: View[] = ['landing', 'home', 'eltaso', 'level-detail', 'resources', 'intern-public', 'teacher-rooms', 'login']
     return allowed.includes(store.view) ? store.view : 'home'
   }
   if (store.pubView) {
-    const allowed: View[] = ['landing', 'home', 'eltaso', 'level-detail', 'resources', 'intern-public']
+    const allowed: View[] = ['landing', 'home', 'eltaso', 'level-detail', 'resources', 'intern-public', 'teacher-rooms']
     return allowed.includes(store.view) ? store.view : 'home'
   }
   return store.view

@@ -139,6 +139,7 @@ const LABEL_W = 64 // day label column
 const ROOM_W = 84 // room label column in the all-rooms view
 const MIN_GRID = 760 // below this width the calendar scrolls sideways
 const ALL = '__all'
+const FOCUS = '__focus' // the rooms a group cares about most (teachers: Room 1 and Room 2)
 
 /* stacked lanes for bookings that overlap in the same room and day */
 function withLanes(list: Booking[]): { b: Booking; lane: number }[] {
@@ -152,10 +153,10 @@ function withLanes(list: Booking[]): { b: Booking; lane: number }[] {
   })
 }
 
-export function RoomsPage({ embedded = false }: { embedded?: boolean }) {
+export function RoomsPage({ embedded = false, focus }: { embedded?: boolean; focus?: string[] }) {
   const state = useStore((s) => s.state)
   const [monday, setMonday] = React.useState(() => mondayOf(new Date()))
-  const [picked, setPicked] = React.useState<string>(ALL)
+  const [picked, setPicked] = React.useState<string>(focus ? FOCUS : ALL)
 
   const bookings = React.useMemo(() => bookingsForWeek(state, monday, embedded), [state, monday, embedded])
   const rooms = React.useMemo(() => {
@@ -163,9 +164,11 @@ export function RoomsPage({ embedded = false }: { embedded?: boolean }) {
     bookings.forEach((b) => set.add(b.room))
     return Array.from(set)
   }, [state, bookings])
-  const mode = picked === ALL || rooms.includes(picked) ? picked : ALL
-  const all = mode === ALL
-  const shown = all ? rooms : [mode]
+  const focusRooms = (focus || []).filter((f) => rooms.includes(f))
+  const hasFocus = focusRooms.length > 1
+  const mode = picked === ALL || (picked === FOCUS && hasFocus) || rooms.includes(picked) ? picked : hasFocus ? FOCUS : ALL
+  const all = mode === ALL || mode === FOCUS // several rooms in one calendar
+  const shown = mode === ALL ? rooms : mode === FOCUS ? focusRooms : [mode]
   const CHIP_H = all ? 38 : 74
 
   const sunday = new Date(monday)
@@ -234,7 +237,7 @@ export function RoomsPage({ embedded = false }: { embedded?: boolean }) {
 
       {/* all rooms, or one room */}
       <div className="mb-3 flex gap-1 overflow-x-auto rounded-[10px] bg-black/[0.06] p-0.5 dark:bg-white/10 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden" role="tablist" aria-label="Room">
-        {[ALL, ...rooms].map((r) => {
+        {[...(hasFocus ? [FOCUS] : []), ALL, ...rooms].map((r) => {
           const on = r === mode
           return (
             <button
@@ -247,7 +250,7 @@ export function RoomsPage({ embedded = false }: { embedded?: boolean }) {
                 on ? 'bg-card font-semibold shadow-[0_1px_3px_rgba(0,0,0,0.12),0_1px_1px_rgba(0,0,0,0.06)]' : 'font-medium text-foreground/70 hover:bg-black/[0.04]',
               )}
             >
-              {r === ALL ? 'All rooms' : r}
+              {r === ALL ? 'All rooms' : r === FOCUS ? focusRooms.map((x) => x.replace(/^Room /, '')).join(' and ').replace(/^/, 'Room ') : r}
             </button>
           )
         })}

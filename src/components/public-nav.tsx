@@ -18,6 +18,7 @@ const NAV: NavItem[] = [
   { label: 'Home', view: 'home' },
   { label: 'ELTASO', view: 'eltaso' },
   { label: 'Resources', view: 'resources' },
+  { label: 'Rooms', view: 'teacher-rooms' },
 ]
 
 export function PublicNav() {

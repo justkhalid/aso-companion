@@ -95,7 +95,7 @@ export function AppShell({ initialView }: { initialView?: View }) {
     )
   }
   if (!admin || pubView) {
-    if (['home', 'eltaso', 'level-detail', 'resources', 'reports'].includes(ev) && !teacherOk) {
+    if (['home', 'eltaso', 'level-detail', 'resources', 'reports', 'teacher-rooms'].includes(ev) && !teacherOk) {
       return (
         <>
           <AccessGate role="teacher" />
@@ -183,9 +183,9 @@ function BootSplash() {
 }
 
 function computeView(view: View, admin: boolean, pubView: boolean): View {
-  const allowedPublic: View[] = ['landing', 'home', 'eltaso', 'level-detail', 'resources', 'intern-public', 'reports', 'login']
+  const allowedPublic: View[] = ['landing', 'home', 'eltaso', 'level-detail', 'resources', 'intern-public', 'teacher-rooms', 'reports', 'login']
   if (!admin) return allowedPublic.includes(view) ? view : 'home'
-  if (pubView) return ['landing', 'home', 'eltaso', 'level-detail', 'resources', 'intern-public', 'reports'].includes(view) ? view : 'home'
+  if (pubView) return ['landing', 'home', 'eltaso', 'level-detail', 'resources', 'intern-public', 'teacher-rooms', 'reports'].includes(view) ? view : 'home'
   /* a signed-in admin never sees the sign-in screen or the public main page inside the admin shell */
   return view === 'login' || view === 'landing' ? 'home' : view
 }
@@ -202,6 +202,8 @@ function PageBody({ view, admin }: { view: View; admin: boolean }) {
       return <ClubsPage admin={admin} />
     case 'landing':
       return <HomePage admin={admin} />
+    case 'teacher-rooms':
+      return <RoomsPage focus={['Room 1', 'Room 2']} />
     case 'intern-public':
       return <ClubsPage admin={false} internMode />
     case 'resources':
