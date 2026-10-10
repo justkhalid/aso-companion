@@ -82,8 +82,9 @@ interface Props {
   emptyHint?: string
 }
 
-const START_HOUR = 9
-const END_HOUR = 18
+/* the day runs 09:00 to 18:00; a session outside those hours stretches the grid to fit it */
+const DEFAULT_START = 9
+const DEFAULT_END = 18
 const HOUR_WIDTH = 90
 const DAY_LABEL_W = 72
 
@@ -126,14 +127,16 @@ export function WeeklyGrid({
   const tKey = todayKey()
   const tday = new Date().getDay() === 0 ? 6 : new Date().getDay() - 1
 
-  const hours: number[] = []
-  for (let h = START_HOUR; h <= END_HOUR; h++) hours.push(h)
-
   const parsed: ParsedChip[] = []
   for (const it of items) {
     const c = parseChip(it)
     if (c) parsed.push(c)
   }
+
+  const START_HOUR = Math.min(DEFAULT_START, ...parsed.map((c) => Math.floor(c.startMin / 60)))
+  const END_HOUR = Math.max(DEFAULT_END, ...parsed.map((c) => Math.ceil(c.endMin / 60)))
+  const hours: number[] = []
+  for (let h = START_HOUR; h <= END_HOUR; h++) hours.push(h)
 
   if (!parsed.length) {
     return (
@@ -152,12 +155,15 @@ export function WeeklyGrid({
     }
   }
 
-  const gridWidth = DAY_LABEL_W + hours.length * HOUR_WIDTH
+  /* the grid ends at the last hour and stretches to the width of the page; it only scrolls sideways
+     when the screen is narrower than HOUR_WIDTH per hour */
+  const span = hours.length - 1
+  const gridWidth = DAY_LABEL_W + span * HOUR_WIDTH
 
   return (
     <div className="rounded-2xl border border-border bg-card p-2 sm:p-3">
       <div className="overflow-x-auto scroll-thin">
-        <div style={{ width: gridWidth, position: 'relative' }}>
+        <div style={{ minWidth: gridWidth, position: 'relative' }}>
           {/* Hour header row: each label sits ON the vertical line that marks
               the START of that hour (not centered inside the hour cell) */}
           <div className="sticky top-0 z-20 border-b border-border bg-card" style={{ height: 40, position: 'relative' }}>
@@ -165,7 +171,7 @@ export function WeeklyGrid({
               <div
                 key={h}
                 className="absolute top-0 flex h-full items-center text-[11px] font-bold tabular-nums text-muted-foreground"
-                style={{ left: DAY_LABEL_W + i * HOUR_WIDTH, transform: 'translateX(-50%)' }}
+                style={{ left: `calc(${DAY_LABEL_W}px + (100% - ${DAY_LABEL_W}px) * ${i / span})`, transform: i === span ? 'translateX(-100%)' : 'translateX(-50%)', paddingRight: i === span ? 4 : 0 }}
               >
                 {pad(h)}:00
               </div>
@@ -202,8 +208,8 @@ export function WeeklyGrid({
                 {/* Hour columns */}
                 <div className={`relative flex-1 ${isToday ? 'bg-primary/[0.03]' : ''}`}>
                   {/* Vertical hour grid lines */}
-                  {hours.map((_, i) => (
-                    <div key={i} className="absolute top-0 bottom-0 border-l border-border/40" style={{ left: i * HOUR_WIDTH }} />
+                  {hours.slice(0, -1).map((_, i) => (
+                    <div key={i} className="absolute top-0 bottom-0 border-l border-border/40" style={{ left: `${(i / span) * 100}%` }} />
                   ))}
 
                   {/* Event chips, positioned by their real start and end time.
@@ -213,11 +219,8 @@ export function WeeklyGrid({
                     const e = p.ev
                     const startOffset = e.startMin - START_HOUR * 60 + p.leftMin
                     const duration = p.widthMin
-                    const leftPx = (startOffset / 60) * HOUR_WIDTH
-                    const widthPx = (duration / 60) * HOUR_WIDTH
-
-                    const chipLeft = leftPx + 2
-                    const chipWidth = widthPx - 4
+                    const chipLeft = `calc(${(startOffset / 60 / span) * 100}% + 2px)`
+                    const chipWidth = `calc(${(duration / 60 / span) * 100}% - 4px)`
                     const chipTop = ROW_PAD + p.lane * (CHIP_H + CHIP_GAP)
 
                     const Icon = clubIcon(e.item.icon)?.Icon
