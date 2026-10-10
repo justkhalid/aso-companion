@@ -36118,16 +36118,21 @@
     {
       "id": "t7",
       "name": "Wafae",
-      "role": "Volunteer Teacher",
+      "roles": [
+        "Teacher"
+      ],
+      "role": "Teacher",
       "duty": "ASO-T1 Teens",
       "phone": "",
-      "email": "",
-      "aso": ""
+      "email": ""
     },
     {
       "id": "t8",
       "name": "Jamal",
-      "role": "Volunteer Teacher",
+      "roles": [
+        "Teacher"
+      ],
+      "role": "Teacher",
       "duty": "ASO-T2 Teens",
       "phone": "",
       "email": ""
@@ -37723,5 +37728,5 @@
   ],
   "reports": [],
   "libraryPins": [],
-  "_rev": 1791659989679
+  "_rev": 1791659989681
 }
