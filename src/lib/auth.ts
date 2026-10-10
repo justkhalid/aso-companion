@@ -137,7 +137,9 @@ export function storedCode(state: unknown, role: Role): string {
   if (role === 'admin') return storedAdminCode(state)
   const key = role === 'teacher' ? 'teacherCode' : 'internCode'
   const c = (state as AnyState | null)?.settings?.[key]
-  return typeof c === 'string' && c.trim() ? c.trim() : role === 'teacher' ? DEFAULT_TEACHER_CODE : DEFAULT_INTERN_CODE
+  /* 'eltaso' was the old placeholder teachers' code in the starter data, never a chosen one: treat it as unset */
+  const set = typeof c === 'string' && c.trim() && c.trim() !== 'eltaso'
+  return set ? (c as string).trim() : role === 'teacher' ? DEFAULT_TEACHER_CODE : DEFAULT_INTERN_CODE
 }
 
 /**
