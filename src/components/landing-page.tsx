@@ -39,6 +39,7 @@ export function LandingPage() {
   const setPubView = useStore((s) => s.setPubView)
   const [expanded, setExpanded] = React.useState<Club | null>(null)
   const [calView, setCalView] = React.useState<CalendarView>('grid')
+  const [calKind, setCalKind] = React.useState<'all' | 'classes' | 'clubs' | 'events'>('all')
   React.useEffect(() => { setCalView(readCalView()) }, [])
   React.useEffect(() => { writeCalView(calView) }, [calView])
 
@@ -71,9 +72,16 @@ export function LandingPage() {
 
   /* everything this week in one calendar: classes by level, clubs, events */
   const monday = mondayOfWeek(new Date())
-  const calItems = [...publicClubItems(state, monday), ...publicEventItems(state, monday), ...publicClassItems(state, monday)]
+  const clubItems = publicClubItems(state, monday)
+  const eventItems = publicEventItems(state, monday)
+  const classItems = publicClassItems(state, monday)
+  const calItems = [
+    ...(calKind === 'all' || calKind === 'clubs' ? clubItems : []),
+    ...(calKind === 'all' || calKind === 'events' ? eventItems : []),
+    ...(calKind === 'all' || calKind === 'classes' ? classItems : []),
+  ]
   const calLegend: LegendEntry[] = [
-    ...state.clubs.filter((c) => (c.days || []).length && c.time).map((c) => ({ label: c.name, tone: toneClassForClub(state, c.id) })),
+    ...(calKind === 'all' || calKind === 'clubs' ? state.clubs.filter((c) => (c.days || []).length && c.time).map((c) => ({ label: c.name, tone: toneClassForClub(state, c.id) })) : []),
     ...(calItems.some((i) => i.tone === 'tone-7') ? [{ label: 'Special events', tone: 'tone-7' }] : []),
     ...(calItems.some((i) => i.tone === PUBLIC_CLASS_TONE) ? [{ label: 'English classes', tone: PUBLIC_CLASS_TONE }] : []),
     ...(calItems.some((i) => i.tone === 'tone-8') ? [{ label: 'Cancelled', tone: 'tone-8' }] : []),
@@ -176,6 +184,18 @@ export function LandingPage() {
               <p className="text-sm text-muted-foreground">Classes, clubs and events on one calendar.</p>
             </div>
             <CalViewSwitcher view={calView} onChange={setCalView} />
+          </div>
+          <div className="mb-3 flex flex-wrap gap-1.5" role="group" aria-label="Show on the calendar">
+            {([['all', 'All'], ['classes', 'Classes'], ['clubs', 'Clubs'], ['events', 'Events']] as const).map(([k, label]) => (
+              <button
+                key={k}
+                onClick={() => setCalKind(k)}
+                aria-pressed={calKind === k}
+                className={'rounded-full px-3.5 py-1.5 text-sm font-semibold transition ' + (calKind === k ? 'aso-nav-pill shadow-sm' : 'bg-secondary text-foreground/80 hover:bg-secondary/70')}
+              >
+                {label}
+              </button>
+            ))}
           </div>
           <div className="rounded-2xl bg-card">
             {calView === 'grid' ? (
