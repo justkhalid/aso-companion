@@ -5,7 +5,7 @@ import { AlertTriangle, CalendarDays, DoorOpen, GraduationCap, HeartHandshake, S
 import { useStore } from '@/lib/store'
 import { DAY_KEYS } from '@/lib/constants'
 import { PageHead, Chip } from '@/components/ui-bits'
-import { peopleOf, rolesOf, fmtAbsenceRange, isoOf, nextOccurrence, termStatus, classStatusOn, clubStatusOn, eventStatusOn, isOnceEvent } from '@/lib/app-utils'
+import { peopleOf, rolesOf, fmtAbsenceRange, isoOf, nextOccurrence, termStatus, classStatusOn, clubStatusOn, eventStatusOn, isOnceEvent, fmtTime, parseSlot } from '@/lib/app-utils'
 import { Button } from '@/components/ui/button'
 import { openQuickAdd } from '@/components/admin/quick-add'
 import type { View } from '@/lib/types'
@@ -29,7 +29,7 @@ export function DashboardPage() {
     ...state.classes.filter((c) => (c.days || []).includes(dayKey)).map((c) => ({ key: c.id, title: c.code, sub: `${c.level} · ${c.teacher || 'no teacher'}`, time: c.time, room: c.room, status: classStatusOn(state, c, today) })),
     ...state.clubs.filter((c) => (c.days || []).includes(dayKey)).map((c) => ({ key: c.id, title: c.name, sub: `Club · ${c.lead || 'no lead'}`, time: c.time, room: c.room, status: clubStatusOn(state, c.id, today) })),
     ...state.events.filter((e) => (isOnceEvent(e) ? e.date === today : e.day === dayKey && !!nextOccurrence(e) && isoOf(nextOccurrence(e)!) === today)).map((e) => ({ key: e.id, title: e.title, sub: 'Event', time: e.time, room: e.place, status: eventStatusOn(state, e.id, today) })),
-  ].sort((a, b) => String(a.time).localeCompare(String(b.time)))
+  ].sort((a, b) => parseSlot(a.time || '').mins - parseSlot(b.time || '').mins)
 
   /* things that are missing */
   const todo = [
@@ -114,7 +114,7 @@ export function DashboardPage() {
           <ul className="divide-y divide-border">
             {sessions.map((x) => (
               <li key={x.key} className={`flex flex-wrap items-center gap-x-3 gap-y-0.5 py-2 text-sm ${x.status.kind === 'cancelled' ? 'opacity-60' : ''}`}>
-                <span className="w-28 shrink-0 font-semibold tabular-nums">{x.time || '-'}</span>
+                <span className="w-36 shrink-0 font-semibold tabular-nums">{fmtTime(x.time) || '-'}</span>
                 <span className="min-w-0 flex-1">
                   <span className="font-bold">{x.title}</span> <span className="text-muted-foreground">{x.sub}</span>
                 </span>

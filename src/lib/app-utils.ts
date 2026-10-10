@@ -108,7 +108,7 @@ export function noteFor(state: State, wi: number): string {
 /* ---- timetable slot parsing ----
    Rounds the start time to the nearest hour for the row key, so events
    starting in the same hour (15:00-17:00 and 15:30-17:30) share a row.
-   The full time range is kept as the label. 24h format only. */
+   The full time range is kept as the label (AM/PM). Stored times are 24h. */
 export interface Slot {
   k: string
   label: string
@@ -119,6 +119,33 @@ export function ttPad(n: number): string {
   return String(n).padStart(2, '0')
 }
 
+/* ---- 12-hour clock ----
+   Times are stored as 24h text ("14:00-16:00") and shown everywhere as AM/PM ("2:00 - 4:00 PM"). */
+const mer = (mins: number) => (Math.floor(mins / 60) % 24 >= 12 ? 'PM' : 'AM')
+const clock12 = (mins: number) => {
+  const h = Math.floor(mins / 60) % 24
+  return `${h % 12 || 12}:${String(mins % 60).padStart(2, '0')}`
+}
+/** minutes since midnight -> "2:30 PM" */
+export function fmt12Min(mins: number): string {
+  return `${clock12(mins)} ${mer(mins)}`
+}
+/** a range in minutes -> "2:00 - 4:00 PM", or "11:00 AM - 1:00 PM" when it crosses noon */
+export function fmtRange12(a: number, b: number): string {
+  return mer(a) === mer(b) ? `${clock12(a)} - ${clock12(b)} ${mer(b)}` : `${fmt12Min(a)} - ${fmt12Min(b)}`
+}
+/** "9 AM" for an hour on an axis */
+export function hourLabel12(h: number): string {
+  return `${h % 12 || 12} ${h % 24 >= 12 ? 'PM' : 'AM'}`
+}
+/** rewrite every 24h time or time range inside a piece of text to AM/PM */
+export function fmtTime(text: string | undefined | null): string {
+  const s = String(text ?? '')
+  return s
+    .replace(/\b(\d{1,2}):(\d{2})\s*[-\u2013]\s*(\d{1,2}):(\d{2})\b(?!\s*[AaPp][Mm])/g, (_m, h1, m1, h2, m2) => fmtRange12(+h1 * 60 + +m1, +h2 * 60 + +m2))
+    .replace(/\b(\d{1,2}):(\d{2})\b(?!\s*[AaPp][Mm])/g, (_m, h, mm) => fmt12Min(+h * 60 + +mm))
+}
+
 export function parseSlot(t: string): Slot {
   const s = String(t || '').replace(/\s/g, '')
   let m = s.match(/^(\d{1,2})[:.](\d{2})-(\d{1,2})[:.](\d{2})$/)
@@ -126,15 +153,15 @@ export function parseSlot(t: string): Slot {
     const startHour = +m[1]
     return {
       k: 'h' + ttPad(startHour),
-      label: `${ttPad(+m[1])}:${m[2]}-${ttPad(+m[3])}:${m[4]}`,
+      label: fmtRange12(startHour * 60 + +m[2], +m[3] * 60 + +m[4]),
       mins: startHour * 60 + +m[2],
     }
   }
   m = s.match(/^(\d{1,2})[:.](\d{2})$/)
-  if (m) return { k: 'h' + ttPad(+m[1]), label: `${ttPad(+m[1])}:${m[2]}`, mins: +m[1] * 60 + +m[2] }
+  if (m) return { k: 'h' + ttPad(+m[1]), label: fmt12Min(+m[1] * 60 + +m[2]), mins: +m[1] * 60 + +m[2] }
   m = s.match(/^(\d{1,2})[:.](\d{2})?/)
   if (m)
-    return { k: 'h' + ttPad(+m[1]), label: `${ttPad(+m[1])}:${m[2] || '00'}`, mins: +m[1] * 60 + +(m[2] || 0) }
+    return { k: 'h' + ttPad(+m[1]), label: fmt12Min(+m[1] * 60 + +(m[2] || 0)), mins: +m[1] * 60 + +(m[2] || 0) }
   return { k: 'raw:' + s, label: s || '-', mins: 9999 }
 }
 

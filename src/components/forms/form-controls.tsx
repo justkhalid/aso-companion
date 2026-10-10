@@ -3,6 +3,7 @@
 import * as React from 'react'
 import { Clock, ImagePlus, List, Loader2, PenLine, Trash2 } from 'lucide-react'
 import { DAY_KEYS, TIME_OPTIONS } from '@/lib/constants'
+import { fmt12Min } from '@/lib/app-utils'
 import { CLUB_ICONS, clubIcon } from '@/lib/icons'
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
@@ -55,7 +56,7 @@ export function DayPills({
   )
 }
 
-/* ---------- two-step 24h time picker (30-minute steps) ---------- */
+/* ---------- two-step time picker (AM/PM) (30-minute steps) ---------- */
 export function TimeRangeSelect({
   value,
   onChange,
@@ -134,7 +135,7 @@ function TimeStep({
         <SelectContent className="max-h-64 scroll-thin rounded-lg">
           {TIME_OPTIONS.map((t) => (
             <SelectItem key={t} value={t} className="tabular-nums">
-              {t}
+              {fmt12Min(+t.slice(0, 2) * 60 + +t.slice(3, 5))}
             </SelectItem>
           ))}
         </SelectContent>

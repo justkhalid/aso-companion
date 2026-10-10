@@ -40,8 +40,7 @@ import {
   eventStatusOn,
   splitDaysByStatus,
   mondayOfWeek,
-  isoOf,
-} from '@/lib/app-utils'
+  isoOf, fmtTime, fmtRange12, fmt12Min } from '@/lib/app-utils'
 import { ROOM_LEGEND, DAY_KEYS } from '@/lib/constants'
 import { buildCalendarLinks } from '@/lib/export-word'
 import { clubIcon } from '@/lib/icons'
@@ -371,7 +370,7 @@ function PosterFallback({ club, compact }: { club: Club; compact?: boolean }) {
 /* meta line shared by the cards: days · time · room */
 function ClubMeta({ club }: { club: Club }) {
   const days = (club.days || []).length ? club.days.join(' / ') : 'no day set'
-  const time = club.time || 'no time set'
+  const time = club.time ? fmtTime(club.time) : 'no time set'
   return (
     <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs font-semibold text-muted-foreground">
       <span className="inline-flex items-center gap-1"><CalendarDays className="h-3.5 w-3.5" /> {days}</span>
@@ -686,7 +685,7 @@ export function ClubExpandOverlay({
               {/* meta tiles, a calm symmetric grid */}
               <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
                 <MetaCell icon={CalendarDays} label="Day" value={(club.days || []).length ? club.days.join(' / ') : 'Not set'} />
-                <MetaCell icon={Clock} label="Time" value={club.time || 'Not set'} />
+                <MetaCell icon={Clock} label="Time" value={club.time ? fmtTime(club.time) : 'Not set'} />
                 <MetaCell icon={MapPin} label="Room" value={club.room || 'Not set'} />
                 <MetaCell icon={User} label="Lead" value={club.lead || 'Not set'} />
               </div>
@@ -857,7 +856,7 @@ function Responsibilities({ onReports }: { onReports?: () => void }) {
   )
 }
 
-/* "14:00-16:00" -> { start: "14:00", end: "16:00", length: "2 h" } */
+/* "14:00-16:00" -> { start: "2:00 - 4:00 PM", length: "2 h" } */
 function splitTime(t: string): { start: string; end: string; length: string } | null {
   const m = /^(\d{1,2}):(\d{2})\s*-\s*(\d{1,2}):(\d{2})$/.exec((t || '').trim())
   if (!m) return null
@@ -867,7 +866,7 @@ function splitTime(t: string): { start: string; end: string; length: string } | 
   const h = Math.floor((b - a) / 60)
   const min = (b - a) % 60
   const length = (h ? h + ' h' : '') + (h && min ? ' ' : '') + (min ? min + ' min' : '')
-  return { start: m[1].padStart(2, '0') + ':' + m[2], end: m[3].padStart(2, '0') + ':' + m[4], length }
+  return { start: fmtRange12(a, b), end: fmt12Min(b), length }
 }
 
 export function EventCard({
@@ -895,7 +894,7 @@ export function EventCard({
   const longDesc = desc.length > 160
 
   /* every fact about the event, written out: one time or repeating, when it starts and when it ends */
-  const timeText = t ? `${t.start} - ${t.end} · ${t.length}` : event.time || 'Time to be confirmed'
+  const timeText = t ? `${t.start} · ${t.length}` : event.time ? fmtTime(event.time) : 'Time to be confirmed'
   const cells: { icon: React.ComponentType<{ className?: string }>; label: string; value: string }[] = isOnce
     ? [
         { icon: CalendarDays, label: 'Date', value: event.date ? longDate(parseISO(event.date)) : 'Date to be confirmed' },

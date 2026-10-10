@@ -2,6 +2,7 @@
 
 import type { GridItem, LegendEntry } from '@/components/weekly-grid'
 import { packDayChips, lanesOf } from '@/components/weekly-grid'
+import { fmtRange12, hourLabel12 } from './app-utils'
 import { DAY_KEYS, DAY_FULL } from './constants'
 
 /* Tones matching the old vanilla JS export (also reused by the Word exports) */
@@ -27,7 +28,7 @@ function parseRange(t: string): { startMin: number; endMin: number; label: strin
   const m = s.match(/^(\d{1,2})[:.](\d{2})-(\d{1,2})[:.](\d{2})$/)
   if (!m) return null
   const pad = (n: number) => String(n).padStart(2, '0')
-  return { startMin: +m[1]*60+(+m[2]), endMin: +m[3]*60+(+m[4]), label: `${pad(+m[1])}:${pad(+m[2])} - ${pad(+m[3])}:${pad(+m[4])}` }
+  return { startMin: +m[1]*60+(+m[2]), endMin: +m[3]*60+(+m[4]), label: fmtRange12(+m[1]*60+(+m[2]), +m[3]*60+(+m[4])) }
 }
 
 function clipTo(ctx: CanvasRenderingContext2D, t: string, w: number): string {
@@ -338,7 +339,7 @@ export async function renderTimetablePNG(o: ExportOptions): Promise<Blob | null>
   /* hour labels sit ON the vertical line marking the start of each hour */
   ctx.textAlign = 'center'
   hours.forEach((h, i) => {
-    ctx.fillText(pad2(h) + ':00', PAD + DAY_LABEL_W + i * HOUR_W, ty + HOUR_HEAD_H / 2 + 6 * S)
+    ctx.fillText(hourLabel12(h), PAD + DAY_LABEL_W + i * HOUR_W, ty + HOUR_HEAD_H / 2 + 6 * S)
   })
   ctx.textAlign = 'left'
   // Header borders

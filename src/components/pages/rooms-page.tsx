@@ -4,7 +4,7 @@ import * as React from 'react'
 import { ChevronLeft, ChevronRight } from 'lucide-react'
 import { useStore } from '@/lib/store'
 import { DAY_KEYS, ROOM_UNAVAILABLE } from '@/lib/constants'
-import { classStatusOn, clubStatusOn, eventStatusOn, isOnceEvent, isoOf, roomOptionsFor, toneClassForClub, toneClassForLevel } from '@/lib/app-utils'
+import { classStatusOn, clubStatusOn, eventStatusOn, isOnceEvent, isoOf, roomOptionsFor, toneClassForClub, toneClassForLevel, fmt12Min, hourLabel12 } from '@/lib/app-utils'
 import { clubIcon } from '@/lib/icons'
 import { cn } from '@/lib/utils'
 import type { State } from '@/lib/types'
@@ -13,7 +13,7 @@ import type { State } from '@/lib/types'
    week; events count on their own date (one-off) or their weekday (repeating).
    Opening hours below only set the window the free time is measured in. */
 const OPEN = 9 * 60
-const CLOSE = 18 * 60 // ASO closes at 18:00; free time is only counted inside OPEN-CLOSE
+const CLOSE = 18 * 60 // ASO closes at 6 PM; free time is only counted inside OPEN-CLOSE
 
 type Kind = 'class' | 'club' | 'event'
 interface Booking {
@@ -36,7 +36,7 @@ const toMin = (t: string) => {
   const m = /^(\d{1,2}):(\d{2})$/.exec(t.trim())
   return m ? Number(m[1]) * 60 + Number(m[2]) : NaN
 }
-const fmt = (n: number) => String(Math.floor(n / 60)).padStart(2, '0') + ':' + String(n % 60).padStart(2, '0')
+const fmt = (n: number) => fmt12Min(n)
 function parseSlot(slot: string): [number, number] | null {
   const [a, b] = String(slot || '').split('-')
   if (!a || !b) return null
@@ -271,7 +271,7 @@ export function RoomsPage({ embedded = false, focus, only = false }: { embedded?
           <div className="flex border-b border-border bg-secondary/40 text-[11px] font-bold text-muted-foreground">
             <div style={{ width: labelW }} className="shrink-0" />
             {HOURS.slice(0, -1).map((h) => (
-              <div key={h} className={cn('min-w-0 flex-1 border-l border-border/60 px-1.5 py-1.5 tabular-nums', (h * 60 < OPEN || h * 60 >= CLOSE) && 'opacity-50')}>{String(h).padStart(2, '0')}:00</div>
+              <div key={h} className={cn('min-w-0 flex-1 border-l border-border/60 px-1.5 py-1.5 tabular-nums', (h * 60 < OPEN || h * 60 >= CLOSE) && 'opacity-50')}>{hourLabel12(h)}</div>
             ))}
           </div>
 
@@ -408,7 +408,7 @@ export function RoomsPage({ embedded = false, focus, only = false }: { embedded?
         )}
         {(viewOpen < OPEN || viewClose > CLOSE) && (
           <span className="flex items-center gap-1.5 text-[11.5px] font-semibold text-muted-foreground">
-            <i className="inline-block h-2 w-2 rounded-sm bg-black/15 dark:bg-white/25" /> Outside opening hours (09:00-18:00)
+            <i className="inline-block h-2 w-2 rounded-sm bg-black/15 dark:bg-white/25" /> Outside opening hours (9 AM - 6 PM)
           </span>
         )}
         {days.some((d) => d.rows.some((r) => r.closed)) && (

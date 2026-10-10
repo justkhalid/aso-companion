@@ -3,7 +3,7 @@
 import * as React from 'react'
 import { CalendarRange, LayoutGrid, List } from 'lucide-react'
 import { DAY_KEYS } from '@/lib/constants'
-import { addDays, fmtD, todayKey } from '@/lib/app-utils'
+import { fmtRange12, hourLabel12, addDays, fmtD, todayKey } from '@/lib/app-utils'
 import { clubIcon } from '@/lib/icons'
 import { cn } from '@/lib/utils'
 
@@ -82,7 +82,7 @@ interface Props {
   emptyHint?: string
 }
 
-/* the day runs 09:00 to 18:00; a session outside those hours stretches the grid to fit it */
+/* the day runs 9 AM to 6 PM; a session outside those hours stretches the grid to fit it */
 const DEFAULT_START = 9
 const DEFAULT_END = 18
 const HOUR_WIDTH = 90
@@ -106,7 +106,7 @@ function parseRange(t: string): { startMin: number; endMin: number; label: strin
   return {
     startMin: +m[1] * 60 + +m[2],
     endMin: +m[3] * 60 + +m[4],
-    label: `${pad(+m[1])}:${pad(+m[2])}-${pad(+m[3])}:${pad(+m[4])}`,
+    label: fmtRange12(+m[1] * 60 + +m[2], +m[3] * 60 + +m[4]),
   }
 }
 
@@ -170,10 +170,10 @@ export function WeeklyGrid({
             {hours.map((h, i) => (
               <div
                 key={h}
-                className="absolute top-0 flex h-full items-center text-[11px] font-bold tabular-nums text-muted-foreground"
+                className="absolute top-0 flex whitespace-nowrap h-full items-center text-[11px] font-bold tabular-nums text-muted-foreground"
                 style={{ left: `calc(${DAY_LABEL_W}px + (100% - ${DAY_LABEL_W}px) * ${i / span})`, transform: i === span ? 'translateX(-100%)' : 'translateX(-50%)', paddingRight: i === span ? 4 : 0 }}
               >
-                {pad(h)}:00
+                {hourLabel12(h)}
               </div>
             ))}
           </div>

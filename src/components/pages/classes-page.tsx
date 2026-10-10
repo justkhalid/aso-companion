@@ -7,7 +7,7 @@ import { PageHead, EmptyState, Chip } from '@/components/ui-bits'
 import { Button } from '@/components/ui/button'
 import { ClassDialog } from '@/components/dialogs/class-dialog'
 import { RowActions } from '@/components/admin/row-actions'
-import { uid } from '@/lib/app-utils'
+import { uid, fmtTime } from '@/lib/app-utils'
 import type { ClassEntry } from '@/lib/types'
 
 export function ClassesPage() {
@@ -46,7 +46,7 @@ export function ClassesPage() {
                 <Chip tone="primary">{c.level}</Chip>
               </div>
               <div className="flex items-center gap-1.5 text-xs font-semibold text-muted-foreground">
-                <Clock className="h-3.5 w-3.5" /> {c.time || '-'}
+                <Clock className="h-3.5 w-3.5" /> {fmtTime(c.time) || '-'}
               </div>
               <div className="flex items-center gap-1.5 text-xs font-semibold text-muted-foreground">
                 <CalendarDays className="h-3.5 w-3.5" /> {(c.days || []).join(' · ') || '-'}

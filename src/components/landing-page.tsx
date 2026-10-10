@@ -10,7 +10,7 @@ import { ThemeToggle } from './theme-toggle'
 import { ClubExpandOverlay, ClubGridCard, EventCard } from './pages/clubs-page'
 import { useStore } from '@/lib/store'
 import { BANDS, DAY_FULL, DAY_KEYS, FILL_GRID } from '@/lib/constants'
-import { mondayOfWeek, nextOccurrence, toneClassForClub } from '@/lib/app-utils'
+import { mondayOfWeek, nextOccurrence, toneClassForClub, fmtTime } from '@/lib/app-utils'
 import { PUBLIC_CLASS_TONE, publicClassItems, publicClubItems, publicEventItems } from '@/lib/calendar-items'
 import { CalendarCardsView, CalendarListView, CalViewSwitcher, WeeklyGrid, readCalView, writeCalView, type CalendarView, type LegendEntry } from './weekly-grid'
 import { cn } from '@/lib/utils'
@@ -279,7 +279,7 @@ export function LandingPage() {
                             <CalendarDays className="h-3.5 w-3.5 shrink-0 text-primary" />
                             <span className="font-semibold">{s.days.map((d) => DAY_FULL[d] || d).join(' and ')}</span>
                             {s.groups > 1 && <span className="rounded-full bg-secondary px-1.5 py-0.5 text-[10.5px] font-semibold text-muted-foreground">{s.groups} groups</span>}
-                            <span className="ml-auto inline-flex items-center gap-1 tabular-nums text-muted-foreground"><Clock className="h-3.5 w-3.5" /> {s.time.replace('-', ' - ')}</span>
+                            <span className="ml-auto inline-flex items-center gap-1 tabular-nums text-muted-foreground"><Clock className="h-3.5 w-3.5" /> {fmtTime(s.time)}</span>
                           </li>
                         ))}
                       </ul>

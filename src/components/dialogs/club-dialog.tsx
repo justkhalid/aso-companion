@@ -165,7 +165,7 @@ export function ClubDialog({
           </div>
 
           <div className="flex flex-col gap-1.5">
-            <Label>Time (24h)</Label>
+            <Label>Time</Label>
             <TimeRangeSelect value={time} onChange={setTime} />
           </div>
 

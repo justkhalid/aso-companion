@@ -1,5 +1,5 @@
 import { DAY_FULL } from './constants'
-import { clubDayOrder } from './app-utils'
+import { clubDayOrder, fmtTime } from './app-utils'
 import type { Club, State } from './types'
 
 /* Clubs export: one PNG with every club on a single page. */
@@ -9,7 +9,7 @@ import type { Club, State } from './types'
 export function whenOf(c: Club): string {
   const names = (c.days || []).map((d) => DAY_FULL[d] || d).join(' and ')
   const lead = !names ? '' : c.freq === 'biweekly' ? 'Every other ' + names : c.freq === 'monthly' ? 'Monthly on ' + names : 'Every ' + names
-  return [lead, c.time].filter(Boolean).join(' · ')
+  return [lead, fmtTime(c.time)].filter(Boolean).join(' · ')
 }
 
 /* One PNG with every club side by side, four to a row: poster in full (never cropped),

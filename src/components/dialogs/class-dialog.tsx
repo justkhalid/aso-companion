@@ -177,7 +177,7 @@ export function ClassDialog({
           </div>
 
           <div className="flex flex-col gap-1.5">
-            <Label>Time slot (24h)</Label>
+            <Label>Time slot</Label>
             <TimeRangeSelect value={time} onChange={setTime} />
           </div>
 

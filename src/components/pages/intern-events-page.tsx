@@ -3,7 +3,7 @@
 import * as React from 'react'
 import { Plus, CalendarDays, Clock, MapPin } from 'lucide-react'
 import { useStore } from '@/lib/store'
-import { fmtEventWhen, nextOccurrence, fmtD, isOnceEvent } from '@/lib/app-utils'
+import { fmtEventWhen, nextOccurrence, fmtD, isOnceEvent, fmtTime } from '@/lib/app-utils'
 import { PageHead, EmptyState, Chip } from '@/components/ui-bits'
 import { Button } from '@/components/ui/button'
 import { EventDialog } from '@/components/dialogs/event-dialog'
@@ -50,7 +50,7 @@ export function InternEventsPage() {
               {e.desc && <div className="text-sm text-muted-foreground" dir="auto">{e.desc}</div>}
               <div className="mt-1.5 flex flex-wrap gap-x-3 gap-y-1 text-xs font-semibold text-muted-foreground">
                 {d && <span className="inline-flex items-center gap-1"><CalendarDays className="h-3.5 w-3.5" /> {fmtD(d, { weekday: 'long', day: 'numeric', month: 'long' })}</span>}
-                {e.time && <span className="inline-flex items-center gap-1"><Clock className="h-3.5 w-3.5" /> {e.time}</span>}
+                {e.time && <span className="inline-flex items-center gap-1"><Clock className="h-3.5 w-3.5" /> {fmtTime(e.time)}</span>}
                 {e.place && <span className="inline-flex items-center gap-1"><MapPin className="h-3.5 w-3.5" /> {e.place}</span>}
               </div>
               <div className="mt-2 flex justify-end">

@@ -9,6 +9,7 @@ import {
   type ExportOptions,
   type DocLink,
 } from './export-canvas'
+import { hourLabel12 } from './app-utils'
 import { DAY_KEYS, DAY_FULL, ROOM_LEGEND, REPORT_SYSTEM_URL, KIT_STAGE_LABELS } from './constants'
 
 /* ==========================================================================
@@ -396,7 +397,7 @@ export async function exportLevelDoc(state: State, lv: Level) {
     '<b>Skills</b> use L / S / R / W for Listening, Speaking, Reading and Writing.',
     '<b>Resources</b> listed each week are found in the drives linked at the end of this document.',
     'All sessions last <b>2 hours</b> with a short break.',
-    '<b>Rooms:</b> ' + esc(ROOM_LEGEND) + '. All times are 24h.',
+    '<b>Rooms:</b> ' + esc(ROOM_LEGEND) + '. Times are shown in AM/PM.',
     'Write your own remarks in the empty <b>Note</b> column and share them with the lead coordinator.',
   ])
 
@@ -572,7 +573,7 @@ export async function exportCalendarGridDoc(o: ExportOptions, filename: string) 
   const byDay = groupByDay(parsed)
 
   const hourHead = '<th ' + dayTh + '>Day</th>' +
-    Array.from({ length: GRID_COLS }, (_, i) => '<th ' + th + '>' + pad2(GRID_START + i) + ':00</th>').join('')
+    Array.from({ length: GRID_COLS }, (_, i) => '<th ' + th + '>' + hourLabel12(GRID_START + i) + '</th>').join('')
 
   const rows = DAY_KEYS.map((d) => {
     const evs = (byDay[d] || []).slice().sort((a, b) => a.startMin - b.startMin)
@@ -632,7 +633,7 @@ export async function exportCalendarGridDoc(o: ExportOptions, filename: string) 
   }).join('')
 
   const guide = docGuideBox('How to read this timetable', [
-    'Times are <b>24h</b>. One color per level, club or event type, matching the legend above.',
+    'Times are in <b>AM/PM</b>. One color per level, club or event type, matching the legend above.',
     '<b>Rooms:</b> ' + esc(ROOM_LEGEND) + '.',
     'This Word table is fully editable: move, rename or recolor sessions freely; the hour grid stays aligned.',
     'New teachers: what to teach each week lives in ELTASO (Schemes of Work); clubs and events are described on the Clubs &amp; events page.',
@@ -687,7 +688,7 @@ export async function exportCalendarListDoc(o: ExportOptions, filename: string) 
   }).filter(Boolean).join('')
 
   const guide = docGuideBox('How to read this handout', [
-    'Times are <b>24h</b>. One color per level, club or event type, matching the legend above.',
+    'Times are in <b>AM/PM</b>. One color per level, club or event type, matching the legend above.',
     '<b>Rooms:</b> ' + esc(ROOM_LEGEND) + '.',
     'Print it as is for the notice board, or edit any table for your own weekly plan.',
   ])
