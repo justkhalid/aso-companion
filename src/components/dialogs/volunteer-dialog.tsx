@@ -41,7 +41,7 @@ export function VolunteerDialog({
     setPhone(volunteer?.phone || '')
     setAso(volunteer?.aso || '')
     setEmail(volunteer?.email || '')
-  }, [open, volunteer])
+  }, [open, volunteer?.id])
 
   const save = () => {
     if (!name.trim()) {

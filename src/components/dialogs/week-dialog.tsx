@@ -60,7 +60,7 @@ export function WeekDialog({
     setSkills(w?.skills || { L: '', S: '', R: '', W: '' })
     setLp(w?.lp ? JSON.parse(JSON.stringify(w.lp)) : null)
     setLpOpen(false)
-  }, [open, level, weekIndex])
+  }, [open, level?.key, weekIndex])
 
   if (!level) return null
 

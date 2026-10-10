@@ -107,6 +107,17 @@ function applyTheme(theme: Theme) {
   else root.classList.remove('dark')
 }
 
+/* autosave: wait for a quiet moment so a burst of edits becomes one save
+   (one commit) instead of one request per keystroke or click */
+let autoSaveTimer: ReturnType<typeof setTimeout> | null = null
+function scheduleAutoSave(run: () => Promise<unknown>) {
+  if (autoSaveTimer) clearTimeout(autoSaveTimer)
+  autoSaveTimer = setTimeout(() => {
+    autoSaveTimer = null
+    void run().catch(() => {})
+  }, 2500)
+}
+
 export const useStore = create<UIStore>((set, get) => ({
   state: seedState(),
   boot: 'idle',
@@ -165,9 +176,7 @@ export const useStore = create<UIStore>((set, get) => ({
     draft._rev = (draft._rev || 0) + 1
     set({ state: draft })
     get().persist()
-    if (draft.settings.ghAutoSave) {
-      void get().saveToCloud().catch(() => {})
-    }
+    if (draft.settings.ghAutoSave) scheduleAutoSave(() => get().saveToCloud())
   },
 
   setSettings: (fn) => {
@@ -315,9 +324,11 @@ export const useStore = create<UIStore>((set, get) => ({
       msg = result.msg || ''
 
       if (ok) {
+        /* keep _rev as it was saved: bumping it here made this device look newer
+           than the cloud on every boot, which re-saved (and re-committed) the
+           same state each time the app opened */
         const draft = deepClone(get().state)
         draft.settings.ghLastSync = new Date().toISOString()
-        draft._rev = (draft._rev || 0) + 1
         set({ state: draft, lastSync: draft.settings.ghLastSync, syncing: false })
         lsSet(LS_KEY, JSON.stringify(draft))
         return { ok: true, msg: msg || 'Saved to cloud' }

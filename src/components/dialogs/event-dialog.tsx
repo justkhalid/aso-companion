@@ -72,7 +72,7 @@ export function EventDialog({
     setPlace(event?.place || '')
     setPoster(event?.poster)
     setIcon(event?.icon)
-  }, [open, event])
+  }, [open, event?.id])
 
   const roomOptions = React.useMemo(() => roomOptionsFor(state), [state])
   const repeating = recur !== 'none' && recur !== 'once'

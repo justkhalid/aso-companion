@@ -97,7 +97,7 @@ export function EltasoPage() {
             <ArrowRight className="ml-auto h-4 w-4 text-primary opacity-0 transition group-hover:translate-x-0.5 group-hover:opacity-100" />
           </div>
           <div className="mt-1 text-sm text-muted-foreground">
-            {state.library.length} Drive folders, grouped by category and tagged by skill.
+            {state.library.length} library entries (Drive folders and online resources), grouped by category and tagged by skill.
           </div>
         </button>
         <button

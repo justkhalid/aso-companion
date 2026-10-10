@@ -68,7 +68,7 @@ export function ClubDialog({
     setFreq(club?.freq || 'weekly')
     setFrom(club?.from || '')
     setUntil(club?.until || '')
-  }, [open, club])
+  }, [open, club?.id])
 
   const roomOptions = React.useMemo(() => roomOptionsFor(state), [state])
   const leadNames = React.useMemo(
