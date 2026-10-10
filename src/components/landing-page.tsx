@@ -1,7 +1,9 @@
 'use client'
 
 import * as React from 'react'
-import { CalendarDays, ChevronRight, Clock, GraduationCap, Sparkles } from 'lucide-react'
+import { CalendarDays, ChevronRight, Clock, Download, GraduationCap, Sparkles } from 'lucide-react'
+import { Button } from '@/components/ui/button'
+import { downloadClubsPng } from '@/lib/clubs-sheet'
 import { Logo } from './logo'
 import { SiteFooter } from './site-footer'
 import { ThemeToggle } from './theme-toggle'
@@ -210,8 +212,17 @@ export function LandingPage() {
 
         {/* clubs */}
         <section id="clubs" className="mx-auto max-w-6xl scroll-mt-28 px-4 py-8">
-          <h2 className="mb-1 text-xl font-extrabold tracking-tight">Clubs</h2>
-          <p className="mb-5 text-sm text-muted-foreground">Weekly clubs run by our volunteers. Tap a club to see the details.</p>
+          <div className="mb-5 flex flex-wrap items-end gap-x-3 gap-y-2">
+            <div className="min-w-0 flex-1">
+              <h2 className="mb-1 text-xl font-extrabold tracking-tight">Clubs</h2>
+              <p className="text-sm text-muted-foreground">Weekly clubs run by our volunteers. Tap a club to see the details.</p>
+            </div>
+            {clubs.length > 0 && (
+              <Button variant="outline" size="sm" onClick={() => { void downloadClubsPng(state) }}>
+                <Download className="h-4 w-4" aria-hidden /> Download all clubs (PNG)
+              </Button>
+            )}
+          </div>
           {clubs.length === 0 ? (
             <div className="rounded-2xl border border-border bg-card p-8 text-center text-sm text-muted-foreground">Clubs will be listed here soon.</div>
           ) : (

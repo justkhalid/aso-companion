@@ -65,7 +65,9 @@ export async function downloadClubsPng(state: State): Promise<boolean> {
   }
 
   clubs.forEach((c, i) => {
-    const x = M + (i % COLS) * (CW + GAP)
+    /* a last row with fewer clubs sits in the middle */
+    const inRow = Math.min(COLS, clubs.length - Math.floor(i / COLS) * COLS)
+    const x = M + ((COLS - inRow) * (CW + GAP)) / 2 + (i % COLS) * (CW + GAP)
     const y = HEAD + Math.floor(i / COLS) * (PH + INFO + GAP)
     const im = imgs[i]
     if (im) {
@@ -104,9 +106,22 @@ export async function downloadClubsPng(state: State): Promise<boolean> {
     g.fillStyle = '#0b5ce6'
     g.font = font(600, 28)
     g.fillText(whenOf(c) || 'To be confirmed', x + CW / 2, y + PH + 22 + nameLines * 42 + 8, CW)
+    /* the place (room) in bold, the institute name in regular weight after it */
+    const ly = y + PH + 22 + nameLines * 42 + 50
+    const room = c.room || ''
+    const tail = (room ? ' · ' : '') + (state.settings.institute || '')
+    g.textAlign = 'left'
+    g.font = font(800, 26)
+    const wRoom = room ? g.measureText(room).width : 0
+    g.font = font(500, 26)
+    const wTail = g.measureText(tail).width
+    const sx = x + CW / 2 - (wRoom + wTail) / 2
+    g.fillStyle = '#1c1c1e'
+    g.font = font(800, 26)
+    if (room) g.fillText(room, sx, ly)
     g.fillStyle = '#5c5c63'
     g.font = font(500, 26)
-    g.fillText([c.room, state.settings.institute].filter(Boolean).join(' · '), x + CW / 2, y + PH + 22 + nameLines * 42 + 50, CW)
+    g.fillText(tail, sx + wRoom, ly)
     g.textAlign = 'left'
   })
 
