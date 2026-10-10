@@ -34,7 +34,9 @@ export function TeamDialog({
   const [name, setName] = React.useState('')
   const [roles, setRoles] = React.useState<string[]>([])
   const [other, setOther] = React.useState('')
+  const state = useStore((s) => s.state)
   const [duty, setDuty] = React.useState('')
+  const [looks, setLooks] = React.useState<string[]>([])
   const [phone, setPhone] = React.useState('')
   const [email, setEmail] = React.useState('')
   const [aso, setAso] = React.useState('')
@@ -46,11 +48,17 @@ export function TeamDialog({
     setRoles(all.filter((r) => (PEOPLE_ROLES as readonly string[]).includes(r)))
     setOther(all.filter((r) => !(PEOPLE_ROLES as readonly string[]).includes(r)).join(', '))
     setDuty(member?.duty || '')
+    setLooks(member?.looksAfter ?? [])
     setPhone(member?.phone || '')
     setEmail(member?.email || '')
     setAso(member?.aso || '')
   }, [open, member?.id])
 
+  const looksGroups = [
+    { label: 'Classes', items: (state.classes || []).map((c) => c.code).filter(Boolean) },
+    { label: 'Clubs', items: (state.clubs || []).filter((c) => !c.placeholder).map((c) => c.name) },
+    { label: 'Events', items: (state.events || []).map((e) => e.title).filter(Boolean) },
+  ]
   const toggle = (r: string) => setRoles((cur) => (cur.includes(r) ? cur.filter((x) => x !== r) : [...cur, r]))
 
   const save = () => {
@@ -64,6 +72,7 @@ export function TeamDialog({
       name: name.trim(),
       roles: all,
       role: all.join(' + '),
+      looksAfter: looks.length ? looks : undefined,
       duty: duty.trim() || undefined,
       phone: phone.trim(),
       email: email.trim(),
@@ -118,10 +127,34 @@ export function TeamDialog({
             </div>
             <Input aria-label="Other roles, separated by commas" value={other} onChange={(e) => setOther(e.target.value)} placeholder="Other roles, separated by commas" />
           </fieldset>
-          <div className="flex flex-col gap-1.5">
-            <Label htmlFor="t-duty">Looks after</Label>
-            <Input id="t-duty" value={duty} onChange={(e) => setDuty(e.target.value)} placeholder="ASO-K1 Kids, Philo Physics Club..." />
-          </div>
+          <fieldset className="flex flex-col gap-2">
+            <legend className="mb-1 text-sm font-medium">Looks after</legend>
+            {looksGroups.every((g) => g.items.length === 0) && <p className="text-xs text-muted-foreground">No classes, clubs or events exist yet.</p>}
+            {looksGroups.map((g) =>
+              g.items.length ? (
+                <div key={g.label} role="group" aria-label={g.label}>
+                  <div className="mb-1 text-[11px] font-bold uppercase tracking-wider text-muted-foreground">{g.label}</div>
+                  <div className="flex flex-wrap gap-1.5">
+                    {g.items.map((it) => (
+                      <button
+                        key={it}
+                        type="button"
+                        aria-pressed={looks.includes(it)}
+                        onClick={() => setLooks((cur) => (cur.includes(it) ? cur.filter((x) => x !== it) : [...cur, it]))}
+                        className={cn(
+                          'rounded-full border px-3 py-1 text-xs font-semibold transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring',
+                          looks.includes(it) ? 'aso-nav-pill border-transparent' : 'border-border bg-secondary text-foreground/80 hover:bg-secondary/70',
+                        )}
+                      >
+                        {it}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              ) : null,
+            )}
+            <Input aria-label="Other responsibilities" value={duty} onChange={(e) => setDuty(e.target.value)} placeholder="Anything else, for example: program decisions" />
+          </fieldset>
           <div className="grid gap-4 sm:grid-cols-2">
             <div className="flex flex-col gap-1.5">
               <Label htmlFor="t-phone">Phone</Label>

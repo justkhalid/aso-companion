@@ -36089,8 +36089,10 @@
       ],
       "phone": "",
       "email": "",
-      "duty": "ASO-K1 Kids",
-      "role": "Teacher + Volunteer"
+      "role": "Teacher + Volunteer",
+      "looksAfter": [
+        "ASO-K1"
+      ]
     },
     {
       "id": "t4",
@@ -36101,8 +36103,10 @@
       ],
       "phone": "",
       "email": "",
-      "duty": "ASO-K2 Kids",
-      "role": "Teacher + Volunteer"
+      "role": "Teacher + Volunteer",
+      "looksAfter": [
+        "ASO-K2"
+      ]
     },
     {
       "id": "t5",
@@ -36113,8 +36117,10 @@
       ],
       "phone": "",
       "email": "",
-      "duty": "ASO-K3 Kids",
-      "role": "Teacher + Volunteer"
+      "role": "Teacher + Volunteer",
+      "looksAfter": [
+        "ASO-K3"
+      ]
     },
     {
       "id": "t6",
@@ -36125,8 +36131,10 @@
       ],
       "phone": "",
       "email": "",
-      "duty": "ASO-K4 Kids",
-      "role": "Teacher + Volunteer"
+      "role": "Teacher + Volunteer",
+      "looksAfter": [
+        "ASO-K4"
+      ]
     },
     {
       "id": "t7",
@@ -36137,8 +36145,10 @@
       ],
       "phone": "",
       "email": "",
-      "duty": "ASO-T1 Teens",
-      "role": "Teacher + Volunteer"
+      "role": "Teacher + Volunteer",
+      "looksAfter": [
+        "ASO-T1"
+      ]
     },
     {
       "id": "t8",
@@ -36149,8 +36159,10 @@
       ],
       "phone": "",
       "email": "",
-      "duty": "ASO-T2 Teens",
-      "role": "Teacher + Volunteer"
+      "role": "Teacher + Volunteer",
+      "looksAfter": [
+        "ASO-T2"
+      ]
     },
     {
       "id": "t9",
@@ -36161,8 +36173,10 @@
       ],
       "phone": "",
       "email": "",
-      "duty": "ASO-A1 Adults",
-      "role": "Teacher + Volunteer"
+      "role": "Teacher + Volunteer",
+      "looksAfter": [
+        "ASO-A1"
+      ]
     },
     {
       "id": "t10",
@@ -36173,8 +36187,10 @@
       ],
       "phone": "",
       "email": "",
-      "duty": "ASO-A2 Adults",
-      "role": "Teacher + Volunteer"
+      "role": "Teacher + Volunteer",
+      "looksAfter": [
+        "ASO-A2"
+      ]
     },
     {
       "id": "xmuzojl19cu38f",
@@ -36185,8 +36201,10 @@
       ],
       "phone": "",
       "email": "",
-      "duty": "ASO-K5",
-      "role": "Teacher + Volunteer"
+      "role": "Teacher + Volunteer",
+      "looksAfter": [
+        "ASO-K5"
+      ]
     },
     {
       "id": "xmv0wq8j8hiaeg",
@@ -36196,7 +36214,10 @@
       ],
       "phone": "",
       "email": "",
-      "role": "Teacher"
+      "role": "Teacher",
+      "looksAfter": [
+        "ASO-A4"
+      ]
     },
     {
       "id": "xmv0wqe6bw99k0",
@@ -36206,7 +36227,10 @@
       ],
       "phone": "",
       "email": "",
-      "role": "Teacher"
+      "role": "Teacher",
+      "looksAfter": [
+        "ASO-A5"
+      ]
     },
     {
       "id": "xmv1azchv277le",
@@ -36217,7 +36241,11 @@
       ],
       "phone": "",
       "email": "",
-      "role": "Teacher + Volunteer"
+      "role": "Teacher + Volunteer",
+      "looksAfter": [
+        "ASO-A3",
+        "Public Speaking Club"
+      ]
     },
     {
       "id": "t15",
@@ -36227,7 +36255,10 @@
       ],
       "phone": "",
       "email": "",
-      "role": "Volunteer"
+      "role": "Volunteer",
+      "looksAfter": [
+        "Philo Physics Club"
+      ]
     },
     {
       "id": "t16",
@@ -36247,7 +36278,10 @@
       ],
       "phone": "",
       "email": "",
-      "role": "Volunteer"
+      "role": "Volunteer",
+      "looksAfter": [
+        "Discover Africa"
+      ]
     },
     {
       "id": "t18",
@@ -36267,7 +36301,10 @@
       ],
       "phone": "",
       "email": "",
-      "role": "Volunteer"
+      "role": "Volunteer",
+      "looksAfter": [
+        "Psychology Club"
+      ]
     }
   ],
   "library": [
@@ -37751,5 +37788,5 @@
   ],
   "reports": [],
   "libraryPins": [],
-  "_rev": 1791669906849
+  "_rev": 1791669906850
 }

@@ -177,7 +177,8 @@ export interface TeamMember {
   name: string
   roles?: string[] // Coordinator, Administrator, Teacher, Intern, Volunteer, or a custom one
   role?: string // older entries: one free-text role, read through rolesOf()
-  duty?: string // notes: what they look after
+  looksAfter?: string[] // classes (code), clubs (name) and events (title) they look after, picked from what exists
+  duty?: string // other responsibilities, free text
   phone: string
   email: string
   aso?: string // ASO number

@@ -86,7 +86,9 @@ export function TeamPage() {
                   }}
                 />
               </div>
-              {t.duty && <div className="mb-1.5 text-sm text-foreground/80">{t.duty}</div>}
+              {[...(t.looksAfter || []), t.duty].filter(Boolean).length > 0 && (
+                <div className="mb-1.5 text-sm text-foreground/80"><span className="font-semibold">Looks after:</span> {[...(t.looksAfter || []), t.duty].filter(Boolean).join(', ')}</div>
+              )}
               <div className="flex flex-col gap-1.5 text-sm">
                 <span className="flex items-center gap-1.5"><Phone className="h-3.5 w-3.5 text-muted-foreground" aria-hidden /> {t.phone || 'No phone yet'}</span>
                 <span className="flex items-center gap-1.5"><Mail className="h-3.5 w-3.5 text-muted-foreground" aria-hidden /> {t.email || 'No email yet'}</span>
