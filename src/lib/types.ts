@@ -203,6 +203,7 @@ export type View =
   | 'intern'
   | 'classes'
   | 'team'
+  | 'rooms'
   | 'library'
   | 'reports'
   | 'intern-clubs'
