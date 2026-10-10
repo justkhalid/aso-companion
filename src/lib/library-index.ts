@@ -150,3 +150,63 @@ export function searchIndex(
   out.moreFiles = fileHits.length > fileLimit
   return out
 }
+
+/* words in a folder name that say what skill its material trains */
+const SKILL_WORDS: Record<string, RegExp> = {
+  L: /listening|audio|podcast|songs?\b|music|videos?\b|pronunciation|dictation|movies?\b|films?\b/i,
+  S: /speaking|conversation|role.?play|discussion|interview|communicative|debate|small talk|dialogue/i,
+  R: /reading|comprehension|readers?\b|stories|story|fables|newspaper|articles?/i,
+  W: /writing|creative|essay|email|composition|paragraph|punctuation|spelling\b(?! games)/i,
+}
+/* the plainest names, ranked first */
+const CORE_WORDS = /^(listening|speaking|reading|writing|conversation|comprehension|pronunciation|podcasts?|audio)/i
+const NOT_SKILL = /game|tracing|silent|alphabet/i
+
+/* subfolders (any depth) whose name says they train the skill. Short plain
+   names near the top rank first (Listening, Speaking), then bigger folders,
+   and no single library folder fills the list. */
+export function skillFolders(
+  idx: LibraryIndex,
+  skill: string,
+  opts: { showAll: boolean; allowedRoots: Set<string> | null; limit?: number },
+): FolderHit[] {
+  const re = SKILL_WORDS[skill]
+  if (!re) return []
+  const scored: { s: number; h: FolderHit }[] = []
+  idx.roots.forEach((root) => {
+    if (opts.allowedRoots && !opts.allowedRoots.has(root.id)) return
+    if (/^seasonal$/i.test(root.name)) return // holiday packs are not skill practice
+    /* a whole library folder that is named for the skill (Reading tasks, Podcasts...) */
+    if (re.test(root.name) && !NOT_SKILL.test(root.name) && root.files > 0) {
+      scored.push({
+        s: 60 + Math.log(root.files + 1) * 4,
+        h: { rootId: root.id, rootName: root.name, path: '', name: root.name, id: root.drive, count: root.files },
+      })
+    }
+    const walk = (nodes: IndexNode[], trail: string[]) => {
+      for (const n of nodes) {
+        if (!opts.showAll && (n[4] & FLAG_DUPLICATE || (n[2] === 0 && !(n[4] & FLAG_UNSCANNED)))) continue
+        if (re.test(n[0]) && !NOT_SKILL.test(n[0]) && n[2] > 0) {
+          const plain = (CORE_WORDS.test(n[0].trim()) ? 30 : 0) + (n[0].trim().split(/\s+/).length <= 2 ? 10 : 0)
+          scored.push({
+            s: plain - trail.length * 8 + Math.log(n[2] + 1) * 4,
+            h: { rootId: root.id, rootName: root.name, path: trail.join(' > '), name: n[0], id: n[1], count: n[2] },
+          })
+        }
+        if (n[3].length) walk(n[3], trail.concat(n[0]))
+      }
+    }
+    walk(root.tree, [])
+  })
+  scored.sort((a, b) => b.s - a.s)
+  const perRoot = new Map<string, number>()
+  const out: FolderHit[] = []
+  for (const x of scored) {
+    const c = perRoot.get(x.h.rootId) || 0
+    if (c >= 3) continue
+    perRoot.set(x.h.rootId, c + 1)
+    out.push(x.h)
+    if (out.length >= (opts.limit ?? 12)) break
+  }
+  return out
+}
