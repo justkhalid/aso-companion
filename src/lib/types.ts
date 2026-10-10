@@ -197,6 +197,7 @@ export type View =
   | 'level-detail'
   | 'clubs'
   | 'resources'
+  | 'intern-public'
   | 'login'
   | 'settings'
   | 'intern'

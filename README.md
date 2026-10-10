@@ -112,3 +112,8 @@ of visitors does not hit GitHub or Blob each time. Public images are cached for 
 - `index.html`, `style.css`, `js/01..07*.js` - the whole app (vanilla JS, no framework)
 - `icons/`, `manifest.webmanifest` - PWA install support
 - `DEPLOY_STEPS.md` - how to put this on GitHub Pages and Vercel
+
+## Interns page and deployments
+
+- `/interns` is a page for ASO interns with the clubs and events section only (weekly calendar, upcoming events, all clubs, volunteer steps). It has no teacher tabs, no admin menu and no sign-in link, and it is not indexed by search engines. Share that link with interns. It hides the other sections; it does not make them private.
+- Only `main` deploys. `vercel.json` skips the build for every other branch, so there are no preview deployments. Merging a pull request into `main` is what updates the live site.
