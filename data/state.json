@@ -36074,11 +36074,13 @@
     {
       "id": "t3",
       "name": "Aya",
-      "role": "Volunteer Teacher",
+      "roles": [
+        "Teacher"
+      ],
+      "role": "Teacher",
       "duty": "ASO-K1 Kids",
       "phone": "",
-      "email": "",
-      "aso": ""
+      "email": ""
     },
     {
       "id": "t4",
@@ -37713,5 +37715,5 @@
   ],
   "reports": [],
   "libraryPins": [],
-  "_rev": 1791659989675
+  "_rev": 1791659989676
 }
