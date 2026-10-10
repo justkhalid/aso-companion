@@ -214,7 +214,9 @@ export const useStore = create<UIStore>((set, get) => ({
     applyTheme(base.settings.theme)
     // restore admin session if remembered
     const role = lsGet(ROLE_KEY)
-    if (role === 'admin') set({ admin: true })
+    /* a remembered admin still lands on the public view: the site's main link
+       always opens what visitors see, and the admin menu opens on request */
+    if (role === 'admin') set({ admin: true, pubView: true })
 
     // v4.7: returning visitors (data already in localStorage) render right
     // away and the cloud copy still merges in below. Fresh visitors stay on

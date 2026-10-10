@@ -81,15 +81,15 @@ export function AppShell({ initialView }: { initialView?: View }) {
     return (
       <div className="flex min-h-screen flex-col bg-background">
         <PublicNav />
-        {pubView && (
+        {pubView && admin && (
           <div className="border-b border-primary/20 bg-primary/5">
             <div className="mx-auto flex max-w-6xl items-center gap-2 px-4 py-2">
-              <span className="text-xs font-semibold text-primary">Public preview</span>
+              <span className="text-xs font-semibold text-primary">Public view · signed in as admin</span>
               <button
                 onClick={() => setPubView(false)}
                 className="ml-auto text-xs font-bold text-primary hover:underline"
               >
-                Back to admin
+                Open admin menu
               </button>
             </div>
           </div>
