@@ -36161,7 +36161,10 @@
     {
       "id": "xmv0wqe6bw99k0",
       "name": "Oumaima",
-      "role": "",
+      "roles": [
+        "Volunteer"
+      ],
+      "role": "Volunteer",
       "phone": "",
       "email": ""
     },
@@ -37710,5 +37713,5 @@
   ],
   "reports": [],
   "libraryPins": [],
-  "_rev": 1791659989674
+  "_rev": 1791659989675
 }
