@@ -692,17 +692,19 @@ function MetaCell({
   icon: Icon,
   label,
   value,
+  wrap,
 }: {
   icon: React.ComponentType<{ className?: string }>
   label: string
   value: string
+  wrap?: boolean // let long values (repeat rules, dates) run onto a second line
 }) {
   return (
     <div className="flex items-start gap-2.5 rounded-xl bg-secondary/50 px-3 py-2">
       <Icon className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
       <div className="min-w-0">
         <div className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">{label}</div>
-        <div className="truncate text-[13px] font-semibold text-foreground" dir="auto" title={value}>{value}</div>
+        <div className={cn('text-[13px] font-semibold text-foreground', wrap ? 'break-words' : 'truncate')} dir="auto" title={value}>{value}</div>
       </div>
     </div>
   )
@@ -797,6 +799,19 @@ function Responsibilities({ onReports }: { onReports?: () => void }) {
   )
 }
 
+/* "14:00-16:00" -> { start: "14:00", end: "16:00", length: "2 h" } */
+function splitTime(t: string): { start: string; end: string; length: string } | null {
+  const m = /^(\d{1,2}):(\d{2})\s*-\s*(\d{1,2}):(\d{2})$/.exec((t || '').trim())
+  if (!m) return null
+  const a = Number(m[1]) * 60 + Number(m[2])
+  const b = Number(m[3]) * 60 + Number(m[4])
+  if (b <= a) return null
+  const h = Math.floor((b - a) / 60)
+  const min = (b - a) % 60
+  const length = (h ? h + ' h' : '') + (h && min ? ' ' : '') + (min ? min + ' min' : '')
+  return { start: m[1].padStart(2, '0') + ':' + m[2], end: m[3].padStart(2, '0') + ':' + m[4], length }
+}
+
 function EventCard({
   event,
   nextDate,
@@ -810,80 +825,78 @@ function EventCard({
   onEdit: () => void
   onDelete: () => void
 }) {
-  const [open, setOpen] = React.useState(false)
-  const when = fmtEventWhen(event)
+  const [more, setMore] = React.useState(false)
   const isOnce = isOnceEvent(event)
-  const nextStr = fmtD(nextDate, { weekday: 'long', day: 'numeric', month: 'long' })
-  const repeat = fmtRepeat(event)
-  const range = fmtRange(event.from, event.until)
+  const longDate = (d: Date) => fmtD(d, { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })
+  const shortDate = (iso: string) => fmtD(parseISO(iso), { day: 'numeric', month: 'long', year: 'numeric' })
+  const t = splitTime(event.time)
   const Icon = clubIcon(event.icon)?.Icon || CalendarDays
+  const desc = (event.desc || '').trim()
+  const longDesc = desc.length > 160
+
+  /* every fact about the event, written out: one time or repeating, when it starts and when it ends */
+  const timeText = t ? `${t.start} - ${t.end} · ${t.length}` : event.time || 'Time to be confirmed'
+  const cells: { icon: React.ComponentType<{ className?: string }>; label: string; value: string }[] = isOnce
+    ? [
+        { icon: CalendarDays, label: 'Date', value: event.date ? longDate(parseISO(event.date)) : 'Date to be confirmed' },
+        { icon: Clock, label: 'Time', value: timeText },
+        { icon: MapPin, label: 'Place', value: event.place || 'To be confirmed' },
+        { icon: Clock, label: 'Ends', value: event.date && t ? `${fmtD(parseISO(event.date), { day: 'numeric', month: 'short' })} at ${t.end}` : 'Same day' },
+      ]
+    : [
+        { icon: CalendarDays, label: 'Repeats', value: fmtRepeat({ ...event, until: undefined }) || fmtFreq(event.recur) },
+        { icon: CalendarDays, label: 'Next session', value: longDate(nextDate) },
+        { icon: Clock, label: 'Time', value: timeText },
+        { icon: MapPin, label: 'Place', value: event.place || 'To be confirmed' },
+        { icon: CalendarDays, label: 'Starts', value: event.from ? shortDate(event.from) : 'Already running' },
+        { icon: CalendarDays, label: 'Ends', value: event.until ? shortDate(event.until) : 'No end date' },
+      ]
 
   return (
     <div className="overflow-hidden rounded-2xl border border-[var(--aso-gold-tint)] bg-card shadow-sm">
       <div className="flex flex-col sm:flex-row">
         {/* poster area: the real poster when there is one, the gold badge otherwise */}
         {event.poster ? (
-          <div className="flex w-full shrink-0 justify-center bg-secondary p-4 sm:w-[150px]">
-            <img
-              src={event.poster}
-              alt={`${event.title} poster`}
-              className="aspect-[848/1200] w-28 rounded-lg object-cover shadow-sm sm:w-full"
-            />
+          /* the poster is shown whole, at its own proportions: never cropped, tap to open the original */
+          <div className="flex w-full shrink-0 items-start justify-center bg-secondary p-3 sm:w-[210px]">
+            <a href={event.poster} target="_blank" rel="noopener" className="block w-full max-w-[260px]" title="Open the full poster">
+              <img src={event.poster} alt={`${event.title} poster`} className="block h-auto w-full rounded-lg object-contain shadow-sm" />
+            </a>
           </div>
         ) : (
-          <div className="flex h-44 shrink-0 items-center justify-center bg-gradient-to-br from-[var(--aso-gold-tint)] to-secondary sm:h-auto sm:w-[170px]">
+          <div className="flex h-36 shrink-0 items-center justify-center bg-gradient-to-br from-[var(--aso-gold-tint)] to-secondary sm:h-auto sm:w-[130px]">
             <div className="flex h-14 w-14 items-center justify-center rounded-full bg-[var(--aso-gold-tint)] text-[var(--aso-gold)]">
               <Icon className="h-7 w-7" />
             </div>
           </div>
         )}
 
-        <div className="flex flex-1 flex-col gap-2 p-4">
+        <div className="flex min-w-0 flex-1 flex-col gap-3 p-4">
           <div className="flex flex-wrap items-center gap-2">
-            <h3 className="font-bold" dir="auto">{event.title}</h3>
-            <Chip tone={isOnce ? 'primary' : 'gold'}>{when}</Chip>
+            <h3 className="min-w-0 text-[15px] font-bold leading-snug" dir="auto">{event.title}</h3>
+            <Chip tone={isOnce ? 'primary' : 'gold'}>{isOnce ? 'One time' : 'Repeating'}</Chip>
           </div>
-          <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs font-semibold text-muted-foreground">
-            <span className="inline-flex items-center gap-1"><CalendarDays className="h-3.5 w-3.5" /> {nextStr}</span>
-            {event.time && <span className="inline-flex items-center gap-1"><Clock className="h-3.5 w-3.5" /> {event.time}</span>}
+
+          <div className="grid gap-2 sm:grid-cols-2">
+            {cells.map((c) => (
+              <MetaCell key={c.label} icon={c.icon} label={c.label} value={c.value} wrap />
+            ))}
           </div>
-          {event.place && (
-            <div className="text-xs font-semibold text-muted-foreground">
-              <span className="inline-flex items-center gap-1"><MapPin className="h-3.5 w-3.5" /> {event.place}</span>
+
+          {desc && (
+            <div className="text-[13px] leading-relaxed text-muted-foreground" dir="auto">
+              <p className={cn('whitespace-pre-line', longDesc && !more && 'line-clamp-3')}>{desc}</p>
+              {longDesc && (
+                <button onClick={() => setMore((o) => !o)} className="mt-1 inline-flex items-center gap-1 text-xs font-bold text-primary">
+                  <ChevronDown className={cn('h-3.5 w-3.5 transition', more && 'rotate-180')} />
+                  {more ? 'Show less' : 'Read more'}
+                </button>
+              )}
             </div>
           )}
 
-          <div>
-            <button
-              onClick={() => setOpen((o) => !o)}
-              className="inline-flex items-center gap-1 text-xs font-bold text-primary"
-            >
-              <ChevronDown className={cn('h-3.5 w-3.5 transition', open && 'rotate-180')} />
-              {open ? 'Hide' : 'Learn more'}
-            </button>
-            {open && (
-              <div className="mt-2 flex flex-col gap-1.5 border-t border-border pt-2 text-[13px]">
-                {event.desc && (
-                  <div dir="auto"><span className="font-bold text-muted-foreground">About:</span> {event.desc}</div>
-                )}
-                {repeat && (
-                  <div><span className="font-bold text-muted-foreground">Repeats:</span> {repeat}</div>
-                )}
-                {range && (
-                  <div><span className="font-bold text-muted-foreground">Runs:</span> {range}</div>
-                )}
-                {isOnce && event.date && (
-                  <div><span className="font-bold text-muted-foreground">Date:</span> {event.date}</div>
-                )}
-                {!event.desc && !repeat && !range && !(isOnce && event.date) && (
-                  <div className="text-muted-foreground">No extra details.</div>
-                )}
-              </div>
-            )}
-          </div>
-
           {admin && (
-            <div className="flex items-center gap-2 pt-1">
+            <div className="flex items-center gap-2">
               <Button variant="outline" size="sm" onClick={onEdit}>
                 <Pencil className="h-3.5 w-3.5" /> Edit
               </Button>

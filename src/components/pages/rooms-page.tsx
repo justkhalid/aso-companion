@@ -4,7 +4,8 @@ import * as React from 'react'
 import { ChevronLeft, ChevronRight } from 'lucide-react'
 import { useStore } from '@/lib/store'
 import { DAY_KEYS, ROOM_UNAVAILABLE } from '@/lib/constants'
-import { isOnceEvent, roomOptionsFor } from '@/lib/app-utils'
+import { isOnceEvent, roomOptionsFor, toneClassForClub, toneClassForLevel } from '@/lib/app-utils'
+import { clubIcon } from '@/lib/icons'
 import { cn } from '@/lib/utils'
 import type { State } from '@/lib/types'
 
@@ -22,17 +23,13 @@ interface Booking {
   end: number
   label: string
   kind: Kind
+  tone: string // same tone classes as the other calendars
+  icon?: string
+  lead?: string
+  group: string // legend label
   note?: string
 }
 
-/* iOS system colors: blue, orange and gray; tinted block, solid edge, colored text */
-const KIND_STYLE: Record<Kind, string> = {
-  class: 'border-l-[#007AFF] bg-[#007AFF]/15 text-[#0A58B8] dark:text-[#64B1FF]',
-  club: 'border-l-[#FF9500] bg-[#FF9500]/18 text-[#A15C00] dark:text-[#FFB84D]',
-  event: 'border-l-[#8E8E93] bg-[#8E8E93]/20 text-[#48484A] dark:text-[#C7C7CC]',
-}
-const KIND_DOT: Record<Kind, string> = { class: 'bg-[#007AFF]', club: 'bg-[#FF9500]', event: 'bg-[#8E8E93]' }
-const KIND_NAME: Record<Kind, string> = { class: 'Class', club: 'Club', event: 'Event' }
 
 const toMin = (t: string) => {
   const m = /^(\d{1,2}):(\d{2})$/.exec(t.trim())
@@ -66,13 +63,13 @@ function bookingsForWeek(state: State, monday: Date): Booking[] {
   for (const c of state.classes || []) {
     const slot = parseSlot(c.time)
     if (!slot || !c.room) continue
-    for (const day of c.days || []) out.push({ room: c.room.trim(), day, start: slot[0], end: slot[1], label: c.code, kind: 'class' })
+    for (const day of c.days || []) out.push({ room: c.room.trim(), day, start: slot[0], end: slot[1], label: c.code, kind: 'class', tone: toneClassForLevel(state, c.level), lead: c.teacher, group: c.level })
   }
   for (const c of state.clubs || []) {
     const slot = parseSlot(c.time)
     if (!slot || !c.room || !inSeries(c.from, c.until)) continue
     const note = c.freq === 'biweekly' ? 'every 2 weeks' : c.freq === 'monthly' ? 'monthly' : undefined
-    for (const day of c.days || []) out.push({ room: c.room.trim(), day, start: slot[0], end: slot[1], label: c.name, kind: 'club', note })
+    for (const day of c.days || []) out.push({ room: c.room.trim(), day, start: slot[0], end: slot[1], label: c.name, kind: 'club', note, tone: toneClassForClub(state, c.id), icon: c.icon, lead: c.lead, group: c.name })
   }
   for (const e of state.events || []) {
     const slot = parseSlot(e.time)
@@ -80,10 +77,10 @@ function bookingsForWeek(state: State, monday: Date): Booking[] {
     if (isOnceEvent(e)) {
       if (!e.date || e.date < weekStart || e.date > weekEnd) continue
       const [y, m, d] = e.date.split('-').map(Number)
-      out.push({ room: e.place.trim(), day: dayKeyOf(new Date(y, m - 1, d)), start: slot[0], end: slot[1], label: e.title, kind: 'event', note: 'one-off' })
+      out.push({ room: e.place.trim(), day: dayKeyOf(new Date(y, m - 1, d)), start: slot[0], end: slot[1], label: e.title, kind: 'event', note: 'one-off', tone: 'tone-7', icon: e.icon || 'calendar', group: 'Special events' })
     } else if (e.day && inSeries(e.from, e.until)) {
       const note = e.recur === 'biweekly' ? 'every 2 weeks' : e.recur === 'monthly' ? 'monthly' : undefined
-      out.push({ room: e.place.trim(), day: e.day, start: slot[0], end: slot[1], label: e.title, kind: 'event', note })
+      out.push({ room: e.place.trim(), day: e.day, start: slot[0], end: slot[1], label: e.title, kind: 'event', note, tone: 'tone-7', icon: e.icon || 'calendar', group: 'Special events' })
     }
   }
   return out
@@ -106,30 +103,29 @@ function freeWindows(busy: Booking[], from = OPEN, to = CLOSE): [number, number]
 const overlaps = (a: Booking, b: Booking) => a.start < b.end && b.start < a.end
 
 
-const HOUR_PX = 38
-const IOS_FONT = "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', 'Inter', system-ui, sans-serif"
+const LABEL_W = 64 // day label column
+const MIN_GRID = 780 // below this width the calendar scrolls sideways
+const CHIP_H = 50
 const HOURS = Array.from({ length: (CLOSE - OPEN) / 60 + 1 }, (_, i) => OPEN / 60 + i)
+/* position along the time axis as a percentage; times outside the opening window are clamped to its edges */
+const pct = (min: number) => (Math.min(Math.max(min, OPEN), CLOSE) - OPEN) / (CLOSE - OPEN) * 100
 
-/* side-by-side lanes for bookings that overlap in the same room */
-function withLanes(list: Booking[]): { b: Booking; lane: number; lanes: number }[] {
+/* stacked lanes for bookings that overlap in the same room and day */
+function withLanes(list: Booking[]): { b: Booking; lane: number }[] {
   const sorted = [...list].sort((a, b) => a.start - b.start || a.end - b.end)
   const laneEnd: number[] = []
-  const placed = sorted.map((b) => {
+  return sorted.map((b) => {
     let lane = laneEnd.findIndex((e) => e <= b.start)
     if (lane < 0) lane = laneEnd.length
     laneEnd[lane] = b.end
     return { b, lane }
-  })
-  return placed.map((x) => {
-    const group = placed.filter((y) => overlaps(x.b, y.b))
-    return { ...x, lanes: Math.max(...group.map((g) => g.lane)) + 1 }
   })
 }
 
 export function RoomsPage({ embedded = false }: { embedded?: boolean }) {
   const state = useStore((s) => s.state)
   const [monday, setMonday] = React.useState(() => mondayOf(new Date()))
-  const [day, setDay] = React.useState<string>(() => dayKeyOf(new Date()))
+  const [picked, setPicked] = React.useState<string>('')
 
   const bookings = React.useMemo(() => bookingsForWeek(state, monday), [state, monday])
   const rooms = React.useMemo(() => {
@@ -137,175 +133,195 @@ export function RoomsPage({ embedded = false }: { embedded?: boolean }) {
     bookings.forEach((b) => set.add(b.room))
     return Array.from(set)
   }, [state, bookings])
+  const room = rooms.includes(picked) ? picked : rooms[0]
 
   const sunday = new Date(monday)
   sunday.setDate(sunday.getDate() + 6)
   const range = monday.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' }) + ' - ' + sunday.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })
   const thisMonday = iso(mondayOf(new Date()))
-  const shift = (n: number) => setMonday((m) => { const x = new Date(m); x.setDate(x.getDate() + n * 7); return x })
-
-  const dayIndex = DAY_KEYS.indexOf(day as (typeof DAY_KEYS)[number])
-  const dayDate = new Date(monday)
-  dayDate.setDate(dayDate.getDate() + dayIndex)
-  const dayLabel = dayDate.toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long' })
-  const dayBookings = bookings.filter((b) => b.day === day)
-  const closed = (room: string) => !!ROOM_UNAVAILABLE[room]?.includes(day)
+  const shift = (n: number) => setMonday((m) => { const d = new Date(m); d.setDate(d.getDate() + n * 7); return d })
 
   const now = new Date()
   const nowMin = now.getHours() * 60 + now.getMinutes()
-  const showNow = iso(dayDate) === iso(now) && nowMin >= OPEN && nowMin <= CLOSE
+  const showNow = iso(monday) === thisMonday && nowMin >= OPEN && nowMin <= CLOSE
 
-  const hasClash = rooms.some((r) => {
-    const l = dayBookings.filter((b) => b.room === r)
-    return l.some((x, i) => l.some((y, j) => j > i && overlaps(x, y)))
-  })
-  const cols = `2.75rem repeat(${rooms.length}, minmax(0, 1fr))`
+  const roomBookings = bookings.filter((b) => b.room === room)
+  const legendItems = Array.from(new Map(roomBookings.map((b) => [b.group, { label: b.group, tone: b.tone }])).values())
   const circle = 'flex h-7 w-7 items-center justify-center rounded-full bg-black/[0.06] text-foreground/70 transition active:scale-95 dark:bg-white/10'
 
+  const rows = DAY_KEYS.map((day, i) => {
+    const date = new Date(monday)
+    date.setDate(date.getDate() + i)
+    const closed = !!ROOM_UNAVAILABLE[room]?.includes(day)
+    const list = roomBookings.filter((b) => b.day === day && b.end > OPEN && b.start < CLOSE)
+    const lanes = withLanes(list)
+    const laneCount = Math.max(1, ...lanes.map((l) => l.lane + 1))
+    return {
+      day,
+      date,
+      closed,
+      lanes,
+      free: closed ? [] : freeWindows(list),
+      height: laneCount * CHIP_H + (laneCount + 1) * 4,
+      isToday: iso(date) === iso(now),
+    }
+  })
+  const clash = rooms.length > 0 && roomBookings.some((a, i) => roomBookings.some((b, j) => j > i && a.day === b.day && overlaps(a, b)))
+
   return (
-    <div
-      className={embedded ? '' : 'mx-auto max-w-3xl px-4 py-5 sm:py-7'}
-      style={{ fontFamily: IOS_FONT }}
-    >
-      {/* large title */}
+    <div className={embedded ? '' : 'mx-auto max-w-5xl px-4 py-5 sm:py-7'}>
+      {/* title + week */}
       <div className="mb-4 flex items-end gap-3">
         <div className="min-w-0 flex-1">
           {embedded ? (
-            <h2 className="text-[22px] font-bold leading-none tracking-tight" style={{ fontFamily: IOS_FONT }}>Which rooms are free</h2>
+            <h2 className="text-[15px] font-extrabold tracking-tight">Free rooms</h2>
           ) : (
-            <h1 className="text-[32px] font-bold leading-none tracking-tight" style={{ fontFamily: IOS_FONT }}>Rooms</h1>
+            <h1 className="text-[28px] font-extrabold leading-none tracking-tight">Rooms</h1>
           )}
-          <p className="mt-1.5 text-[15px] text-muted-foreground">{range}{iso(monday) === thisMonday ? ' · this week' : ''}</p>
+          <p className={cn('text-muted-foreground', embedded ? 'mt-0.5 text-xs font-semibold' : 'mt-1.5 text-sm')}>
+            {range}{iso(monday) === thisMonday ? ' · this week' : ''}
+          </p>
         </div>
         <div className="flex items-center gap-1.5 pb-0.5">
           <button onClick={() => shift(-1)} className={circle} aria-label="Previous week"><ChevronLeft className="h-4 w-4" /></button>
           {iso(monday) !== thisMonday && (
-            <button onClick={() => { setMonday(mondayOf(new Date())); setDay(dayKeyOf(new Date())) }} className="px-1 text-[15px] font-medium text-[#007AFF]">Today</button>
+            <button onClick={() => setMonday(mondayOf(new Date()))} className="px-1 text-sm font-semibold text-primary">Today</button>
           )}
           <button onClick={() => shift(1)} className={circle} aria-label="Next week"><ChevronRight className="h-4 w-4" /></button>
         </div>
       </div>
 
-      {/* days: segmented control */}
-      <div className="mb-5 grid grid-cols-7 rounded-[10px] bg-black/[0.06] p-0.5 dark:bg-white/10" role="tablist" aria-label="Day of the week">
-        {DAY_KEYS.map((d, i) => {
-          const date = new Date(monday)
-          date.setDate(date.getDate() + i)
-          const isToday = iso(date) === iso(now)
-          const active = d === day
+      {/* room picker */}
+      <div className="mb-3 flex gap-1 overflow-x-auto rounded-[10px] bg-black/[0.06] p-0.5 dark:bg-white/10 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden" role="tablist" aria-label="Room">
+        {rooms.map((r) => {
+          const on = r === room
           return (
             <button
-              key={d}
+              key={r}
               role="tab"
-              aria-selected={active}
-              onClick={() => setDay(d)}
+              aria-selected={on}
+              onClick={() => setPicked(r)}
               className={cn(
-                'rounded-[8px] py-1.5 text-center leading-none transition',
-                active ? 'bg-card shadow-[0_1px_3px_rgba(0,0,0,0.12),0_1px_1px_rgba(0,0,0,0.06)]' : 'hover:bg-black/[0.04]',
+                'min-w-[5.5rem] flex-1 whitespace-nowrap rounded-[8px] px-3 py-1.5 text-sm transition',
+                on ? 'bg-card font-semibold shadow-[0_1px_3px_rgba(0,0,0,0.12),0_1px_1px_rgba(0,0,0,0.06)]' : 'font-medium text-foreground/70 hover:bg-black/[0.04]',
               )}
             >
-              <div className={cn('text-[10px] font-medium uppercase tracking-wide', isToday ? 'text-[#FF3B30]' : 'text-muted-foreground')}>{d}</div>
-              <div className={cn('mt-1 text-[17px] tabular-nums', active ? 'font-semibold' : 'font-medium text-foreground/75', isToday && 'text-[#FF3B30]')}>{date.getDate()}</div>
+              {r}
             </button>
           )
         })}
       </div>
 
-      <div className="mb-2 flex items-center gap-3 px-1">
-        <h2 className="text-[13px] font-semibold uppercase tracking-wide text-muted-foreground" style={{ fontFamily: IOS_FONT }}>{dayLabel}</h2>
-        <div className="ml-auto flex items-center gap-2.5 text-[12px] text-muted-foreground">
-          {(Object.keys(KIND_DOT) as Kind[]).map((k) => (
-            <span key={k} className="inline-flex items-center gap-1"><span className={cn('h-2 w-2 rounded-full', KIND_DOT[k])} /> {KIND_NAME[k]}</span>
-          ))}
-          {rooms.some(closed) && <span className="inline-flex items-center gap-1"><span className="h-2 w-2 rounded-sm bg-black/15 dark:bg-white/25" /> Not available</span>}
-        </div>
-      </div>
-
-      {hasClash && (
+      {clash && (
         <div className="mb-2 rounded-xl bg-[#FF3B30]/10 px-3.5 py-2 text-[13px] font-medium text-[#D70015] dark:text-[#FF6961]">
-          Two bookings overlap in the same room on this day.
+          Two bookings overlap in this room. They are stacked in the same row.
         </div>
       )}
 
-      {/* calendar card */}
-      <div className="overflow-x-auto rounded-[20px] bg-card shadow-[0_1px_2px_rgba(0,0,0,0.05),0_6px_24px_rgba(0,0,0,0.04)]">
-        <div className="min-w-[440px] px-1 pb-2 pt-1">
-          <div className="grid" style={{ gridTemplateColumns: cols }}>
-            <div />
-            {rooms.map((r) => (
-              <div key={r} className="truncate px-1 py-2 text-center text-[12px] font-semibold text-foreground/80">{r}</div>
+      {/* days on the left, hours across the top, like the other calendars */}
+      <div className="overflow-x-auto rounded-2xl border border-border bg-card shadow-sm">
+        <div style={{ minWidth: MIN_GRID }}>
+          <div className="flex border-b border-border bg-secondary/40 text-[11px] font-bold text-muted-foreground">
+            <div style={{ width: LABEL_W }} className="shrink-0" />
+            {HOURS.slice(0, -1).map((h) => (
+              <div key={h} className="min-w-0 flex-1 border-l border-border/60 px-1.5 py-1.5 tabular-nums">{String(h).padStart(2, '0')}:00</div>
             ))}
           </div>
-          <div className="relative grid" style={{ gridTemplateColumns: cols, height: (CLOSE - OPEN) / 60 * HOUR_PX }}>
-            {/* hairlines run across the whole width, like the iOS day view */}
-            {HOURS.map((h) => (
-              <div key={h} className="pointer-events-none absolute right-0 border-t border-black/[0.08] dark:border-white/10" style={{ left: '2.75rem', top: (h * 60 - OPEN) / 60 * HOUR_PX }} />
-            ))}
-            <div className="relative">
-              {HOURS.map((h) => (
-                <div key={h} className="absolute right-2 -translate-y-1/2 text-[11px] tabular-nums text-muted-foreground" style={{ top: (h * 60 - OPEN) / 60 * HOUR_PX + (h * 60 === OPEN ? 7 : 0) }}>
-                  {String(h).padStart(2, '0') + ':00'}
+
+          <div className="relative">
+            {rows.map((r, ri) => (
+              <div key={r.day} className={cn('flex', ri > 0 && 'border-t border-border', r.isToday && 'bg-primary/[0.04]')} style={{ height: r.height }}>
+                <div style={{ width: LABEL_W }} className="flex shrink-0 flex-col items-center justify-center border-r border-border bg-secondary/40 leading-tight">
+                  <span className={cn('text-[11px] font-bold uppercase', r.isToday ? 'text-primary' : 'text-muted-foreground')}>{r.day}</span>
+                  <span className={cn('text-[11px] font-medium tabular-nums', r.isToday ? 'text-primary' : 'text-muted-foreground')}>{r.date.getDate()}/{r.date.getMonth() + 1}</span>
                 </div>
-              ))}
-            </div>
-            {rooms.map((room) => {
-              const list = withLanes(dayBookings.filter((b) => b.room === room))
-              return (
                 <div
-                  key={room}
-                  className={cn('relative', closed(room) && 'rounded-lg bg-black/[0.05] dark:bg-white/[0.06]')}
-                  style={closed(room) ? { backgroundImage: 'repeating-linear-gradient(135deg, transparent 0 7px, rgba(120,120,128,0.14) 7px 8px)' } : undefined}
+                  className="relative min-w-0 flex-1"
+                  style={{
+                    backgroundImage: 'linear-gradient(to right, rgba(120,120,128,0.14) 1px, transparent 1px)',
+                    backgroundSize: `${100 / HOURS.slice(0, -1).length}% 100%`,
+                    ...(r.closed ? { backgroundColor: 'rgba(120,120,128,0.08)' } : null),
+                  }}
                 >
-                  {closed(room) && list.length === 0 && (
-                    <div className="absolute inset-x-0 top-3 text-center text-[11px] font-semibold text-muted-foreground">Not available</div>
+                  {r.closed && (
+                    <div
+                      className="absolute inset-1 flex items-center justify-center rounded-lg text-[11px] font-semibold text-muted-foreground"
+                      style={{ backgroundImage: 'repeating-linear-gradient(135deg, transparent 0 7px, rgba(120,120,128,0.16) 7px 8px)' }}
+                    >
+                      Not available
+                    </div>
                   )}
-                  {list.map(({ b, lane, lanes }, k) => {
-                    const tall = b.end - b.start >= 60
+
+                  {/* free slots */}
+                  {r.free.map(([a, b], k) => (
+                    <div
+                      key={'f' + k}
+                      className="absolute inset-y-1 flex flex-col items-start justify-center overflow-hidden rounded-lg px-2.5 border border-emerald-600/25 bg-emerald-500/12 text-emerald-800 dark:border-emerald-400/30 dark:bg-emerald-400/15 dark:text-emerald-200"
+                      style={{ left: `calc(${pct(a)}% + 2px)`, width: `calc(${pct(b) - pct(a)}% - 4px)` }}
+                      title={`Free ${fmt(a)} - ${fmt(b)}`}
+                    >
+                      <span className="text-[11px] font-bold leading-[13px]">Free</span>
+                      {(pct(b) - pct(a)) * (MIN_GRID - LABEL_W) / 100 >= 90 && <span className="text-[10px] font-semibold leading-[12px] tabular-nums opacity-80">{fmt(a)} - {fmt(b)}</span>}
+                    </div>
+                  ))}
+
+                  {/* bookings, same chip design as the other calendars */}
+                  {r.lanes.map(({ b, lane }, k) => {
+                    const Icon = clubIcon(b.icon)?.Icon
                     return (
                       <div
-                        key={k}
-                        className={cn('absolute overflow-hidden rounded-lg border-l-[3px] px-2 py-1 text-[12px] leading-tight', KIND_STYLE[b.kind])}
-                        style={{
-                          top: (b.start - OPEN) / 60 * HOUR_PX + 1,
-                          height: (b.end - b.start) / 60 * HOUR_PX - 2,
-                          left: `calc(${(lane / lanes) * 100}% + 2px)`,
-                          width: `calc(${100 / lanes}% - 4px)`,
-                        }}
+                        key={'b' + k}
+                        className={cn('absolute', b.tone)}
+                        style={{ left: `calc(${pct(b.start)}% + 2px)`, width: `calc(${pct(b.end) - pct(b.start)}% - 4px)`, top: 4 + lane * (CHIP_H + 4), height: CHIP_H }}
                         title={`${b.label} ${fmt(b.start)}-${fmt(b.end)}${b.note ? ' (' + b.note + ')' : ''}`}
                       >
-                        <div className="truncate font-semibold">{b.label}</div>
-                        {tall && <div className="truncate text-[11px] tabular-nums opacity-80">{fmt(b.start)} - {fmt(b.end)}{b.note ? ', ' + b.note : ''}</div>}
+                        <div
+                          className="relative flex h-full w-full flex-col justify-center gap-[3px] overflow-hidden rounded-lg border px-2 py-1 pl-[13px] text-left"
+                          style={{ background: 'var(--tone-bg)', borderColor: 'var(--tone-line)', color: 'var(--tone-txt)' }}
+                        >
+                          <span aria-hidden className="absolute left-[3px] top-1 bottom-1 w-[3px] rounded-full" style={{ background: 'var(--tone-txt)', opacity: 0.45 }} />
+                          <span className="flex w-full items-center gap-1 text-[11px] font-bold leading-[13px]">
+                            {Icon ? <Icon className="h-3 w-3 shrink-0" /> : <i className="inline-block h-1.5 w-1.5 shrink-0 rounded-full" style={{ background: 'var(--tone-txt)' }} />}
+                            <span className="truncate" dir="auto">{b.label}</span>
+                          </span>
+                          <span className="truncate text-[10px] font-semibold leading-[12px] tabular-nums" style={{ opacity: 0.92 }}>
+                            {fmt(b.start)}-{fmt(b.end)}{b.note ? ' · ' + b.note : ''}
+                          </span>
+                          {b.lead && <span className="truncate text-[10px] font-medium leading-[12px]" style={{ opacity: 0.75 }}>{b.lead}</span>}
+                        </div>
                       </div>
                     )
                   })}
                 </div>
-              )
-            })}
+              </div>
+            ))}
             {showNow && (
-              <div className="pointer-events-none absolute right-0 z-10 border-t-[1.5px] border-[#FF3B30]" style={{ left: '2.75rem', top: (nowMin - OPEN) / 60 * HOUR_PX }}>
-                <span className="absolute -left-[3px] -top-[4px] h-[7px] w-[7px] rounded-full bg-[#FF3B30]" />
+              <div className="pointer-events-none absolute inset-y-0 z-10" style={{ left: LABEL_W, right: 0 }}>
+                <div className="absolute inset-y-0 border-l border-[#FF3B30]" style={{ left: `${pct(nowMin)}%` }}>
+                  <span className="absolute -left-[3px] -top-[1px] h-[7px] w-[7px] rounded-full bg-[#FF3B30]" />
+                </div>
               </div>
             )}
           </div>
         </div>
       </div>
 
-      {/* free time: inset grouped list */}
-      <h3 className="mb-1.5 mt-6 px-1 text-[13px] font-semibold uppercase tracking-wide text-muted-foreground" style={{ fontFamily: IOS_FONT }}>Free</h3>
-      <div className="overflow-hidden rounded-[16px] bg-card shadow-[0_1px_2px_rgba(0,0,0,0.05)]">
-        {rooms.map((room, i) => {
-          const isClosed = closed(room)
-          const free = isClosed ? [] : freeWindows(dayBookings.filter((b) => b.room === room))
-          const all = free.length === 1 && free[0][0] === OPEN && free[0][1] === CLOSE
-          return (
-            <div key={room} className={cn('flex items-baseline gap-3 py-2.5 pl-4 pr-4 text-[15px]', i > 0 && 'ml-4 border-t border-black/[0.08] pl-0 dark:border-white/10')}>
-              <span className="w-28 shrink-0 font-medium">{room}</span>
-              <span className={cn('min-w-0 flex-1 text-right tabular-nums', all ? 'font-medium text-[#248A3D] dark:text-[#30D158]' : isClosed ? 'text-muted-foreground' : free.length ? 'text-muted-foreground' : 'text-[#D70015] dark:text-[#FF6961]')}>
-                {isClosed ? 'Not available' : all ? 'Free all day' : free.length ? free.map(([a, b]) => fmt(a) + ' - ' + fmt(b)).join(', ') : 'Fully booked'}
-              </span>
-            </div>
-          )
-        })}
+      {/* legend, same style as the other calendars */}
+      <div className="mt-2.5 flex flex-wrap gap-x-4 gap-y-1.5 px-1">
+        <span className="flex items-center gap-1.5 text-[11.5px] font-semibold text-muted-foreground">
+          <i className="inline-block h-2 w-2 rounded-full bg-emerald-500" /> Free
+        </span>
+        {legendItems.map((l) => (
+          <span key={l.label} className="flex items-center gap-1.5 text-[11.5px] font-semibold text-muted-foreground">
+            <i className={`${l.tone} inline-block h-2 w-2 rounded-full`} style={{ background: 'var(--tone-txt)' }} />
+            {l.label}
+          </span>
+        ))}
+        {rows.some((r) => r.closed) && (
+          <span className="flex items-center gap-1.5 text-[11.5px] font-semibold text-muted-foreground">
+            <i className="inline-block h-2 w-2 rounded-full bg-black/20 dark:bg-white/30" /> Not available
+          </span>
+        )}
       </div>
     </div>
   )
