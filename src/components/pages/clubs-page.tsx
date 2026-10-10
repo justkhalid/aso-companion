@@ -270,16 +270,17 @@ export function ClubsPage({ admin, internMode = false }: { admin: boolean; inter
               ))}
             </div>
           ) : (
-            <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+            <div className="flex flex-wrap justify-center gap-3">
               {orderedClubs.map((c) => (
-                <ClubGridCard
-                  key={c.id}
-                  club={c}
-                  admin={admin}
-                  onExpand={() => setExpanded(c)}
-                  onEdit={() => setClubDialog({ open: true, club: c })}
-                  onDelete={() => deleteClub(c)}
-                />
+                <div key={c.id} className="flex w-full sm:w-[calc(50%-0.375rem)] lg:w-[calc(33.333%-0.5rem)]">
+                  <ClubGridCard
+                    club={c}
+                    admin={admin}
+                    onExpand={() => setExpanded(c)}
+                    onEdit={() => setClubDialog({ open: true, club: c })}
+                    onDelete={() => deleteClub(c)}
+                  />
+                </div>
               ))}
             </div>
           )

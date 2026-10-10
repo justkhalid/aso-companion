@@ -70,6 +70,9 @@ export const LEVEL_ORDER = [
   'adults-adv',
 ] as const
 
+/* a grid whose cards stretch to fill the row, so the last row never stops half way across the page */
+export const FILL_GRID = { gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 280px), 1fr))' } as const
+
 export const BANDS = ['Kids', 'Teens', 'Adults'] as const
 
 /* canonical rooms/spaces offered in the room dropdowns (rooms already in use

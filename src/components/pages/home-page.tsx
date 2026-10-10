@@ -30,7 +30,7 @@ import {
   isoOf,
   addDays,
 } from '@/lib/app-utils'
-import { DAY_FULL, DAY_KEYS, ROOM_LEGEND } from '@/lib/constants'
+import { DAY_FULL, DAY_KEYS, FILL_GRID, ROOM_LEGEND } from '@/lib/constants'
 import { buildCalendarLinks } from '@/lib/export-word'
 import { WeeklyGrid, CalendarListView, CalendarCardsView, CalViewSwitcher, readCalView, writeCalView, type GridItem, type LegendEntry, type CalendarView } from '@/components/weekly-grid'
 import { ClassDialog } from '@/components/dialogs/class-dialog'
@@ -467,7 +467,7 @@ function AdminHomeExtra() {
               {g.band}
             </div>
           )}
-          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+          <div className="grid gap-3" style={FILL_GRID}>
             {g.levels.map((l) => {
               const w = wi >= 0 && wi < l.weeks.length ? l.weeks[wi] : null
               const showWi = w ? wi : Math.min(l.weeks.length - 1, Math.max(0, wi))

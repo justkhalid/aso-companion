@@ -7,7 +7,7 @@ import { SiteFooter } from './site-footer'
 import { ThemeToggle } from './theme-toggle'
 import { ClubExpandOverlay, ClubGridCard, EventCard } from './pages/clubs-page'
 import { useStore } from '@/lib/store'
-import { BANDS, DAY_FULL, DAY_KEYS } from '@/lib/constants'
+import { BANDS, DAY_FULL, DAY_KEYS, FILL_GRID } from '@/lib/constants'
 import { mondayOfWeek, nextOccurrence, toneClassForClub } from '@/lib/app-utils'
 import { PUBLIC_CLASS_TONE, publicClassItems, publicClubItems, publicEventItems } from '@/lib/calendar-items'
 import { CalendarCardsView, CalendarListView, CalViewSwitcher, WeeklyGrid, readCalView, writeCalView, type CalendarView, type LegendEntry } from './weekly-grid'
@@ -195,9 +195,11 @@ export function LandingPage() {
           {clubs.length === 0 ? (
             <div className="rounded-2xl border border-border bg-card p-8 text-center text-sm text-muted-foreground">Clubs will be listed here soon.</div>
           ) : (
-            <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+            <div className="flex flex-wrap justify-center gap-3">
               {clubs.map((c) => (
-                <ClubGridCard key={c.id} club={c} admin={false} onExpand={() => setExpanded(c)} onEdit={() => {}} onDelete={() => {}} />
+                <div key={c.id} className="flex w-full sm:w-[calc(50%-0.375rem)] lg:w-[calc(33.333%-0.5rem)]">
+                  <ClubGridCard club={c} admin={false} onExpand={() => setExpanded(c)} onEdit={() => {}} onDelete={() => {}} />
+                </div>
               ))}
             </div>
           )}
@@ -229,7 +231,7 @@ export function LandingPage() {
             bands.map(({ band, items }) => (
               <div key={band} className="mb-6">
                 <div className="mb-2.5 text-xs font-bold uppercase tracking-wider text-muted-foreground">{band}</div>
-                <div className="grid gap-3" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 300px), 1fr))' }}>
+                <div className="grid gap-3" style={FILL_GRID}>
                   {items.map(({ level, sessions }) => (
                     <div key={level.key} className="flex flex-col gap-3 rounded-2xl border border-border bg-card p-5 shadow-sm">
                       <div className="flex items-center gap-2">

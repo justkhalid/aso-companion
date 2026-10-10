@@ -172,7 +172,7 @@ export function RoomsPage({ embedded = false, focus, only = false }: { embedded?
   const mode = picked === ALL || (picked === FOCUS && hasFocus) || tabRooms.includes(picked) ? picked : hasFocus ? FOCUS : ALL
   const all = mode === ALL || mode === FOCUS // several rooms in one calendar
   const shown = mode === ALL ? rooms : mode === FOCUS ? focusRooms : [mode]
-  const CHIP_H = all ? 38 : 74
+  const CHIP_H = all ? 38 : 60
 
   const sunday = new Date(monday)
   sunday.setDate(sunday.getDate() + 6)
@@ -361,12 +361,14 @@ export function RoomsPage({ embedded = false, focus, only = false }: { embedded?
                                 <span aria-hidden className="absolute left-[3px] top-1 bottom-1 w-[3px] rounded-full" style={{ background: 'var(--tone-txt)', opacity: 0.45 }} />
                                 <span className="flex w-full items-center gap-1 text-[11px] font-bold leading-[13px]">
                                   {Icon ? <Icon className="h-3 w-3 shrink-0" /> : <i className="inline-block h-1.5 w-1.5 shrink-0 rounded-full" style={{ background: 'var(--tone-txt)' }} />}
-                                  <span className={all ? 'truncate' : 'line-clamp-3 break-words leading-[12px]'} dir="auto">{b.label}</span>
+                                  <span className={all ? 'truncate' : 'line-clamp-3 break-words leading-[12px]'} dir="auto">
+                                    {b.label}
+                                    {b.lead && <span className="font-medium opacity-80"> · {b.lead}</span>}
+                                  </span>
                                 </span>
                                 <span className="truncate text-[10px] font-semibold leading-[12px] tabular-nums" style={{ opacity: 0.92 }}>
                                   {fmt(b.start)}-{fmt(b.end)}{b.note ? ' · ' + b.note : ''}
                                 </span>
-                                {!all && b.lead && <span className="truncate text-[10px] font-medium leading-[12px]" style={{ opacity: 0.75 }}>{b.lead}</span>}
                               </div>
                             </div>
                           )

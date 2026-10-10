@@ -4,7 +4,7 @@ import * as React from 'react'
 import { GraduationCap, BookOpen, ArrowRight, ClipboardList } from 'lucide-react'
 import { useStore } from '@/lib/store'
 import { termStatus } from '@/lib/app-utils'
-import { BANDS } from '@/lib/constants'
+import { BANDS, FILL_GRID } from '@/lib/constants'
 import { Chip, PageHead } from '@/components/ui-bits'
 
 export function EltasoPage() {
@@ -52,7 +52,7 @@ export function EltasoPage() {
               {g.band}
             </div>
           )}
-          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+          <div className="grid gap-3" style={FILL_GRID}>
             {g.levels.map((l) => {
               const w = wi >= 0 && wi < l.weeks.length ? l.weeks[wi] : null
               const showWi = w ? wi : Math.min(l.weeks.length - 1, Math.max(0, wi))
