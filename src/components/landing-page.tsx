@@ -3,6 +3,7 @@
 import * as React from 'react'
 import { CalendarDays, Clock, GraduationCap, Sparkles } from 'lucide-react'
 import { Logo } from './logo'
+import { SiteFooter } from './site-footer'
 import { ThemeToggle } from './theme-toggle'
 import { ClubExpandOverlay, ClubGridCard, EventCard } from './pages/clubs-page'
 import { useStore } from '@/lib/store'
@@ -16,9 +17,9 @@ import type { Club } from '@/lib/types'
    No teacher names, class codes or admin tools. Teachers and interns have their own pages. */
 
 const SECTIONS = [
-  { id: 'classes', label: 'Classes' },
   { id: 'clubs', label: 'Clubs' },
   { id: 'events', label: 'Events' },
+  { id: 'classes', label: 'Classes' },
 ]
 
 const dayOrder = (d: string) => DAY_KEYS.indexOf(d as (typeof DAY_KEYS)[number])
@@ -106,22 +107,53 @@ export function LandingPage() {
 
       <main className="flex-1">
         {/* hero */}
-        <section className="mx-auto max-w-6xl px-4 pb-4 pt-10 sm:pt-14">
-          <h1 className="font-display max-w-2xl text-[34px] font-extrabold leading-[1.1] tracking-tight sm:text-5xl">
+        <section className="mx-auto max-w-6xl px-4 pb-6 pt-12 text-center sm:pt-16">
+          <h1 className="font-display mx-auto max-w-3xl text-balance text-[34px] font-extrabold leading-[1.1] tracking-tight sm:text-5xl">
             English for kids, teens and adults
           </h1>
-          <p className="mt-3 max-w-xl text-base text-muted-foreground sm:text-lg">
-            Everything on offer at American Space Oujda this year: the classes, the clubs and the events.
+          <p className="mx-auto mt-4 max-w-2xl text-balance text-base text-muted-foreground sm:text-lg">
+            Everything on offer at American Space Oujda this year: the clubs, the events and the classes.
           </p>
-          <div className="mt-6 grid max-w-md grid-cols-3 gap-2.5">
-            {stat(state.classes.filter((c) => (c.days || []).length && c.time && levels.some((x) => x.level.label === c.level)).length, 'class groups')}
+          <div className="mx-auto mt-7 grid max-w-lg grid-cols-3 gap-3">
             {stat(clubs.length, clubs.length === 1 ? 'club' : 'clubs')}
             {stat(events.length, events.length === 1 ? 'event' : 'events')}
+            {stat(state.classes.filter((c) => (c.days || []).length && c.time && levels.some((x) => x.level.label === c.level)).length, 'class groups')}
           </div>
         </section>
 
+        {/* clubs */}
+        <section id="clubs" className="mx-auto max-w-6xl scroll-mt-28 px-4 py-8">
+          <h2 className="mb-1 text-xl font-extrabold tracking-tight">Clubs</h2>
+          <p className="mb-5 text-sm text-muted-foreground">Weekly clubs run by our volunteers. Tap a club to see the details.</p>
+          {clubs.length === 0 ? (
+            <div className="rounded-2xl border border-border bg-card p-8 text-center text-sm text-muted-foreground">Clubs will be listed here soon.</div>
+          ) : (
+            <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+              {clubs.map((c) => (
+                <ClubGridCard key={c.id} club={c} admin={false} onExpand={() => setExpanded(c)} onEdit={() => {}} onDelete={() => {}} />
+              ))}
+            </div>
+          )}
+        </section>
+
+        {/* events */}
+        <section id="events" className="mx-auto max-w-6xl scroll-mt-28 px-4 py-8">
+          <h2 className="mb-1 text-xl font-extrabold tracking-tight">Events</h2>
+          <p className="mb-5 text-sm text-muted-foreground">What is coming up. Check the date and place before you come.</p>
+          {events.length === 0 ? (
+            <div className="rounded-2xl border border-border bg-card p-8 text-center text-sm text-muted-foreground">
+              <Sparkles className="mx-auto mb-2 h-5 w-5" /> No events are planned right now. Check back soon.
+            </div>
+          ) : (
+            <div className="grid gap-3">
+              {events.map(({ e, d }) => (
+                <EventCard key={e.id} event={e} nextDate={d!} admin={false} onEdit={() => {}} onDelete={() => {}} />
+              ))}
+            </div>
+          )}
+        </section>
         {/* classes */}
-        <section id="classes" className="mx-auto max-w-6xl scroll-mt-28 px-4 py-8">
+        <section id="classes" className="mx-auto max-w-6xl scroll-mt-28 px-4 py-8 pb-14">
           <h2 className="mb-1 text-xl font-extrabold tracking-tight">Classes</h2>
           <p className="mb-5 text-sm text-muted-foreground">English classes by age and level. Each class meets once or twice a week.</p>
           {bands.length === 0 ? (
@@ -130,7 +162,7 @@ export function LandingPage() {
             bands.map(({ band, items }) => (
               <div key={band} className="mb-6">
                 <div className="mb-2.5 text-xs font-bold uppercase tracking-wider text-muted-foreground">{band}</div>
-                <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+                <div className="grid gap-3" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 300px), 1fr))' }}>
                   {items.map(({ level, sessions }) => (
                     <div key={level.key} className="flex flex-col gap-3 rounded-2xl border border-border bg-card p-5 shadow-sm">
                       <div className="flex items-center gap-2">
@@ -159,54 +191,11 @@ export function LandingPage() {
           )}
         </section>
 
-        {/* clubs */}
-        <section id="clubs" className="mx-auto max-w-6xl scroll-mt-28 px-4 py-8">
-          <h2 className="mb-1 text-xl font-extrabold tracking-tight">Clubs</h2>
-          <p className="mb-5 text-sm text-muted-foreground">Weekly clubs run by our volunteers. Tap a club to see the details.</p>
-          {clubs.length === 0 ? (
-            <div className="rounded-2xl border border-border bg-card p-8 text-center text-sm text-muted-foreground">Clubs will be listed here soon.</div>
-          ) : (
-            <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-              {clubs.map((c) => (
-                <ClubGridCard key={c.id} club={c} admin={false} onExpand={() => setExpanded(c)} onEdit={() => {}} onDelete={() => {}} />
-              ))}
-            </div>
-          )}
-        </section>
-
-        {/* events */}
-        <section id="events" className="mx-auto max-w-6xl scroll-mt-28 px-4 py-8 pb-14">
-          <h2 className="mb-1 text-xl font-extrabold tracking-tight">Events</h2>
-          <p className="mb-5 text-sm text-muted-foreground">What is coming up. Check the date and place before you come.</p>
-          {events.length === 0 ? (
-            <div className="rounded-2xl border border-border bg-card p-8 text-center text-sm text-muted-foreground">
-              <Sparkles className="mx-auto mb-2 h-5 w-5" /> No events are planned right now. Check back soon.
-            </div>
-          ) : (
-            <div className="grid max-w-4xl gap-3">
-              {events.map(({ e, d }) => (
-                <EventCard key={e.id} event={e} nextDate={d!} admin={false} onEdit={() => {}} onDelete={() => {}} />
-              ))}
-            </div>
-          )}
-        </section>
       </main>
 
       <ClubExpandOverlay club={expanded} onClose={() => setExpanded(null)} admin={false} onEdit={() => {}} />
 
-      <footer className="border-t border-border">
-        <div className="mx-auto flex max-w-6xl flex-col items-center gap-3 px-4 py-6 text-center sm:flex-row sm:justify-between sm:text-left">
-          <div className="flex items-center gap-2">
-            <Logo size={24} />
-            <span className="text-xs text-muted-foreground">American Space Oujda · {new Date().getFullYear()}</span>
-          </div>
-          <div className="flex items-center gap-4 text-xs font-semibold text-muted-foreground">
-            <button onClick={() => setView('home')} className="hover:text-foreground">Teachers</button>
-            <a href="/interns" className="hover:text-foreground">Interns</a>
-            <button onClick={() => setView('login')} className="text-primary hover:underline">Admin sign in</button>
-          </div>
-        </div>
-      </footer>
+      <SiteFooter current="public" />
     </div>
   )
 }

@@ -13,6 +13,7 @@ import { LevelDetailPage } from './pages/level-detail-page'
 import { ClubsPage } from './pages/clubs-page'
 import { InternShell } from './intern-shell'
 import { LandingPage } from './landing-page'
+import { SiteFooter } from './site-footer'
 import { ResourcesPage } from './pages/resources-page'
 import { SettingsPage } from './pages/settings-page'
 import { ClassesPage } from './pages/classes-page'
@@ -121,7 +122,7 @@ export function AppShell({ initialView }: { initialView?: View }) {
         <main className="flex-1">
           <PageBody view={ev} admin={false} />
         </main>
-        <PublicFooter admin={admin} onAdmin={() => (admin ? setPubView(false) : setView('login'))} />
+        <SiteFooter current="teachers" />
         <AppToaster />
       </div>
     )
@@ -210,23 +211,3 @@ function PageBody({ view, admin }: { view: View; admin: boolean }) {
   }
 }
 
-function PublicFooter({ admin, onAdmin }: { admin: boolean; onAdmin: () => void }) {
-  return (
-    <footer className="mt-auto border-t border-border bg-background">
-      <div className="mx-auto flex max-w-6xl flex-col items-center gap-3 px-4 py-6 text-center sm:flex-row sm:justify-between sm:text-left">
-        <div className="flex items-center gap-2">
-          <Logo size={24} />
-          <div className="text-xs text-muted-foreground">
-            ASO Companion · American Space Oujda
-          </div>
-        </div>
-        <div className="flex items-center gap-3 text-xs text-muted-foreground">
-          <span>{new Date().getFullYear()}</span>
-          <button onClick={onAdmin} className="font-bold text-primary hover:underline">
-            {admin ? 'Open admin menu' : 'Admin sign in'}
-          </button>
-        </div>
-      </div>
-    </footer>
-  )
-}

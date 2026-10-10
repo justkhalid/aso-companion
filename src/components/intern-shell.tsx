@@ -3,6 +3,7 @@
 import * as React from 'react'
 import { CalendarDays, CalendarClock, DoorOpen, Sparkles } from 'lucide-react'
 import { Logo } from './logo'
+import { SiteFooter } from './site-footer'
 import { ThemeToggle } from './theme-toggle'
 import { ClubsPage } from './pages/clubs-page'
 import { RoomsPage } from './pages/rooms-page'
@@ -108,12 +109,7 @@ export function InternShell() {
         </section>
       </main>
 
-      <footer className="border-t border-border">
-        <div className="mx-auto flex max-w-5xl items-center gap-2 px-4 py-5 text-xs text-muted-foreground">
-          <Logo size={20} />
-          <span>ASO Companion · American Space Oujda</span>
-        </div>
-      </footer>
+      <SiteFooter current="interns" />
     </div>
   )
 }
