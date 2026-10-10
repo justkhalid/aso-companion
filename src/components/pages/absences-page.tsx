@@ -1,13 +1,14 @@
 'use client'
 
 import * as React from 'react'
-import { Pencil, Plus, Trash2, UserX } from 'lucide-react'
+import { Plus, UserX, UserCheck } from 'lucide-react'
 import { useStore } from '@/lib/store'
 import { fmtAbsenceRange, isOnceEvent, isoOf, parseISO } from '@/lib/app-utils'
 import { DAY_KEYS } from '@/lib/constants'
 import { PageHead, EmptyState, Chip } from '@/components/ui-bits'
 import { Button } from '@/components/ui/button'
 import { AbsenceDialog } from '@/components/dialogs/absence-dialog'
+import { RowActions } from '@/components/admin/row-actions'
 import type { Absence } from '@/lib/types'
 
 export function AbsencesPage() {
@@ -22,9 +23,22 @@ export function AbsencesPage() {
   const next = all.filter((a) => a.from > today)
   const past = all.filter((a) => a.to < today).reverse()
 
-  const remove = (a: Absence) => {
-    patch((d) => { d.absences = (d.absences || []).filter((x) => x.id !== a.id) })
-    toast('Absence removed, classes are back on the calendars')
+  /* "back today": sessions from today on return to the calendars, earlier days stay recorded */
+  const backToday = (a: Absence) => {
+    const before = a
+    const yesterday = parseISO(today)
+    yesterday.setDate(yesterday.getDate() - 1)
+    patch((d) => {
+      if (a.from >= today) d.absences = (d.absences || []).filter((x) => x.id !== a.id)
+      else d.absences = (d.absences || []).map((x) => (x.id === a.id ? { ...x, to: isoOf(yesterday) } : x))
+    })
+    toast('Back from today, the calendars are updated', true, {
+      label: 'Undo',
+      run: () => patch((d) => {
+        d.absences = (d.absences || []).filter((x) => x.id !== before.id)
+        d.absences.push(before)
+      }),
+    })
   }
 
   /* what the entry is about: a teacher with classes, a club or an event */
@@ -77,9 +91,18 @@ export function AbsencesPage() {
           </div>
           {a.note && <div className="mt-1 text-[13px] text-foreground/80">{a.note}</div>}
         </div>
-        <div className="flex shrink-0 gap-1">
-          <Button variant="ghost" size="icon" onClick={() => setDialog({ open: true, abs: a })} title="Edit"><Pencil className="h-4 w-4" /></Button>
-          <Button variant="ghost" size="icon" className="text-destructive" onClick={() => remove(a)} title="Remove: everything returns to the calendars"><Trash2 className="h-4 w-4" /></Button>
+        <div className="flex shrink-0 items-center gap-1">
+          {a.from <= today && a.to >= today && (
+            <Button variant="outline" size="sm" onClick={() => backToday(a)}>
+              <UserCheck className="h-4 w-4" /> Back today
+            </Button>
+          )}
+          <RowActions
+            name={`absence of ${sub.title}`}
+            onEdit={() => setDialog({ open: true, abs: a })}
+            remove={(d) => { d.absences = (d.absences || []).filter((x) => x.id !== a.id) }}
+            deleteNote="Everything returns to the calendars for those dates."
+          />
         </div>
       </div>
     )
@@ -98,10 +121,10 @@ export function AbsencesPage() {
       <PageHead
         title="Absences and cancellations"
         subtitle="A teacher cannot come, a club or an event is off: enter it here and every calendar updates for those dates."
-        right={<Button size="sm" onClick={() => setDialog({ open: true, abs: null })}><Plus className="h-4 w-4" /> Add</Button>}
+        right={<Button size="sm" onClick={() => setDialog({ open: true, abs: null })}><Plus className="h-4 w-4" /> Report absence</Button>}
       />
       {all.length === 0 ? (
-        <EmptyState icon={<UserX className="h-5 w-5" />} title="Nothing is cancelled" hint="Use Add when a teacher is sick or travelling, or a club or event does not happen. It is cancelled or covered, and the room shows as free." />
+        <EmptyState icon={<UserX className="h-5 w-5" />} title="Nothing is cancelled" hint="Use Report absence when a teacher is sick or travelling, or a club or event does not happen. It is cancelled or covered, and the room shows as free." />
       ) : (
         <>
           {section('Away now', now)}

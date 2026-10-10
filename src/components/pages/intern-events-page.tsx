@@ -1,25 +1,25 @@
 'use client'
 
 import * as React from 'react'
-import { Plus, Pencil, Trash2, CalendarDays, Clock, MapPin } from 'lucide-react'
+import { Plus, CalendarDays, Clock, MapPin } from 'lucide-react'
 import { useStore } from '@/lib/store'
 import { fmtEventWhen, nextOccurrence, fmtD, isOnceEvent } from '@/lib/app-utils'
 import { PageHead, EmptyState, Chip } from '@/components/ui-bits'
 import { Button } from '@/components/ui/button'
 import { EventDialog } from '@/components/dialogs/event-dialog'
+import { RowActions } from '@/components/admin/row-actions'
+import { uid } from '@/lib/app-utils'
 import type { EventEntry } from '@/lib/types'
 
 export function InternEventsPage() {
   const state = useStore((s) => s.state)
   const patch = useStore((s) => s.patch)
-  const toast = useStore((s) => s.toast)
   const [dialog, setDialog] = React.useState<{ open: boolean; event: EventEntry | null }>({ open: false, event: null })
 
-  const remove = (e: EventEntry) => {
-    patch((draft) => {
-      draft.events = draft.events.filter((x) => x.id !== e.id)
-    })
-    toast('Event removed')
+  const duplicate = (e: EventEntry) => {
+    const copy = { ...e, id: uid(), title: e.title + ' copy' }
+    patch((d) => { d.events.push(copy) })
+    setDialog({ open: true, event: copy })
   }
 
   const list = (state.events || [])
@@ -53,9 +53,13 @@ export function InternEventsPage() {
                 {e.time && <span className="inline-flex items-center gap-1"><Clock className="h-3.5 w-3.5" /> {e.time}</span>}
                 {e.place && <span className="inline-flex items-center gap-1"><MapPin className="h-3.5 w-3.5" /> {e.place}</span>}
               </div>
-              <div className="mt-2 flex justify-end gap-1">
-                <Button variant="ghost" size="icon" onClick={() => setDialog({ open: true, event: e })} title="Edit"><Pencil className="h-4 w-4" /></Button>
-                <Button variant="ghost" size="icon" className="text-destructive" onClick={() => remove(e)} title="Delete"><Trash2 className="h-4 w-4" /></Button>
+              <div className="mt-2 flex justify-end">
+                <RowActions
+                  name={e.title}
+                  onEdit={() => setDialog({ open: true, event: e })}
+                  onDuplicate={() => duplicate(e)}
+                  remove={(d) => { d.events = d.events.filter((x) => x.id !== e.id) }}
+                />
               </div>
             </div>
           ))}

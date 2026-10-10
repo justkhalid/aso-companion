@@ -13,6 +13,7 @@ interface Toast {
   id: number
   msg: string
   ok: boolean
+  action?: { label: string; run: () => void }
 }
 
 interface UIStore {
@@ -61,7 +62,7 @@ interface UIStore {
   importBackup: (json: string) => { ok: boolean; msg: string }
   resetAll: () => void
 
-  toast: (msg: string, ok?: boolean) => void
+  toast: (msg: string, ok?: boolean, action?: { label: string; run: () => void }) => void
   dismissToast: (id: number) => void
 }
 
@@ -491,10 +492,10 @@ export const useStore = create<UIStore>((set, get) => ({
     syncViewUrl('home', 'replace')
   },
 
-  toast: (msg, ok = true) => {
+  toast: (msg, ok = true, action) => {
     const id = toastSeq++
-    set((st) => ({ toasts: [...st.toasts, { id, msg, ok }] }))
-    setTimeout(() => get().dismissToast(id), 2600)
+    set((st) => ({ toasts: [...st.toasts, { id, msg, ok, action }] }))
+    setTimeout(() => get().dismissToast(id), action ? 7000 : 2600)
   },
   dismissToast: (id) =>
     set((st) => ({ toasts: st.toasts.filter((t) => t.id !== id) })),

@@ -49,6 +49,8 @@ import { WeeklyGrid, CalendarListView, CalendarCardsView, CalViewSwitcher, readC
 import { ClubDialog } from '@/components/dialogs/club-dialog'
 import { EventDialog } from '@/components/dialogs/event-dialog'
 import { CalendarExportMenu } from '@/components/calendar-export'
+import { openClubsSheet } from '@/lib/clubs-sheet'
+import { DropdownMenuItem, DropdownMenuSeparator, DropdownMenuLabel } from '@/components/ui/dropdown-menu'
 import { PageHead, SectionHeader, LinkButton, Chip, EmptyState } from '@/components/ui-bits'
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
@@ -191,6 +193,22 @@ export function ClubsPage({ admin, internMode = false, section }: { admin: boole
             <CalendarExportMenu
               buildOpts={buildClubOpts}
               baseName={'ASO_Clubs_Events_Weekly_' + exportYear}
+              extra={
+                <>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuLabel className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground">Clubs</DropdownMenuLabel>
+                  <DropdownMenuItem
+                    className="items-start gap-3 py-2"
+                    onSelect={() => { if (!openClubsSheet(state)) toast('Allow pop-ups for this site to open the sheet', false) }}
+                  >
+                    <FileText className="mt-0.5 h-4 w-4" />
+                    <span className="flex flex-col">
+                      <span className="text-sm font-semibold">All clubs with posters (PDF)</span>
+                      <span className="text-xs text-muted-foreground">One page per club, poster in full, time and place below</span>
+                    </span>
+                  </DropdownMenuItem>
+                </>
+              }
             />
           </div>
         }

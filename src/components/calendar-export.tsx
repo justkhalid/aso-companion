@@ -64,11 +64,14 @@ export function CalendarExportMenu({
   buildOpts,
   baseName,
   variant = 'outline-button',
+  extra,
 }: {
   buildOpts: () => ExportOptions
   /** file name without extension, e.g. "ELTASO_Weekly_Program_2026-2027" */
   baseName: string
   variant?: 'outline-button' | 'pill'
+  /** more menu entries shown under the Word documents */
+  extra?: React.ReactNode
 }) {
   const toast = useStore((s) => s.toast)
   const png = useCanvasPngPreview()
@@ -194,6 +197,7 @@ export function CalendarExportMenu({
             onClick={() => void run('word-list')}
             busy={busyKind === 'word-list'}
           />
+          {extra}
         </DropdownMenuContent>
       </DropdownMenu>
       <PngPreviewSheet state={png.state} onOpenChange={png.setOpen} busy={png.busy} />

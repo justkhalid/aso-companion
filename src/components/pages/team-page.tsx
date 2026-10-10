@@ -1,26 +1,19 @@
 'use client'
 
 import * as React from 'react'
-import { Plus, Pencil, Trash2, Phone, Mail, Users } from 'lucide-react'
+import { Plus, Phone, Mail, Users } from 'lucide-react'
 import { useStore } from '@/lib/store'
 import { PageHead, EmptyState } from '@/components/ui-bits'
 import { Button } from '@/components/ui/button'
 import { TeamDialog } from '@/components/dialogs/team-dialog'
+import { RowActions } from '@/components/admin/row-actions'
 import { initials } from '@/lib/app-utils'
 import type { TeamMember } from '@/lib/types'
 
 export function TeamPage() {
   const state = useStore((s) => s.state)
-  const patch = useStore((s) => s.patch)
-  const toast = useStore((s) => s.toast)
   const [dialog, setDialog] = React.useState<{ open: boolean; member: TeamMember | null }>({ open: false, member: null })
 
-  const remove = (m: TeamMember) => {
-    patch((draft) => {
-      draft.team = draft.team.filter((t) => t.id !== m.id)
-    })
-    toast('Removed')
-  }
 
   return (
     <div className="mx-auto max-w-4xl px-4 py-6 sm:py-8">
@@ -68,13 +61,12 @@ export function TeamPage() {
                     <Button variant="outline" size="sm"><Mail className="h-3.5 w-3.5" /> Mail</Button>
                   </a>
                 )}
-                <div className="ml-auto flex gap-1">
-                  <Button variant="ghost" size="icon" onClick={() => setDialog({ open: true, member: t })} title="Edit">
-                    <Pencil className="h-4 w-4" />
-                  </Button>
-                  <Button variant="ghost" size="icon" className="text-destructive" onClick={() => remove(t)} title="Remove">
-                    <Trash2 className="h-4 w-4" />
-                  </Button>
+                <div className="ml-auto">
+                  <RowActions
+                    name={t.name}
+                    onEdit={() => setDialog({ open: true, member: t })}
+                    remove={(d) => { d.team = d.team.filter((x) => x.id !== t.id) }}
+                  />
                 </div>
               </div>
             </div>
