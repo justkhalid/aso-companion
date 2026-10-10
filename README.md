@@ -50,10 +50,20 @@ sign out (top of the sidebar) when you are done on a shared computer.
 ## Library
 
 The Library page groups the Drive folders by what a teacher needs, filters by age and
-skill, searches folder names and descriptions, and shows a "most used" shelf for each age
-band (taken from the Teacher kits). Each card links straight to its Drive folder.
-Group, ages and skills are edited in **Library -> Edit folder**. The Drive itself is
-never changed by the app.
+skill, shows a "most used" shelf for each age band (taken from the Teacher kits), lets
+you browse subfolders and search about 21,000 file names. The folder tree and file names
+come from `public/library-index.json`, a snapshot of the Drive that is only downloaded
+when someone browses subfolders or searches.
+
+Rebuild it whenever the Drive changes (the folders must be shared with "anyone with the link"):
+
+```bash
+python3 maintenance/build_library_index.py              # 5 folder levels deep
+python3 maintenance/build_library_index.py --max-depth 6
+```
+
+Group, age bands and skill tags for each folder are edited in **Library -> Edit folder**.
+The Drive itself is never changed by the app.
 
 ## Caching
 
