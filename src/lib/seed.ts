@@ -432,7 +432,7 @@ const CLASSES: ClassEntry[] = [
     code: 'ASO-A1',
     level: 'Adults - Beginners',
     teacher: 'Yassine Maaroufi',
-    room: 'Room 3',
+    room: 'Library',
     days: ['Mon', 'Thu'],
     time: '18:30-20:00',
   },
