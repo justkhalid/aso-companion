@@ -3,11 +3,13 @@ import type { View } from './types'
 /* ==========================================================================
    Public tab URLs - each public tab owns its path so links can be shared:
      /            -> main page for the general public (classes, clubs and events on offer)
-     /teachers    -> the teachers' home (calendar)
-     /eltaso      -> ELTASO (levels & schemes of work)
-     /clubs       -> redirects to /interns (clubs and events no longer have a tab on the public site)
-     /resources   -> resources (library in public mode)
-     /interns     -> clubs & events only, for interns (own minimal page, no other tabs)
+     /teachers            -> the teachers' home (calendar)
+     /teachers/eltaso     -> ELTASO (levels & schemes of work)
+     /teachers/resources  -> resources (library in public mode)
+     /teachers/rooms      -> free rooms
+     /teachers/reports    -> how to report after a session
+     /interns             -> clubs & events only, for interns (own minimal page, no other tabs)
+   Old paths (/eltaso, /resources, /clubs) redirect to their new home.
    Transient public sub-views (level-detail) keep the parent tab's path, and
    admin-only views never push a path; if the URL currently shows a public
    tab while an admin-only view opens, it is quietly normalised back to /.
@@ -17,9 +19,10 @@ import type { View } from './types'
 const PATH_FOR_VIEW: Partial<Record<View, string>> = {
   landing: '/',
   home: '/teachers',
-  eltaso: '/eltaso',
-  'level-detail': '/eltaso',
-  resources: '/resources',
+  eltaso: '/teachers/eltaso',
+  'level-detail': '/teachers/eltaso',
+  resources: '/teachers/resources',
+  reports: '/teachers/reports',
   'intern-public': '/interns',
   'teacher-rooms': '/teachers/rooms',
 }
@@ -30,8 +33,9 @@ export function viewFromPath(pathname: string): View | null {
   const p = pathname.length > 1 ? pathname.replace(/\/+$/, '') : pathname
   if (p === '/') return 'landing'
   if (p === '/teachers') return 'home'
-  if (p === '/eltaso') return 'eltaso'
-  if (p === '/resources') return 'resources'
+  if (p === '/teachers/eltaso') return 'eltaso'
+  if (p === '/teachers/resources') return 'resources'
+  if (p === '/teachers/reports') return 'reports'
   if (p === '/interns') return 'intern-public'
   if (p === '/teachers/rooms') return 'teacher-rooms'
   return null

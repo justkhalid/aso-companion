@@ -47,7 +47,7 @@ export function AppShell({ initialView }: { initialView?: View }) {
     void bootApp()
   }, [bootApp])
 
-  // deep link: /eltaso, /clubs or /resources land directly on that tab
+  // deep link: /teachers/eltaso, /teachers/resources land directly on that tab
   // (no-op when the URL is /, the default home). Runs before the boot
   // splash lifts, so the first real paint is already the requested tab.
   React.useEffect(() => {
