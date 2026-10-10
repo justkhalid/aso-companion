@@ -335,7 +335,7 @@ export function PosterUploader({
     return (
       <div className="flex items-start gap-3">
         <div className="relative w-24 shrink-0 overflow-hidden rounded-lg border border-border shadow-sm">
-          <img src={value} alt="Club poster preview" className="block aspect-[848/1200] w-full object-cover" />
+          <img src={value} alt="Club poster preview" className="block h-auto w-full object-contain" />
         </div>
         <div className="flex flex-col gap-1.5">
           <Button
