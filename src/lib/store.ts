@@ -50,7 +50,8 @@ interface UIStore {
 
   bootApp: () => Promise<void>
   loadFromCloud: () => Promise<{ ok: boolean; msg: string }>
-  saveToCloud: () => Promise<{ ok: boolean; msg: string }>
+  /* background = a save the admin did not ask for (boot catch-up, autosave): it never opens the sign-in screen */
+  saveToCloud: (opts?: { background?: boolean }) => Promise<{ ok: boolean; msg: string }>
 
   exportBackup: () => string
   importBackup: (json: string) => { ok: boolean; msg: string }
@@ -245,7 +246,7 @@ export const useStore = create<UIStore>((set, get) => ({
     draft._rev = (draft._rev || 0) + 1
     set({ state: draft })
     get().persist()
-    if (draft.settings.ghAutoSave) scheduleAutoSave(() => get().saveToCloud())
+    if (draft.settings.ghAutoSave) scheduleAutoSave(() => get().saveToCloud({ background: true }))
   },
 
   setSettings: (fn) => {
@@ -314,8 +315,8 @@ export const useStore = create<UIStore>((set, get) => ({
       // convergence: if this device was strictly newer (e.g. an edit made
       // while offline), push it up so the cloud copy catches up instead of
       // devices staying diverged forever.
-      if (merged === current && (current._rev || 0) > (cloud._rev || 0)) {
-        void get().saveToCloud().catch(() => {})
+      if (get().admin && merged === current && (current._rev || 0) > (cloud._rev || 0)) {
+        void get().saveToCloud({ background: true }).catch(() => {})
       }
       set({ boot: 'loaded' })
     } catch (e) {
@@ -354,7 +355,7 @@ export const useStore = create<UIStore>((set, get) => ({
     }
   },
 
-  saveToCloud: async () => {
+  saveToCloud: async (opts) => {
     const s = get().state
     /* v4.6: single save path through the server-side /api/sync route.
        The PAT lives in Vercel environment variables, NOT in the browser.
@@ -382,10 +383,14 @@ export const useStore = create<UIStore>((set, get) => ({
         body: JSON.stringify({ content }),
       })
       if (res.status === 401) {
-        /* cookie expired or missing: back to the sign-in screen; edits stay in localStorage */
-        set({ syncing: false, admin: false, view: 'login' })
-        lsDel(ROLE_KEY)
-        return { ok: false, msg: 'Session expired. Sign in again to save.' }
+        /* cookie expired or missing; edits stay in the local copy. Only a signed-in admin
+           is sent back to the sign-in screen: a visitor's background save must never
+           put the sign-in page in front of them. */
+        const wasAdmin = get().admin && !opts?.background
+        set(wasAdmin ? { syncing: false, admin: false, pubView: false, view: 'login' } : { syncing: false })
+        if (wasAdmin) lsDel(ROLE_KEY)
+        else if (get().admin) get().toast('Not saved to the cloud: sign in again from the admin menu.', false)
+        return { ok: false, msg: wasAdmin ? 'Session expired. Sign in again to save.' : 'Not signed in, so this save was skipped' }
       }
       const result = await res.json()
       ok = !!result.ok
