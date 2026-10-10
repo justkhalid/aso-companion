@@ -171,11 +171,11 @@ export function RoomsPage({ embedded = false }: { embedded?: boolean }) {
       <div className="mb-4 flex items-end gap-3">
         <div className="min-w-0 flex-1">
           {embedded ? (
-            <h2 className="text-[22px] font-bold leading-none tracking-tight" style={{ fontFamily: IOS_FONT }}>Which rooms are free</h2>
+            <h2 className="text-[15px] font-extrabold tracking-tight">Free rooms</h2>
           ) : (
             <h1 className="text-[32px] font-bold leading-none tracking-tight" style={{ fontFamily: IOS_FONT }}>Rooms</h1>
           )}
-          <p className="mt-1.5 text-[15px] text-muted-foreground">{range}{iso(monday) === thisMonday ? ' · this week' : ''}</p>
+          <p className={cn('text-muted-foreground', embedded ? 'mt-0.5 text-xs font-semibold' : 'mt-1.5 text-[15px]')}>{range}{iso(monday) === thisMonday ? ' · this week' : ''}</p>
         </div>
         <div className="flex items-center gap-1.5 pb-0.5">
           <button onClick={() => shift(-1)} className={circle} aria-label="Previous week"><ChevronLeft className="h-4 w-4" /></button>
@@ -228,7 +228,7 @@ export function RoomsPage({ embedded = false }: { embedded?: boolean }) {
       )}
 
       {/* calendar card */}
-      <div className="overflow-x-auto rounded-[20px] bg-card shadow-[0_1px_2px_rgba(0,0,0,0.05),0_6px_24px_rgba(0,0,0,0.04)]">
+      <div className="overflow-x-auto overflow-y-hidden rounded-[20px] bg-card shadow-[0_1px_2px_rgba(0,0,0,0.05),0_6px_24px_rgba(0,0,0,0.04)]">
         <div className="min-w-[440px] px-1 pb-2 pt-1">
           <div className="grid" style={{ gridTemplateColumns: cols }}>
             <div />
