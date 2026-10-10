@@ -74,11 +74,16 @@ export const BANDS = ['Kids', 'Teens', 'Adults'] as const
 
 /* canonical rooms/spaces offered in the room dropdowns (rooms already in use
    are added to the list dynamically - see roomOptionsFor) */
-export const ROOM_OPTIONS = ['Room 1', 'Room 2', 'Room 3', 'Main Hall'] as const
+export const ROOM_OPTIONS = ['Room 1', 'Room 2', 'Main Hall', 'Library'] as const
 
 /* small legend printed under the exports so readers know where each room is.
    ASO layout: the Library and Room 1 are on the ground floor; Room 2 and the
    Main Hall are upstairs. */
+/* days a room cannot be booked at all (the Library is closed to bookings Monday to Friday) */
+export const ROOM_UNAVAILABLE: Record<string, readonly string[]> = {
+  Library: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri'],
+}
+
 export const ROOM_LEGEND = 'Ground floor: Room 1 & Library · Upstairs: Room 2 & Main Hall'
 
 /* ---- reporting guide ---- */

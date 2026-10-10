@@ -4,6 +4,7 @@ import * as React from 'react'
 import { Logo } from './logo'
 import { ThemeToggle } from './theme-toggle'
 import { ClubsPage } from './pages/clubs-page'
+import { RoomsPage } from './pages/rooms-page'
 
 /* /interns: the clubs and events section on its own, for ASO interns.
    No teacher tabs, no admin menu and no sign-in link: one page with a
@@ -13,6 +14,7 @@ const JUMPS = [
   { id: 'calendar', label: 'Weekly calendar' },
   { id: 'events', label: 'Upcoming events' },
   { id: 'clubs', label: 'All clubs' },
+  { id: 'rooms', label: 'Free rooms' },
 ]
 
 export function InternShell() {
@@ -46,6 +48,11 @@ export function InternShell() {
 
       <main className="flex-1">
         <ClubsPage admin={false} internMode />
+        <section id="rooms" className="mx-auto max-w-5xl scroll-mt-28 px-4 pb-10 pt-2">
+          <div className="max-w-3xl">
+            <RoomsPage embedded />
+          </div>
+        </section>
       </main>
 
       <footer className="border-t border-border">

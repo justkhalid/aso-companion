@@ -3,7 +3,7 @@
 import * as React from 'react'
 import { ChevronLeft, ChevronRight } from 'lucide-react'
 import { useStore } from '@/lib/store'
-import { DAY_KEYS } from '@/lib/constants'
+import { DAY_KEYS, ROOM_UNAVAILABLE } from '@/lib/constants'
 import { isOnceEvent, roomOptionsFor } from '@/lib/app-utils'
 import { cn } from '@/lib/utils'
 import type { State } from '@/lib/types'
@@ -126,7 +126,7 @@ function withLanes(list: Booking[]): { b: Booking; lane: number; lanes: number }
   })
 }
 
-export function RoomsPage() {
+export function RoomsPage({ embedded = false }: { embedded?: boolean }) {
   const state = useStore((s) => s.state)
   const [monday, setMonday] = React.useState(() => mondayOf(new Date()))
   const [day, setDay] = React.useState<string>(() => dayKeyOf(new Date()))
@@ -149,6 +149,7 @@ export function RoomsPage() {
   dayDate.setDate(dayDate.getDate() + dayIndex)
   const dayLabel = dayDate.toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long' })
   const dayBookings = bookings.filter((b) => b.day === day)
+  const closed = (room: string) => !!ROOM_UNAVAILABLE[room]?.includes(day)
 
   const now = new Date()
   const nowMin = now.getHours() * 60 + now.getMinutes()
@@ -163,13 +164,17 @@ export function RoomsPage() {
 
   return (
     <div
-      className="mx-auto max-w-3xl px-4 py-5 sm:py-7"
+      className={embedded ? '' : 'mx-auto max-w-3xl px-4 py-5 sm:py-7'}
       style={{ fontFamily: IOS_FONT }}
     >
       {/* large title */}
       <div className="mb-4 flex items-end gap-3">
         <div className="min-w-0 flex-1">
-          <h1 className="text-[32px] font-bold leading-none tracking-tight" style={{ fontFamily: IOS_FONT }}>Rooms</h1>
+          {embedded ? (
+            <h2 className="text-[22px] font-bold leading-none tracking-tight" style={{ fontFamily: IOS_FONT }}>Which rooms are free</h2>
+          ) : (
+            <h1 className="text-[32px] font-bold leading-none tracking-tight" style={{ fontFamily: IOS_FONT }}>Rooms</h1>
+          )}
           <p className="mt-1.5 text-[15px] text-muted-foreground">{range}{iso(monday) === thisMonday ? ' · this week' : ''}</p>
         </div>
         <div className="flex items-center gap-1.5 pb-0.5">
@@ -212,6 +217,7 @@ export function RoomsPage() {
           {(Object.keys(KIND_DOT) as Kind[]).map((k) => (
             <span key={k} className="inline-flex items-center gap-1"><span className={cn('h-2 w-2 rounded-full', KIND_DOT[k])} /> {KIND_NAME[k]}</span>
           ))}
+          {rooms.some(closed) && <span className="inline-flex items-center gap-1"><span className="h-2 w-2 rounded-sm bg-black/15 dark:bg-white/25" /> Not available</span>}
         </div>
       </div>
 
@@ -245,7 +251,14 @@ export function RoomsPage() {
             {rooms.map((room) => {
               const list = withLanes(dayBookings.filter((b) => b.room === room))
               return (
-                <div key={room} className="relative">
+                <div
+                  key={room}
+                  className={cn('relative', closed(room) && 'rounded-lg bg-black/[0.05] dark:bg-white/[0.06]')}
+                  style={closed(room) ? { backgroundImage: 'repeating-linear-gradient(135deg, transparent 0 7px, rgba(120,120,128,0.14) 7px 8px)' } : undefined}
+                >
+                  {closed(room) && list.length === 0 && (
+                    <div className="absolute inset-x-0 top-3 text-center text-[11px] font-semibold text-muted-foreground">Not available</div>
+                  )}
                   {list.map(({ b, lane, lanes }, k) => {
                     const tall = b.end - b.start >= 60
                     return (
@@ -281,13 +294,14 @@ export function RoomsPage() {
       <h3 className="mb-1.5 mt-6 px-1 text-[13px] font-semibold uppercase tracking-wide text-muted-foreground" style={{ fontFamily: IOS_FONT }}>Free</h3>
       <div className="overflow-hidden rounded-[16px] bg-card shadow-[0_1px_2px_rgba(0,0,0,0.05)]">
         {rooms.map((room, i) => {
-          const free = freeWindows(dayBookings.filter((b) => b.room === room))
+          const isClosed = closed(room)
+          const free = isClosed ? [] : freeWindows(dayBookings.filter((b) => b.room === room))
           const all = free.length === 1 && free[0][0] === OPEN && free[0][1] === CLOSE
           return (
             <div key={room} className={cn('flex items-baseline gap-3 py-2.5 pl-4 pr-4 text-[15px]', i > 0 && 'ml-4 border-t border-black/[0.08] pl-0 dark:border-white/10')}>
               <span className="w-28 shrink-0 font-medium">{room}</span>
-              <span className={cn('min-w-0 flex-1 text-right tabular-nums', all ? 'font-medium text-[#248A3D] dark:text-[#30D158]' : free.length ? 'text-muted-foreground' : 'text-[#D70015] dark:text-[#FF6961]')}>
-                {all ? 'Free all day' : free.length ? free.map(([a, b]) => fmt(a) + ' - ' + fmt(b)).join(', ') : 'Fully booked'}
+              <span className={cn('min-w-0 flex-1 text-right tabular-nums', all ? 'font-medium text-[#248A3D] dark:text-[#30D158]' : isClosed ? 'text-muted-foreground' : free.length ? 'text-muted-foreground' : 'text-[#D70015] dark:text-[#FF6961]')}>
+                {isClosed ? 'Not available' : all ? 'Free all day' : free.length ? free.map(([a, b]) => fmt(a) + ' - ' + fmt(b)).join(', ') : 'Fully booked'}
               </span>
             </div>
           )
