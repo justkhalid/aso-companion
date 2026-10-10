@@ -36140,11 +36140,13 @@
     {
       "id": "t9",
       "name": "Yousra",
-      "role": "Volunteer Teacher",
+      "roles": [
+        "Teacher"
+      ],
+      "role": "Teacher",
       "duty": "ASO-A1 Adults",
       "phone": "",
-      "email": "",
-      "aso": ""
+      "email": ""
     },
     {
       "id": "t10",
@@ -37728,5 +37730,5 @@
   ],
   "reports": [],
   "libraryPins": [],
-  "_rev": 1791659989681
+  "_rev": 1791659989682
 }
