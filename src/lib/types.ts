@@ -19,6 +19,7 @@ export interface Settings {
   internCode?: string
   teacherLoginRequired?: boolean // default true; off = anyone can open the teachers' pages
   internLoginRequired?: boolean // default true; off = anyone can open the interns' page
+  hiddenLevels?: string[] // level keys teachers do not see on the ELTASO tab
   showAccessBox?: boolean // main page: the box that sends teachers and interns to their own pages
   ghToken?: string
   ghRepo?: string

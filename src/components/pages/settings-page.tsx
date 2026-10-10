@@ -295,6 +295,27 @@ export function SettingsPage() {
         </div>
       </Section>
 
+      <Section title="ELTASO levels shown to teachers" icon={<GraduationCap className="h-4 w-4" />}>
+        <div className="flex flex-col gap-2">
+          {state.levels.map((l) => (
+            <ToggleRow
+              key={l.key}
+              label={l.label}
+              checked={!(s.hiddenLevels || []).includes(l.key)}
+              onChange={(v) =>
+                setSettings((x) => {
+                  const h = (x.hiddenLevels || []).filter((k) => k !== l.key)
+                  x.hiddenLevels = v ? h : [...h, l.key]
+                })
+              }
+            />
+          ))}
+          <div className="text-xs text-muted-foreground">
+            Switched off, a level disappears from the ELTASO tab for teachers. You still see every level.
+          </div>
+        </div>
+      </Section>
+
       {/* cloud storage */}
       <Section title="Cloud storage" icon={<Cloud className="h-4 w-4" />}>
         <div

@@ -18,8 +18,9 @@ export function EltasoPage() {
   const wi = inSession ? (st.week || 1) - 1 : -1
 
   // Only levels that actually have at least one class this year get a card.
+  const hidden = admin ? [] : state.settings.hiddenLevels || []
   const withClasses = state.levels.filter((l) =>
-    (state.classes || []).some((c) => c.level === l.label),
+    !hidden.includes(l.key) && (state.classes || []).some((c) => c.level === l.label),
   )
 
   // group by band preserving canonical order
