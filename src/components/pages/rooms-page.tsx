@@ -1,11 +1,10 @@
 'use client'
 
 import * as React from 'react'
-import { ChevronLeft, ChevronRight, DoorOpen, Search } from 'lucide-react'
+import { ChevronLeft, ChevronRight } from 'lucide-react'
 import { useStore } from '@/lib/store'
-import { DAY_FULL, DAY_KEYS } from '@/lib/constants'
+import { DAY_KEYS } from '@/lib/constants'
 import { isOnceEvent, roomOptionsFor } from '@/lib/app-utils'
-import { Chip, PageHead } from '@/components/ui-bits'
 import { cn } from '@/lib/utils'
 import type { State } from '@/lib/types'
 
@@ -27,10 +26,12 @@ interface Booking {
 }
 
 const KIND_STYLE: Record<Kind, string> = {
-  class: 'bg-primary/10 text-primary',
-  club: 'bg-[var(--aso-gold-tint)] text-[var(--aso-gold)]',
-  event: 'bg-secondary text-foreground/80',
+  class: 'bg-primary text-primary-foreground',
+  club: 'bg-amber-600 text-white',
+  event: 'bg-slate-600 text-white',
 }
+const KIND_DOT: Record<Kind, string> = { class: 'bg-primary', club: 'bg-amber-600', event: 'bg-slate-600' }
+const KIND_NAME: Record<Kind, string> = { class: 'Class', club: 'Club', event: 'Event' }
 
 const toMin = (t: string) => {
   const m = /^(\d{1,2}):(\d{2})$/.exec(t.trim())
@@ -102,16 +103,31 @@ function freeWindows(busy: Booking[], from = OPEN, to = CLOSE): [number, number]
   return out.filter(([a, b]) => b > a)
 }
 const overlaps = (a: Booking, b: Booking) => a.start < b.end && b.start < a.end
-const windowText = (w: [number, number][]) => w.map(([a, b]) => fmt(a) + '-' + fmt(b)).join(', ')
 
-const TIMES = Array.from({ length: (CLOSE - OPEN) / 30 + 1 }, (_, i) => fmt(OPEN + i * 30))
+
+const HOUR_PX = 38
+const HOURS = Array.from({ length: (CLOSE - OPEN) / 60 + 1 }, (_, i) => OPEN / 60 + i)
+
+/* side-by-side lanes for bookings that overlap in the same room */
+function withLanes(list: Booking[]): { b: Booking; lane: number; lanes: number }[] {
+  const sorted = [...list].sort((a, b) => a.start - b.start || a.end - b.end)
+  const laneEnd: number[] = []
+  const placed = sorted.map((b) => {
+    let lane = laneEnd.findIndex((e) => e <= b.start)
+    if (lane < 0) lane = laneEnd.length
+    laneEnd[lane] = b.end
+    return { b, lane }
+  })
+  return placed.map((x) => {
+    const group = placed.filter((y) => overlaps(x.b, y.b))
+    return { ...x, lanes: Math.max(...group.map((g) => g.lane)) + 1 }
+  })
+}
 
 export function RoomsPage() {
   const state = useStore((s) => s.state)
   const [monday, setMonday] = React.useState(() => mondayOf(new Date()))
-  const [fDay, setFDay] = React.useState<string>(() => dayKeyOf(new Date()))
-  const [fFrom, setFFrom] = React.useState('14:00')
-  const [fTo, setFTo] = React.useState('16:00')
+  const [day, setDay] = React.useState<string>(() => dayKeyOf(new Date()))
 
   const bookings = React.useMemo(() => bookingsForWeek(state, monday), [state, monday])
   const rooms = React.useMemo(() => {
@@ -122,128 +138,161 @@ export function RoomsPage() {
 
   const sunday = new Date(monday)
   sunday.setDate(sunday.getDate() + 6)
-  const range = monday.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' }) + ' to ' + sunday.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })
+  const range = monday.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' }) + ' - ' + sunday.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })
   const thisMonday = iso(mondayOf(new Date()))
   const shift = (n: number) => setMonday((m) => { const x = new Date(m); x.setDate(x.getDate() + n * 7); return x })
 
-  /* free-room finder */
-  const want: Booking = { room: '', day: fDay, start: toMin(fFrom), end: toMin(fTo), label: '', kind: 'class' }
-  const validWant = want.end > want.start
-  const finder = rooms.map((room) => {
-    const clash = bookings.filter((b) => b.room === room && b.day === fDay && validWant && overlaps(b, want))
-    return { room, clash }
-  })
-  const freeRooms = finder.filter((f) => f.clash.length === 0)
+  const dayIndex = DAY_KEYS.indexOf(day as (typeof DAY_KEYS)[number])
+  const dayDate = new Date(monday)
+  dayDate.setDate(dayDate.getDate() + dayIndex)
+  const dayLabel = dayDate.toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long' })
+  const dayBookings = bookings.filter((b) => b.day === day)
 
-  const clashes = React.useMemo(() => {
-    const out: string[] = []
-    for (const room of rooms) {
-      for (const day of DAY_KEYS) {
-        const list = bookings.filter((b) => b.room === room && b.day === day)
-        for (let i = 0; i < list.length; i++) for (let j = i + 1; j < list.length; j++) {
-          if (overlaps(list[i], list[j])) out.push(`${room}, ${DAY_FULL[day]}: ${list[i].label} and ${list[j].label}`)
-        }
-      }
-    }
-    return out
-  }, [bookings, rooms])
+  const now = new Date()
+  const nowMin = now.getHours() * 60 + now.getMinutes()
+  const showNow = iso(dayDate) === iso(now) && nowMin >= OPEN && nowMin <= CLOSE
+
+  const hasClash = rooms.some((r) => {
+    const l = dayBookings.filter((b) => b.room === r)
+    return l.some((x, i) => l.some((y, j) => j > i && overlaps(x, y)))
+  })
+  const cols = `3rem repeat(${rooms.length}, minmax(0, 1fr))`
 
   return (
-    <div className="mx-auto max-w-5xl px-4 py-6 sm:py-8">
-      <PageHead title="Rooms" subtitle={`Which room is free and when, from ${fmt(OPEN)} to ${fmt(CLOSE)}. Classes and clubs repeat every week; events count on their own date.`} />
-
-      <div className="mb-4 flex flex-wrap items-center gap-2">
-        <button onClick={() => shift(-1)} className="rounded-full border border-border bg-card p-1.5 hover:bg-secondary" aria-label="Previous week"><ChevronLeft className="h-4 w-4" /></button>
-        <div className="min-w-[13rem] text-center text-sm font-bold">{range}</div>
-        <button onClick={() => shift(1)} className="rounded-full border border-border bg-card p-1.5 hover:bg-secondary" aria-label="Next week"><ChevronRight className="h-4 w-4" /></button>
-        {iso(monday) !== thisMonday && (
-          <button onClick={() => setMonday(mondayOf(new Date()))} className="text-xs font-bold text-primary hover:underline">This week</button>
-        )}
-      </div>
-
-      {/* free-room finder */}
-      <div className="mb-5 rounded-2xl border border-border bg-card p-4 shadow-sm">
-        <div className="mb-2 flex items-center gap-2 text-sm font-extrabold"><Search className="h-4 w-4 text-primary" /> Find a free room</div>
-        <div className="flex flex-wrap items-center gap-2 text-sm">
-          <select value={fDay} onChange={(e) => setFDay(e.target.value)} className="rounded-lg border border-border bg-background px-2.5 py-1.5" aria-label="Day">
-            {DAY_KEYS.map((d) => <option key={d} value={d}>{DAY_FULL[d]}</option>)}
-          </select>
-          <select value={fFrom} onChange={(e) => setFFrom(e.target.value)} className="rounded-lg border border-border bg-background px-2.5 py-1.5" aria-label="From">
-            {TIMES.slice(0, -1).map((t) => <option key={t}>{t}</option>)}
-          </select>
-          <span className="text-muted-foreground">to</span>
-          <select value={fTo} onChange={(e) => setFTo(e.target.value)} className="rounded-lg border border-border bg-background px-2.5 py-1.5" aria-label="To">
-            {TIMES.slice(1).map((t) => <option key={t}>{t}</option>)}
-          </select>
+    <div className="mx-auto max-w-4xl px-4 py-5 sm:py-6">
+      <div className="mb-4 flex flex-wrap items-baseline gap-x-4 gap-y-1">
+        <h1 className="text-xl font-bold tracking-tight">Rooms</h1>
+        <div className="ml-auto flex items-center gap-1 text-sm tabular-nums">
+          <button onClick={() => shift(-1)} className="rounded p-1 text-muted-foreground hover:bg-secondary hover:text-foreground" aria-label="Previous week"><ChevronLeft className="h-4 w-4" /></button>
+          <span className="min-w-[7.5rem] text-center font-medium">{range}</span>
+          <button onClick={() => shift(1)} className="rounded p-1 text-muted-foreground hover:bg-secondary hover:text-foreground" aria-label="Next week"><ChevronRight className="h-4 w-4" /></button>
+          {iso(monday) !== thisMonday && (
+            <button onClick={() => { setMonday(mondayOf(new Date())); setDay(dayKeyOf(new Date())) }} className="ml-2 text-xs font-medium text-primary hover:underline">Today</button>
+          )}
         </div>
-        {!validWant ? (
-          <p className="mt-3 text-sm text-muted-foreground">Pick an end time after the start time.</p>
-        ) : (
-          <div className="mt-3 flex flex-col gap-1.5 text-sm">
-            <div>
-              {freeRooms.length ? (
-                <span className="flex flex-wrap items-center gap-1.5">
-                  <span className="font-semibold">Free:</span>
-                  {freeRooms.map((f) => <Chip key={f.room} tone="ok">{f.room}</Chip>)}
-                </span>
-              ) : (
-                <span className="font-semibold text-destructive">No room is free at that time.</span>
-              )}
-            </div>
-            {finder.filter((f) => f.clash.length).map((f) => (
-              <div key={f.room} className="text-muted-foreground">
-                <span className="font-semibold text-foreground">{f.room}</span> is used by {f.clash.map((b) => `${b.label} (${fmt(b.start)}-${fmt(b.end)})`).join(', ')}
-              </div>
-            ))}
-          </div>
-        )}
       </div>
 
-      {clashes.length > 0 && (
-        <div className="mb-5 rounded-2xl border border-destructive/40 bg-destructive/5 p-4 text-sm">
-          <div className="mb-1 font-extrabold text-destructive">Double bookings this week</div>
-          <ul className="list-disc pl-5 text-foreground/90">{clashes.map((c) => <li key={c}>{c}</li>)}</ul>
+      {/* days */}
+      <div className="mb-4 grid grid-cols-7 border-b border-border" role="tablist" aria-label="Day of the week">
+        {DAY_KEYS.map((d, i) => {
+          const date = new Date(monday)
+          date.setDate(date.getDate() + i)
+          const isToday = iso(date) === iso(now)
+          const active = d === day
+          return (
+            <button
+              key={d}
+              role="tab"
+              aria-selected={active}
+              onClick={() => setDay(d)}
+              className={cn(
+                '-mb-px border-b-2 px-1 pb-2 pt-1 text-center transition-colors',
+                active ? 'border-primary' : 'border-transparent hover:border-border',
+              )}
+            >
+              <div className={cn('text-[11px] font-medium uppercase', active ? 'text-primary' : 'text-muted-foreground')}>{d}</div>
+              <div
+                className={cn(
+                  'mx-auto mt-0.5 flex h-7 w-7 items-center justify-center rounded-full text-sm tabular-nums',
+                  isToday ? 'bg-primary font-semibold text-primary-foreground' : active ? 'font-semibold' : 'text-foreground/80',
+                )}
+              >
+                {date.getDate()}
+              </div>
+            </button>
+          )
+        })}
+      </div>
+
+      <div className="mb-2 flex flex-wrap items-center gap-x-4 gap-y-1">
+        <h2 className="text-sm font-semibold">{dayLabel}</h2>
+        <div className="ml-auto flex items-center gap-3 text-xs text-muted-foreground">
+          {(Object.keys(KIND_DOT) as Kind[]).map((k) => (
+            <span key={k} className="inline-flex items-center gap-1.5"><span className={cn('h-2 w-2 rounded-sm', KIND_DOT[k])} /> {KIND_NAME[k]}</span>
+          ))}
+          <span className="inline-flex items-center gap-1.5"><span className="h-2 w-2 rounded-sm border border-border bg-card" /> Free</span>
+        </div>
+      </div>
+
+      {hasClash && (
+        <div className="mb-2 border-l-2 border-destructive bg-destructive/5 px-3 py-1.5 text-xs text-destructive">
+          Two bookings overlap in the same room on this day. They are shown side by side.
         </div>
       )}
 
-      {/* one card per room, one row per day */}
-      <div className="grid gap-4 md:grid-cols-2">
-        {rooms.map((room) => (
-          <div key={room} className="overflow-hidden rounded-2xl border border-border bg-card shadow-sm">
-            <div className="flex items-center gap-2 border-b border-border px-4 py-3">
-              <DoorOpen className="h-4 w-4 text-primary" />
-              <h2 className="text-[15px] font-extrabold">{room}</h2>
-            </div>
-            <div className="divide-y divide-border">
-              {DAY_KEYS.map((day, i) => {
-                const list = bookings.filter((b) => b.room === room && b.day === day).sort((a, b) => a.start - b.start)
-                const free = freeWindows(list)
-                const date = new Date(monday); date.setDate(date.getDate() + i)
-                return (
-                  <div key={day} className="flex gap-3 px-4 py-2.5">
-                    <div className="w-14 shrink-0 text-xs font-bold text-muted-foreground">
-                      <div>{day}</div>
-                      <div className="font-medium">{date.getDate()}/{date.getMonth() + 1}</div>
-                    </div>
-                    <div className="min-w-0 flex-1 text-[13px]">
-                      <div className="flex flex-wrap gap-1">
-                        {list.map((b, k) => (
-                          <span key={k} className={cn('rounded-md px-1.5 py-0.5 font-semibold', KIND_STYLE[b.kind])}>
-                            {fmt(b.start)}-{fmt(b.end)} {b.label}{b.note ? ` (${b.note})` : ''}
-                          </span>
-                        ))}
-                      </div>
-                      <div className={cn('mt-0.5 text-xs', list.length ? 'text-muted-foreground' : 'font-semibold text-emerald-600 dark:text-emerald-400')}>
-                        {list.length === 0 ? 'Free all day' : free.length ? 'Free ' + windowText(free) : 'Fully booked'}
-                      </div>
-                    </div>
-                  </div>
-                )
-              })}
-            </div>
+      {/* time down the side, one column per room */}
+      <div className="overflow-x-auto rounded-md border border-border bg-card">
+        <div className="min-w-[440px]">
+          <div className="grid border-b border-border text-xs font-medium" style={{ gridTemplateColumns: cols }}>
+            <div />
+            {rooms.map((r) => (
+              <div key={r} className="truncate border-l border-border px-2 py-1.5">{r}</div>
+            ))}
           </div>
-        ))}
+          <div className="relative grid" style={{ gridTemplateColumns: cols, height: (CLOSE - OPEN) / 60 * HOUR_PX }}>
+            <div className="relative">
+              {HOURS.slice(0, -1).map((h) => (
+                <div key={h} className="absolute right-2 -translate-y-1/2 text-[10px] tabular-nums text-muted-foreground" style={{ top: (h * 60 - OPEN) / 60 * HOUR_PX + (h * 60 === OPEN ? 6 : 0) }}>
+                  {String(h).padStart(2, '0')}:00
+                </div>
+              ))}
+            </div>
+            {rooms.map((room) => {
+              const list = withLanes(dayBookings.filter((b) => b.room === room))
+              return (
+                <div key={room} className="relative border-l border-border">
+                  {HOURS.slice(1, -1).map((h) => (
+                    <div key={h} className="absolute inset-x-0 border-t border-border/60" style={{ top: (h * 60 - OPEN) / 60 * HOUR_PX }} />
+                  ))}
+                  {list.map(({ b, lane, lanes }, k) => {
+                    const tall = b.end - b.start >= 60
+                    return (
+                      <div
+                        key={k}
+                        className={cn('absolute overflow-hidden rounded-[3px] px-1.5 py-1 text-[11px] leading-tight', KIND_STYLE[b.kind])}
+                        style={{
+                          top: (b.start - OPEN) / 60 * HOUR_PX + 1,
+                          height: (b.end - b.start) / 60 * HOUR_PX - 2,
+                          left: `calc(${(lane / lanes) * 100}% + 2px)`,
+                          width: `calc(${100 / lanes}% - 4px)`,
+                        }}
+                        title={`${b.label} ${fmt(b.start)}-${fmt(b.end)}${b.note ? ' (' + b.note + ')' : ''}`}
+                      >
+                        <div className="truncate font-semibold">{b.label}</div>
+                        {tall && <div className="truncate text-[10px] tabular-nums opacity-85">{fmt(b.start)} - {fmt(b.end)}{b.note ? ', ' + b.note : ''}</div>}
+                      </div>
+                    )
+                  })}
+                </div>
+              )
+            })}
+            {showNow && (
+              <div className="pointer-events-none absolute inset-x-0 z-10 border-t border-destructive" style={{ top: (nowMin - OPEN) / 60 * HOUR_PX }}>
+                <span className="absolute -top-[3px] left-[3rem] h-1.5 w-1.5 -translate-x-1/2 rounded-full bg-destructive" />
+              </div>
+            )}
+          </div>
+        </div>
       </div>
+
+      {/* free time, plain table */}
+      <table className="mt-4 w-full text-sm">
+        <caption className="pb-1 text-left text-xs font-medium text-muted-foreground">Free on {dayLabel}</caption>
+        <tbody className="divide-y divide-border border-y border-border">
+          {rooms.map((room) => {
+            const free = freeWindows(dayBookings.filter((b) => b.room === room))
+            const all = free.length === 1 && free[0][0] === OPEN && free[0][1] === CLOSE
+            return (
+              <tr key={room}>
+                <th scope="row" className="w-32 py-1.5 pr-3 text-left font-medium">{room}</th>
+                <td className="py-1.5 tabular-nums text-foreground/80">
+                  {all ? 'All day' : free.length ? free.map(([a, b]) => fmt(a) + ' - ' + fmt(b)).join(',  ') : 'Not free'}
+                </td>
+              </tr>
+            )
+          })}
+        </tbody>
+      </table>
     </div>
   )
 }
