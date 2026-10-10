@@ -10,6 +10,7 @@ import {
   driveFileUrl,
   driveFolderUrl,
   searchIndex,
+  skillFolders,
   useLibraryIndex,
   type IndexNode,
   type IndexRoot,
@@ -203,7 +204,7 @@ export function LibraryBrowser({ admin }: { admin?: AdminActions }) {
   const [showAll, setShowAll] = React.useState(false)
   const [wantIndex, setWantIndex] = React.useState(false)
   const query = q.trim()
-  const index = useLibraryIndex(wantIndex || query.length >= 2)
+  const index = useLibraryIndex(wantIndex || query.length >= 2 || skill !== '')
 
   const rootById = React.useMemo(() => {
     const m = new Map<string, IndexRoot>()
@@ -227,6 +228,11 @@ export function LibraryBrowser({ admin }: { admin?: AdminActions }) {
     if (!index || query.length < 2) return null
     return searchIndex(index, query, { showAll, allowedRoots })
   }, [index, query, showAll, allowedRoots])
+
+  const skillPicks = React.useMemo(() => {
+    if (!index || !skill) return []
+    return skillFolders(index, skill, { showAll, allowedRoots })
+  }, [index, skill, showAll, allowedRoots])
 
   const folderMatches = query.length >= 2
     ? folders.filter((l) => (l.name + ' ' + l.desc).toLowerCase().includes(query.toLowerCase()))
@@ -276,6 +282,31 @@ export function LibraryBrowser({ admin }: { admin?: AdminActions }) {
               </a>
             ))}
           </div>
+        </div>
+      )}
+
+      {skill && !query && (
+        <div className="mb-5 rounded-2xl border border-border bg-card p-4">
+          <div className="mb-2 text-xs font-bold uppercase tracking-wider text-muted-foreground">
+            Best places for {SKILL_NAMES[skill].toLowerCase()} practice{band ? ' · ' + band : ''}
+          </div>
+          {index === undefined && <div className="text-sm text-muted-foreground">Looking through the subfolders...</div>}
+          {index === null && <div className="text-sm text-muted-foreground">The subfolder list is not available right now. The folders below are tagged for this skill.</div>}
+          {index && skillPicks.length === 0 && <div className="text-sm text-muted-foreground">No subfolders found for this skill and age. The folders below are tagged for it.</div>}
+          {skillPicks.length > 0 && (
+            <div className="grid gap-1 sm:grid-cols-2">
+              {skillPicks.map((f) => (
+                <a key={f.id} href={driveFolderUrl(f.id)} target="_blank" rel="noopener" className="flex items-center gap-1.5 rounded-md px-1.5 py-1 text-[13px] font-semibold text-primary hover:bg-secondary hover:underline">
+                  <Folder className="h-3.5 w-3.5 shrink-0" />
+                  <span className="min-w-0 flex-1">
+                    <span className="block truncate">{f.name}</span>
+                    <span className="block truncate text-[11px] font-medium text-muted-foreground">{[f.rootName, f.path].filter(Boolean).join(' > ')}</span>
+                  </span>
+                  <span className="shrink-0 text-[11px] font-medium text-muted-foreground">{f.count} {f.count === 1 ? 'file' : 'files'}</span>
+                </a>
+              ))}
+            </div>
+          )}
         </div>
       )}
 
