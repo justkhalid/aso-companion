@@ -120,7 +120,7 @@ export function ttPad(n: number): string {
 }
 
 /* ---- 12-hour clock ----
-   Times are stored as 24h text ("14:00-16:00") and shown everywhere as AM/PM ("2:00 - 4:00 PM"). */
+   Times are stored as 24h text ("14:00-16:00") and shown everywhere as AM/PM ("2:00 PM - 4:00 PM"). */
 const mer = (mins: number) => (Math.floor(mins / 60) % 24 >= 12 ? 'PM' : 'AM')
 const clock12 = (mins: number) => {
   const h = Math.floor(mins / 60) % 24
@@ -130,9 +130,9 @@ const clock12 = (mins: number) => {
 export function fmt12Min(mins: number): string {
   return `${clock12(mins)} ${mer(mins)}`
 }
-/** a range in minutes -> "2:00 - 4:00 PM", or "11:00 AM - 1:00 PM" when it crosses noon */
+/** a range in minutes -> "2:00 PM - 4:00 PM" (AM or PM always written on both ends) */
 export function fmtRange12(a: number, b: number): string {
-  return mer(a) === mer(b) ? `${clock12(a)} - ${clock12(b)} ${mer(b)}` : `${fmt12Min(a)} - ${fmt12Min(b)}`
+  return `${fmt12Min(a)} - ${fmt12Min(b)}`
 }
 /** "9 AM" for an hour on an axis */
 export function hourLabel12(h: number): string {

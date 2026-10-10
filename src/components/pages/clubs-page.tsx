@@ -856,7 +856,7 @@ function Responsibilities({ onReports }: { onReports?: () => void }) {
   )
 }
 
-/* "14:00-16:00" -> { start: "2:00 - 4:00 PM", length: "2 h" } */
+/* "14:00-16:00" -> { start: "2:00 PM - 4:00 PM", length: "2 h" } */
 function splitTime(t: string): { start: string; end: string; length: string } | null {
   const m = /^(\d{1,2}):(\d{2})\s*-\s*(\d{1,2}):(\d{2})$/.exec((t || '').trim())
   if (!m) return null
