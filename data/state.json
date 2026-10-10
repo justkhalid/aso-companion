@@ -36151,7 +36151,10 @@
     {
       "id": "xmv0wq8j8hiaeg",
       "name": "Douae",
-      "role": "",
+      "roles": [
+        "Volunteer"
+      ],
+      "role": "Volunteer",
       "phone": "",
       "email": ""
     },
@@ -37707,5 +37710,5 @@
   ],
   "reports": [],
   "libraryPins": [],
-  "_rev": 1791659989673
+  "_rev": 1791659989674
 }
