@@ -5,7 +5,6 @@ import {
   LayoutDashboard,
   CalendarRange,
   CalendarClock,
-  HeartHandshake,
   GraduationCap,
   Users,
   CalendarDays,
@@ -57,7 +56,6 @@ function useNavGroups(): NavGroup[] {
         { label: 'Calendar', view: 'clubs', icon: CalendarDays },
         { label: 'Clubs', view: 'intern-clubs', icon: Sparkles },
         { label: 'Events', view: 'intern-events', icon: CalendarClock },
-        { label: 'Volunteers', view: 'intern-volunteers', icon: HeartHandshake },
       ],
     },
     {
@@ -65,7 +63,7 @@ function useNavGroups(): NavGroup[] {
       items: [
         { label: 'Rooms', view: 'rooms', icon: DoorOpen },
         { label: 'Absences', view: 'absences', icon: UserX },
-        { label: 'Team', view: 'team', icon: Users },
+        { label: 'People', view: 'team', icon: Users },
       ],
     },
   ]
@@ -83,14 +81,13 @@ export function pageTitle(view: View, selectedLevelKey: string, levelLabel?: str
     case 'settings': return 'Settings'
     case 'intern': return 'Dashboard'
     case 'classes': return 'Classes'
-    case 'team': return 'Team'
+    case 'team': return 'People'
     case 'rooms': return 'Rooms'
     case 'absences': return 'Absences'
     case 'library': return 'Library'
     case 'reports': return 'Reports'
     case 'intern-clubs': return 'Clubs'
     case 'intern-events': return 'Events'
-    case 'intern-volunteers': return 'Volunteers'
     default: return 'ASO Companion'
   }
 }

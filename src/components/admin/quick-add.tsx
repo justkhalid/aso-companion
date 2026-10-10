@@ -1,7 +1,7 @@
 'use client'
 
 import * as React from 'react'
-import { Plus, GraduationCap, Sparkles, CalendarDays, UserX, Users, HeartHandshake } from 'lucide-react'
+import { Plus, GraduationCap, Sparkles, CalendarDays, UserX, Users } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
 import { ClassDialog } from '@/components/dialogs/class-dialog'
@@ -9,17 +9,15 @@ import { ClubDialog } from '@/components/dialogs/club-dialog'
 import { EventDialog } from '@/components/dialogs/event-dialog'
 import { AbsenceDialog } from '@/components/dialogs/absence-dialog'
 import { TeamDialog } from '@/components/dialogs/team-dialog'
-import { VolunteerDialog } from '@/components/dialogs/volunteer-dialog'
 
-export type QuickKind = 'absence' | 'class' | 'club' | 'event' | 'team' | 'volunteer'
+export type QuickKind = 'absence' | 'class' | 'club' | 'event' | 'team'
 
 const ITEMS: { kind: QuickKind; label: string; icon: React.ElementType }[] = [
   { kind: 'absence', label: 'Absence', icon: UserX },
   { kind: 'class', label: 'Class', icon: GraduationCap },
   { kind: 'club', label: 'Club', icon: Sparkles },
   { kind: 'event', label: 'Event', icon: CalendarDays },
-  { kind: 'volunteer', label: 'Volunteer', icon: HeartHandshake },
-  { kind: 'team', label: 'Team member', icon: Users },
+  { kind: 'team', label: 'Person', icon: Users },
 ]
 
 const EVT = 'aso-quick-add'
@@ -59,7 +57,6 @@ export function QuickAdd() {
       <ClassDialog open={kind === 'class'} onOpenChange={close} cls={null} />
       <ClubDialog open={kind === 'club'} onOpenChange={close} club={null} />
       <EventDialog open={kind === 'event'} onOpenChange={close} event={null} />
-      <VolunteerDialog open={kind === 'volunteer'} onOpenChange={close} volunteer={null} />
       <TeamDialog open={kind === 'team'} onOpenChange={close} member={null} />
     </>
   )

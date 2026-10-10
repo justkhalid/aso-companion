@@ -26,7 +26,6 @@ import { ReportsPage } from './pages/reports-page'
 import { DashboardPage } from './pages/dashboard-page'
 import { InternClubsPage } from './pages/intern-clubs-page'
 import { InternEventsPage } from './pages/intern-events-page'
-import { InternVolunteersPage } from './pages/intern-volunteers-page'
 import { viewFromPath, adminViewFromPath, isAdminPath } from '@/lib/url-sync'
 import type { View } from '@/lib/types'
 
@@ -255,8 +254,6 @@ function PageBody({ view, admin }: { view: View; admin: boolean }) {
       return admin ? <InternClubsPage /> : <ClubsPage admin={false} />
     case 'intern-events':
       return admin ? <InternEventsPage /> : <ClubsPage admin={false} />
-    case 'intern-volunteers':
-      return admin ? <InternVolunteersPage /> : <ClubsPage admin={false} />
     case 'login':
       return <LoginPage />
     default:

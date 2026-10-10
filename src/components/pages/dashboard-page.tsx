@@ -5,7 +5,7 @@ import { AlertTriangle, CalendarDays, DoorOpen, GraduationCap, HeartHandshake, S
 import { useStore } from '@/lib/store'
 import { DAY_KEYS } from '@/lib/constants'
 import { PageHead, Chip } from '@/components/ui-bits'
-import { fmtAbsenceRange, isoOf, nextOccurrence, termStatus, classStatusOn, clubStatusOn, eventStatusOn, isOnceEvent } from '@/lib/app-utils'
+import { peopleOf, rolesOf, fmtAbsenceRange, isoOf, nextOccurrence, termStatus, classStatusOn, clubStatusOn, eventStatusOn, isOnceEvent } from '@/lib/app-utils'
 import { Button } from '@/components/ui/button'
 import { openQuickAdd } from '@/components/admin/quick-add'
 import type { View } from '@/lib/types'
@@ -39,13 +39,14 @@ export function DashboardPage() {
     ...state.clubs.filter((c) => !c.poster && !c.placeholder).map((c) => ({ text: `${c.name} has no poster`, view: 'intern-clubs' as View })),
   ]
 
+  const people = peopleOf(state)
   const upcomingEvents = state.events.filter((e) => nextOccurrence(e)).length
   const links: { label: string; value: number; icon: React.ElementType; view: View }[] = [
     { label: 'Classes', value: state.classes.length, icon: Users, view: 'classes' },
     { label: 'Clubs', value: state.clubs.length, icon: Sparkles, view: 'intern-clubs' },
     { label: 'Upcoming events', value: upcomingEvents, icon: CalendarDays, view: 'intern-events' },
-    { label: 'Volunteers', value: state.volunteers.length, icon: HeartHandshake, view: 'intern-volunteers' },
-    { label: 'Team', value: state.team.length, icon: GraduationCap, view: 'team' },
+    { label: 'Teachers', value: people.filter((p) => rolesOf(p).includes('Teacher')).length, icon: GraduationCap, view: 'team' },
+    { label: 'Interns and volunteers', value: people.filter((p) => rolesOf(p).some((r) => r === 'Intern' || r === 'Volunteer')).length, icon: HeartHandshake, view: 'team' },
     { label: 'Rooms', value: 4, icon: DoorOpen, view: 'rooms' },
   ]
 

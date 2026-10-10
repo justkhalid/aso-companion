@@ -1,6 +1,6 @@
 /* ASO Companion - pure helper functions (no React) */
 import { DAY_KEYS, DAY_FULL, ROOM_OPTIONS } from './constants'
-import type { State, Level, EventEntry, ClassEntry, Absence } from './types'
+import type { State, Level, EventEntry, ClassEntry, Absence, TeamMember } from './types'
 
 export function parseISO(iso: string): Date {
   const p = String(iso || '').split('-')
@@ -273,6 +273,29 @@ export function clubDayOrder(c: { days?: string[]; time?: string }): number {
 /* true when the string contains Arabic / Hebrew characters (right-to-left) */
 export function isRTL(s: string): boolean {
   return /[\u0590-\u05FF\u0600-\u06FF\u0750-\u077F\u08A0-\u08FF\uFB50-\uFDFF\uFE70-\uFEFF]/.test(String(s || ''))
+}
+
+/* ---- people ---- */
+export const PEOPLE_ROLES = ['Coordinator', 'Administrator', 'Teacher', 'Intern', 'Volunteer'] as const
+
+/* a person's roles; older entries only have the one free-text role */
+export function rolesOf(m: Pick<TeamMember, 'roles' | 'role'>): string[] {
+  if (m.roles && m.roles.length) return m.roles
+  const r = (m.role || '').trim()
+  if (!r) return []
+  if (/volunteer teacher/i.test(r)) return ['Teacher', 'Volunteer']
+  return r.split(/\s*[+,/]\s*/).filter(Boolean)
+}
+
+/* everyone: the team list plus volunteers kept in an older copy of the data (no duplicates by name) */
+export function peopleOf(state: Pick<State, 'team' | 'volunteers'>): TeamMember[] {
+  const out = [...(state.team || [])]
+  const seen = new Set(out.map((m) => m.name.trim().toLowerCase()))
+  for (const v of state.volunteers || []) {
+    if (seen.has(v.name.trim().toLowerCase())) continue
+    out.push({ id: v.id, name: v.name, roles: [v.role && /intern/i.test(v.role) ? 'Intern' : 'Volunteer'], phone: v.phone, email: v.email, aso: v.aso })
+  }
+  return out
 }
 
 /* ---- misc ---- */

@@ -171,12 +171,16 @@ export interface Note {
   text: string
 }
 
+/* one person at ASO; they can hold several roles (a teacher who also volunteers, a coordinator who is also an intern) */
 export interface TeamMember {
   id: string
   name: string
-  role: string
+  roles?: string[] // Coordinator, Administrator, Teacher, Intern, Volunteer, or a custom one
+  role?: string // older entries: one free-text role, read through rolesOf()
+  duty?: string // notes: what they look after
   phone: string
   email: string
+  aso?: string // ASO number
 }
 
 /* something that does not run as usual for a few days or weeks: a teacher who is away (their classes),
@@ -239,7 +243,6 @@ export type View =
   | 'reports'
   | 'intern-clubs'
   | 'intern-events'
-  | 'intern-volunteers'
 
 export type Side = 'elt' | 'intern'
 

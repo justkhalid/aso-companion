@@ -36060,116 +36060,214 @@
     {
       "id": "t1",
       "name": "Khalid",
-      "role": "Coordinator",
-      "duty": "Program decisions, schedule, rooms, materials, teacher support",
+      "roles": [
+        "Coordinator",
+        "Intern"
+      ],
       "phone": "",
-      "email": ""
+      "email": "",
+      "duty": "Program decisions, schedule, rooms, materials, teacher support",
+      "role": "Coordinator + Intern"
     },
     {
       "id": "t2",
       "name": "Abdelatif",
-      "role": "Administrator",
-      "duty": "Platform: student records, reports, attendance, registration",
+      "roles": [
+        "Administrator"
+      ],
       "phone": "",
-      "email": ""
+      "email": "",
+      "duty": "Platform: student records, reports, attendance, registration",
+      "role": "Administrator"
     },
     {
       "id": "t3",
       "name": "Aya",
-      "role": "Volunteer Teacher",
-      "duty": "ASO-K1 Kids",
+      "roles": [
+        "Teacher",
+        "Volunteer"
+      ],
       "phone": "",
       "email": "",
-      "aso": ""
+      "duty": "ASO-K1 Kids",
+      "role": "Teacher + Volunteer"
     },
     {
       "id": "t4",
       "name": "Chaimaa",
-      "role": "Volunteer Teacher",
-      "duty": "ASO-K2 Kids",
+      "roles": [
+        "Teacher",
+        "Volunteer"
+      ],
       "phone": "",
       "email": "",
-      "aso": ""
+      "duty": "ASO-K2 Kids",
+      "role": "Teacher + Volunteer"
     },
     {
       "id": "t5",
       "name": "Nadia",
-      "role": "Volunteer Teacher",
-      "duty": "ASO-K3 Kids",
+      "roles": [
+        "Teacher",
+        "Volunteer"
+      ],
       "phone": "",
-      "email": ""
+      "email": "",
+      "duty": "ASO-K3 Kids",
+      "role": "Teacher + Volunteer"
     },
     {
       "id": "t6",
       "name": "Saoussan",
-      "role": "Volunteer Teacher",
-      "duty": "ASO-K4 Kids",
+      "roles": [
+        "Teacher",
+        "Volunteer"
+      ],
       "phone": "",
-      "email": ""
+      "email": "",
+      "duty": "ASO-K4 Kids",
+      "role": "Teacher + Volunteer"
     },
     {
       "id": "t7",
       "name": "Wafae",
-      "role": "Volunteer Teacher",
-      "duty": "ASO-T1 Teens",
+      "roles": [
+        "Teacher",
+        "Volunteer"
+      ],
       "phone": "",
       "email": "",
-      "aso": ""
+      "duty": "ASO-T1 Teens",
+      "role": "Teacher + Volunteer"
     },
     {
       "id": "t8",
       "name": "Jamal",
-      "role": "Volunteer Teacher",
-      "duty": "ASO-T2 Teens",
+      "roles": [
+        "Teacher",
+        "Volunteer"
+      ],
       "phone": "",
-      "email": ""
+      "email": "",
+      "duty": "ASO-T2 Teens",
+      "role": "Teacher + Volunteer"
     },
     {
       "id": "t9",
       "name": "Yousra",
-      "role": "Volunteer Teacher",
-      "duty": "ASO-A1 Adults",
+      "roles": [
+        "Teacher",
+        "Volunteer"
+      ],
       "phone": "",
       "email": "",
-      "aso": ""
+      "duty": "ASO-A1 Adults",
+      "role": "Teacher + Volunteer"
     },
     {
       "id": "t10",
       "name": "Amine",
-      "role": "Volunteer Teacher",
-      "duty": "ASO-A2 Adults",
+      "roles": [
+        "Teacher",
+        "Volunteer"
+      ],
       "phone": "",
-      "email": ""
+      "email": "",
+      "duty": "ASO-A2 Adults",
+      "role": "Teacher + Volunteer"
     },
     {
       "id": "xmuzojl19cu38f",
       "name": "Mustapha",
-      "role": "Volunteer Teacher",
-      "duty": "ASO-K5",
+      "roles": [
+        "Teacher",
+        "Volunteer"
+      ],
       "phone": "",
-      "aso": "",
-      "email": ""
+      "email": "",
+      "duty": "ASO-K5",
+      "role": "Teacher + Volunteer"
     },
     {
       "id": "xmv0wq8j8hiaeg",
       "name": "Douae",
-      "role": "",
+      "roles": [
+        "Teacher"
+      ],
       "phone": "",
-      "email": ""
+      "email": "",
+      "role": "Teacher"
     },
     {
       "id": "xmv0wqe6bw99k0",
       "name": "Oumaima",
-      "role": "",
+      "roles": [
+        "Teacher"
+      ],
       "phone": "",
-      "email": ""
+      "email": "",
+      "role": "Teacher"
     },
     {
       "id": "xmv1azchv277le",
       "name": "Zineb",
-      "role": "",
+      "roles": [
+        "Teacher",
+        "Volunteer"
+      ],
       "phone": "",
-      "email": ""
+      "email": "",
+      "role": "Teacher + Volunteer"
+    },
+    {
+      "id": "t15",
+      "name": "Ayoub",
+      "roles": [
+        "Volunteer"
+      ],
+      "phone": "",
+      "email": "",
+      "role": "Volunteer"
+    },
+    {
+      "id": "t16",
+      "name": "Abdelhak",
+      "roles": [
+        "Volunteer"
+      ],
+      "phone": "",
+      "email": "",
+      "role": "Volunteer"
+    },
+    {
+      "id": "t17",
+      "name": "Honore",
+      "roles": [
+        "Volunteer"
+      ],
+      "phone": "",
+      "email": "",
+      "role": "Volunteer"
+    },
+    {
+      "id": "t18",
+      "name": "Siham",
+      "roles": [
+        "Volunteer"
+      ],
+      "phone": "",
+      "email": "",
+      "role": "Volunteer"
+    },
+    {
+      "id": "t19",
+      "name": "Imane",
+      "roles": [
+        "Volunteer"
+      ],
+      "phone": "",
+      "email": "",
+      "role": "Volunteer"
     }
   ],
   "library": [
@@ -37567,56 +37665,7 @@
     }
   ],
   "prep": {},
-  "volunteers": [
-    {
-      "id": "xmuzo55uz8v9ny",
-      "name": "Ayoub",
-      "role": "Volunteer",
-      "phone": "",
-      "aso": "",
-      "email": ""
-    },
-    {
-      "id": "xmuzo5lnakkwug",
-      "name": "Abdelhak",
-      "role": "Volunteer",
-      "phone": "",
-      "aso": "",
-      "email": ""
-    },
-    {
-      "id": "xmuzo5rdls56k0",
-      "name": "Honore",
-      "role": "Volunteer",
-      "phone": "",
-      "aso": "",
-      "email": ""
-    },
-    {
-      "id": "xmuzo620pdbfwr",
-      "name": "Siham",
-      "role": "Volunteer",
-      "phone": "",
-      "aso": "",
-      "email": ""
-    },
-    {
-      "id": "xmuzo67dnpoteq",
-      "name": "Zineb",
-      "role": "Volunteer",
-      "phone": "",
-      "aso": "",
-      "email": ""
-    },
-    {
-      "id": "xmuzopdfvqsm4p",
-      "name": "Khalid",
-      "role": "Lead Intern",
-      "phone": "",
-      "aso": "",
-      "email": ""
-    }
-  ],
+  "volunteers": [],
   "clubs": [
     {
       "id": "xmuzvr51m52js5",
@@ -37702,5 +37751,5 @@
   ],
   "reports": [],
   "libraryPins": [],
-  "_rev": 1791669906848
+  "_rev": 1791669906849
 }

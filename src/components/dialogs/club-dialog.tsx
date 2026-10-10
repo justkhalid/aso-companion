@@ -22,7 +22,7 @@ import {
   PickOrType,
 } from '@/components/forms/form-controls'
 import { useStore } from '@/lib/store'
-import { uid, roomOptionsFor } from '@/lib/app-utils'
+import { uid, peopleOf, roomOptionsFor } from '@/lib/app-utils'
 import type { Club } from '@/lib/types'
 
 export function ClubDialog({
@@ -75,10 +75,10 @@ export function ClubDialog({
     () =>
       Array.from(
         new Set(
-          [...state.volunteers.map((v) => v.name), ...state.team.map((t) => t.name)].filter(Boolean),
+          peopleOf(state).map((t) => t.name).filter(Boolean),
         ),
       ),
-    [state.volunteers, state.team],
+    [state],
   )
 
   const save = () => {
