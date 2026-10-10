@@ -17,7 +17,6 @@ interface NavItem {
 const NAV: NavItem[] = [
   { label: 'Home', view: 'home' },
   { label: 'ELTASO', view: 'eltaso' },
-  { label: 'Clubs & events', view: 'clubs' },
   { label: 'Resources', view: 'resources' },
 ]
 

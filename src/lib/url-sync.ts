@@ -4,7 +4,7 @@ import type { View } from './types'
    Public tab URLs - each public tab owns its path so links can be shared:
      /            -> home (teachers calendar)
      /eltaso      -> ELTASO (levels & schemes of work)
-     /clubs       -> clubs & events
+     /clubs       -> redirects to /interns (clubs and events no longer have a tab on the public site)
      /resources   -> resources (library in public mode)
      /interns     -> clubs & events only, for interns (own minimal page, no other tabs)
    Transient public sub-views (level-detail) keep the parent tab's path, and
@@ -17,7 +17,6 @@ const PATH_FOR_VIEW: Partial<Record<View, string>> = {
   home: '/',
   eltaso: '/eltaso',
   'level-detail': '/eltaso',
-  clubs: '/clubs',
   resources: '/resources',
   'intern-public': '/interns',
 }
@@ -28,7 +27,6 @@ export function viewFromPath(pathname: string): View | null {
   const p = pathname.length > 1 ? pathname.replace(/\/+$/, '') : pathname
   if (p === '/') return 'home'
   if (p === '/eltaso') return 'eltaso'
-  if (p === '/clubs') return 'clubs'
   if (p === '/resources') return 'resources'
   if (p === '/interns') return 'intern-public'
   return null

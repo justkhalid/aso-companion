@@ -1,10 +1,6 @@
-import type { Metadata } from 'next'
-import { AppShell } from '@/components/app-shell'
+import { redirect } from 'next/navigation'
 
-export const metadata: Metadata = {
-  title: 'Clubs & events · ASO Companion',
-}
-
-export default function ClubsPage() {
-  return <AppShell initialView="clubs" />
+/* Clubs and events live on /interns now; old links to /clubs land there. */
+export default function ClubsRedirect() {
+  redirect('/interns')
 }

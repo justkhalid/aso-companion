@@ -165,7 +165,7 @@ export function HomePage({ admin }: { admin: boolean }) {
       kind: 'class',
     })
   })
-  ;(state.clubs || []).forEach((c) => {
+  ;(admin ? state.clubs || [] : []).forEach((c) => {
     if (!(c.days || []).includes(tKey)) return
     const stt = clubStatusOn(state, c.id, isoOf(new Date()))
     todayItems.push({
@@ -178,7 +178,7 @@ export function HomePage({ admin }: { admin: boolean }) {
       kind: 'club',
     })
   })
-  ;(state.events || []).forEach((e) => {
+  ;(admin ? state.events || [] : []).forEach((e) => {
     const isToday =
       e.recur === 'none'
         ? e.date && now.toDateString() === new Date(e.date).toDateString()
@@ -328,7 +328,8 @@ export function HomePage({ admin }: { admin: boolean }) {
         )}
       </div>
 
-      {/* clubs & events */}
+      {/* clubs & events: admin only, visitors find them on /interns */}
+      {admin && (
       <div className="mt-7">
         <SectionHeader
           title="Clubs & events"
@@ -379,6 +380,7 @@ export function HomePage({ admin }: { admin: boolean }) {
           </div>
         )}
       </div>
+      )}
 
       {/* today */}
       <div className="mt-7">

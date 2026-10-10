@@ -147,9 +147,9 @@ function BootSplash() {
 }
 
 function computeView(view: View, admin: boolean, pubView: boolean): View {
-  const allowedPublic: View[] = ['home', 'eltaso', 'level-detail', 'clubs', 'resources', 'intern-public', 'reports', 'login']
+  const allowedPublic: View[] = ['home', 'eltaso', 'level-detail', 'resources', 'intern-public', 'reports', 'login']
   if (!admin) return allowedPublic.includes(view) ? view : 'home'
-  if (pubView) return ['home', 'eltaso', 'level-detail', 'clubs', 'resources', 'intern-public', 'reports'].includes(view) ? view : 'home'
+  if (pubView) return ['home', 'eltaso', 'level-detail', 'resources', 'intern-public', 'reports'].includes(view) ? view : 'home'
   /* a signed-in admin never sees the sign-in screen */
   return view === 'login' ? 'home' : view
 }
