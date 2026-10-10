@@ -30,6 +30,8 @@ interface UIStore {
   admin: boolean
   pubView: boolean
   rememberDevice: boolean
+  /* teachers and interns sign in with their own access code; the server keeps the session */
+  viewer: { teacher: boolean; intern: boolean }
 
   /* toast */
   toasts: Toast[]
@@ -40,6 +42,8 @@ interface UIStore {
   openLevel: (key: string) => void
   login: (code: string, remember: boolean) => Promise<boolean>
   logout: () => void
+  loginAs: (role: 'teacher' | 'intern', code: string, remember: boolean) => Promise<{ ok: boolean; msg: string }>
+  signOutViewer: () => void
   refreshSecrets: () => Promise<void>
   setPubView: (v: boolean) => void
 
@@ -165,6 +169,7 @@ export const useStore = create<UIStore>((set, get) => ({
   admin: false,
   pubView: false,
   rememberDevice: true,
+  viewer: { teacher: false, intern: false },
 
   toasts: [],
 
@@ -206,15 +211,40 @@ export const useStore = create<UIStore>((set, get) => ({
     lsSet(ADMIN_SEEN_KEY, '1')
     if (remember) lsSet(ROLE_KEY, 'admin')
     syncViewUrl('home', 'replace')
-    /* the public copy has no access codes: pull the admin copy of the settings */
-    void get().refreshSecrets()
+    /* the copy this device holds may be the cut-down public one: pull the full admin copy */
+    void get().loadFromCloud()
     return true
   },
   logout: () => {
-    set({ admin: false, pubView: false, view: 'landing', side: 'elt' })
+    set({ admin: false, pubView: false, view: 'landing', side: 'elt', viewer: { teacher: false, intern: false } })
     lsDel(ROLE_KEY)
     syncViewUrl('landing', 'replace')
     void fetch('/api/logout', { method: 'POST' }).catch(() => {})
+  },
+  loginAs: async (role, code, remember) => {
+    try {
+      const res = await fetch('/api/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ code: code.trim(), as: role, remember }),
+      })
+      const body = (await res.json().catch(() => ({}))) as { ok?: boolean; msg?: string; roles?: string[] }
+      if (!res.ok || !body.ok) return { ok: false, msg: body.msg || 'Wrong access code' }
+      const roles = body.roles || [role]
+      set({ viewer: { teacher: roles.includes('teacher'), intern: roles.includes('intern') } })
+      /* the page data for this role (weekly plans, library) arrives with a fresh load */
+      await get().loadFromCloud()
+      return { ok: true, msg: '' }
+    } catch {
+      return { ok: false, msg: 'Could not reach the server. Check your connection and try again.' }
+    }
+  },
+  signOutViewer: () => {
+    set({ viewer: { teacher: false, intern: false }, view: 'landing' })
+    syncViewUrl('landing', 'replace')
+    void fetch('/api/logout', { method: 'POST' })
+      .catch(() => {})
+      .then(() => get().loadFromCloud())
   },
   refreshSecrets: async () => {
     try {
@@ -277,6 +307,18 @@ export const useStore = create<UIStore>((set, get) => ({
     const base = localState && localState.v === 1 ? localState : seedState()
     set({ state: base })
     applyTheme(base.settings.theme)
+    /* who is this visitor? the server cookie says which pages they may open */
+    try {
+      const sres = await fetch('/api/session', { cache: 'no-store' })
+      if (sres.ok) {
+        const { roles } = (await sres.json()) as { roles: string[] }
+        set({ viewer: { teacher: roles.includes('teacher'), intern: roles.includes('intern') } })
+        /* a remembered admin whose session has ended has to sign in again */
+        if (!roles.includes('admin') && lsGet(ROLE_KEY) === 'admin') lsDel(ROLE_KEY)
+      }
+    } catch {
+      /* offline: keep what this device remembers */
+    }
     // restore admin session if remembered
     const role = lsGet(ROLE_KEY)
     /* a remembered admin still lands on the public view: the site's main link
@@ -361,6 +403,9 @@ export const useStore = create<UIStore>((set, get) => ({
        The PAT lives in Vercel environment variables, NOT in the browser.
        With Vercel Blob connected this never touches GitHub; without it,
        the server falls back to the legacy GitHub commit mechanism. */
+    if (s._filtered) {
+      return { ok: false, msg: 'This device only has the public copy of the data. Sign in as admin to save.' }
+    }
     set({ syncing: true })
     try {
       /* strip the token + lastSync from the saved JSON (security: PAT never

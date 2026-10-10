@@ -14,6 +14,8 @@ export function SiteFooter({ current }: { current: Side }) {
   const setView = useStore((s) => s.setView)
   const setPubView = useStore((s) => s.setPubView)
   const admin = useStore((s) => s.admin)
+  const viewer = useStore((s) => s.viewer)
+  const signOutViewer = useStore((s) => s.signOutViewer)
 
   const links: { side: Side; label: string; go: () => void }[] = [
     { side: 'public', label: 'Main page', go: () => setView('landing') },
@@ -39,6 +41,9 @@ export function SiteFooter({ current }: { current: Side }) {
               {l.label}
             </button>
           ))}
+          {!admin && (viewer.teacher || viewer.intern) && (
+            <button onClick={signOutViewer} className="text-muted-foreground hover:text-foreground">Sign out</button>
+          )}
           {admin ? (
             <button onClick={() => { setPubView(false); setView('home') }} className="text-primary hover:underline">Open admin menu</button>
           ) : (

@@ -14,6 +14,7 @@ import { ClubsPage } from './pages/clubs-page'
 import { InternShell } from './intern-shell'
 import { LandingPage } from './landing-page'
 import { SiteFooter } from './site-footer'
+import { AccessGate } from './access-gate'
 import { ResourcesPage } from './pages/resources-page'
 import { SettingsPage } from './pages/settings-page'
 import { ClassesPage } from './pages/classes-page'
@@ -37,6 +38,7 @@ export function AppShell({ initialView }: { initialView?: View }) {
   const view = useStore((s) => s.view)
   const setView = useStore((s) => s.setView)
   const setPubView = useStore((s) => s.setPubView)
+  const viewer = useStore((s) => s.viewer)
   const [mobileNav, setMobileNav] = React.useState(false)
 
   // boot the app once on mount (fetches cloud state in the background).
@@ -79,6 +81,28 @@ export function AppShell({ initialView }: { initialView?: View }) {
         <AppToaster />
       </>
     )
+  }
+
+  /* the teachers' and interns' pages open with their own access code (the admin opens everything) */
+  const teacherOk = admin || viewer.teacher
+  const internOk = admin || viewer.intern
+  if (ev === 'intern-public' && !internOk) {
+    return (
+      <>
+        <AccessGate role="intern" />
+        <AppToaster />
+      </>
+    )
+  }
+  if (!admin || pubView) {
+    if (['home', 'eltaso', 'level-detail', 'resources', 'reports'].includes(ev) && !teacherOk) {
+      return (
+        <>
+          <AccessGate role="teacher" />
+          <AppToaster />
+        </>
+      )
+    }
   }
 
   /* /interns: clubs and events only, in its own minimal page (no tabs, no admin chrome) */

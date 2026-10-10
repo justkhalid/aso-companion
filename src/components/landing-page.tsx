@@ -1,15 +1,16 @@
 'use client'
 
 import * as React from 'react'
-import { CalendarDays, Clock, GraduationCap, Sparkles } from 'lucide-react'
+import { CalendarDays, Clock, GraduationCap, KeyRound, Sparkles } from 'lucide-react'
+import { Button } from '@/components/ui/button'
 import { Logo } from './logo'
 import { SiteFooter } from './site-footer'
 import { ThemeToggle } from './theme-toggle'
 import { ClubExpandOverlay, ClubGridCard, EventCard } from './pages/clubs-page'
 import { useStore } from '@/lib/store'
 import { BANDS, DAY_FULL, DAY_KEYS } from '@/lib/constants'
-import { mondayOfWeek, nextOccurrence, toneClassForClub, toneClassForLevel } from '@/lib/app-utils'
-import { publicClassItems, publicClubItems, publicEventItems } from '@/lib/calendar-items'
+import { mondayOfWeek, nextOccurrence, toneClassForClub } from '@/lib/app-utils'
+import { PUBLIC_CLASS_TONE, publicClassItems, publicClubItems, publicEventItems } from '@/lib/calendar-items'
 import { CalendarCardsView, CalendarListView, CalViewSwitcher, WeeklyGrid, readCalView, writeCalView, type CalendarView, type LegendEntry } from './weekly-grid'
 import { cn } from '@/lib/utils'
 import type { Club } from '@/lib/types'
@@ -75,7 +76,7 @@ export function LandingPage() {
   const calLegend: LegendEntry[] = [
     ...state.clubs.filter((c) => (c.days || []).length && c.time).map((c) => ({ label: c.name, tone: toneClassForClub(state, c.id) })),
     ...(calItems.some((i) => i.tone === 'tone-7') ? [{ label: 'Special events', tone: 'tone-7' }] : []),
-    ...levels.map((x) => ({ label: x.level.label, tone: toneClassForLevel(state, x.level.label) })),
+    ...(calItems.some((i) => i.tone === PUBLIC_CLASS_TONE) ? [{ label: 'English classes', tone: PUBLIC_CLASS_TONE }] : []),
     ...(calItems.some((i) => i.tone === 'tone-8') ? [{ label: 'Cancelled', tone: 'tone-8' }] : []),
   ]
 
@@ -125,10 +126,10 @@ export function LandingPage() {
         {/* hero */}
         <section className="mx-auto max-w-6xl px-4 pb-6 pt-12 text-center sm:pt-16">
           <h1 className="font-display mx-auto max-w-3xl text-balance text-[34px] font-extrabold leading-[1.1] tracking-tight sm:text-5xl">
-            English for kids, teens and adults
+            American Space Oujda
           </h1>
           <p className="mx-auto mt-4 max-w-2xl text-balance text-base text-muted-foreground sm:text-lg">
-            Everything on offer at American Space Oujda this year: the clubs, the events and the classes.
+            English for kids, teens and adults. Everything on offer this year: the clubs, the events and the classes.
           </p>
           <div className="mx-auto mt-7 grid max-w-lg grid-cols-3 gap-3">
             {stat(clubs.length, clubs.length === 1 ? 'club' : 'clubs')}
@@ -136,6 +137,29 @@ export function LandingPage() {
             {stat(state.classes.filter((c) => (c.days || []).length && c.time && levels.some((x) => x.level.label === c.level)).length, 'class groups')}
           </div>
         </section>
+
+        {/* the way in for teachers, interns and volunteers (the admin can switch it off in Settings) */}
+        {state.settings.showAccessBox !== false && (
+          <section className="mx-auto max-w-6xl px-4 pb-2">
+            <div className="flex flex-col items-start gap-4 rounded-2xl border border-border bg-card p-5 shadow-sm sm:flex-row sm:items-center">
+              <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary">
+                <KeyRound className="h-5 w-5" />
+              </div>
+              <div className="min-w-0 flex-1">
+                <h2 className="text-base font-extrabold tracking-tight">Are you a teacher, an intern or a volunteer?</h2>
+                <p className="mt-0.5 text-sm text-muted-foreground">Access your dedicated pages here. You will need the access code you were given.</p>
+              </div>
+              <div className="flex w-full flex-wrap gap-2 sm:w-auto">
+                <Button className="flex-1 rounded-lg sm:flex-none" onClick={() => setView('home')}>
+                  <GraduationCap className="h-4 w-4" /> For teachers
+                </Button>
+                <Button variant="outline" className="flex-1 rounded-lg sm:flex-none" onClick={() => setView('intern-public')}>
+                  <Sparkles className="h-4 w-4" /> For interns and volunteers
+                </Button>
+              </div>
+            </div>
+          </section>
+        )}
 
         {/* the whole week in one calendar */}
         <section id="calendar" className="mx-auto max-w-6xl scroll-mt-28 px-4 py-8">

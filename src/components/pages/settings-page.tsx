@@ -251,6 +251,34 @@ export function SettingsPage() {
         <div className="mt-2 text-xs text-muted-foreground">
           The code to sign in as the admin. Keep it short and memorable.
         </div>
+
+        <div className="mt-5 grid gap-3 sm:grid-cols-2">
+          <FieldText
+            label="Teachers' access code"
+            value={s.teacherCode ?? ''}
+            onChange={(v) => setSettings((x) => { x.teacherCode = v })}
+            placeholder="eltaso2026"
+            type="text"
+          />
+          <FieldText
+            label="Interns' and volunteers' access code"
+            value={s.internCode ?? ''}
+            onChange={(v) => setSettings((x) => { x.internCode = v })}
+            placeholder="aso2026"
+            type="text"
+          />
+        </div>
+        <div className="mt-2 text-xs text-muted-foreground">
+          These open the teachers' pages and the interns' page. Changing a code signs nobody out, so give people the new code and remove the old one from your messages.
+        </div>
+
+        <div className="mt-4">
+          <ToggleRow
+            label="Show the access box on the main page (teachers and interns buttons)"
+            checked={s.showAccessBox !== false}
+            onChange={(v) => setSettings((x) => { x.showAccessBox = v })}
+          />
+        </div>
       </Section>
 
       {/* cloud storage */}

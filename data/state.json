@@ -30,7 +30,9 @@
       "adults-adv": true
     },
     "adminCode": "01110",
-    "teacherCode": "eltaso"
+    "teacherCode": "eltaso2026",
+    "internCode": "aso2026",
+    "showAccessBox": true
   },
   "rootUrl": "https://drive.google.com/drive/folders/0B2Q8XuO2ebzxMEYzb0RYV1NBZVU",
   "levels": [
@@ -37700,5 +37702,5 @@
   ],
   "reports": [],
   "libraryPins": [],
-  "_rev": 1791659989672
+  "_rev": 1791669906848
 }

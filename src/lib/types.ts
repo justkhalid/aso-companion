@@ -16,6 +16,8 @@ export interface Settings {
   /** Only present in admin responses; the server strips both codes for visitors. */
   adminCode?: string
   teacherCode?: string
+  internCode?: string
+  showAccessBox?: boolean // main page: the box that sends teachers and interns to their own pages
   ghToken?: string
   ghRepo?: string
   ghBranch?: string
@@ -204,6 +206,7 @@ export interface State {
   notes: Note[]
   team: TeamMember[]
   absences?: Absence[]
+  _filtered?: boolean // a cut-down copy sent to visitors; never saved back
   rootUrl?: string
 }
 

@@ -9,19 +9,19 @@ import {
   parseISO,
   splitDaysByStatus,
   toneClassForClub,
-  toneClassForLevel,
   addDays,
 } from './app-utils'
 import { DAY_KEYS } from './constants'
 import type { State } from './types'
 
-/* classes as on the teachers calendar: group code, teacher and room; cancelled days in gray */
+/* classes as "English class ASO-K1" with teacher and room, all in one color; cancelled days in gray */
+export const PUBLIC_CLASS_TONE = 'tone-6'
 export function publicClassItems(state: State, monday: Date): GridItem[] {
   return (state.classes || [])
     .filter((c) => (c.days || []).length && c.time)
     .flatMap((c) => {
-      const base = { slot: c.time, code: c.code || c.level, room: c.room }
-      const tone = toneClassForLevel(state, c.level)
+      const base = { slot: c.time, code: 'English class ' + (c.code || c.level), room: c.room }
+      const tone = PUBLIC_CLASS_TONE
       const sp = splitDaysByStatus(c.days, monday, (iso) => classStatusOn(state, c, iso))
       const out: GridItem[] = []
       if (sp.normal.length) out.push({ ...base, id: c.id, days: sp.normal, lead: c.teacher, tone })
