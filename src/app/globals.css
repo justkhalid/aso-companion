@@ -237,6 +237,11 @@
 @keyframes aso-fade-up { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
 .aso-fade-up { animation: aso-fade-up .35s cubic-bezier(.32,.72,0,1) both; }
 
+/* page change: the new page eases in */
+@keyframes aso-page-in { from { opacity: 0; transform: translateY(10px) scale(.995); } to { opacity: 1; transform: none; } }
+.aso-page { animation: aso-page-in .42s cubic-bezier(.22,.8,.2,1) both; }
+@media (prefers-reduced-motion: reduce) { .aso-page, .aso-fade-up { animation: none; } }
+
 /* active navigation pill: marine gradient that sweeps lighter */
 .aso-nav-pill {
   background-image: linear-gradient(135deg, #0A4FB8 0%, #1173D4 52%, #2E9BE0 100%);

@@ -162,7 +162,7 @@ export function AppShell({ initialView }: { initialView?: View }) {
           </div>
         )}
         <main className="flex-1">
-          <PageBody view={ev} admin={false} />
+          <div key={ev} className="aso-page"><PageBody view={ev} admin={false} /></div>
         </main>
         <SiteFooter current="teachers" />
         <AppToaster />
@@ -177,7 +177,7 @@ export function AppShell({ initialView }: { initialView?: View }) {
       <div className="flex min-w-0 flex-1 flex-col">
         <AdminTopbar setMobileNavOpen={setMobileNav} />
         <main className="flex-1">
-          <PageBody view={ev} admin />
+          <div key={ev} className="aso-page"><PageBody view={ev} admin /></div>
         </main>
       </div>
       <AppToaster />

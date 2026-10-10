@@ -72,7 +72,7 @@ export function InternShell() {
         )}
       </header>
 
-      <main className="flex-1">
+      <main key={view} className="aso-page flex-1">
         {view === 'intern-public' && <ClubsPage admin={false} internMode section="calendar" />}
         {view === 'interns-events' && <ClubsPage admin={false} internMode section="events" />}
         {view === 'interns-clubs' && <ClubsPage admin={false} internMode section="clubs" />}
