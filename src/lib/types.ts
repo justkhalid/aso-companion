@@ -49,6 +49,22 @@ export interface WeekSkills {
   W: string
 }
 
+/* one Drive item a teacher opens for a lesson stage */
+export type KitStage = 'wu' | 'pres' | 'prac' | 'ls' | 're' | 'prod' | 'rw' | 'st'
+
+export interface KitItem {
+  l: string // label shown to the teacher
+  s: KitStage // lesson stage the item serves
+  u: string // Drive link (file or folder)
+  t: 'file' | 'folder'
+}
+
+/* optional occasion (holiday / national day) that falls in the week */
+export interface WeekOccasion {
+  act: string
+  hw: string
+}
+
 export interface Week {
   theme: string
   obj: string
@@ -59,6 +75,8 @@ export interface Week {
   hw: string
   skills: WeekSkills
   lp?: LessonPlan
+  kit?: KitItem[]
+  occ?: WeekOccasion
 }
 
 export interface Level {

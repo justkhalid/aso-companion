@@ -9,7 +9,7 @@ import {
   type ExportOptions,
   type DocLink,
 } from './export-canvas'
-import { DAY_KEYS, DAY_FULL, ROOM_LEGEND, REPORT_SYSTEM_URL } from './constants'
+import { DAY_KEYS, DAY_FULL, ROOM_LEGEND, REPORT_SYSTEM_URL, KIT_STAGE_LABELS } from './constants'
 
 /* ==========================================================================
    Word exports, packaged as MHTML.
@@ -266,7 +266,13 @@ export function buildCalendarLinks(state: State): DocLink[] {
 /** One lesson (level + week): only the folders that week really uses. */
 export function buildLessonLinks(state: State, level: Level, weekIndex: number): DocLink[] {
   const w = level.weeks[weekIndex]
-  return linksForWeeks(state, level, w ? [w] : [])
+  const general = linksForWeeks(state, level, w ? [w] : [])
+  const kit: DocLink[] = (w?.kit || []).map((k) => ({
+    name: k.l,
+    desc: KIT_STAGE_LABELS[k.s] || k.s,
+    url: k.u,
+  }))
+  return kit.concat(general.filter((g) => !kit.some((k) => k.url === g.url)))
 }
 
 /** A whole level (schemes of work): folders used anywhere across the year. */
