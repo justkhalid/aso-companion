@@ -395,7 +395,7 @@ export async function exportLevelDoc(state: State, lv: Level) {
     '<b>Objectives</b> say what students can DO by the end of the week, not which topics were covered.',
     '<b>Skills</b> use L / S / R / W for Listening, Speaking, Reading and Writing.',
     '<b>Resources</b> listed each week are found in the drives linked at the end of this document.',
-    'Sessions last <b>2 hours for Kids</b> (with a short break) and <b>90 minutes</b> for Teens and Adults.',
+    'All sessions last <b>2 hours</b> with a short break.',
     '<b>Rooms:</b> ' + esc(ROOM_LEGEND) + '. All times are 24h.',
     'Write your own remarks in the empty <b>Note</b> column and share them with the lead coordinator.',
   ])
@@ -432,12 +432,12 @@ export async function exportLessonPlanDoc(
   if (!p) throw new Error('No lesson plan for this week')
 
   const isKids = level.band === 'Kids' || level.key.indexOf('kids') === 0
-  const dur = isKids ? '2 hours' : '90 minutes'
+  const dur = '2 hours'
 
   const th = 'style="background:#1B2A55;color:white;font-size:10pt;padding:6px 8px;border:1px solid #1B2A55;text-align:left;"'
   const td = 'style="border:1px solid #D9D9E0;padding:6px 8px;font-size:10pt;vertical-align:top;"'
 
-  /* stage rows for the 2-hour / 90-minute arc */
+  /* stage rows for the 2-hour arc */
   const helloTxt =
     weekIndex === 0
       ? isKids
@@ -450,7 +450,7 @@ export async function exportLessonPlanDoc(
 
   const T = isKids
     ? { hello: '0:00-0:10', wu: '0:10-0:20', pres: '0:20-0:35', prac: '0:35-0:50', ls: '0:50-1:00', brk: '1:00-1:10', re: '1:10-1:20', prod: '1:20-1:45', rw: '1:45-1:55', st: '1:55-2:00' }
-    : { hello: '0:00-0:05', wu: '0:05-0:15', pres: '0:15-0:30', prac: '0:30-0:45', ls: '0:45-0:55', brk: '0:55-1:00', re: '1:00-1:08', prod: '1:08-1:22', rw: '1:22-1:28', st: '1:28-1:30' }
+    : { hello: '0:00-0:05', wu: '0:05-0:15', pres: '0:15-0:35', prac: '0:35-0:55', ls: '0:55-1:05', brk: '1:05-1:15', re: '1:15-1:25', prod: '1:25-1:45', rw: '1:45-1:55', st: '1:55-2:00' }
 
   const stages: [string, string, string, boolean][] = [
     ['Hello & routine', T.hello, helloTxt, false],
