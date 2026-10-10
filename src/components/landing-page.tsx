@@ -8,7 +8,9 @@ import { ThemeToggle } from './theme-toggle'
 import { ClubExpandOverlay, ClubGridCard, EventCard } from './pages/clubs-page'
 import { useStore } from '@/lib/store'
 import { BANDS, DAY_FULL, DAY_KEYS } from '@/lib/constants'
-import { nextOccurrence } from '@/lib/app-utils'
+import { mondayOfWeek, nextOccurrence, toneClassForClub, toneClassForLevel } from '@/lib/app-utils'
+import { publicClassItems, publicClubItems, publicEventItems } from '@/lib/calendar-items'
+import { CalendarCardsView, CalendarListView, CalViewSwitcher, WeeklyGrid, readCalView, writeCalView, type CalendarView, type LegendEntry } from './weekly-grid'
 import { cn } from '@/lib/utils'
 import type { Club } from '@/lib/types'
 
@@ -17,6 +19,7 @@ import type { Club } from '@/lib/types'
    No teacher names, class codes or admin tools. Teachers and interns have their own pages. */
 
 const SECTIONS = [
+  { id: 'calendar', label: 'Calendar' },
   { id: 'clubs', label: 'Clubs' },
   { id: 'events', label: 'Events' },
   { id: 'classes', label: 'Classes' },
@@ -35,6 +38,9 @@ export function LandingPage() {
   const setView = useStore((s) => s.setView)
   const setPubView = useStore((s) => s.setPubView)
   const [expanded, setExpanded] = React.useState<Club | null>(null)
+  const [calView, setCalView] = React.useState<CalendarView>('grid')
+  React.useEffect(() => { setCalView(readCalView()) }, [])
+  React.useEffect(() => { writeCalView(calView) }, [calView])
 
   const jump = (id: string) => document.getElementById(id)?.scrollIntoView({ behavior: 'smooth', block: 'start' })
 
@@ -62,6 +68,16 @@ export function LandingPage() {
     .map((e) => ({ e, d: nextOccurrence(e) }))
     .filter((x) => x.d)
     .sort((a, b) => a.d!.getTime() - b.d!.getTime())
+
+  /* everything this week in one calendar: classes by level, clubs, events */
+  const monday = mondayOfWeek(new Date())
+  const calItems = [...publicClubItems(state, monday), ...publicEventItems(state, monday), ...publicClassItems(state, monday)]
+  const calLegend: LegendEntry[] = [
+    ...state.clubs.filter((c) => (c.days || []).length && c.time).map((c) => ({ label: c.name, tone: toneClassForClub(state, c.id) })),
+    ...(calItems.some((i) => i.tone === 'tone-7') ? [{ label: 'Special events', tone: 'tone-7' }] : []),
+    ...levels.map((x) => ({ label: x.level.label, tone: toneClassForLevel(state, x.level.label) })),
+    ...(calItems.some((i) => i.tone === 'tone-8') ? [{ label: 'Cancelled', tone: 'tone-8' }] : []),
+  ]
 
   const stat = (n: number, label: string) => (
     <div className="rounded-2xl border border-border bg-card px-4 py-3 text-center shadow-sm">
@@ -118,6 +134,26 @@ export function LandingPage() {
             {stat(clubs.length, clubs.length === 1 ? 'club' : 'clubs')}
             {stat(events.length, events.length === 1 ? 'event' : 'events')}
             {stat(state.classes.filter((c) => (c.days || []).length && c.time && levels.some((x) => x.level.label === c.level)).length, 'class groups')}
+          </div>
+        </section>
+
+        {/* the whole week in one calendar */}
+        <section id="calendar" className="mx-auto max-w-6xl scroll-mt-28 px-4 py-8">
+          <div className="mb-4 flex flex-wrap items-center gap-x-3 gap-y-2">
+            <div className="min-w-0 flex-1">
+              <h2 className="text-xl font-extrabold tracking-tight">This week at ASO</h2>
+              <p className="text-sm text-muted-foreground">Classes, clubs and events on one calendar.</p>
+            </div>
+            <CalViewSwitcher view={calView} onChange={setCalView} />
+          </div>
+          <div className="rounded-2xl bg-card">
+            {calView === 'grid' ? (
+              <WeeklyGrid items={calItems} legend={calLegend} weekMonday={monday} emptyMessage="Nothing scheduled yet" />
+            ) : calView === 'cards' ? (
+              <CalendarCardsView items={calItems} legend={calLegend} weekMonday={monday} emptyMessage="Nothing scheduled yet" />
+            ) : (
+              <CalendarListView items={calItems} legend={calLegend} weekMonday={monday} emptyMessage="Nothing scheduled yet" />
+            )}
           </div>
         </section>
 
