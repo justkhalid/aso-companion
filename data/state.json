@@ -36151,7 +36151,10 @@
     {
       "id": "t10",
       "name": "Amine",
-      "role": "Volunteer Teacher",
+      "roles": [
+        "Teacher"
+      ],
+      "role": "Teacher",
       "duty": "ASO-A2 Adults",
       "phone": "",
       "email": ""
@@ -36159,10 +36162,12 @@
     {
       "id": "xmuzojl19cu38f",
       "name": "Mustapha",
-      "role": "Volunteer Teacher",
+      "roles": [
+        "Teacher"
+      ],
+      "role": "Teacher",
       "duty": "ASO-K5",
       "phone": "",
-      "aso": "",
       "email": ""
     },
     {
@@ -37730,5 +37735,5 @@
   ],
   "reports": [],
   "libraryPins": [],
-  "_rev": 1791659989682
+  "_rev": 1791659989684
 }
