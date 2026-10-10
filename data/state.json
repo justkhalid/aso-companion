@@ -36165,7 +36165,14 @@
     {
       "id": "xmv1azchv277le",
       "name": "Zineb",
-      "role": "",
+      "roles": [
+        "Volunteer",
+        "Teacher"
+      ],
+      "role": "Volunteer + Teacher",
+      "looksAfter": [
+        "ASO-A3"
+      ],
       "phone": "",
       "email": ""
     }
@@ -37700,5 +37707,5 @@
   ],
   "reports": [],
   "libraryPins": [],
-  "_rev": 1791659989672
+  "_rev": 1791659989673
 }
