@@ -4,7 +4,7 @@ import * as React from 'react'
 import { ChevronLeft, ChevronRight } from 'lucide-react'
 import { useStore } from '@/lib/store'
 import { DAY_KEYS, ROOM_UNAVAILABLE } from '@/lib/constants'
-import { classStatusOn, isOnceEvent, isoOf, roomOptionsFor, toneClassForClub, toneClassForLevel } from '@/lib/app-utils'
+import { classStatusOn, clubStatusOn, eventStatusOn, isOnceEvent, isoOf, roomOptionsFor, toneClassForClub, toneClassForLevel } from '@/lib/app-utils'
 import { clubIcon } from '@/lib/icons'
 import { cn } from '@/lib/utils'
 import type { State } from '@/lib/types'
@@ -84,7 +84,19 @@ function bookingsForWeek(state: State, monday: Date, plain: boolean): Booking[] 
     const slot = parseSlot(c.time)
     if (!slot || !c.room || !inSeries(c.from, c.until)) continue
     const note = c.freq === 'biweekly' ? 'every 2 weeks' : c.freq === 'monthly' ? 'monthly' : undefined
-    for (const day of c.days || []) out.push({ room: c.room.trim(), day, start: slot[0], end: slot[1], label: c.name, kind: 'club', note, tone: toneClassForClub(state, c.id), icon: c.icon, lead: c.lead, group: c.name })
+    for (const day of c.days || []) {
+      const di = DAY_KEYS.indexOf(day as (typeof DAY_KEYS)[number])
+      const date = new Date(monday)
+      date.setDate(date.getDate() + Math.max(di, 0))
+      const stt = clubStatusOn(state, c.id, isoOf(date))
+      out.push({
+        room: c.room.trim(), day, start: slot[0], end: slot[1], label: c.name, kind: 'club', note,
+        tone: toneClassForClub(state, c.id), icon: c.icon,
+        lead: stt.kind === 'cover' ? 'Led by ' + stt.cover : c.lead,
+        group: c.name,
+        cancelled: stt.kind === 'cancelled' ? stt.absence.reason || 'Cancelled' : undefined,
+      })
+    }
   }
   for (const e of state.events || []) {
     const slot = parseSlot(e.time)
@@ -92,10 +104,15 @@ function bookingsForWeek(state: State, monday: Date, plain: boolean): Booking[] 
     if (isOnceEvent(e)) {
       if (!e.date || e.date < weekStart || e.date > weekEnd) continue
       const [y, m, d] = e.date.split('-').map(Number)
-      out.push({ room: e.place.trim(), day: dayKeyOf(new Date(y, m - 1, d)), start: slot[0], end: slot[1], label: e.title, kind: 'event', note: 'one-off', tone: 'tone-7', icon: e.icon || 'calendar', group: 'Special events' })
+      const stt = eventStatusOn(state, e.id, e.date)
+      out.push({ room: e.place.trim(), day: dayKeyOf(new Date(y, m - 1, d)), start: slot[0], end: slot[1], label: e.title, kind: 'event', note: 'one-off', tone: 'tone-7', icon: e.icon || 'calendar', group: 'Special events', cancelled: stt.kind === 'cancelled' ? stt.absence.reason || 'Cancelled' : undefined })
     } else if (e.day && inSeries(e.from, e.until)) {
       const note = e.recur === 'biweekly' ? 'every 2 weeks' : e.recur === 'monthly' ? 'monthly' : undefined
-      out.push({ room: e.place.trim(), day: e.day, start: slot[0], end: slot[1], label: e.title, kind: 'event', note, tone: 'tone-7', icon: e.icon || 'calendar', group: 'Special events' })
+      const di = DAY_KEYS.indexOf(e.day as (typeof DAY_KEYS)[number])
+      const date = new Date(monday)
+      date.setDate(date.getDate() + Math.max(di, 0))
+      const stt = eventStatusOn(state, e.id, isoOf(date))
+      out.push({ room: e.place.trim(), day: e.day, start: slot[0], end: slot[1], label: e.title, kind: 'event', note, tone: 'tone-7', icon: e.icon || 'calendar', group: 'Special events', cancelled: stt.kind === 'cancelled' ? stt.absence.reason || 'Cancelled' : undefined })
     }
   }
   return out
@@ -378,7 +395,7 @@ export function RoomsPage({ embedded = false }: { embedded?: boolean }) {
         ))}
         {cancelledAll.length > 0 && (
           <span className="flex items-center gap-1.5 text-[11.5px] font-semibold text-muted-foreground">
-            <i className="inline-block h-2 w-2 rounded-sm border border-dashed border-foreground/50" /> Cancelled, teacher away
+            <i className="inline-block h-2 w-2 rounded-sm border border-dashed border-foreground/50" /> Cancelled
           </span>
         )}
         {(viewOpen < OPEN || viewClose > CLOSE) && (

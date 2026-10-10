@@ -36,6 +36,11 @@ import {
   clubDayOrder,
   parseISO,
   isOnceEvent,
+  clubStatusOn,
+  eventStatusOn,
+  splitDaysByStatus,
+  mondayOfWeek,
+  isoOf,
 } from '@/lib/app-utils'
 import { ROOM_LEGEND, DAY_KEYS } from '@/lib/constants'
 import { buildCalendarLinks } from '@/lib/export-word'
@@ -83,19 +88,23 @@ export function ClubsPage({ admin, internMode = false }: { admin: boolean; inter
     [state.clubs],
   )
 
+  /* days that a club or event is off this week show in gray with the reason; covered days show who leads */
+  const thisMonday = mondayOfWeek(new Date())
+  const hasAbsences = (state.absences || []).length > 0
   const clubItems: GridItem[] = (state.clubs || [])
     .filter((c) => (c.days || []).length && c.time)
-    .map((c) => ({
-      id: c.id,
-      days: c.days,
-      slot: c.time,
-      code: c.name,
-      meta: '',
-      lead: c.lead || 'no lead yet',
-      room: c.room,
-      icon: c.icon,
-      tone: toneClassForClub(state, c.id),
-    }))
+    .flatMap((c) => {
+      const base = { slot: c.time, code: c.name, meta: '', room: c.room, icon: c.icon }
+      const tone = toneClassForClub(state, c.id)
+      const lead = c.lead || 'no lead yet'
+      if (!hasAbsences) return [{ ...base, id: c.id, days: c.days, lead, tone }]
+      const sp = splitDaysByStatus(c.days, thisMonday, (iso) => clubStatusOn(state, c.id, iso))
+      const out: GridItem[] = []
+      if (sp.normal.length) out.push({ ...base, id: c.id, days: sp.normal, lead, tone })
+      if (sp.cancelled.length) out.push({ ...base, id: c.id + ':off', days: sp.cancelled, code: c.name + ' · cancelled', lead: 'cancelled', tone: 'tone-8' })
+      for (const [who, days] of Object.entries(sp.covered)) out.push({ ...base, id: c.id + ':cov:' + who, days, lead: 'Led by ' + who, tone })
+      return out
+    })
 
   /* events join the calendar: repeating events sit on their weekday,
      one-off events on the weekday of their date */
@@ -108,16 +117,19 @@ export function ClubsPage({ admin, internMode = false }: { admin: boolean; inter
         day = DAY_KEYS[d.getDay() === 0 ? 6 : d.getDay() - 1] || ''
       }
       if (!day || !e.time) return null
+      const off = hasAbsences
+        ? splitDaysByStatus([day], thisMonday, (iso) => eventStatusOn(state, e.id, isOnceEvent(e) && e.date ? e.date : iso)).cancelled.length > 0
+        : false
       return {
-        id: e.id,
+        id: off ? e.id + ':off' : e.id,
         days: [day],
         slot: e.time,
-        code: e.title,
+        code: off ? e.title + ' · cancelled' : e.title,
         meta: '',
-        lead: '',
+        lead: off ? 'cancelled' : '',
         room: e.place || '',
         icon: e.icon || 'calendar',
-        tone: 'tone-7',
+        tone: off ? 'tone-8' : 'tone-7',
       }
     })
     .filter(Boolean) as GridItem[]
@@ -126,6 +138,7 @@ export function ClubsPage({ admin, internMode = false }: { admin: boolean; inter
   const calLegend: LegendEntry[] = [
     ...(state.clubs || []).map((c) => ({ label: c.name, tone: toneClassForClub(state, c.id) })),
     ...(eventItems.length ? [{ label: 'Special events', tone: 'tone-7' }] : []),
+    ...([...clubItems, ...eventItems].some((i) => i.tone === 'tone-8') ? [{ label: 'Cancelled', tone: 'tone-8' }] : []),
   ]
 
   const exportYear = (state.settings.year || 'export').replace(/\//g, '-')
@@ -827,6 +840,8 @@ function EventCard({
 }) {
   const [more, setMore] = React.useState(false)
   const isOnce = isOnceEvent(event)
+  const appState = useStore((s) => s.state)
+  const nextStatus = eventStatusOn(appState, event.id, isoOf(nextDate))
   const longDate = (d: Date) => fmtD(d, { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })
   const shortDate = (iso: string) => fmtD(parseISO(iso), { day: 'numeric', month: 'long', year: 'numeric' })
   const t = splitTime(event.time)
@@ -876,6 +891,11 @@ function EventCard({
             <h3 className="min-w-0 text-[15px] font-bold leading-snug" dir="auto">{event.title}</h3>
             <Chip tone={isOnce ? 'primary' : 'gold'}>{isOnce ? 'One time' : 'Repeating'}</Chip>
           </div>
+          {nextStatus.kind === 'cancelled' && (
+            <div className="rounded-xl bg-[#FF3B30]/10 px-3 py-2 text-[13px] font-semibold text-[#D70015] dark:text-[#FF6961]">
+              {isOnce ? 'Cancelled' : `The session on ${longDate(nextDate)} is cancelled`}
+            </div>
+          )}
 
           <div className="grid gap-2 sm:grid-cols-2">
             {cells.map((c) => (

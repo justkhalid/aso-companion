@@ -24,6 +24,9 @@ import {
   isOnceEvent,
   parseISO,
   classStatusOn,
+  clubStatusOn,
+  eventStatusOn,
+  splitDaysByStatus,
   isoOf,
   addDays,
 } from '@/lib/app-utils'
@@ -80,21 +83,11 @@ export function HomePage({ admin }: { admin: boolean }) {
     }
     const tone = toneClassForLevel(state, c.level)
     if (!wkMon || !(state.absences || []).length) return [{ ...base, id: c.id, days: c.days || [], lead: c.teacher, tone }]
-    const normal: string[] = []
-    const cancelled: string[] = []
-    const covered: Record<string, string[]> = {}
-    let why = ''
-    for (const d of c.days || []) {
-      const di = DAY_KEYS.indexOf(d as (typeof DAY_KEYS)[number])
-      const stt = di < 0 ? ({ kind: 'normal' } as const) : classStatusOn(state, c, isoOf(addDays(wkMon, di)))
-      if (stt.kind === 'cancelled') { cancelled.push(d); why = stt.absence.reason }
-      else if (stt.kind === 'cover') (covered[stt.cover] ||= []).push(d)
-      else normal.push(d)
-    }
+    const sp = splitDaysByStatus(c.days || [], wkMon, (iso) => classStatusOn(state, c, iso))
     const out: GridItem[] = []
-    if (normal.length) out.push({ ...base, id: c.id, days: normal, lead: c.teacher, tone })
-    if (cancelled.length) out.push({ ...base, id: c.id + ':off', days: cancelled, code: base.code + ' · cancelled', lead: `${c.teacher}${why ? ' · ' + why.toLowerCase() : ''}`, tone: 'tone-8' })
-    for (const [who, days] of Object.entries(covered)) out.push({ ...base, id: c.id + ':cov:' + who, days, lead: 'Cover: ' + who, tone })
+    if (sp.normal.length) out.push({ ...base, id: c.id, days: sp.normal, lead: c.teacher, tone })
+    if (sp.cancelled.length) out.push({ ...base, id: c.id + ':off', days: sp.cancelled, code: base.code + ' · cancelled', lead: c.teacher, tone: 'tone-8' })
+    for (const [who, days] of Object.entries(sp.covered)) out.push({ ...base, id: c.id + ':cov:' + who, days, lead: 'Cover: ' + who, tone })
     return out
   })
   const classLegend: LegendEntry[] = (() => {
@@ -110,17 +103,18 @@ export function HomePage({ admin }: { admin: boolean }) {
   // clubs grid
   const clubItems: GridItem[] = (state.clubs || [])
     .filter((c) => (c.days || []).length && c.time)
-    .map((c) => ({
-      id: c.id,
-      days: c.days,
-      slot: c.time,
-      code: c.name,
-      meta: '',
-      lead: c.lead || 'no lead yet',
-      room: c.room,
-      icon: c.icon,
-      tone: toneClassForClub(state, c.id),
-    }))
+    .flatMap((c) => {
+      const base = { slot: c.time, code: c.name, meta: '', room: c.room, icon: c.icon }
+      const tone = toneClassForClub(state, c.id)
+      const lead = c.lead || 'no lead yet'
+      if (!wkMon || !(state.absences || []).length) return [{ ...base, id: c.id, days: c.days, lead, tone }]
+      const sp = splitDaysByStatus(c.days, wkMon, (iso) => clubStatusOn(state, c.id, iso))
+      const out: GridItem[] = []
+      if (sp.normal.length) out.push({ ...base, id: c.id, days: sp.normal, lead, tone })
+      if (sp.cancelled.length) out.push({ ...base, id: c.id + ':off', days: sp.cancelled, code: c.name + ' · cancelled', lead: 'cancelled', tone: 'tone-8' })
+      for (const [who, days] of Object.entries(sp.covered)) out.push({ ...base, id: c.id + ':cov:' + who, days, lead: 'Led by ' + who, tone })
+      return out
+    })
   const clubLegend: LegendEntry[] = (state.clubs || []).map((c) => ({
     label: c.name,
     tone: toneClassForClub(state, c.id),
@@ -137,23 +131,19 @@ export function HomePage({ admin }: { admin: boolean }) {
         day = DAY_KEYS[d.getDay() === 0 ? 6 : d.getDay() - 1] || ''
       }
       if (!day || !e.time) return null
-      return {
-        id: e.id,
-        days: [day],
-        slot: e.time,
-        code: e.title,
-        meta: '',
-        lead: '',
-        room: e.place || '',
-        icon: e.icon || 'calendar',
-        tone: 'tone-7',
-      }
+      const base = { slot: e.time, meta: '', room: e.place || '', icon: e.icon || 'calendar' }
+      const off = wkMon
+        ? splitDaysByStatus([day], wkMon, (iso) => eventStatusOn(state, e.id, isOnceEvent(e) && e.date ? e.date : iso))
+        : null
+      if (off && off.cancelled.length) return { ...base, id: e.id + ':off', days: [day], code: e.title + ' · cancelled', lead: 'cancelled', tone: 'tone-8' }
+      return { ...base, id: e.id, days: [day], code: e.title, lead: '', tone: 'tone-7' }
     })
     .filter(Boolean) as GridItem[]
   const homeClubItems = [...clubItems, ...homeEventItems]
   const homeClubLegend = [
     ...clubLegend,
     ...(homeEventItems.length ? [{ label: 'Special events', tone: 'tone-7' } as LegendEntry] : []),
+    ...([...clubItems, ...homeEventItems].some((i) => i.tone === 'tone-8') ? [{ label: 'Cancelled', tone: 'tone-8' } as LegendEntry] : []),
   ]
 
   // today's schedule
@@ -168,7 +158,7 @@ export function HomePage({ admin }: { admin: boolean }) {
       title: `${c.code} · ${c.level}${stt.kind === 'cancelled' ? ' · cancelled' : ''}`,
       sub:
         stt.kind === 'cancelled'
-          ? [c.time, c.room, `${c.teacher} is away${stt.absence.reason ? ' (' + stt.absence.reason.toLowerCase() + ')' : ''}`].filter(Boolean).join(' · ')
+          ? [c.time, c.room, `${c.teacher} is away`].filter(Boolean).join(' · ')
           : stt.kind === 'cover'
             ? [c.time, c.room, `cover: ${stt.cover}`].filter(Boolean).join(' · ')
             : [c.time, c.room, c.teacher].filter(Boolean).join(' · '),
@@ -177,10 +167,14 @@ export function HomePage({ admin }: { admin: boolean }) {
   })
   ;(state.clubs || []).forEach((c) => {
     if (!(c.days || []).includes(tKey)) return
+    const stt = clubStatusOn(state, c.id, isoOf(new Date()))
     todayItems.push({
       mins: parseSlot(c.time).mins,
-      title: c.name,
-      sub: [c.time, c.room, c.lead ? `lead: ${c.lead}` : ''].filter(Boolean).join(' · '),
+      title: c.name + (stt.kind === 'cancelled' ? ' · cancelled' : ''),
+      sub:
+        stt.kind === 'cancelled'
+          ? [c.time, c.room, 'cancelled'].filter(Boolean).join(' · ')
+          : [c.time, c.room, stt.kind === 'cover' ? `led by ${stt.cover}` : c.lead ? `lead: ${c.lead}` : ''].filter(Boolean).join(' · '),
       kind: 'club',
     })
   })
@@ -190,9 +184,10 @@ export function HomePage({ admin }: { admin: boolean }) {
         ? e.date && now.toDateString() === new Date(e.date).toDateString()
         : e.day === tKey
     if (!isToday) return
+    const off = eventStatusOn(state, e.id, isoOf(new Date())).kind === 'cancelled'
     todayItems.push({
       mins: parseSlot(e.time || '23:59').mins,
-      title: e.title,
+      title: e.title + (off ? ' · cancelled' : ''),
       sub: [e.time, e.place].filter(Boolean).join(' · ') || 'all day',
       kind: 'event',
     })

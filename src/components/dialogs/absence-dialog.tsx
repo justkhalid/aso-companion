@@ -19,6 +19,12 @@ import { cn } from '@/lib/utils'
 import type { Absence } from '@/lib/types'
 
 const REASONS = ['Sick', 'Away', 'Holiday', 'Other']
+type Kind = 'teacher' | 'club' | 'event'
+const KINDS: { k: Kind; label: string }[] = [
+  { k: 'teacher', label: 'Teacher away' },
+  { k: 'club', label: 'Club' },
+  { k: 'event', label: 'Event' },
+]
 
 export function AbsenceDialog({
   open,
@@ -34,6 +40,9 @@ export function AbsenceDialog({
   const toast = useStore((s) => s.toast)
   const isNew = !absence
 
+  const [kind, setKind] = React.useState<Kind>('teacher')
+  const [clubId, setClubId] = React.useState('')
+  const [eventId, setEventId] = React.useState('')
   const [teacher, setTeacher] = React.useState('')
   const [classId, setClassId] = React.useState('')
   const [from, setFrom] = React.useState('')
@@ -46,6 +55,9 @@ export function AbsenceDialog({
   React.useEffect(() => {
     if (!open) return
     const today = isoOf(new Date())
+    setKind(absence?.kind || 'teacher')
+    setClubId(absence?.clubId || '')
+    setEventId(absence?.eventId || '')
     setTeacher(absence?.teacher || '')
     setClassId(absence?.classId || '')
     setFrom(absence?.from || today)
@@ -63,18 +75,23 @@ export function AbsenceDialog({
   const theirClasses = state.classes.filter((c) => c.teacher === teacher)
 
   const save = () => {
-    if (!teacher.trim()) return toast('Pick the teacher who is away', false)
+    if (kind === 'teacher' && !teacher.trim()) return toast('Pick the teacher who is away', false)
+    if (kind === 'club' && !clubId) return toast('Pick the club', false)
+    if (kind === 'event' && !eventId) return toast('Pick the event', false)
     if (!from || !to) return toast('Pick the dates', false)
     if (to < from) return toast('The last day cannot be before the first day', false)
-    if (mode === 'cover' && !cover.trim()) return toast('Pick who is covering, or choose cancel the classes', false)
+    if (mode === 'cover' && !cover.trim()) return toast('Pick who is covering, or choose cancelled', false)
     const entry: Absence = {
       id: absence?.id || uid(),
-      teacher: teacher.trim(),
-      classId: classId || undefined,
+      kind,
+      teacher: kind === 'teacher' ? teacher.trim() : '',
+      classId: kind === 'teacher' ? classId || undefined : undefined,
+      clubId: kind === 'club' ? clubId : undefined,
+      eventId: kind === 'event' ? eventId : undefined,
       from,
       to,
       reason,
-      cover: mode === 'cover' ? cover.trim() : undefined,
+      cover: kind !== 'event' && mode === 'cover' ? cover.trim() : undefined,
       note: note.trim() || undefined,
     }
     patch((draft) => {
@@ -83,7 +100,7 @@ export function AbsenceDialog({
       if (i >= 0) list[i] = entry
       else list.push(entry)
     })
-    toast(isNew ? 'Absence saved, calendars updated' : 'Absence updated')
+    toast(isNew ? 'Saved, calendars updated' : 'Updated')
     onOpenChange(false)
   }
 
@@ -97,16 +114,47 @@ export function AbsenceDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle>{isNew ? 'Teacher away' : 'Edit absence'}</DialogTitle>
+          <DialogTitle>{isNew ? 'Away or cancelled' : 'Edit'}</DialogTitle>
           <DialogDescription>
-            The teachers calendar, today&apos;s list and the room calendar update on their own for these dates.
+            The calendars, today&apos;s list and the room calendar update on their own for these dates.
           </DialogDescription>
         </DialogHeader>
         <div className="flex flex-col gap-4">
           <div className="flex flex-col gap-1.5">
-            <Label htmlFor="abs-teacher">Who is away</Label>
-            <PickOrType id="abs-teacher" value={teacher} onChange={(v) => { setTeacher(v); setClassId('') }} options={people} placeholder="Pick a teacher" emptyLabel="Pick a teacher" />
+            <Label>What is affected</Label>
+            <div className="grid grid-cols-3 gap-1 rounded-[10px] bg-secondary p-0.5">
+              {KINDS.map((o) => (
+                <button key={o.k} type="button" onClick={() => { setKind(o.k); if (o.k === 'event') setMode('cancel') }} className={cn('rounded-[8px] py-1.5 text-sm transition', kind === o.k ? 'bg-card font-semibold shadow-sm' : 'text-foreground/70')}>
+                  {o.label}
+                </button>
+              ))}
+            </div>
           </div>
+
+          {kind === 'teacher' && (
+            <div className="flex flex-col gap-1.5">
+              <Label htmlFor="abs-teacher">Who is away</Label>
+              <PickOrType id="abs-teacher" value={teacher} onChange={(v) => { setTeacher(v); setClassId('') }} options={people} placeholder="Pick a teacher" emptyLabel="Pick a teacher" />
+            </div>
+          )}
+          {kind === 'club' && (
+            <div className="flex flex-col gap-1.5">
+              <Label>Which club</Label>
+              <select value={clubId} onChange={(e) => setClubId(e.target.value)} className="rounded-lg border border-border bg-background px-2.5 py-2 text-sm">
+                <option value="">Pick a club</option>
+                {state.clubs.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
+              </select>
+            </div>
+          )}
+          {kind === 'event' && (
+            <div className="flex flex-col gap-1.5">
+              <Label>Which event</Label>
+              <select value={eventId} onChange={(e) => setEventId(e.target.value)} className="rounded-lg border border-border bg-background px-2.5 py-2 text-sm">
+                <option value="">Pick an event</option>
+                {state.events.map((e) => <option key={e.id} value={e.id}>{e.title}</option>)}
+              </select>
+            </div>
+          )}
 
           <div className="grid grid-cols-2 gap-3">
             <div className="flex flex-col gap-1.5">
@@ -150,6 +198,7 @@ export function AbsenceDialog({
             </div>
           </div>
 
+          {kind === 'teacher' && (
           <div className="flex flex-col gap-1.5">
             <Label>Which classes</Label>
             <select value={classId} onChange={(e) => setClassId(e.target.value)} className="rounded-lg border border-border bg-background px-2.5 py-2 text-sm" disabled={!teacher}>
@@ -157,26 +206,30 @@ export function AbsenceDialog({
               {theirClasses.map((c) => <option key={c.id} value={c.id}>Only {c.code}</option>)}
             </select>
           </div>
+          )}
 
           <div className="flex flex-col gap-1.5">
-            <Label>What happens to the classes</Label>
+            <Label>{kind === 'teacher' ? 'What happens to the classes' : kind === 'club' ? 'What happens to the club' : 'What happens to the event'}</Label>
             <div className="flex gap-2">
               <button type="button" onClick={() => setMode('cancel')} className={choice(mode === 'cancel')}>Cancelled<span className="block text-[11px] font-normal opacity-75">the room becomes free</span></button>
-              <button type="button" onClick={() => setMode('cover')} className={choice(mode === 'cover')}>Someone covers<span className="block text-[11px] font-normal opacity-75">the class still runs</span></button>
+              {kind !== 'event' && (
+                <button type="button" onClick={() => setMode('cover')} className={choice(mode === 'cover')}>{kind === 'club' ? 'Someone else leads' : 'Someone covers'}<span className="block text-[11px] font-normal opacity-75">{kind === 'club' ? 'the club still runs' : 'the class still runs'}</span></button>
+              )}
             </div>
-            {mode === 'cover' && (
-              <PickOrType id="abs-cover" value={cover} onChange={setCover} options={people.filter((p) => p !== teacher)} placeholder="Who is covering" emptyLabel="Pick the substitute" />
+            {kind !== 'event' && mode === 'cover' && (
+              <PickOrType id="abs-cover" value={cover} onChange={setCover} options={people.filter((p) => p !== teacher)} placeholder={kind === 'club' ? 'Who leads instead' : 'Who is covering'} emptyLabel="Pick the substitute" />
             )}
           </div>
 
           <div className="flex flex-col gap-1.5">
             <Label htmlFor="abs-note">Note (optional)</Label>
-            <Input id="abs-note" value={note} onChange={(e) => setNote(e.target.value)} placeholder="Only you see this" />
+            <span className="-mt-1 text-[11px] leading-tight text-muted-foreground">The calendars only say &quot;cancelled&quot; or who covers. The reason and this note stay on the Absences page and the admin room calendar, but they are saved with the rest of the app data, so keep them short and avoid private details.</span>
+            <Input id="abs-note" value={note} onChange={(e) => setNote(e.target.value)} placeholder="For you only, not shown on the calendars" />
           </div>
         </div>
         <DialogFooter className="gap-2">
           <Button variant="ghost" className="rounded-lg" onClick={() => onOpenChange(false)}>Cancel</Button>
-          <Button className="rounded-lg" onClick={save}>{isNew ? 'Save absence' : 'Save'}</Button>
+          <Button className="rounded-lg" onClick={save}>{isNew ? 'Save' : 'Save changes'}</Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>

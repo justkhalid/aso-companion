@@ -174,11 +174,15 @@ export interface TeamMember {
   email: string
 }
 
-/* a teacher who is away for a few days or weeks: their classes are cancelled or covered by someone else */
+/* something that does not run as usual for a few days or weeks: a teacher who is away (their classes),
+   a club, or an event. It is cancelled, or (classes and clubs) covered by someone else. */
 export interface Absence {
   id: string
-  teacher: string
-  classId?: string // empty = every class of that teacher
+  kind?: 'teacher' | 'club' | 'event' // missing = teacher (older entries)
+  teacher: string // kind teacher: who is away
+  classId?: string // kind teacher: empty = every class of that teacher
+  clubId?: string // kind club
+  eventId?: string // kind event
   from: string // ISO date, inclusive
   to: string // ISO date, inclusive
   reason: string // Sick, Away, ...
