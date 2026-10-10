@@ -266,7 +266,7 @@ export function RoomsPage({ embedded = false, focus, only = false }: { embedded?
       )}
 
       {/* days on the left, hours across the top, like the other calendars */}
-      <div className="overflow-x-auto rounded-2xl border border-border bg-card shadow-sm">
+      <div className="overflow-x-auto rounded-2xl border border-border bg-card aso-no-glow shadow-sm">
         <div style={{ minWidth: MIN_GRID }}>
           <div className="flex border-b border-border bg-secondary/40 text-[11px] font-bold text-muted-foreground">
             <div style={{ width: labelW }} className="shrink-0" />

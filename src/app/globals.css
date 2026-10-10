@@ -277,3 +277,5 @@
 @media (hover: hover) and (prefers-reduced-motion: no-preference) {
   .bg-card:hover { --glow-a: 1; }
 }
+/* calendars never glow (the card around a calendar included) */
+.bg-card.aso-no-glow, .bg-card:has(.aso-no-glow) { --glow-a: 0 !important; }

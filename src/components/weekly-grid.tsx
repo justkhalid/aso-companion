@@ -161,7 +161,7 @@ export function WeeklyGrid({
   const gridWidth = DAY_LABEL_W + span * HOUR_WIDTH
 
   return (
-    <div className="rounded-2xl border border-border bg-card p-2 sm:p-3">
+    <div className="rounded-2xl border border-border bg-card aso-no-glow p-2 sm:p-3">
       <div className="overflow-x-auto scroll-thin">
         <div style={{ minWidth: gridWidth, position: 'relative' }}>
           {/* Hour header row: each label sits ON the vertical line that marks
@@ -413,7 +413,7 @@ export function CalendarListView({
   }
 
   return (
-    <div className="rounded-2xl border border-border bg-card p-2 sm:p-4">
+    <div className="rounded-2xl border border-border bg-card aso-no-glow p-2 sm:p-4">
       {/* tone legend on top, like the grid keeps it at the bottom */}
       {legend && legend.length > 0 && (
         <div className="mb-3 flex flex-wrap gap-x-4 gap-y-1.5 border-b border-border/60 px-1 pb-3">
@@ -536,7 +536,7 @@ export function CalendarCardsView({
   }))
 
   return (
-    <div className="rounded-2xl border border-border bg-card p-2 sm:p-4">
+    <div className="rounded-2xl border border-border bg-card aso-no-glow p-2 sm:p-4">
       {/* tone legend on top, matching the list view */}
       {legend && legend.length > 0 && (
         <div className="mb-3 flex flex-wrap gap-x-4 gap-y-1.5 border-b border-border/60 px-1 pb-3">
