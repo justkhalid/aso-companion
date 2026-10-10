@@ -81,15 +81,15 @@ export function AppShell({ initialView }: { initialView?: View }) {
     return (
       <div className="flex min-h-screen flex-col bg-background">
         <PublicNav />
-        {pubView && (
+        {pubView && admin && (
           <div className="border-b border-primary/20 bg-primary/5">
             <div className="mx-auto flex max-w-6xl items-center gap-2 px-4 py-2">
-              <span className="text-xs font-semibold text-primary">Public preview</span>
+              <span className="text-xs font-semibold text-primary">Public view · signed in as admin</span>
               <button
                 onClick={() => setPubView(false)}
                 className="ml-auto text-xs font-bold text-primary hover:underline"
               >
-                Back to admin
+                Open admin menu
               </button>
             </div>
           </div>
@@ -97,7 +97,7 @@ export function AppShell({ initialView }: { initialView?: View }) {
         <main className="flex-1">
           <PageBody view={ev} admin={false} />
         </main>
-        <PublicFooter onAdmin={() => setView('login')} />
+        <PublicFooter admin={admin} onAdmin={() => (admin ? setPubView(false) : setView('login'))} />
         <AppToaster />
       </div>
     )
@@ -137,7 +137,8 @@ function computeView(view: View, admin: boolean, pubView: boolean): View {
   const allowedPublic: View[] = ['home', 'eltaso', 'level-detail', 'clubs', 'resources', 'reports', 'login']
   if (!admin) return allowedPublic.includes(view) ? view : 'home'
   if (pubView) return ['home', 'eltaso', 'level-detail', 'clubs', 'resources', 'reports'].includes(view) ? view : 'home'
-  return view
+  /* a signed-in admin never sees the sign-in screen */
+  return view === 'login' ? 'home' : view
 }
 
 function PageBody({ view, admin }: { view: View; admin: boolean }) {
@@ -177,7 +178,7 @@ function PageBody({ view, admin }: { view: View; admin: boolean }) {
   }
 }
 
-function PublicFooter({ onAdmin }: { onAdmin: () => void }) {
+function PublicFooter({ admin, onAdmin }: { admin: boolean; onAdmin: () => void }) {
   return (
     <footer className="mt-auto border-t border-border bg-background">
       <div className="mx-auto flex max-w-6xl flex-col items-center gap-3 px-4 py-6 text-center sm:flex-row sm:justify-between sm:text-left">
@@ -190,7 +191,7 @@ function PublicFooter({ onAdmin }: { onAdmin: () => void }) {
         <div className="flex items-center gap-3 text-xs text-muted-foreground">
           <span>{new Date().getFullYear()}</span>
           <button onClick={onAdmin} className="font-bold text-primary hover:underline">
-            Admin sign in
+            {admin ? 'Open admin menu' : 'Admin sign in'}
           </button>
         </div>
       </div>
