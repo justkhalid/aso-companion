@@ -36085,11 +36085,13 @@
     {
       "id": "t4",
       "name": "Chaimaa",
-      "role": "Volunteer Teacher",
+      "roles": [
+        "Teacher"
+      ],
+      "role": "Teacher",
       "duty": "ASO-K2 Kids",
       "phone": "",
-      "email": "",
-      "aso": ""
+      "email": ""
     },
     {
       "id": "t5",
@@ -37715,5 +37717,5 @@
   ],
   "reports": [],
   "libraryPins": [],
-  "_rev": 1791659989676
+  "_rev": 1791659989677
 }
