@@ -255,14 +255,15 @@ export function SettingsPage() {
         <div className="mt-5 grid gap-3 sm:grid-cols-2">
           <FieldText
             label="Teachers' access code"
-            value={s.teacherCode ?? ''}
+            /* same rule as the server: the old placeholder 'eltaso' or an empty field means the default code */
+            value={s.teacherCode && s.teacherCode !== 'eltaso' ? s.teacherCode : 'eltaso2026'}
             onChange={(v) => setSettings((x) => { x.teacherCode = v })}
             placeholder="eltaso2026"
             type="text"
           />
           <FieldText
             label="Interns' and volunteers' access code"
-            value={s.internCode ?? ''}
+            value={s.internCode || 'aso2026'}
             onChange={(v) => setSettings((x) => { x.internCode = v })}
             placeholder="aso2026"
             type="text"
