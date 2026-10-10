@@ -143,3 +143,15 @@ export const LP_STAGES_TEENS = {
 /* ---- local storage keys ---- */
 export const LS_KEY = 'aso-companion-v1'
 export const ROLE_KEY = 'aso-role' // 'admin' | 'pub'
+
+/* lesson stage labels for the Drive kit attached to each week */
+export const KIT_STAGE_LABELS: Record<string, string> = {
+  wu: 'Warm-up',
+  pres: 'Presentation',
+  prac: 'Practice',
+  ls: 'Listening',
+  re: 'Reactivation game',
+  prod: 'Production task',
+  rw: 'Reading & writing',
+  st: 'Story / song + goodbye',
+}

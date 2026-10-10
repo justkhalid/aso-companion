@@ -20,7 +20,7 @@ import {
   skillsOf,
   spotlightOf,
 } from '@/lib/app-utils'
-import { SKILLS, DAY_FULL } from '@/lib/constants'
+import { SKILLS, DAY_FULL, KIT_STAGE_LABELS } from '@/lib/constants'
 import { Chip, EmptyState } from '@/components/ui-bits'
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
@@ -292,7 +292,22 @@ export function LevelDetailPage({ admin }: { admin: boolean }) {
                       <Field label="Key language">{w.lang || '-'}</Field>
                       <Field label="Resources">
                         {w.res || '-'}
-                        {w.urls && w.urls.length > 0 && (
+                        {w.kit && w.kit.length > 0 && (
+                          <div className="mt-1.5 flex flex-col gap-1">
+                            {w.kit.map((k, i) => (
+                              <a
+                                key={i}
+                                href={k.u}
+                                target="_blank"
+                                rel="noopener"
+                                className="inline-flex items-center gap-1 text-xs font-semibold text-primary hover:underline"
+                              >
+                                {KIT_STAGE_LABELS[k.s] || k.s}: {k.l}
+                              </a>
+                            ))}
+                          </div>
+                        )}
+                        {w.urls && w.urls.length > 0 && !(w.kit && w.kit.length > 0) && (
                           <div className="mt-1.5 flex flex-col gap-1">
                             {w.urls.map((u, i) => (
                               <a
@@ -309,6 +324,11 @@ export function LevelDetailPage({ admin }: { admin: boolean }) {
                         )}
                       </Field>
                       <Field label="Activities">{w.act || '-'}</Field>
+                      {w.occ && (w.occ.act || w.occ.hw) && (
+                        <Field label="Occasion this week (optional)">
+                          {[w.occ.act, w.occ.hw && 'Homework: ' + w.occ.hw].filter(Boolean).join('\n')}
+                        </Field>
+                      )}
                       <Field label="Homework">{w.hw || '-'}</Field>
 
                       <div className="flex flex-wrap gap-2 pt-1">

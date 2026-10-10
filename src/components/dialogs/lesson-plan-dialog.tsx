@@ -1,7 +1,7 @@
 'use client'
 
 import * as React from 'react'
-import { Copy, Download, BookOpen } from 'lucide-react'
+import { Copy, Download, BookOpen, FileText, Folder, CalendarDays } from 'lucide-react'
 import {
   Dialog,
   DialogContent,
@@ -10,8 +10,8 @@ import {
 } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
 import { useStore } from '@/lib/store'
-import { LP_STAGES_KIDS, LP_STAGES_TEENS } from '@/lib/constants'
-import type { Level, LessonPlan } from '@/lib/types'
+import { LP_STAGES_KIDS, LP_STAGES_TEENS, KIT_STAGE_LABELS } from '@/lib/constants'
+import type { Level, LessonPlan, KitItem, KitStage } from '@/lib/types'
 
 function buildLpText(level: Level, wi: number): string {
   const w = level.weeks[wi]
@@ -59,6 +59,15 @@ function buildLpText(level: Level, wi: number): string {
   if (p.hw && p.hw.length) {
     t += '\nHOMEWORK OPTIONS\n- ' + p.hw.join('\n- ') + '\n'
   }
+  if (w.kit && w.kit.length) {
+    t += '\nTEACHER KIT (Drive)\n'
+    w.kit.forEach((k) => (t += `- ${KIT_STAGE_LABELS[k.s] || k.s}: ${k.l} ${k.u}\n`))
+  }
+  if (w.occ && (w.occ.act || w.occ.hw)) {
+    t += '\nOCCASION THIS WEEK (optional)\n'
+    if (w.occ.act) t += '- Activity: ' + w.occ.act + '\n'
+    if (w.occ.hw) t += '- Homework: ' + w.occ.hw + '\n'
+  }
   if (p.tip) t += '\nTIP: ' + p.tip + '\n'
   if (p.checklist && p.checklist.length) {
     t += '\nASSESSMENT OBSERVATION CHECKLIST (tick during play)\n'
@@ -67,6 +76,21 @@ function buildLpText(level: Level, wi: number): string {
     })
   }
   return t
+}
+
+function KitLink({ k }: { k: KitItem }) {
+  const Icon = k.t === 'folder' ? Folder : FileText
+  return (
+    <a
+      href={k.u}
+      target="_blank"
+      rel="noopener"
+      className="inline-flex max-w-full items-center gap-1 rounded-md border border-border bg-secondary px-2 py-0.5 text-[12px] font-semibold text-primary hover:underline"
+    >
+      <Icon className="h-3 w-3 shrink-0" />
+      <span className="truncate">{k.l}</span>
+    </a>
+  )
 }
 
 export function LessonPlanDialog({
@@ -102,6 +126,7 @@ export function LessonPlanDialog({
     )
   }
 
+  const kit: KitItem[] = w.kit || []
   const isKids = level.band === 'Kids' || level.key.indexOf('kids') === 0
   const T = isKids ? LP_STAGES_KIDS : LP_STAGES_TEENS
   const dur = isKids ? '2 hours' : '90 minutes'
@@ -122,6 +147,7 @@ export function LessonPlanDialog({
     main: string,
     alts?: string[],
     isBreak?: boolean,
+    key?: KitStage,
   ) => (
     <tr className={isBreak ? 'bg-[var(--aso-gold-tint)]' : ''}>
       <td className="w-[20%] px-3 py-2 align-top text-[13px] font-bold text-foreground">{name}</td>
@@ -131,6 +157,13 @@ export function LessonPlanDialog({
         {alts && alts.length > 0 && (
           <div className="mt-1.5 text-[12px] text-muted-foreground">
             <b className="text-[var(--aso-gold)]">Also try:</b> {alts.join(' · ')}
+          </div>
+        )}
+        {key && kit.some((k) => k.s === key) && (
+          <div className="mt-1.5 flex flex-wrap gap-1.5">
+            {kit.filter((k) => k.s === key).map((k, i) => (
+              <KitLink key={i} k={k} />
+            ))}
           </div>
         )}
       </td>
@@ -153,6 +186,42 @@ export function LessonPlanDialog({
         </DialogHeader>
 
         <div className="flex flex-col gap-4">
+          {/* occasion of the week */}
+          {w.occ && (w.occ.act || w.occ.hw) && (
+            <div className="rounded-lg border border-[var(--aso-gold)]/40 bg-[var(--aso-gold-tint)] px-3 py-2 text-[13px] leading-relaxed">
+              <div className="mb-0.5 flex items-center gap-1.5 text-[12px] font-bold uppercase tracking-wider text-[var(--aso-gold)]">
+                <CalendarDays className="h-3.5 w-3.5" /> Occasion this week (optional)
+              </div>
+              {w.occ.act && <div><b>Activity:</b> {w.occ.act}</div>}
+              {w.occ.hw && <div><b>Homework:</b> {w.occ.hw}</div>}
+            </div>
+          )}
+
+          {/* teacher kit */}
+          {kit.length > 0 && (
+            <div>
+              <div className="mb-1.5 text-[12px] font-bold uppercase tracking-wider text-muted-foreground">
+                Teacher kit · open before class
+              </div>
+              <div className="overflow-hidden rounded-lg border border-border">
+                <table className="w-full border-collapse">
+                  <tbody className="divide-y divide-border">
+                    {kit.map((k, i) => (
+                      <tr key={i}>
+                        <td className="w-[28%] px-3 py-1.5 align-top text-[12px] font-bold text-muted-foreground">
+                          {KIT_STAGE_LABELS[k.s] || k.s}
+                        </td>
+                        <td className="px-3 py-1.5 align-top">
+                          <KitLink k={k} />
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          )}
+
           {/* staged table */}
           <div>
             <div className="mb-1.5 text-[12px] font-bold uppercase tracking-wider text-muted-foreground">
@@ -169,15 +238,15 @@ export function LessonPlanDialog({
                 </thead>
                 <tbody className="divide-y divide-border">
                   {stage('Hello & routine', T.hello, helloTxt)}
-                  {stage('Warm-up review', T.wu, p.wu, p.wuAlt)}
-                  {stage('Presentation', T.pres, p.pres, p.presAlt)}
-                  {stage('Practice (guided)', T.prac, p.prac, p.pracAlt)}
-                  {stage('Listening slot', T.ls, p.ls)}
+                  {stage('Warm-up review', T.wu, p.wu, p.wuAlt, false, 'wu')}
+                  {stage('Presentation', T.pres, p.pres, p.presAlt, false, 'pres')}
+                  {stage('Practice (guided)', T.prac, p.prac, p.pracAlt, false, 'prac')}
+                  {stage('Listening slot', T.ls, p.ls, undefined, false, 'ls')}
                   {stage('BREAK', T.brk, brkTxt, undefined, true)}
-                  {stage('Reactivation game', T.re, p.re)}
-                  {stage('Production task', T.prod, p.prod)}
-                  {stage('Reading & writing', T.rw, p.rw)}
-                  {stage('Story / song + goodbye', T.st, p.st)}
+                  {stage('Reactivation game', T.re, p.re, undefined, false, 're')}
+                  {stage('Production task', T.prod, p.prod, undefined, false, 'prod')}
+                  {stage('Reading & writing', T.rw, p.rw, undefined, false, 'rw')}
+                  {stage('Story / song + goodbye', T.st, p.st, undefined, false, 'st')}
                 </tbody>
               </table>
             </div>
