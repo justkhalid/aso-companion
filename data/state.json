@@ -306,7 +306,7 @@
         {
           "theme": "Colors",
           "obj": "recognize and say 5 colors and answer What color is it?",
-          "lang": "red, blue, yellow, green, black; What color is it? It is...",
+          "lang": "red, blue, yellow, green, black; What color is it? It is...; bonus shapes: circle, square, triangle",
           "res": "Flashcards/Shapes-Colours; Music/Songs (Colors Action Song)",
           "urls": [
             "https://drive.google.com/drive/folders/15f6vAMGZtGhfaHNik6-WtDFTv0KVbyMb",
@@ -340,7 +340,7 @@
             "re": "Colour bingo mini-round: each child picks 3 colour cards; teacher pulls colours from a bag; winners shout Bingo!",
             "prod": "Team colour collage: each team gets a big paper with their colour name; they cut/glue magazine pictures or draw items of that colour, then present: \"It is blue!\"",
             "rw": "Trace the 5 colour words and colour the splashes correctly. Fast finishers: write the colour of 3 objects in the room.",
-            "st": "Colors Action Song (Music/Songs) with full-body actions; picture-book colour questions (\"What colour is the bear?\"). Goodbye routine: Goodbye Song + sticker chart + high-five line.",
+            "st": "Colors Action Song (Music/Songs) with full-body actions; picture-book colour questions (\"What colour is the bear?\"). Goodbye routine: Goodbye Song + sticker chart + high-five line. Bonus: Shapes Song (circle, square, triangle), listen and point only.",
             "g": [
               [
                 "Colour Corners",
@@ -505,7 +505,7 @@
               "Trace numbers 1-10 sheet and draw the right dots next to each.",
               "Play Listen & Count with a parent clapping."
             ],
-            "tip": "Halloween falls this week (Oct 26-Nov 1) · if you celebrate it in class, swap the story slot for the Seasonal Halloween pack story and keep numbers as the main lesson."
+            "tip": "Halloween falls this week (Oct 26-Nov 1). Keep Numbers as the main lesson; if you celebrate, use the optional Halloween preview in the Occasion note. The full Halloween lesson is Week 7."
           },
           "kit": [
             {
@@ -551,12 +551,22 @@
               "t": "file"
             },
             {
+              "l": "Halloween flashcards (optional preview)",
+              "s": "re",
+              "u": "https://drive.google.com/drive/folders/1DeO7FeVEckaBKccQpaVZeipvqgCsCAmR",
+              "t": "folder"
+            },
+            {
               "l": "Let's Count to 20 Song For Kids",
               "s": "st",
               "u": "https://drive.google.com/file/d/0BwhmhpLZJ1FySHlVQWlxbDgzSm8/view",
               "t": "file"
             }
-          ]
+          ],
+          "occ": {
+            "act": "Optional 10-minute Halloween preview: echo pumpkin, witch, ghost and candy with the Halloween flashcards. The full Halloween lesson is Week 7.",
+            "hw": ""
+          }
         },
         {
           "theme": "Colors + numbers review",
@@ -879,7 +889,7 @@
               "Colour the Halloween sheet and label the 4 words.",
               "Find a Halloween image (book/internet) and bring one word to teach the class."
             ],
-            "tip": "Culture note for the class: Halloween is \"fun scary\", not real scary. Keep lights on for sensitive children and check families are comfortable · offer an autumn-pumpkin framing as an alternative."
+            "tip": "Culture note for the class: Halloween is \"fun scary\", not real scary. Keep lights on for sensitive children and check families are comfortable · offer an autumn-pumpkin framing as an alternative. By Week 7 Halloween has already passed: present it as a pumpkin-and-autumn special."
           },
           "kit": [
             {
@@ -1838,7 +1848,7 @@
               "Sing one carol chorus at home.",
               "Count the days to Christmas in English (advent counting)."
             ],
-            "tip": "Week 15 is the Semester 1 assessment. Print the observation checklist beforehand and keep this week festive and light: card, carols, review stations."
+            "tip": "Week 15 is the Semester 1 assessment. Print the observation checklist beforehand and keep this week festive and light: card, carols, review stations. Christmas has already passed by this date: run it as a winter-festival and New Year recap, or swap it with Week 12 (21 Dec) if you prefer."
           },
           "kit": [
             {
@@ -1918,7 +1928,7 @@
             "https://drive.google.com/drive/folders/0B2Q8XuO2ebzxaG91Q1E3S0FxTVU"
           ],
           "act": "Carousel of 6 mini assessment games; teacher completes observation checklist",
-          "hw": "Report cards + parent message sent home",
+          "hw": "Show your sticker trail to family and tell them 3 English words from today.",
           "skills": {
             "L": "Listen-and-do tasks through games (Tests + observation checklist)",
             "S": "One-to-one picture chat: name, colours, numbers, animals",
@@ -1974,9 +1984,9 @@
             "hw": [
               "Show your sticker trail to family and tell them 3 English words from today.",
               "Play teacher: teach one Game-Day game to someone at home.",
-              "Holiday mission: find 5 English words around you and bring them in January."
+              "Mission: find 5 English words around you and bring them next week."
             ],
-            "tip": "Tick the checklist DURING play, never as a table test. If a child freezes, play once more later · the record should show their best normal self.",
+            "tip": "Tick the checklist DURING play, never as a table test. If a child freezes, play once more later · the record should show their best normal self. Send the report cards and the parent message home this week.",
             "checklist": [
               "Says name and greets (Hello, I am...)",
               "Follows classroom instructions",
@@ -2019,12 +2029,6 @@
               "t": "folder"
             },
             {
-              "l": "Student progress monitoring sheets (assessment)",
-              "s": "prod",
-              "u": "https://drive.google.com/drive/folders/1Yp3oHvN3hqQTQBeye-5Fs_kEfM5Ba-Z6",
-              "t": "folder"
-            },
-            {
               "l": "Letter assessment sheet",
               "s": "prod",
               "u": "https://drive.google.com/file/d/1Dj1ZbvZLuZUxhDCdH6K19Zsx1nsNte_z/view",
@@ -2034,8 +2038,8 @@
         },
         {
           "theme": "My body",
-          "obj": "name 8 body parts and touch them on command",
-          "lang": "head, shoulders, knees, arms, hands, feet, eyes, ears",
+          "obj": "name 6 body parts and touch them on command (arms and ears are bonus words)",
+          "lang": "head, shoulders, knees, hands, feet, eyes; bonus: arms, ears",
           "res": "Flashcards/Body; Music/Songs (Head, Shoulders song)",
           "urls": [
             "https://drive.google.com/drive/folders/1iozAGEIphc1voShAuqPpPJdedqfOhR6m",
@@ -2050,12 +2054,12 @@
             "W": "Trace body words; label a simple body outline"
           },
           "lp": {
-            "wu": "Hello + feelings (re-establish routines after the long break · expect to re-teach, that is normal); welcome-back song; holiday words show-and-tell.",
+            "wu": "Hello + feelings (first week of Semester 2: re-establish routines · expect to re-teach, that is normal); welcome-back song; favourite-word show-and-tell.",
             "wuAlt": [
               "Reset the rules poster: children \"read\" it with actions",
               "Ball toss name round to relearn names together"
             ],
-            "pres": "My body: present 8 parts (head, shoulders, knees, arms, hands, feet, eyes, ears) with the Body flashcards + Head, Shoulders, Knees & Toes · the song IS the presentation.",
+            "pres": "My body: present 6 core parts (head, shoulders, knees, hands, feet, eyes), with arms and ears as bonus words for confident children with the Body flashcards + Head, Shoulders, Knees & Toes · the song IS the presentation.",
             "presAlt": [
               "Body outline: trace a child on big paper; label together",
               "Robot teacher: teacher points at own body parts robotically; children name"
@@ -2068,7 +2072,7 @@
             "ls": "Listen and point (partner): teacher whispers-pace descriptions (\"Touch something you hear with...\"); children listen and point on a body poster.",
             "re": "Speed song round: children choose slow/normal/fast for each verse · voting = speaking (\"Fast, please!\" · polite request recycle!).",
             "prod": "Monster maker: groups invent a monster with the right number of parts (\"Three eyes! Six arms!\") and draw + present it: \"My monster has two heads.\"",
-            "rw": "Label the body outline sheets: trace words, stick or write labels on the drawing. Fast finishers: copy all 8 words from the wall chart.",
+            "rw": "Label the body outline sheets: trace words, stick or write labels on the drawing. Fast finishers: copy the 6 core words from the wall chart.",
             "st": "Head, Shoulders finale + \"One Little Finger\" variation song (Music/Songs). Goodbye routine: Goodbye Song + sticker chart + high-five line.",
             "g": [
               [
@@ -2093,7 +2097,7 @@
               ]
             ],
             "diff": [
-              "Fast finishers: add fingers, toes, nose, mouth as bonus parts.",
+              "Fast finishers: add arms, ears, fingers, toes, nose, mouth as bonus parts.",
               "Support: song with pointing support; word mat with pictures."
             ],
             "hw": [
@@ -2174,8 +2178,8 @@
         },
         {
           "theme": "Actions and movement",
-          "obj": "understand and produce 8 action verbs with TPR",
-          "lang": "clap, jump, run, walk, swim, fly, eat, sleep",
+          "obj": "understand and produce 6 action verbs with TPR (swim and fly are bonus verbs)",
+          "lang": "clap, jump, run, walk, eat, sleep; bonus: swim, fly",
           "res": "Flashcards/Actions; Games/Game ideas",
           "urls": [
             "https://drive.google.com/drive/folders/0BwhmhpLZJ1FyVHpLODVtSkVCQjA",
@@ -2195,7 +2199,7 @@
               "Body bingo quick round",
               "\"Wiggle your fingers, stomp your feet\" action chant"
             ],
-            "pres": "Action verbs: clap, jump, run, walk, swim, fly, eat, sleep with the Actions flashcards + full TPR · teacher does, children mirror while saying.",
+            "pres": "Action verbs: clap, jump, run, walk, eat, sleep (plus swim and fly as bonus verbs for confident children) with the Actions flashcards + full TPR · teacher does, children mirror while saying.",
             "presAlt": [
               "Verb cards + drum: drum beat = do the verb",
               "Sleeping giant story: giant does actions, children narrate with cards"
@@ -2233,7 +2237,7 @@
               ]
             ],
             "diff": [
-              "Fast finishers: write the 8 verbs from memory in 60 seconds.",
+              "Fast finishers: write the 6 core verbs from memory in 60 seconds.",
               "Support: verb picture mat; do actions WITH the child, not at them."
             ],
             "hw": [
@@ -2685,7 +2689,7 @@
         {
           "theme": "Weather and seasons",
           "obj": "recognize 4 weather words and report today's weather",
-          "lang": "sunny, rainy, windy, cloudy; What is the weather like?",
+          "lang": "sunny, rainy, windy, cloudy; What is the weather like?; bonus: Monday to Sunday (weather chart labels)",
           "res": "Flashcards/Seasons-Weather",
           "urls": [
             "https://drive.google.com/drive/folders/0B2Q8XuO2ebzxYmdCUXZJMVJNM1E"
@@ -2718,7 +2722,7 @@
             "re": "Seasons bonus: 4 seasons cards; sort weather cards under seasons; sing a seasons verse.",
             "prod": "TV weather studio: pairs present a \"forecast\" with the map, gestures and the microphone: \"Hello! It is sunny in Oujda!\" Film it; parents will replay it forever.",
             "rw": "Trace weather words; daily weather chart sheet (Mon-Sun icons to colour). Fast finishers: write \"It is windy.\"",
-            "st": "Weather song / \"Rain, Rain, Go Away\" (Music/Songs) with umbrella actions. Goodbye routine: Goodbye Song + sticker chart + high-five line.",
+            "st": "Weather song / \"Rain, Rain, Go Away\" (Music/Songs) with umbrella actions. Goodbye routine: Goodbye Song + sticker chart + high-five line. Then the Days of the week chant for the weather chart (Monday to Sunday, listen and point).",
             "g": [
               [
                 "Four Corners: Weather",
@@ -2818,13 +2822,19 @@
               "s": "st",
               "u": "https://drive.google.com/file/d/0BwhmhpLZJ1FyR0RBWnpPSWhxUkk/view",
               "t": "file"
+            },
+            {
+              "l": "Days of the week (video)",
+              "s": "st",
+              "u": "https://drive.google.com/file/d/1VPhx-syTmgXjzfsQcD6j_4HLTxHpcV3p/view",
+              "t": "file"
             }
           ]
         },
         {
           "theme": "Pets and I have got",
           "obj": "say I have got a (pet) and ask And you?",
-          "lang": "cat, dog, bird, fish; I have got... Have you got...?",
+          "lang": "cat, dog, bird, fish; I have got... Have you got...?; bonus: counting 11-20 (song)",
           "res": "Flashcards/Animals; Lesson Plans/Animals",
           "urls": [
             "https://drive.google.com/drive/folders/0B2Q8XuO2ebzxbXVIQWs2YzFzNnc",
@@ -2858,7 +2868,7 @@
             "re": "Animal families sort: pet / farm / wild hoops · the full year of animals in one sort, said aloud as placed.",
             "prod": "My dream pet poster: draw it, name it, present with 2 lines: \"I have got a dragon! It is big!\" · dream pets allowed and encouraged.",
             "rw": "Trace pet words + \"I have got a ___\" frame. Fast finishers: write 2 sentences about the dream pet.",
-            "st": "Pet song/chant; animal storybook with pet characters. Goodbye routine: Goodbye Song + sticker chart + high-five line.",
+            "st": "Counting to 20 song (numbers 11-20 as a bonus: sing and point along) and a pet song/chant; animal storybook with pet characters. Goodbye routine: Goodbye Song + sticker chart + high-five line.",
             "g": [
               [
                 "Pet Circle (And you?)",
@@ -2946,6 +2956,12 @@
               "s": "rw",
               "u": "https://drive.google.com/drive/folders/0B2Q8XuO2ebzxX3dkQzZ4aGhZc2c",
               "t": "folder"
+            },
+            {
+              "l": "Let's Count to 20 Song For Kids",
+              "s": "st",
+              "u": "https://drive.google.com/file/d/0BwhmhpLZJ1FySHlVQWlxbDgzSm8/view",
+              "t": "file"
             }
           ]
         },
@@ -3238,6 +3254,12 @@
               "t": "folder"
             },
             {
+              "l": "ABC song (vehicles, A-Z)",
+              "s": "re",
+              "u": "https://drive.google.com/file/d/1JPuS0VWbOfv5mFT5HhCpIOIMPnlKjCPZ/view",
+              "t": "file"
+            },
+            {
               "l": "ABC book for kids",
               "s": "rw",
               "u": "https://drive.google.com/file/d/13xKjDa8MxgXYxxZqX30uhbIDYADkRw8p/view",
@@ -3260,13 +3282,19 @@
               "s": "st",
               "u": "https://drive.google.com/file/d/0BwhmhpLZJ1FyWGFJeDZQdW9LaTQ/view",
               "t": "file"
+            },
+            {
+              "l": "Dr. Seuss ABC (audio read-aloud)",
+              "s": "st",
+              "u": "https://drive.google.com/file/d/0B2Q8XuO2ebzxejhGbFB3NDFQRFU/view",
+              "t": "file"
             }
           ]
         },
         {
           "theme": "Easter/spring review special",
-          "obj": "review colors, numbers, animals through seasonal games",
-          "lang": "review weeks 16-24 language",
+          "obj": "name 5 spring words and say what there is / there are in a picture; review colours, numbers and animals through seasonal games",
+          "lang": "flower, egg, chick, bunny, butterfly; There is... / There are...; review weeks 16-24 language",
           "res": "Games/Printable games; Worksheets",
           "urls": [
             "https://drive.google.com/drive/folders/1Idv1DcKhKECfnyljCYwO3tVfASMZqbpS",
@@ -3772,7 +3800,7 @@
             "https://drive.google.com/drive/folders/0B2Q8XuO2ebzxWGNVUzNVUVF2dEE"
           ],
           "act": "6 stations: colors/numbers, animals, food, family, body, weather; station passports stamped",
-          "hw": "Complete observation checklist pre-fill",
+          "hw": "Teach your family ONE game from this year (your choice).",
           "skills": {
             "L": "Listen-and-do stations mixing songs and instructions",
             "S": "Station games - say, ask and answer across the year's topics",
@@ -3830,7 +3858,7 @@
               "Practise your portfolio words for the celebration.",
               "Choose your favourite English word of the year · bring it Friday."
             ],
-            "tip": "Photo/video the station carousel: it is the single best artifact of the year for parents and for your own CPD file."
+            "tip": "Photo/video the station carousel: it is the single best artifact of the year for parents and for your own CPD file. Pre-fill the observation checklist before Week 30."
           },
           "kit": [
             {
@@ -3902,7 +3930,7 @@
             "https://drive.google.com/drive/folders/0B2Q8XuO2ebzxaG91Q1E3S0FxTVU"
           ],
           "act": "Assessment games in pairs; mini ceremony rehearsal; goodbye circle with stamps",
-          "hw": "Final report cards sent; certificates at ceremony",
+          "hw": "Summer mission card: 5 star activities (one song a week, teach a game, find 10 English words, read the dictionary page, watch one cartoon in English).",
           "skills": {
             "L": "Listen-and-do assessment games (Tests)",
             "S": "Mini speaking chat through game tasks, then celebrate",
@@ -3960,11 +3988,11 @@
               "Keep the portfolio and dictionary at home · read it in September with pride.",
               "Write (or trace) one letter to next year's class: \"English is fun!\""
             ],
-            "tip": "End on identity: \"You are English speakers now.\" Certificates + photos + the mission card turn June momentum into September readiness.",
+            "tip": "End on identity: \"You are English speakers now.\" Certificates + photos + the mission card turn June momentum into September readiness. Send the final report cards home and hand out the certificates at the ceremony.",
             "checklist": [
               "Says name and greets (Hello, I am...)",
               "Follows classroom instructions",
-              "Names colours + counts 1-10 (and beyond)",
+              "Names colours + counts 1-10 (some to 20)",
               "Names key topic vocabulary (animals/food/clothes...)",
               "Reads 3-letter words (cat, pen)",
               "Writes name + words from memory",
@@ -4015,12 +4043,6 @@
               "t": "folder"
             },
             {
-              "l": "Student progress monitoring sheets (assessment)",
-              "s": "prod",
-              "u": "https://drive.google.com/drive/folders/1Yp3oHvN3hqQTQBeye-5Fs_kEfM5Ba-Z6",
-              "t": "folder"
-            },
-            {
               "l": "its my job",
               "s": "st",
               "u": "https://drive.google.com/file/d/0BwhmhpLZJ1FyY0tKSVl6RnE2ZUE/view",
@@ -4028,8 +4050,8 @@
             }
           ],
           "occ": {
-            "act": "Jobs guessing game (What does a ... do?); thank-you cards for workers we know.",
-            "hw": "Draw one job you love and write 3 sentences about it."
+            "act": "Jobs mime: the teacher mimes teacher, doctor, driver and cook; children guess in any language and repeat the English word. Thank-you cards for workers we know (copy \"Thank you\").",
+            "hw": "Draw one job you love; the teacher writes the English word for you to copy."
           }
         }
       ],
@@ -21202,5 +21224,5 @@
   ],
   "reports": [],
   "libraryPins": [],
-  "_rev": 1791637698278
+  "_rev": 1791639371307
 }
