@@ -208,10 +208,10 @@ export const useStore = create<UIStore>((set, get) => ({
       ok = known && !!local && typed === String(local)
     }
     if (!ok) return false
-    set({ admin: true, pubView: false, rememberDevice: remember, view: 'home', side: 'elt' })
+    set({ admin: true, pubView: false, rememberDevice: remember, view: 'dashboard', side: 'elt' })
     lsSet(ADMIN_SEEN_KEY, '1')
     if (remember) lsSet(ROLE_KEY, 'admin')
-    syncViewUrl('home', 'replace', true)
+    syncViewUrl('dashboard', 'replace', true)
     /* the copy this device holds may be the cut-down public one: pull the full admin copy */
     void get().loadFromCloud()
     return true

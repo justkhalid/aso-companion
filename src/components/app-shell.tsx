@@ -23,7 +23,7 @@ import { RoomsPage } from './pages/rooms-page'
 import { AbsencesPage } from './pages/absences-page'
 import { LibraryPage } from './pages/library-page'
 import { ReportsPage } from './pages/reports-page'
-import { InternOverview } from './pages/intern-overview'
+import { DashboardPage } from './pages/dashboard-page'
 import { InternClubsPage } from './pages/intern-clubs-page'
 import { InternEventsPage } from './pages/intern-events-page'
 import { InternVolunteersPage } from './pages/intern-volunteers-page'
@@ -76,7 +76,7 @@ export function AppShell({ initialView }: { initialView?: View }) {
     const st = useStore.getState()
     if (st.admin) {
       st.setPubView(false)
-      setView(adminViewFromPath(path) || 'home')
+      setView(adminViewFromPath(path) || 'dashboard')
     } else setView('login')
   }, [boot])
 
@@ -153,7 +153,7 @@ export function AppShell({ initialView }: { initialView?: View }) {
             <div className="mx-auto flex max-w-6xl items-center gap-2 px-4 py-2">
               <span className="text-xs font-semibold text-primary">Public view · signed in as admin</span>
               <button
-                onClick={() => setPubView(false)}
+                onClick={() => { setPubView(false); setView('dashboard') }}
                 className="ml-auto text-xs font-bold text-primary hover:underline"
               >
                 Open admin menu
@@ -173,10 +173,11 @@ export function AppShell({ initialView }: { initialView?: View }) {
   // admin chrome
   return (
     <div className="flex min-h-screen bg-background">
+      <a href="#main" className="sr-only focus:not-sr-only focus:fixed focus:left-3 focus:top-3 focus:z-[200] focus:rounded-full focus:bg-primary focus:px-4 focus:py-2 focus:text-sm focus:font-bold focus:text-primary-foreground">Skip to content</a>
       <AdminSidebar mobileNavOpen={mobileNav} setMobileNavOpen={setMobileNav} />
       <div className="flex min-w-0 flex-1 flex-col">
         <AdminTopbar setMobileNavOpen={setMobileNav} />
-        <main className="flex-1">
+        <main id="main" tabIndex={-1} className="flex-1 outline-none">
           <div key={ev} className="aso-page"><PageBody view={ev} admin /></div>
         </main>
       </div>
@@ -207,11 +208,13 @@ function computeView(view: View, admin: boolean, pubView: boolean): View {
   if (!admin) return allowedPublic.includes(view) ? view : 'home'
   if (pubView) return ['landing', 'home', 'eltaso', 'level-detail', 'resources', 'intern-public', 'interns-events', 'interns-clubs', 'interns-rooms', 'interns-report', 'teacher-rooms', 'reports'].includes(view) ? view : 'home'
   /* a signed-in admin never sees the sign-in screen or the public main page inside the admin shell */
-  return view === 'login' || view === 'landing' ? 'home' : view
+  return view === 'login' || view === 'landing' ? 'dashboard' : view === 'intern' ? 'dashboard' : view
 }
 
 function PageBody({ view, admin }: { view: View; admin: boolean }) {
   switch (view) {
+    case 'dashboard':
+      return admin ? <DashboardPage /> : <HomePage admin={false} />
     case 'home':
       return <HomePage admin={admin} />
     case 'eltaso':
@@ -219,7 +222,7 @@ function PageBody({ view, admin }: { view: View; admin: boolean }) {
     case 'level-detail':
       return <LevelDetailPage admin={admin} />
     case 'clubs':
-      return <ClubsPage admin={admin} />
+      return <ClubsPage admin={admin} section={admin ? 'calendar' : undefined} />
     case 'landing':
       return <HomePage admin={admin} />
     case 'teacher-rooms':
@@ -247,7 +250,7 @@ function PageBody({ view, admin }: { view: View; admin: boolean }) {
     case 'reports':
       return <ReportsPage />
     case 'intern':
-      return admin ? <InternOverview /> : <HomePage admin={false} />
+      return admin ? <DashboardPage /> : <HomePage admin={false} />
     case 'intern-clubs':
       return admin ? <InternClubsPage /> : <ClubsPage admin={false} />
     case 'intern-events':

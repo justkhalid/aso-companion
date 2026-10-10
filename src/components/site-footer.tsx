@@ -45,7 +45,7 @@ export function SiteFooter({ current }: { current: Side }) {
             <button onClick={signOutViewer} className="text-muted-foreground hover:text-foreground">Sign out</button>
           )}
           {admin ? (
-            <button onClick={() => { setPubView(false); setView('home') }} className="text-primary hover:underline">Open admin menu</button>
+            <button onClick={() => { setPubView(false); setView('dashboard') }} className="text-primary hover:underline">Open admin menu</button>
           ) : (
             <button onClick={() => setView('login')} className="text-primary hover:underline">Admin sign in</button>
           )}

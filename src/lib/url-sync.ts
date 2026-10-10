@@ -13,10 +13,11 @@ import type { View } from './types'
      /interns/clubs       -> all clubs and what is expected of volunteers
      /interns/rooms       -> free rooms
      /interns/report      -> how to report after a session
-     /admin               -> the admin's own site (sign-in when signed out)
-     /admin/classes, /admin/team, /admin/rooms, /admin/absences, /admin/library,
-     /admin/settings, /admin/clubs, /admin/reports, /admin/eltaso, /admin/resources,
-     /admin/interns (+ /clubs /events /volunteers) -> the admin screens
+     /admin               -> the admin's dashboard (sign-in when signed out)
+     /admin/schedule      -> week schedule
+     /admin/teaching/...  -> classes, levels, library, reports, resources
+     /admin/clubs/...     -> calendar, (clubs), events, volunteers
+     /admin/rooms, /admin/people/absences, /admin/people/team, /admin/settings
    Old paths (/eltaso, /resources, /clubs) redirect to their new home.
    Transient public sub-views (level-detail) keep the parent tab's path, and
    admin-only views never push a path; if the URL currently shows a public
@@ -78,22 +79,23 @@ export function syncViewUrl(v: View, mode: 'push' | 'replace' = 'push', admin = 
 
 /* the admin's own paths, used while an admin is working inside the admin shell */
 const ADMIN_PATH: Partial<Record<View, string>> = {
-  home: '/admin',
-  classes: '/admin/classes',
-  team: '/admin/team',
+  dashboard: '/admin',
+  intern: '/admin',
+  home: '/admin/schedule',
+  classes: '/admin/teaching/classes',
+  eltaso: '/admin/teaching/levels',
+  'level-detail': '/admin/teaching/levels',
+  library: '/admin/teaching/library',
+  reports: '/admin/teaching/reports',
+  resources: '/admin/teaching/resources',
+  clubs: '/admin/clubs/calendar',
+  'intern-clubs': '/admin/clubs',
+  'intern-events': '/admin/clubs/events',
+  'intern-volunteers': '/admin/clubs/volunteers',
   rooms: '/admin/rooms',
-  absences: '/admin/absences',
-  library: '/admin/library',
+  absences: '/admin/people/absences',
+  team: '/admin/people/team',
   settings: '/admin/settings',
-  clubs: '/admin/clubs',
-  reports: '/admin/reports',
-  eltaso: '/admin/eltaso',
-  'level-detail': '/admin/eltaso',
-  resources: '/admin/resources',
-  intern: '/admin/interns',
-  'intern-clubs': '/admin/interns/clubs',
-  'intern-events': '/admin/interns/events',
-  'intern-volunteers': '/admin/interns/volunteers',
   login: '/admin',
 }
 
@@ -105,7 +107,7 @@ export function isAdminPath(pathname: string): boolean {
 export function adminViewFromPath(pathname: string): View | null {
   const p = pathname.length > 1 ? pathname.replace(/\/+$/, '') : pathname
   for (const [v, path] of Object.entries(ADMIN_PATH)) {
-    if (path === p && v !== 'level-detail' && v !== 'login') return v as View
+    if (path === p && v !== 'level-detail' && v !== 'login' && v !== 'intern') return v as View
   }
   return null
 }

@@ -49,7 +49,7 @@ import { WeeklyGrid, CalendarListView, CalendarCardsView, CalViewSwitcher, readC
 import { ClubDialog } from '@/components/dialogs/club-dialog'
 import { EventDialog } from '@/components/dialogs/event-dialog'
 import { CalendarExportMenu } from '@/components/calendar-export'
-import { openClubsSheet } from '@/lib/clubs-sheet'
+import { downloadClubsPng } from '@/lib/clubs-sheet'
 import { DropdownMenuItem, DropdownMenuSeparator, DropdownMenuLabel } from '@/components/ui/dropdown-menu'
 import { PageHead, SectionHeader, LinkButton, Chip, EmptyState } from '@/components/ui-bits'
 import { Button } from '@/components/ui/button'
@@ -180,12 +180,12 @@ export function ClubsPage({ admin, internMode = false, section }: { admin: boole
         subtitle={section === 'calendar' ? 'The week of club sessions' : section === 'events' ? 'What is coming up, with dates and how often it repeats' : section === 'clubs' ? 'Every club, and what is expected of volunteers' : internMode ? 'For ASO interns · the week of club sessions, what is coming up and every club in one place' : `The American Space week · club sessions and what is coming up${admin ? '' : ' · open to everyone'}`}
         right={
           <div className="flex flex-wrap gap-2">
-            {admin && (
+            {admin && !section && (
               <Button size="sm" onClick={() => setClubDialog({ open: true, club: null })}>
                 <Plus className="h-4 w-4" /> Add club
               </Button>
             )}
-            {admin && (
+            {admin && !section && (
               <Button size="sm" variant="outline" onClick={() => setEventDialog({ open: true, event: null })}>
                 <Plus className="h-4 w-4" /> Add event
               </Button>
@@ -199,12 +199,12 @@ export function ClubsPage({ admin, internMode = false, section }: { admin: boole
                   <DropdownMenuLabel className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground">Clubs</DropdownMenuLabel>
                   <DropdownMenuItem
                     className="items-start gap-3 py-2"
-                    onSelect={() => { if (!openClubsSheet(state)) toast('Allow pop-ups for this site to open the sheet', false) }}
+                    onSelect={() => { void downloadClubsPng(state).then((ok) => toast(ok ? 'Image downloaded' : 'Nothing to export', ok)) }}
                   >
-                    <FileText className="mt-0.5 h-4 w-4" />
+                    <LayoutGrid className="mt-0.5 h-4 w-4" />
                     <span className="flex flex-col">
-                      <span className="text-sm font-semibold">All clubs with posters (PDF)</span>
-                      <span className="text-xs text-muted-foreground">One page per club, poster in full, time and place below</span>
+                      <span className="text-sm font-semibold">All clubs on one page (PNG)</span>
+                      <span className="text-xs text-muted-foreground">Four per row, posters in full, time and place below each</span>
                     </span>
                   </DropdownMenuItem>
                 </>

@@ -95,6 +95,7 @@ export function SettingsPage() {
   const stateChars = React.useMemo(() => compactSize(state), [state])
 
   const s = state.settings
+  const [tab, setTab] = React.useState<'general' | 'access' | 'data'>('general')
 
   const setThemeVal = (t: Theme) => {
     setSettings((x) => {
@@ -156,6 +157,29 @@ export function SettingsPage() {
     <div className="mx-auto max-w-2xl px-4 py-6 sm:py-8">
       <PageHead title="Settings" subtitle="Appearance, profile, academic year, access and cloud storage." />
 
+      <div role="tablist" aria-label="Settings sections" className="mb-4 flex gap-1 rounded-full bg-secondary p-1">
+        {TABS.map((t) => (
+          <button
+            key={t.id}
+            role="tab"
+            id={`settings-tab-${t.id}`}
+            aria-selected={tab === t.id}
+            aria-controls={`settings-panel-${t.id}`}
+            tabIndex={tab === t.id ? 0 : -1}
+            onClick={() => setTab(t.id)}
+            onKeyDown={(e) => {
+              const i = TABS.findIndex((x) => x.id === tab)
+              if (e.key === 'ArrowRight') setTab(TABS[(i + 1) % TABS.length].id)
+              if (e.key === 'ArrowLeft') setTab(TABS[(i + TABS.length - 1) % TABS.length].id)
+            }}
+            className={cn('flex-1 rounded-full px-3 py-1.5 text-sm font-semibold transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring', tab === t.id ? 'bg-background shadow-sm' : 'text-muted-foreground hover:text-foreground')}
+          >
+            {t.label}
+          </button>
+        ))}
+      </div>
+
+      <div role="tabpanel" id="settings-panel-general" aria-labelledby="settings-tab-general" hidden={tab !== 'general'}>
       {/* appearance */}
       <Section title="Appearance" icon={<Sun className="h-4 w-4" />}>
         <div className="flex items-center gap-2">
@@ -240,6 +264,8 @@ export function SettingsPage() {
       </Section>
 
       {/* access */}
+      </div>
+      <div role="tabpanel" id="settings-panel-access" aria-labelledby="settings-tab-access" hidden={tab !== 'access'}>
       <Section title="Access" icon={<KeyRound className="h-4 w-4" />}>
         <FieldText
           label="Admin code (4 digits)"
@@ -316,6 +342,8 @@ export function SettingsPage() {
         </div>
       </Section>
 
+      </div>
+      <div role="tabpanel" id="settings-panel-data" aria-labelledby="settings-tab-data" hidden={tab !== 'data'}>
       {/* cloud storage */}
       <Section title="Cloud storage" icon={<Cloud className="h-4 w-4" />}>
         <div
@@ -427,10 +455,17 @@ export function SettingsPage() {
         </div>
       </Section>
 
+      </div>
       <div className="h-8" />
     </div>
   )
 }
+
+const TABS = [
+  { id: 'general', label: 'General' },
+  { id: 'access', label: 'Access and visibility' },
+  { id: 'data', label: 'Data and backup' },
+] as const
 
 function Section({
   title,

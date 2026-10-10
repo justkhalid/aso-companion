@@ -2,7 +2,10 @@
 
 import * as React from 'react'
 import {
-  Home,
+  LayoutDashboard,
+  CalendarRange,
+  CalendarClock,
+  HeartHandshake,
   GraduationCap,
   Users,
   CalendarDays,
@@ -19,58 +22,50 @@ import {
 import { Logo } from './logo'
 import { ThemeToggle } from './theme-toggle'
 import { useStore } from '@/lib/store'
-import type { View, Side } from '@/lib/types'
+import type { View } from '@/lib/types'
 import { termStatus } from '@/lib/app-utils'
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
+import { QuickAdd } from '@/components/admin/quick-add'
 
 interface NavGroup {
   label: string
-  items: { label: string; view: View; key?: string; icon: React.ElementType }[]
+  items: { label: string; view: View; icon: React.ElementType }[]
 }
 
 function useNavGroups(): NavGroup[] {
-  const state = useStore((s) => s.state)
-  const side = useStore((s) => s.side)
-
-  if (side === 'intern') {
-    return [
-      {
-        label: 'Internship',
-        items: [
-          { label: 'Overview', view: 'intern', icon: Home },
-          { label: 'Club calendar', view: 'clubs', icon: CalendarDays },
-          { label: 'Clubs', view: 'intern-clubs', icon: Sparkles },
-          { label: 'Events', view: 'intern-events', icon: CalendarDays },
-          { label: 'Volunteers', view: 'intern-volunteers', icon: Users },
-          { label: 'Reports', view: 'reports', icon: FileText },
-        ],
-      },
-    ]
-  }
-
-  const levels = state.levels || []
   return [
-    { label: 'ELTASO', items: [{ label: 'Home', view: 'home' as View, icon: Home }] },
     {
-      label: 'Levels',
-      items: levels.map((l) => ({
-        label: l.label,
-        view: 'level-detail' as View,
-        key: l.key,
-        icon: GraduationCap,
-      })),
+      label: 'Overview',
+      items: [
+        { label: 'Dashboard', view: 'dashboard', icon: LayoutDashboard },
+        { label: 'Week schedule', view: 'home', icon: CalendarRange },
+      ],
     },
     {
-      label: 'Manage',
+      label: 'Teaching',
       items: [
         { label: 'Classes', view: 'classes', icon: Users },
-        { label: 'Clubs & events', view: 'clubs', icon: CalendarDays },
-        { label: 'Absences', view: 'absences', icon: UserX },
-        { label: 'Rooms', view: 'rooms', icon: DoorOpen },
-        { label: 'Team', view: 'team', icon: Users },
+        { label: 'Levels and plans', view: 'eltaso', icon: GraduationCap },
         { label: 'Library', view: 'library', icon: FolderOpen },
         { label: 'Reports', view: 'reports', icon: FileText },
+      ],
+    },
+    {
+      label: 'Clubs and events',
+      items: [
+        { label: 'Calendar', view: 'clubs', icon: CalendarDays },
+        { label: 'Clubs', view: 'intern-clubs', icon: Sparkles },
+        { label: 'Events', view: 'intern-events', icon: CalendarClock },
+        { label: 'Volunteers', view: 'intern-volunteers', icon: HeartHandshake },
+      ],
+    },
+    {
+      label: 'Spaces and people',
+      items: [
+        { label: 'Rooms', view: 'rooms', icon: DoorOpen },
+        { label: 'Absences', view: 'absences', icon: UserX },
+        { label: 'Team', view: 'team', icon: Users },
       ],
     },
   ]
@@ -78,14 +73,15 @@ function useNavGroups(): NavGroup[] {
 
 export function pageTitle(view: View, selectedLevelKey: string, levelLabel?: string): string {
   switch (view) {
-    case 'home': return 'Home'
-    case 'eltaso': return 'ELTASO'
+    case 'dashboard': return 'Dashboard'
+    case 'home': return 'Week schedule'
+    case 'eltaso': return 'Levels and plans'
     case 'level-detail': return levelLabel || 'Level'
-    case 'clubs': return 'Clubs & events'
+    case 'clubs': return 'Calendar'
     case 'resources': return 'Resources'
     case 'login': return 'Sign in'
     case 'settings': return 'Settings'
-    case 'intern': return 'Internship'
+    case 'intern': return 'Dashboard'
     case 'classes': return 'Classes'
     case 'team': return 'Team'
     case 'rooms': return 'Rooms'
@@ -103,24 +99,13 @@ export function pageTitle(view: View, selectedLevelKey: string, levelLabel?: str
 function SidebarBody({ onNavigate }: { onNavigate?: () => void }) {
   const groups = useNavGroups()
   const view = useStore((s) => s.view)
-  const side = useStore((s) => s.side)
   const setView = useStore((s) => s.setView)
-  const setSide = useStore((s) => s.setSide)
   const setPubView = useStore((s) => s.setPubView)
   const logout = useStore((s) => s.logout)
-  const openLevel = useStore((s) => s.openLevel)
-  const selectedLevelKey = useStore((s) => s.selectedLevelKey)
   const state = useStore((s) => s.state)
 
-  const handleNav = (v: View, key?: string) => {
-    if (v === 'level-detail' && key) openLevel(key)
-    else setView(v)
-    onNavigate?.()
-  }
-
-  const switchSide = (s: Side) => {
-    setSide(s)
-    setView(s === 'intern' ? 'intern' : 'home')
+  const handleNav = (v: View) => {
+    setView(v)
     onNavigate?.()
   }
 
@@ -134,46 +119,24 @@ function SidebarBody({ onNavigate }: { onNavigate?: () => void }) {
         </div>
       </div>
 
-      <div className="mx-3 mb-2 grid grid-cols-2 gap-1 rounded-full bg-secondary p-1">
-        <button
-          onClick={() => switchSide('elt')}
-          className={cn(
-            'rounded-full px-2 py-1.5 text-xs font-bold transition',
-            side === 'elt' ? 'bg-background shadow-sm' : 'text-muted-foreground',
-          )}
-        >
-          ELT side
-        </button>
-        <button
-          onClick={() => switchSide('intern')}
-          className={cn(
-            'rounded-full px-2 py-1.5 text-xs font-bold transition',
-            side === 'intern' ? 'bg-background shadow-sm' : 'text-muted-foreground',
-          )}
-        >
-          Intern side
-        </button>
-      </div>
-
       {/* min-h-0 is what lets this shrink inside the flex column so the
           menu actually scrolls on short screens */}
       <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain scroll-thin px-2">
-        <nav className="flex flex-col gap-4 py-2">
+        <nav aria-label="Admin" className="flex flex-col gap-4 py-2">
           {groups.map((g) => (
-            <div key={g.label}>
-              <div className="px-2 pb-1 text-[10.5px] font-bold uppercase tracking-wider text-muted-foreground">
+            <div key={g.label} role="group" aria-label={g.label}>
+              <div aria-hidden className="px-2 pb-1 text-[10.5px] font-bold uppercase tracking-wider text-muted-foreground">
                 {g.label}
               </div>
               <div className="flex flex-col gap-0.5">
                 {g.items.map((it) => {
                   const Icon = it.icon
-                  const active =
-                    view === it.view &&
-                    (it.view !== 'level-detail' || selectedLevelKey === it.key)
+                  const active = view === it.view || (it.view === 'eltaso' && view === 'level-detail')
                   return (
                     <button
-                      key={it.label + (it.key || '')}
-                      onClick={() => handleNav(it.view, it.key)}
+                      key={it.label}
+                      onClick={() => handleNav(it.view)}
+                      aria-current={active ? 'page' : undefined}
                       className={cn(
                         'flex items-center gap-2.5 rounded-full px-2.5 py-2 text-left text-[13.5px] font-semibold transition',
                         active
@@ -181,7 +144,7 @@ function SidebarBody({ onNavigate }: { onNavigate?: () => void }) {
                           : 'text-foreground/80 hover:bg-secondary',
                       )}
                     >
-                      <Icon className="h-4 w-4 shrink-0" />
+                      <Icon className="h-4 w-4 shrink-0" aria-hidden />
                       <span className="truncate">{it.label}</span>
                     </button>
                   )
@@ -246,10 +209,11 @@ export function AdminSidebar({ mobileNavOpen, setMobileNavOpen }: AdminChromePro
       </aside>
 
       {mobileNavOpen && (
-        <div className="fixed inset-0 z-50 md:hidden">
+        <div className="fixed inset-0 z-50 md:hidden" role="dialog" aria-modal="true" aria-label="Menu" onKeyDown={(e) => e.key === 'Escape' && setMobileNavOpen(false)}>
           <div
             className="absolute inset-0 bg-black/40"
             onClick={() => setMobileNavOpen(false)}
+            aria-hidden
           />
           <div className="absolute left-0 top-0 h-full w-72 max-w-[85%] bg-sidebar shadow-2xl aso-fade-up">
             <SidebarBody onNavigate={() => setMobileNavOpen(false)} />
@@ -284,16 +248,18 @@ export function AdminTopbar({ setMobileNavOpen }: { setMobileNavOpen: (v: boolea
         className="md:hidden"
         onClick={() => setMobileNavOpen(true)}
         aria-label="Open menu"
+        aria-haspopup="dialog"
       >
         <Menu className="h-5 w-5" />
       </Button>
       <div className="flex items-center gap-2">
-        <h1 className="text-[17px] font-extrabold tracking-tight">{title}</h1>
+        <div className="text-[17px] font-extrabold tracking-tight">{title}</div>
         <span className="hidden rounded-full bg-secondary px-2.5 py-1 text-[11.5px] font-bold text-muted-foreground sm:inline">
           {weekChip}
         </span>
       </div>
-      <div className="ml-auto flex items-center gap-1">
+      <div className="ml-auto flex items-center gap-2">
+        <QuickAdd />
         <ThemeToggle />
       </div>
     </header>

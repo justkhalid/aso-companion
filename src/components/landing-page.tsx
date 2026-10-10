@@ -100,7 +100,7 @@ export function LandingPage() {
         <div className="border-b border-primary/20 bg-primary/5">
           <div className="mx-auto flex max-w-6xl items-center gap-2 px-4 py-2">
             <span className="text-xs font-semibold text-primary">Public view · signed in as admin</span>
-            <button onClick={() => { setPubView(false); setView('home') }} className="ml-auto text-xs font-bold text-primary hover:underline">Open admin menu</button>
+            <button onClick={() => { setPubView(false); setView('dashboard') }} className="ml-auto text-xs font-bold text-primary hover:underline">Open admin menu</button>
           </div>
         </div>
       )}
