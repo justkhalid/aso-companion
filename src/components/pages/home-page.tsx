@@ -23,6 +23,12 @@ import {
   greeting,
   isOnceEvent,
   parseISO,
+  classStatusOn,
+  clubStatusOn,
+  eventStatusOn,
+  splitDaysByStatus,
+  isoOf,
+  addDays,
 } from '@/lib/app-utils'
 import { DAY_FULL, DAY_KEYS, ROOM_LEGEND } from '@/lib/constants'
 import { buildCalendarLinks } from '@/lib/export-word'
@@ -58,46 +64,57 @@ export function HomePage({ admin }: { admin: boolean }) {
   const named = admin
 
   // teachers calendar items
-  const classItems: GridItem[] = (state.classes || []).map((c) => ({
-    id: c.id,
-    days: c.days || [],
-    slot: c.time,
-    /* group code first (ASO-K1...) - many classes share a level, the code
-       is what names the group on the calendar and in every export */
-    code: c.code || c.level,
-    meta: '',
-    lead: c.teacher,
-    room: c.room,
-    tone: toneClassForLevel(state, c.level),
-  }))
-  const classLegend: LegendEntry[] = (() => {
-    const used: string[] = []
-    state.classes.forEach((c) => {
-      if (c.level && !used.includes(c.level)) used.push(c.level)
-    })
-    return used.map((l) => ({ label: l, tone: toneClassForLevel(state, l) }))
-  })()
-
   // week monday for the teachers calendar dates
   let wkMon: Date | null = null
   if (st.mode === 's1' || st.mode === 's2') wkMon = weekMonday(state, (st.week || 1) - 1)
   else if (st.mode === 'before') wkMon = st.s1
   else if (st.mode === 'break') wkMon = st.s2
 
+  /* a class whose teacher is away on some days this week splits into up to three chips:
+     the normal days, the cancelled days (gray) and the days someone covers */
+  const classItems: GridItem[] = (state.classes || []).flatMap((c) => {
+    const base = {
+      slot: c.time,
+      /* group code first (ASO-K1...) - many classes share a level, the code
+         is what names the group on the calendar and in every export */
+      code: c.code || c.level,
+      meta: '',
+      room: c.room,
+    }
+    const tone = toneClassForLevel(state, c.level)
+    if (!wkMon || !(state.absences || []).length) return [{ ...base, id: c.id, days: c.days || [], lead: c.teacher, tone }]
+    const sp = splitDaysByStatus(c.days || [], wkMon, (iso) => classStatusOn(state, c, iso))
+    const out: GridItem[] = []
+    if (sp.normal.length) out.push({ ...base, id: c.id, days: sp.normal, lead: c.teacher, tone })
+    if (sp.cancelled.length) out.push({ ...base, id: c.id + ':off', days: sp.cancelled, code: base.code + ' · cancelled', lead: c.teacher, tone: 'tone-8' })
+    for (const [who, days] of Object.entries(sp.covered)) out.push({ ...base, id: c.id + ':cov:' + who, days, lead: 'Cover: ' + who, tone })
+    return out
+  })
+  const classLegend: LegendEntry[] = (() => {
+    const used: string[] = []
+    state.classes.forEach((c) => {
+      if (c.level && !used.includes(c.level)) used.push(c.level)
+    })
+    const out = used.map((l) => ({ label: l, tone: toneClassForLevel(state, l) }))
+    if (classItems.some((i) => i.tone === 'tone-8')) out.push({ label: 'Cancelled (teacher away)', tone: 'tone-8' })
+    return out
+  })()
+
   // clubs grid
   const clubItems: GridItem[] = (state.clubs || [])
     .filter((c) => (c.days || []).length && c.time)
-    .map((c) => ({
-      id: c.id,
-      days: c.days,
-      slot: c.time,
-      code: c.name,
-      meta: '',
-      lead: c.lead || 'no lead yet',
-      room: c.room,
-      icon: c.icon,
-      tone: toneClassForClub(state, c.id),
-    }))
+    .flatMap((c) => {
+      const base = { slot: c.time, code: c.name, meta: '', room: c.room, icon: c.icon }
+      const tone = toneClassForClub(state, c.id)
+      const lead = c.lead || 'no lead yet'
+      if (!wkMon || !(state.absences || []).length) return [{ ...base, id: c.id, days: c.days, lead, tone }]
+      const sp = splitDaysByStatus(c.days, wkMon, (iso) => clubStatusOn(state, c.id, iso))
+      const out: GridItem[] = []
+      if (sp.normal.length) out.push({ ...base, id: c.id, days: sp.normal, lead, tone })
+      if (sp.cancelled.length) out.push({ ...base, id: c.id + ':off', days: sp.cancelled, code: c.name + ' · cancelled', lead: 'cancelled', tone: 'tone-8' })
+      for (const [who, days] of Object.entries(sp.covered)) out.push({ ...base, id: c.id + ':cov:' + who, days, lead: 'Led by ' + who, tone })
+      return out
+    })
   const clubLegend: LegendEntry[] = (state.clubs || []).map((c) => ({
     label: c.name,
     tone: toneClassForClub(state, c.id),
@@ -114,23 +131,19 @@ export function HomePage({ admin }: { admin: boolean }) {
         day = DAY_KEYS[d.getDay() === 0 ? 6 : d.getDay() - 1] || ''
       }
       if (!day || !e.time) return null
-      return {
-        id: e.id,
-        days: [day],
-        slot: e.time,
-        code: e.title,
-        meta: '',
-        lead: '',
-        room: e.place || '',
-        icon: e.icon || 'calendar',
-        tone: 'tone-7',
-      }
+      const base = { slot: e.time, meta: '', room: e.place || '', icon: e.icon || 'calendar' }
+      const off = wkMon
+        ? splitDaysByStatus([day], wkMon, (iso) => eventStatusOn(state, e.id, isOnceEvent(e) && e.date ? e.date : iso))
+        : null
+      if (off && off.cancelled.length) return { ...base, id: e.id + ':off', days: [day], code: e.title + ' · cancelled', lead: 'cancelled', tone: 'tone-8' }
+      return { ...base, id: e.id, days: [day], code: e.title, lead: '', tone: 'tone-7' }
     })
     .filter(Boolean) as GridItem[]
   const homeClubItems = [...clubItems, ...homeEventItems]
   const homeClubLegend = [
     ...clubLegend,
     ...(homeEventItems.length ? [{ label: 'Special events', tone: 'tone-7' } as LegendEntry] : []),
+    ...([...clubItems, ...homeEventItems].some((i) => i.tone === 'tone-8') ? [{ label: 'Cancelled', tone: 'tone-8' } as LegendEntry] : []),
   ]
 
   // today's schedule
@@ -139,19 +152,29 @@ export function HomePage({ admin }: { admin: boolean }) {
   const todayItems: TodayItem[] = []
   ;(state.classes || []).forEach((c) => {
     if (!(c.days || []).includes(tKey)) return
+    const stt = classStatusOn(state, c, isoOf(new Date()))
     todayItems.push({
       mins: parseSlot(c.time).mins,
-      title: `${c.code} · ${c.level}`,
-      sub: [c.time, c.room, c.teacher].filter(Boolean).join(' · '),
+      title: `${c.code} · ${c.level}${stt.kind === 'cancelled' ? ' · cancelled' : ''}`,
+      sub:
+        stt.kind === 'cancelled'
+          ? [c.time, c.room, `${c.teacher} is away`].filter(Boolean).join(' · ')
+          : stt.kind === 'cover'
+            ? [c.time, c.room, `cover: ${stt.cover}`].filter(Boolean).join(' · ')
+            : [c.time, c.room, c.teacher].filter(Boolean).join(' · '),
       kind: 'class',
     })
   })
   ;(state.clubs || []).forEach((c) => {
     if (!(c.days || []).includes(tKey)) return
+    const stt = clubStatusOn(state, c.id, isoOf(new Date()))
     todayItems.push({
       mins: parseSlot(c.time).mins,
-      title: c.name,
-      sub: [c.time, c.room, c.lead ? `lead: ${c.lead}` : ''].filter(Boolean).join(' · '),
+      title: c.name + (stt.kind === 'cancelled' ? ' · cancelled' : ''),
+      sub:
+        stt.kind === 'cancelled'
+          ? [c.time, c.room, 'cancelled'].filter(Boolean).join(' · ')
+          : [c.time, c.room, stt.kind === 'cover' ? `led by ${stt.cover}` : c.lead ? `lead: ${c.lead}` : ''].filter(Boolean).join(' · '),
       kind: 'club',
     })
   })
@@ -161,9 +184,10 @@ export function HomePage({ admin }: { admin: boolean }) {
         ? e.date && now.toDateString() === new Date(e.date).toDateString()
         : e.day === tKey
     if (!isToday) return
+    const off = eventStatusOn(state, e.id, isoOf(new Date())).kind === 'cancelled'
     todayItems.push({
       mins: parseSlot(e.time || '23:59').mins,
-      title: e.title,
+      title: e.title + (off ? ' · cancelled' : ''),
       sub: [e.time, e.place].filter(Boolean).join(' · ') || 'all day',
       kind: 'event',
     })
@@ -284,19 +308,19 @@ export function HomePage({ admin }: { admin: boolean }) {
               items={classItems}
               legend={classLegend}
               weekMonday={wkMon}
-              onCellClick={admin ? (it) => setClassDialog({ open: true, cls: state.classes.find((c) => c.id === it.id) || null }) : undefined}
+              onCellClick={admin ? (it) => setClassDialog({ open: true, cls: state.classes.find((c) => c.id === it.id.split(':')[0]) || null }) : undefined}
             />
           ) : calView === 'cards' ? (
             <CalendarCardsView
               items={classItems}
               legend={classLegend}
-              onCellClick={admin ? (it) => setClassDialog({ open: true, cls: state.classes.find((c) => c.id === it.id) || null }) : undefined}
+              onCellClick={admin ? (it) => setClassDialog({ open: true, cls: state.classes.find((c) => c.id === it.id.split(':')[0]) || null }) : undefined}
             />
           ) : (
             <CalendarListView
               items={classItems}
               legend={classLegend}
-              onCellClick={admin ? (it) => setClassDialog({ open: true, cls: state.classes.find((c) => c.id === it.id) || null }) : undefined}
+              onCellClick={admin ? (it) => setClassDialog({ open: true, cls: state.classes.find((c) => c.id === it.id.split(':')[0]) || null }) : undefined}
             />
           )
         ) : (

@@ -1,6 +1,6 @@
 /* ASO Companion - pure helper functions (no React) */
 import { DAY_KEYS, DAY_FULL, ROOM_OPTIONS } from './constants'
-import type { State, Level, EventEntry } from './types'
+import type { State, Level, EventEntry, ClassEntry, Absence } from './types'
 
 export function parseISO(iso: string): Date {
   const p = String(iso || '').split('-')
@@ -327,4 +327,75 @@ export function clamp(n: number, a: number, b: number): number {
 
 export function visLevels(state: State): Level[] {
   return (state.levels || []).slice()
+}
+
+
+/* ---- absences: teachers, clubs and events ----
+   A class, club session or event is cancelled (or covered by someone else) on a date when an
+   absence covers that date and applies to it. */
+export type ClassStatus =
+  | { kind: 'normal' }
+  | { kind: 'cancelled'; absence: Absence }
+  | { kind: 'cover'; absence: Absence; cover: string }
+
+function statusFrom(a: Absence | undefined): ClassStatus {
+  if (!a) return { kind: 'normal' }
+  return a.cover ? { kind: 'cover', absence: a, cover: a.cover } : { kind: 'cancelled', absence: a }
+}
+const within = (a: Absence, iso: string) => iso >= a.from && iso <= a.to
+
+export function classStatusOn(state: Pick<State, 'absences'>, c: ClassEntry, iso: string): ClassStatus {
+  return statusFrom(
+    (state.absences || []).find(
+      (a) => (!a.kind || a.kind === 'teacher') && a.teacher && a.teacher === c.teacher && (!a.classId || a.classId === c.id) && within(a, iso),
+    ),
+  )
+}
+
+export function clubStatusOn(state: Pick<State, 'absences'>, clubId: string, iso: string): ClassStatus {
+  return statusFrom((state.absences || []).find((a) => a.kind === 'club' && a.clubId === clubId && within(a, iso)))
+}
+
+export function eventStatusOn(state: Pick<State, 'absences'>, eventId: string, iso: string): ClassStatus {
+  return statusFrom((state.absences || []).find((a) => a.kind === 'event' && a.eventId === eventId && within(a, iso)))
+}
+
+/* split a weekly pattern's days into normal days, cancelled days and covered days for one week */
+export function splitDaysByStatus(
+  days: string[],
+  monday: Date,
+  statusOn: (iso: string) => ClassStatus,
+): { normal: string[]; cancelled: string[]; why: string; covered: Record<string, string[]> } {
+  const out = { normal: [] as string[], cancelled: [] as string[], why: '', covered: {} as Record<string, string[]> }
+  for (const d of days) {
+    const di = DAY_KEYS.indexOf(d as (typeof DAY_KEYS)[number])
+    const stt = di < 0 ? ({ kind: 'normal' } as ClassStatus) : statusOn(isoOf(addDays(monday, di)))
+    if (stt.kind === 'cancelled') {
+      out.cancelled.push(d)
+      out.why = stt.absence.reason
+    } else if (stt.kind === 'cover') (out.covered[stt.cover] ||= []).push(d)
+    else out.normal.push(d)
+  }
+  return out
+}
+
+/* Monday of the week that contains d */
+export function mondayOfWeek(d: Date): Date {
+  const x = startOfDay(d)
+  return addDays(x, -((x.getDay() + 6) % 7))
+}
+
+/* "12 Oct" or "12 to 16 Oct" */
+export function fmtAbsenceRange(a: Pick<Absence, 'from' | 'to'>): string {
+  const f = parseISO(a.from)
+  const t = parseISO(a.to)
+  if (a.from === a.to) return fmtD(f, { weekday: 'short', day: 'numeric', month: 'short' })
+  const sameMonth = f.getMonth() === t.getMonth() && f.getFullYear() === t.getFullYear()
+  return sameMonth
+    ? `${fmtD(f, { day: 'numeric' })} to ${fmtD(t, { day: 'numeric', month: 'short' })}`
+    : `${fmtD(f, { day: 'numeric', month: 'short' })} to ${fmtD(t, { day: 'numeric', month: 'short' })}`
+}
+
+export function isoOf(d: Date): string {
+  return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0')
 }

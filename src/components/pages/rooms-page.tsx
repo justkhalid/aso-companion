@@ -4,7 +4,7 @@ import * as React from 'react'
 import { ChevronLeft, ChevronRight } from 'lucide-react'
 import { useStore } from '@/lib/store'
 import { DAY_KEYS, ROOM_UNAVAILABLE } from '@/lib/constants'
-import { isOnceEvent, roomOptionsFor, toneClassForClub, toneClassForLevel } from '@/lib/app-utils'
+import { classStatusOn, clubStatusOn, eventStatusOn, isOnceEvent, isoOf, roomOptionsFor, toneClassForClub, toneClassForLevel } from '@/lib/app-utils'
 import { clubIcon } from '@/lib/icons'
 import { cn } from '@/lib/utils'
 import type { State } from '@/lib/types'
@@ -27,6 +27,7 @@ interface Booking {
   icon?: string
   lead?: string
   group: string // legend label
+  cancelled?: string // teacher away: the class does not run (value = reason)
   note?: string
 }
 
@@ -52,7 +53,7 @@ function mondayOf(d: Date) {
 }
 const dayKeyOf = (d: Date) => DAY_KEYS[(d.getDay() + 6) % 7]
 
-function bookingsForWeek(state: State, monday: Date): Booking[] {
+function bookingsForWeek(state: State, monday: Date, plain: boolean): Booking[] {
   const out: Booking[] = []
   const weekStart = iso(monday)
   const sunday = new Date(monday)
@@ -63,13 +64,39 @@ function bookingsForWeek(state: State, monday: Date): Booking[] {
   for (const c of state.classes || []) {
     const slot = parseSlot(c.time)
     if (!slot || !c.room) continue
-    for (const day of c.days || []) out.push({ room: c.room.trim(), day, start: slot[0], end: slot[1], label: c.code, kind: 'class', tone: toneClassForLevel(state, c.level), lead: c.teacher, group: c.level })
+    for (const day of c.days || []) {
+      const di = DAY_KEYS.indexOf(day as (typeof DAY_KEYS)[number])
+      const date = new Date(monday)
+      date.setDate(date.getDate() + Math.max(di, 0))
+      const stt = classStatusOn(state, c, isoOf(date))
+      out.push({
+        room: c.room.trim(), day, start: slot[0], end: slot[1], kind: 'class',
+        // interns only need to know an English class is on, not which group it is
+        label: plain ? 'English class' : c.code,
+        tone: plain ? 'tone-0' : toneClassForLevel(state, c.level),
+        lead: plain ? undefined : stt.kind === 'cover' ? 'Cover: ' + stt.cover : c.teacher,
+        group: plain ? 'English classes' : c.level,
+        cancelled: stt.kind === 'cancelled' ? stt.absence.reason || 'Teacher away' : undefined,
+      })
+    }
   }
   for (const c of state.clubs || []) {
     const slot = parseSlot(c.time)
     if (!slot || !c.room || !inSeries(c.from, c.until)) continue
     const note = c.freq === 'biweekly' ? 'every 2 weeks' : c.freq === 'monthly' ? 'monthly' : undefined
-    for (const day of c.days || []) out.push({ room: c.room.trim(), day, start: slot[0], end: slot[1], label: c.name, kind: 'club', note, tone: toneClassForClub(state, c.id), icon: c.icon, lead: c.lead, group: c.name })
+    for (const day of c.days || []) {
+      const di = DAY_KEYS.indexOf(day as (typeof DAY_KEYS)[number])
+      const date = new Date(monday)
+      date.setDate(date.getDate() + Math.max(di, 0))
+      const stt = clubStatusOn(state, c.id, isoOf(date))
+      out.push({
+        room: c.room.trim(), day, start: slot[0], end: slot[1], label: c.name, kind: 'club', note,
+        tone: toneClassForClub(state, c.id), icon: c.icon,
+        lead: stt.kind === 'cover' ? 'Led by ' + stt.cover : c.lead,
+        group: c.name,
+        cancelled: stt.kind === 'cancelled' ? stt.absence.reason || 'Cancelled' : undefined,
+      })
+    }
   }
   for (const e of state.events || []) {
     const slot = parseSlot(e.time)
@@ -77,10 +104,15 @@ function bookingsForWeek(state: State, monday: Date): Booking[] {
     if (isOnceEvent(e)) {
       if (!e.date || e.date < weekStart || e.date > weekEnd) continue
       const [y, m, d] = e.date.split('-').map(Number)
-      out.push({ room: e.place.trim(), day: dayKeyOf(new Date(y, m - 1, d)), start: slot[0], end: slot[1], label: e.title, kind: 'event', note: 'one-off', tone: 'tone-7', icon: e.icon || 'calendar', group: 'Special events' })
+      const stt = eventStatusOn(state, e.id, e.date)
+      out.push({ room: e.place.trim(), day: dayKeyOf(new Date(y, m - 1, d)), start: slot[0], end: slot[1], label: e.title, kind: 'event', note: 'one-off', tone: 'tone-7', icon: e.icon || 'calendar', group: 'Special events', cancelled: stt.kind === 'cancelled' ? stt.absence.reason || 'Cancelled' : undefined })
     } else if (e.day && inSeries(e.from, e.until)) {
       const note = e.recur === 'biweekly' ? 'every 2 weeks' : e.recur === 'monthly' ? 'monthly' : undefined
-      out.push({ room: e.place.trim(), day: e.day, start: slot[0], end: slot[1], label: e.title, kind: 'event', note, tone: 'tone-7', icon: e.icon || 'calendar', group: 'Special events' })
+      const di = DAY_KEYS.indexOf(e.day as (typeof DAY_KEYS)[number])
+      const date = new Date(monday)
+      date.setDate(date.getDate() + Math.max(di, 0))
+      const stt = eventStatusOn(state, e.id, isoOf(date))
+      out.push({ room: e.place.trim(), day: e.day, start: slot[0], end: slot[1], label: e.title, kind: 'event', note, tone: 'tone-7', icon: e.icon || 'calendar', group: 'Special events', cancelled: stt.kind === 'cancelled' ? stt.absence.reason || 'Cancelled' : undefined })
     }
   }
   return out
@@ -125,7 +157,7 @@ export function RoomsPage({ embedded = false }: { embedded?: boolean }) {
   const [monday, setMonday] = React.useState(() => mondayOf(new Date()))
   const [picked, setPicked] = React.useState<string>(ALL)
 
-  const bookings = React.useMemo(() => bookingsForWeek(state, monday), [state, monday])
+  const bookings = React.useMemo(() => bookingsForWeek(state, monday, embedded), [state, monday, embedded])
   const rooms = React.useMemo(() => {
     const set = new Set<string>(roomOptionsFor(state))
     bookings.forEach((b) => set.add(b.room))
@@ -145,7 +177,10 @@ export function RoomsPage({ embedded = false }: { embedded?: boolean }) {
   const now = new Date()
   const nowMin = now.getHours() * 60 + now.getMinutes()
 
-  const visible = bookings.filter((b) => shown.includes(b.room))
+  const inShown = bookings.filter((b) => shown.includes(b.room))
+  const visible = inShown.filter((b) => !b.cancelled)
+  /* admin only: a cancelled class stays on the calendar as a dashed note, the room is free */
+  const cancelledAll = embedded ? [] : inShown.filter((b) => b.cancelled)
 
   /* the time axis stretches to fit anything outside opening hours (an evening event), measured over
      every room so the axis does not jump when you switch tabs */
@@ -166,8 +201,9 @@ export function RoomsPage({ embedded = false }: { embedded?: boolean }) {
       const closed = !!ROOM_UNAVAILABLE[room]?.includes(day)
       const list = visible.filter((b) => b.room === room && b.day === day)
       const lanes = withLanes(list)
+      const cancelledHere = cancelledAll.filter((b) => b.room === room && b.day === day)
       const laneCount = Math.max(1, ...lanes.map((l) => l.lane + 1))
-      return { room, closed, lanes, free: closed ? [] : freeWindows(list), height: laneCount * CHIP_H + (laneCount + 1) * 4 }
+      return { room, closed, lanes, cancelledHere, free: closed ? [] : freeWindows(list), height: laneCount * CHIP_H + (laneCount + 1) * 4 }
     })
     return { day, date, isToday: iso(date) === iso(now), rows: rowsForDay }
   })
@@ -290,6 +326,18 @@ export function RoomsPage({ embedded = false }: { embedded?: boolean }) {
                           )
                         })}
 
+                        {/* cancelled classes (admin only): the room is free, the note says why */}
+                        {r.cancelledHere.map((b, k) => (
+                          <div
+                            key={'c' + k}
+                            className="absolute flex flex-col justify-center overflow-hidden rounded-lg border border-dashed border-foreground/35 px-2 text-[10px] leading-[12px] text-foreground/70"
+                            style={{ left: `calc(${pct(b.start)}% + 2px)`, width: `calc(${pct(b.end) - pct(b.start)}% - 4px)`, bottom: 4, height: all ? 15 : 20 }}
+                            title={`${b.label} cancelled (${b.cancelled}) ${fmt(b.start)}-${fmt(b.end)}`}
+                          >
+                            <span className="truncate font-semibold"><span className="line-through">{b.label}</span> · {(b.cancelled || '').toLowerCase()}</span>
+                          </div>
+                        ))}
+
                         {/* bookings, same chip design as the other calendars */}
                         {r.lanes.map(({ b, lane }, k) => {
                           const Icon = clubIcon(b.icon)?.Icon
@@ -345,6 +393,11 @@ export function RoomsPage({ embedded = false }: { embedded?: boolean }) {
             {l.label}
           </span>
         ))}
+        {cancelledAll.length > 0 && (
+          <span className="flex items-center gap-1.5 text-[11.5px] font-semibold text-muted-foreground">
+            <i className="inline-block h-2 w-2 rounded-sm border border-dashed border-foreground/50" /> Cancelled
+          </span>
+        )}
         {(viewOpen < OPEN || viewClose > CLOSE) && (
           <span className="flex items-center gap-1.5 text-[11.5px] font-semibold text-muted-foreground">
             <i className="inline-block h-2 w-2 rounded-sm bg-black/15 dark:bg-white/25" /> Outside opening hours (09:00-18:00)

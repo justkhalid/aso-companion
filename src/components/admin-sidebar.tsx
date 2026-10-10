@@ -14,6 +14,7 @@ import {
   Sparkles,
   FolderOpen,
   DoorOpen,
+  UserX,
 } from 'lucide-react'
 import { Logo } from './logo'
 import { ThemeToggle } from './theme-toggle'
@@ -65,6 +66,7 @@ function useNavGroups(): NavGroup[] {
       items: [
         { label: 'Classes', view: 'classes', icon: Users },
         { label: 'Clubs & events', view: 'clubs', icon: CalendarDays },
+        { label: 'Absences', view: 'absences', icon: UserX },
         { label: 'Rooms', view: 'rooms', icon: DoorOpen },
         { label: 'Team', view: 'team', icon: Users },
         { label: 'Library', view: 'library', icon: FolderOpen },
@@ -87,6 +89,7 @@ export function pageTitle(view: View, selectedLevelKey: string, levelLabel?: str
     case 'classes': return 'Classes'
     case 'team': return 'Team'
     case 'rooms': return 'Rooms'
+    case 'absences': return 'Absences'
     case 'library': return 'Library'
     case 'reports': return 'Reports'
     case 'intern-clubs': return 'Clubs'
