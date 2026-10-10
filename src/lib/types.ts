@@ -147,12 +147,16 @@ export interface Volunteer {
   email: string
 }
 
+export type LibBand = 'Kids' | 'Teens' | 'Adults'
+
 export interface LibraryFolder {
   id: string
   name: string
   desc: string
   url: string
-  sk: string[] // ['L','S','R','W']
+  sk: string[] // ['L','S','R','W'] - only the skills the folder really trains
+  cat?: string // group key from LIB_GROUPS
+  bands?: LibBand[] // age bands the material suits (missing = all)
 }
 
 export interface Note {
