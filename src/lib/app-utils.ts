@@ -1,6 +1,6 @@
 /* ASO Companion - pure helper functions (no React) */
 import { DAY_KEYS, DAY_FULL, ROOM_OPTIONS } from './constants'
-import type { State, Level, EventEntry } from './types'
+import type { State, Level, EventEntry, ClassEntry, Absence } from './types'
 
 export function parseISO(iso: string): Date {
   const p = String(iso || '').split('-')
@@ -327,4 +327,38 @@ export function clamp(n: number, a: number, b: number): number {
 
 export function visLevels(state: State): Level[] {
   return (state.levels || []).slice()
+}
+
+
+/* ---- teacher absences ----
+   A class is cancelled (or covered by a substitute) on a date when its teacher has an
+   absence that covers that date and applies to the class. */
+export type ClassStatus =
+  | { kind: 'normal' }
+  | { kind: 'cancelled'; absence: Absence }
+  | { kind: 'cover'; absence: Absence; cover: string }
+
+export function classStatusOn(state: Pick<State, 'absences'>, c: ClassEntry, iso: string): ClassStatus {
+  for (const a of state.absences || []) {
+    if (!a.teacher || a.teacher !== c.teacher) continue
+    if (a.classId && a.classId !== c.id) continue
+    if (iso < a.from || iso > a.to) continue
+    return a.cover ? { kind: 'cover', absence: a, cover: a.cover } : { kind: 'cancelled', absence: a }
+  }
+  return { kind: 'normal' }
+}
+
+/* "12 Oct" or "12 to 16 Oct" */
+export function fmtAbsenceRange(a: Pick<Absence, 'from' | 'to'>): string {
+  const f = parseISO(a.from)
+  const t = parseISO(a.to)
+  if (a.from === a.to) return fmtD(f, { weekday: 'short', day: 'numeric', month: 'short' })
+  const sameMonth = f.getMonth() === t.getMonth() && f.getFullYear() === t.getFullYear()
+  return sameMonth
+    ? `${fmtD(f, { day: 'numeric' })} to ${fmtD(t, { day: 'numeric', month: 'short' })}`
+    : `${fmtD(f, { day: 'numeric', month: 'short' })} to ${fmtD(t, { day: 'numeric', month: 'short' })}`
+}
+
+export function isoOf(d: Date): string {
+  return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0')
 }

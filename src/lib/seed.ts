@@ -667,6 +667,7 @@ export function seedState(): State {
     volunteers: VOLUNTEERS,
     library: LIBRARY,
     libraryPins: [],
+    absences: [],
     notes: NOTES,
     team: TEAM,
   }

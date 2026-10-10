@@ -174,6 +174,18 @@ export interface TeamMember {
   email: string
 }
 
+/* a teacher who is away for a few days or weeks: their classes are cancelled or covered by someone else */
+export interface Absence {
+  id: string
+  teacher: string
+  classId?: string // empty = every class of that teacher
+  from: string // ISO date, inclusive
+  to: string // ISO date, inclusive
+  reason: string // Sick, Away, ...
+  cover?: string // substitute teacher; empty = the class is cancelled
+  note?: string
+}
+
 export interface State {
   v: 1
   _rev: number
@@ -187,6 +199,7 @@ export interface State {
   libraryPins: string[]
   notes: Note[]
   team: TeamMember[]
+  absences?: Absence[]
   rootUrl?: string
 }
 
@@ -204,6 +217,7 @@ export type View =
   | 'classes'
   | 'team'
   | 'rooms'
+  | 'absences'
   | 'library'
   | 'reports'
   | 'intern-clubs'

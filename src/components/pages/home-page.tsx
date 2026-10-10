@@ -23,6 +23,9 @@ import {
   greeting,
   isOnceEvent,
   parseISO,
+  classStatusOn,
+  isoOf,
+  addDays,
 } from '@/lib/app-utils'
 import { DAY_FULL, DAY_KEYS, ROOM_LEGEND } from '@/lib/constants'
 import { buildCalendarLinks } from '@/lib/export-word'
@@ -58,31 +61,51 @@ export function HomePage({ admin }: { admin: boolean }) {
   const named = admin
 
   // teachers calendar items
-  const classItems: GridItem[] = (state.classes || []).map((c) => ({
-    id: c.id,
-    days: c.days || [],
-    slot: c.time,
-    /* group code first (ASO-K1...) - many classes share a level, the code
-       is what names the group on the calendar and in every export */
-    code: c.code || c.level,
-    meta: '',
-    lead: c.teacher,
-    room: c.room,
-    tone: toneClassForLevel(state, c.level),
-  }))
-  const classLegend: LegendEntry[] = (() => {
-    const used: string[] = []
-    state.classes.forEach((c) => {
-      if (c.level && !used.includes(c.level)) used.push(c.level)
-    })
-    return used.map((l) => ({ label: l, tone: toneClassForLevel(state, l) }))
-  })()
-
   // week monday for the teachers calendar dates
   let wkMon: Date | null = null
   if (st.mode === 's1' || st.mode === 's2') wkMon = weekMonday(state, (st.week || 1) - 1)
   else if (st.mode === 'before') wkMon = st.s1
   else if (st.mode === 'break') wkMon = st.s2
+
+  /* a class whose teacher is away on some days this week splits into up to three chips:
+     the normal days, the cancelled days (gray) and the days someone covers */
+  const classItems: GridItem[] = (state.classes || []).flatMap((c) => {
+    const base = {
+      slot: c.time,
+      /* group code first (ASO-K1...) - many classes share a level, the code
+         is what names the group on the calendar and in every export */
+      code: c.code || c.level,
+      meta: '',
+      room: c.room,
+    }
+    const tone = toneClassForLevel(state, c.level)
+    if (!wkMon || !(state.absences || []).length) return [{ ...base, id: c.id, days: c.days || [], lead: c.teacher, tone }]
+    const normal: string[] = []
+    const cancelled: string[] = []
+    const covered: Record<string, string[]> = {}
+    let why = ''
+    for (const d of c.days || []) {
+      const di = DAY_KEYS.indexOf(d as (typeof DAY_KEYS)[number])
+      const stt = di < 0 ? ({ kind: 'normal' } as const) : classStatusOn(state, c, isoOf(addDays(wkMon, di)))
+      if (stt.kind === 'cancelled') { cancelled.push(d); why = stt.absence.reason }
+      else if (stt.kind === 'cover') (covered[stt.cover] ||= []).push(d)
+      else normal.push(d)
+    }
+    const out: GridItem[] = []
+    if (normal.length) out.push({ ...base, id: c.id, days: normal, lead: c.teacher, tone })
+    if (cancelled.length) out.push({ ...base, id: c.id + ':off', days: cancelled, code: base.code + ' · cancelled', lead: `${c.teacher}${why ? ' · ' + why.toLowerCase() : ''}`, tone: 'tone-8' })
+    for (const [who, days] of Object.entries(covered)) out.push({ ...base, id: c.id + ':cov:' + who, days, lead: 'Cover: ' + who, tone })
+    return out
+  })
+  const classLegend: LegendEntry[] = (() => {
+    const used: string[] = []
+    state.classes.forEach((c) => {
+      if (c.level && !used.includes(c.level)) used.push(c.level)
+    })
+    const out = used.map((l) => ({ label: l, tone: toneClassForLevel(state, l) }))
+    if (classItems.some((i) => i.tone === 'tone-8')) out.push({ label: 'Cancelled (teacher away)', tone: 'tone-8' })
+    return out
+  })()
 
   // clubs grid
   const clubItems: GridItem[] = (state.clubs || [])
@@ -139,10 +162,16 @@ export function HomePage({ admin }: { admin: boolean }) {
   const todayItems: TodayItem[] = []
   ;(state.classes || []).forEach((c) => {
     if (!(c.days || []).includes(tKey)) return
+    const stt = classStatusOn(state, c, isoOf(new Date()))
     todayItems.push({
       mins: parseSlot(c.time).mins,
-      title: `${c.code} · ${c.level}`,
-      sub: [c.time, c.room, c.teacher].filter(Boolean).join(' · '),
+      title: `${c.code} · ${c.level}${stt.kind === 'cancelled' ? ' · cancelled' : ''}`,
+      sub:
+        stt.kind === 'cancelled'
+          ? [c.time, c.room, `${c.teacher} is away${stt.absence.reason ? ' (' + stt.absence.reason.toLowerCase() + ')' : ''}`].filter(Boolean).join(' · ')
+          : stt.kind === 'cover'
+            ? [c.time, c.room, `cover: ${stt.cover}`].filter(Boolean).join(' · ')
+            : [c.time, c.room, c.teacher].filter(Boolean).join(' · '),
       kind: 'class',
     })
   })
@@ -284,19 +313,19 @@ export function HomePage({ admin }: { admin: boolean }) {
               items={classItems}
               legend={classLegend}
               weekMonday={wkMon}
-              onCellClick={admin ? (it) => setClassDialog({ open: true, cls: state.classes.find((c) => c.id === it.id) || null }) : undefined}
+              onCellClick={admin ? (it) => setClassDialog({ open: true, cls: state.classes.find((c) => c.id === it.id.split(':')[0]) || null }) : undefined}
             />
           ) : calView === 'cards' ? (
             <CalendarCardsView
               items={classItems}
               legend={classLegend}
-              onCellClick={admin ? (it) => setClassDialog({ open: true, cls: state.classes.find((c) => c.id === it.id) || null }) : undefined}
+              onCellClick={admin ? (it) => setClassDialog({ open: true, cls: state.classes.find((c) => c.id === it.id.split(':')[0]) || null }) : undefined}
             />
           ) : (
             <CalendarListView
               items={classItems}
               legend={classLegend}
-              onCellClick={admin ? (it) => setClassDialog({ open: true, cls: state.classes.find((c) => c.id === it.id) || null }) : undefined}
+              onCellClick={admin ? (it) => setClassDialog({ open: true, cls: state.classes.find((c) => c.id === it.id.split(':')[0]) || null }) : undefined}
             />
           )
         ) : (
