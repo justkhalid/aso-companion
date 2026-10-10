@@ -1,8 +1,7 @@
 'use client'
 
 import * as React from 'react'
-import { CalendarDays, Clock, GraduationCap, KeyRound, Sparkles } from 'lucide-react'
-import { Button } from '@/components/ui/button'
+import { CalendarDays, ChevronRight, Clock, GraduationCap, Sparkles } from 'lucide-react'
 import { Logo } from './logo'
 import { SiteFooter } from './site-footer'
 import { ThemeToggle } from './theme-toggle'
@@ -141,21 +140,29 @@ export function LandingPage() {
         {/* the way in for teachers, interns and volunteers (the admin can switch it off in Settings) */}
         {state.settings.showAccessBox !== false && (
           <section className="mx-auto max-w-6xl px-4 pb-2">
-            <div className="flex flex-col items-start gap-4 rounded-2xl border border-border bg-card p-5 shadow-sm sm:flex-row sm:items-center">
-              <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary">
-                <KeyRound className="h-5 w-5" />
-              </div>
-              <div className="min-w-0 flex-1">
-                <h2 className="text-base font-extrabold tracking-tight">Are you a teacher, an intern or a volunteer?</h2>
-                <p className="mt-0.5 text-sm text-muted-foreground">Access your dedicated pages here. You will need the access code you were given.</p>
-              </div>
-              <div className="flex w-full flex-wrap gap-2 sm:w-auto">
-                <Button className="flex-1 rounded-lg sm:flex-none" onClick={() => setView('home')}>
-                  <GraduationCap className="h-4 w-4" /> For teachers
-                </Button>
-                <Button variant="outline" className="flex-1 rounded-lg sm:flex-none" onClick={() => setView('intern-public')}>
-                  <Sparkles className="h-4 w-4" /> For interns and volunteers
-                </Button>
+            <div className="rounded-2xl border border-border bg-card p-5 shadow-sm sm:p-6">
+              <h2 className="text-base font-extrabold tracking-tight">Are you a teacher, an intern or a volunteer?</h2>
+              <p className="mt-0.5 text-sm text-muted-foreground">Access your dedicated pages here. You will need the access code you were given.</p>
+              <div className="mt-4 grid gap-3 sm:grid-cols-2">
+                {[
+                  { icon: GraduationCap, title: 'Teachers', text: 'Weekly plans, the library and the class calendar', go: () => setView('home') },
+                  { icon: Sparkles, title: 'Interns and volunteers', text: 'Clubs, events and which rooms are free', go: () => setView('intern-public') },
+                ].map((t) => (
+                  <button
+                    key={t.title}
+                    onClick={t.go}
+                    className="group flex items-center gap-3.5 rounded-2xl border border-border bg-secondary/40 p-4 text-left transition hover:border-primary/40 hover:bg-secondary active:scale-[0.99]"
+                  >
+                    <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary">
+                      <t.icon className="h-5 w-5" />
+                    </span>
+                    <span className="min-w-0 flex-1">
+                      <span className="block text-[15px] font-bold leading-tight">{t.title}</span>
+                      <span className="mt-0.5 block text-[13px] leading-snug text-muted-foreground">{t.text}</span>
+                    </span>
+                    <ChevronRight className="h-5 w-5 shrink-0 text-muted-foreground transition group-hover:translate-x-0.5 group-hover:text-primary" />
+                  </button>
+                ))}
               </div>
             </div>
           </section>
