@@ -153,7 +153,7 @@ function withLanes(list: Booking[]): { b: Booking; lane: number }[] {
   })
 }
 
-/* focus: rooms that get a combined first tab; only: show nothing but those rooms (teachers see Room 1 and Room 2) */
+/* focus: rooms that get a combined first tab; only: the tabs are those rooms plus one overview of every space (teachers) */
 export function RoomsPage({ embedded = false, focus, only = false }: { embedded?: boolean; focus?: string[]; only?: boolean }) {
   const state = useStore((s) => s.state)
   const [monday, setMonday] = React.useState(() => mondayOf(new Date()))
@@ -163,12 +163,13 @@ export function RoomsPage({ embedded = false, focus, only = false }: { embedded?
   const rooms = React.useMemo(() => {
     const set = new Set<string>(roomOptionsFor(state))
     bookings.forEach((b) => set.add(b.room))
-    const all = Array.from(set)
-    return only && focus ? focus.filter((f) => all.includes(f)) : all
-  }, [state, bookings, only, focus])
+    return Array.from(set)
+  }, [state, bookings])
   const focusRooms = (focus || []).filter((f) => rooms.includes(f))
   const hasFocus = focusRooms.length > 1
-  const mode = (picked === ALL && !only) || (picked === FOCUS && hasFocus) || rooms.includes(picked) ? picked : hasFocus ? FOCUS : only ? rooms[0] : ALL
+  /* teachers (only): Room 1 and 2 together, each of them, and one overview of every space */
+  const tabRooms = only ? focusRooms : rooms
+  const mode = picked === ALL || (picked === FOCUS && hasFocus) || tabRooms.includes(picked) ? picked : hasFocus ? FOCUS : ALL
   const all = mode === ALL || mode === FOCUS // several rooms in one calendar
   const shown = mode === ALL ? rooms : mode === FOCUS ? focusRooms : [mode]
   const CHIP_H = all ? 38 : 74
@@ -239,7 +240,7 @@ export function RoomsPage({ embedded = false, focus, only = false }: { embedded?
 
       {/* all rooms, or one room */}
       <div className="mb-3 flex gap-1 overflow-x-auto rounded-[10px] bg-black/[0.06] p-0.5 dark:bg-white/10 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden" role="tablist" aria-label="Room">
-        {[...(hasFocus ? [FOCUS] : []), ...(only ? [] : [ALL]), ...rooms].map((r) => {
+        {[...(hasFocus ? [FOCUS] : []), ...(only ? [...tabRooms, ALL] : [ALL, ...tabRooms])].map((r) => {
           const on = r === mode
           return (
             <button
@@ -252,7 +253,7 @@ export function RoomsPage({ embedded = false, focus, only = false }: { embedded?
                 on ? 'bg-card font-semibold shadow-[0_1px_3px_rgba(0,0,0,0.12),0_1px_1px_rgba(0,0,0,0.06)]' : 'font-medium text-foreground/70 hover:bg-black/[0.04]',
               )}
             >
-              {r === ALL ? 'All rooms' : r === FOCUS ? focusRooms.map((x) => x.replace(/^Room /, '')).join(' and ').replace(/^/, 'Room ') : r}
+              {r === ALL ? (only ? 'All spaces' : 'All rooms') : r === FOCUS ? focusRooms.map((x) => x.replace(/^Room /, '')).join(' and ').replace(/^/, 'Room ') : r}
             </button>
           )
         })}
