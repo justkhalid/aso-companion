@@ -57,7 +57,8 @@ import type { Club, EventEntry } from '@/lib/types'
 type ClubView = 'list' | 'grid'
 const CLUB_VIEW_KEY = 'aso-clubs-view-v2' // v2: grid is now the default
 
-export function ClubsPage({ admin, internMode = false }: { admin: boolean; internMode?: boolean }) {
+export function ClubsPage({ admin, internMode = false, section }: { admin: boolean; internMode?: boolean; section?: 'calendar' | 'events' | 'clubs' }) {
+  const show = (k: 'calendar' | 'events' | 'clubs') => !section || section === k
   const state = useStore((s) => s.state)
   const setView = useStore((s) => s.setView)
   const patch = useStore((s) => s.patch)
@@ -173,8 +174,8 @@ export function ClubsPage({ admin, internMode = false }: { admin: boolean; inter
   return (
     <div className="mx-auto max-w-5xl px-4 py-6 sm:py-8">
       <PageHead
-        title="Clubs & events"
-        subtitle={internMode ? 'For ASO interns · the week of club sessions, what is coming up and every club in one place' : `The American Space week · club sessions and what is coming up${admin ? '' : ' · open to everyone'}`}
+        title={section === 'calendar' ? 'Calendar' : section === 'events' ? 'Events' : section === 'clubs' ? 'Clubs' : 'Clubs & events'}
+        subtitle={section === 'calendar' ? 'The week of club sessions' : section === 'events' ? 'What is coming up, with dates and how often it repeats' : section === 'clubs' ? 'Every club, and what is expected of volunteers' : internMode ? 'For ASO interns · the week of club sessions, what is coming up and every club in one place' : `The American Space week · club sessions and what is coming up${admin ? '' : ' · open to everyone'}`}
         right={
           <div className="flex flex-wrap gap-2">
             {admin && (
@@ -196,6 +197,7 @@ export function ClubsPage({ admin, internMode = false }: { admin: boolean; inter
       />
 
       {/* calendar with a view switcher, like the clubs section */}
+      {show('calendar') && (<>
       <div id="calendar" className="mb-3 flex scroll-mt-28 flex-wrap items-center gap-x-2 gap-y-2">
         <h2 className="text-[15px] font-extrabold tracking-tight">Weekly calendar</h2>
         <CalViewSwitcher view={calView} onChange={setCalView} className="ml-auto" />
@@ -214,8 +216,11 @@ export function ClubsPage({ admin, internMode = false }: { admin: boolean; inter
         )}
       </div>
 
+      </>)}
+
       {/* upcoming events */}
-      <div id="events" className="mt-7 scroll-mt-28">
+      {show('events') && (
+      <div id="events" className={section ? 'scroll-mt-28' : 'mt-7 scroll-mt-28'}>
         <div className="mb-3 flex items-center gap-2">
           <h2 className="text-[15px] font-extrabold tracking-tight">Upcoming events</h2>
           <span className="ml-auto text-xs font-semibold text-muted-foreground">{upcoming.length} events</span>
@@ -238,8 +243,11 @@ export function ClubsPage({ admin, internMode = false }: { admin: boolean; inter
         )}
       </div>
 
+      )}
+
       {/* all clubs, list or grid, ordered by day of the week */}
-      <div id="clubs" className="mt-7 scroll-mt-28">
+      {show('clubs') && (<>
+      <div id="clubs" className={section ? 'scroll-mt-28' : 'mt-7 scroll-mt-28'}>
         <div className="mb-3 flex flex-wrap items-center gap-x-2 gap-y-2">
           <h2 className="text-[15px] font-extrabold tracking-tight">All clubs</h2>
           <span className="text-xs font-semibold text-muted-foreground">
@@ -291,6 +299,7 @@ export function ClubsPage({ admin, internMode = false }: { admin: boolean; inter
 
       {/* volunteer responsibilities + path to the report section */}
       <Responsibilities onReports={internMode ? undefined : () => setView('reports')} />
+      </>)}
 
       {/* elegant expand overlay: poster + full details + description, X to close */}
       <ClubExpandOverlay club={expanded} onClose={() => setExpanded(null)} admin={admin} onEdit={(c) => { setExpanded(null); setClubDialog({ open: true, club: c }) }} />

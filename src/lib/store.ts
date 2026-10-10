@@ -179,7 +179,7 @@ export const useStore = create<UIStore>((set, get) => ({
       window.scrollTo({ top: 0 })
       /* public tabs own their path (/clubs, /eltaso, ...); admin-only views
          normalise the URL back to / instead of advertising a tab path */
-      syncViewUrl(v)
+      syncViewUrl(v, 'push', get().admin && !get().pubView)
     }
   },
   setSide: (s) => set({ side: s }),
@@ -210,7 +210,7 @@ export const useStore = create<UIStore>((set, get) => ({
     set({ admin: true, pubView: false, rememberDevice: remember, view: 'home', side: 'elt' })
     lsSet(ADMIN_SEEN_KEY, '1')
     if (remember) lsSet(ROLE_KEY, 'admin')
-    syncViewUrl('home', 'replace')
+    syncViewUrl('home', 'replace', true)
     /* the copy this device holds may be the cut-down public one: pull the full admin copy */
     void get().loadFromCloud()
     return true
@@ -308,10 +308,12 @@ export const useStore = create<UIStore>((set, get) => ({
     set({ state: base })
     applyTheme(base.settings.theme)
     /* who is this visitor? the server cookie says which pages they may open */
+    let adminSession = false
     try {
       const sres = await fetch('/api/session', { cache: 'no-store' })
       if (sres.ok) {
         const { roles } = (await sres.json()) as { roles: string[] }
+        adminSession = roles.includes('admin')
         set({ viewer: { teacher: roles.includes('teacher'), intern: roles.includes('intern') } })
         /* a remembered admin whose session has ended has to sign in again */
         if (!roles.includes('admin') && lsGet(ROLE_KEY) === 'admin') lsDel(ROLE_KEY)
@@ -324,6 +326,8 @@ export const useStore = create<UIStore>((set, get) => ({
     /* a remembered admin still lands on the public view: the site's main link
        always opens what visitors see, and the admin menu opens on request */
     if (role === 'admin') set({ admin: true, pubView: true })
+    /* a live admin session reopening /admin continues there, remembered or not */
+    else if (adminSession && typeof window !== 'undefined' && /^\/admin(\/|$)/.test(window.location.pathname)) set({ admin: true, pubView: false })
 
     // v4.7: returning visitors (data already in localStorage) render right
     // away and the cloud copy still merges in below. Fresh visitors stay on
@@ -500,11 +504,11 @@ export const useStore = create<UIStore>((set, get) => ({
 export function effectiveView(store: UIStore): View {
   if (!store.admin) {
     // public: only home/eltaso/level-detail/clubs/resources/login
-    const allowed: View[] = ['landing', 'home', 'eltaso', 'level-detail', 'resources', 'intern-public', 'teacher-rooms', 'login']
+    const allowed: View[] = ['landing', 'home', 'eltaso', 'level-detail', 'resources', 'intern-public', 'interns-events', 'interns-clubs', 'interns-rooms', 'interns-report', 'teacher-rooms', 'login']
     return allowed.includes(store.view) ? store.view : 'home'
   }
   if (store.pubView) {
-    const allowed: View[] = ['landing', 'home', 'eltaso', 'level-detail', 'resources', 'intern-public', 'teacher-rooms']
+    const allowed: View[] = ['landing', 'home', 'eltaso', 'level-detail', 'resources', 'intern-public', 'interns-events', 'interns-clubs', 'interns-rooms', 'interns-report', 'teacher-rooms']
     return allowed.includes(store.view) ? store.view : 'home'
   }
   return store.view

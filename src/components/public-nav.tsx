@@ -1,7 +1,7 @@
 'use client'
 
 import * as React from 'react'
-import { Menu, X } from 'lucide-react'
+import { DoorOpen, Menu, X } from 'lucide-react'
 import { Logo } from './logo'
 import { ThemeToggle } from './theme-toggle'
 import { useStore } from '@/lib/store'
@@ -12,13 +12,14 @@ import { cn } from '@/lib/utils'
 interface NavItem {
   label: string
   view: View
+  icon?: React.ComponentType<{ className?: string }>
 }
 
 const NAV: NavItem[] = [
   { label: 'Home', view: 'home' },
   { label: 'ELTASO', view: 'eltaso' },
   { label: 'Resources', view: 'resources' },
-  { label: 'Rooms', view: 'teacher-rooms' },
+  { label: 'Free rooms', view: 'teacher-rooms', icon: DoorOpen },
   { label: 'Submit report', view: 'reports' },
 ]
 
@@ -65,6 +66,7 @@ export function PublicNav() {
                     : 'text-foreground/80 hover:bg-secondary',
                 )}
               >
+                {item.icon && <item.icon className="mr-1.5 inline h-3.5 w-3.5 align-[-2px]" />}
                 {item.label}
               </button>
             )
@@ -104,6 +106,7 @@ export function PublicNav() {
                       : 'text-foreground/80 hover:bg-secondary',
                   )}
                 >
+                  {item.icon && <item.icon className="mr-2 inline h-4 w-4 align-[-3px]" />}
                   {item.label}
                 </button>
               )

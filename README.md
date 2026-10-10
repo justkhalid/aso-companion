@@ -122,7 +122,8 @@ of visitors does not hit GitHub or Blob each time. Public images are cached for 
 
 - `/` is the main page for the general public: the classes (with days and times), the clubs and the coming events. No teacher names, class codes or admin tools.
 - `/teachers` is the teachers' site: home calendar, with `/teachers/eltaso` (weekly plans), `/teachers/resources`, `/teachers/rooms` and `/teachers/reports`.
-- `/interns` is for ASO interns: clubs, events and free rooms.
+- `/interns` is for ASO interns, one page per tab like the teachers' site: `/interns` (calendar), `/interns/events`, `/interns/clubs`, `/interns/rooms`, `/interns/report`.
+- `/admin` is the admin's own site: it shows the sign-in when signed out, and each admin screen has its own path (`/admin/classes`, `/admin/team`, `/admin/settings`, ...).
 - The admin signs in from the footer of the main page or the teachers' site. A remembered admin sees the public page with a bar to open the admin menu.
 - `/clubs` redirects to `/interns`; `/eltaso` and `/resources` redirect under `/teachers`.
 - Previews: `vercel.json` builds only `main` and the working branch `claude/nice-ramanujan-hntc39`. Vercel previews are visible only to people signed in to the Vercel account. Remove the branch name from `ignoreCommand` once the preview is no longer needed.

@@ -27,7 +27,7 @@ import { InternOverview } from './pages/intern-overview'
 import { InternClubsPage } from './pages/intern-clubs-page'
 import { InternEventsPage } from './pages/intern-events-page'
 import { InternVolunteersPage } from './pages/intern-volunteers-page'
-import { viewFromPath } from '@/lib/url-sync'
+import { viewFromPath, adminViewFromPath, isAdminPath } from '@/lib/url-sync'
 import type { View } from '@/lib/types'
 
 export function AppShell({ initialView }: { initialView?: View }) {
@@ -51,18 +51,34 @@ export function AppShell({ initialView }: { initialView?: View }) {
   // (no-op when the URL is /, the default home). Runs before the boot
   // splash lifts, so the first real paint is already the requested tab.
   React.useEffect(() => {
-    if (initialView) setView(initialView)
+    if (initialView && !isAdminPath(window.location.pathname)) setView(initialView)
   }, [])
 
   // browser back / forward walks through public tab paths
   React.useEffect(() => {
     const onPop = () => {
-      const v = viewFromPath(window.location.pathname)
+      const path = window.location.pathname
+      const st = useStore.getState()
+      const v = isAdminPath(path) ? (st.admin ? adminViewFromPath(path) : 'login') : viewFromPath(path)
       if (v) setView(v) // syncViewUrl skips the push when already on the path
     }
     window.addEventListener('popstate', onPop)
     return () => window.removeEventListener('popstate', onPop)
   }, [])
+
+  // /admin/...: once the session is known, signed-in admins land on that admin screen and everyone else on the sign-in
+  const adminLanded = React.useRef(false)
+  React.useEffect(() => {
+    if (boot !== 'loaded' || adminLanded.current) return
+    adminLanded.current = true
+    const path = window.location.pathname
+    if (!isAdminPath(path)) return
+    const st = useStore.getState()
+    if (st.admin) {
+      st.setPubView(false)
+      setView(adminViewFromPath(path) || 'home')
+    } else setView('login')
+  }, [boot])
 
   // v4.7 boot splash: until the app state is ready, show a branded splash
   // instead of rendering anything. This kills the split-second flash of the
@@ -87,7 +103,8 @@ export function AppShell({ initialView }: { initialView?: View }) {
   /* the teachers' and interns' pages open with their own access code (the admin opens everything) */
   const teacherOk = admin || viewer.teacher || loginRules.teacherLoginRequired === false
   const internOk = admin || viewer.intern || loginRules.internLoginRequired === false
-  if (ev === 'intern-public' && !internOk) {
+  const internView = INTERN_PAGES.includes(ev)
+  if (internView && !internOk) {
     return (
       <>
         <AccessGate role="intern" />
@@ -107,7 +124,7 @@ export function AppShell({ initialView }: { initialView?: View }) {
   }
 
   /* /interns: clubs and events only, in its own minimal page (no tabs, no admin chrome) */
-  if (ev === 'intern-public') {
+  if (internView) {
     return (
       <>
         <InternShell />
@@ -183,10 +200,12 @@ function BootSplash() {
   )
 }
 
+const INTERN_PAGES: View[] = ['intern-public', 'interns-events', 'interns-clubs', 'interns-rooms', 'interns-report']
+
 function computeView(view: View, admin: boolean, pubView: boolean): View {
-  const allowedPublic: View[] = ['landing', 'home', 'eltaso', 'level-detail', 'resources', 'intern-public', 'teacher-rooms', 'reports', 'login']
+  const allowedPublic: View[] = ['landing', 'home', 'eltaso', 'level-detail', 'resources', 'intern-public', 'interns-events', 'interns-clubs', 'interns-rooms', 'interns-report', 'teacher-rooms', 'reports', 'login']
   if (!admin) return allowedPublic.includes(view) ? view : 'home'
-  if (pubView) return ['landing', 'home', 'eltaso', 'level-detail', 'resources', 'intern-public', 'teacher-rooms', 'reports'].includes(view) ? view : 'home'
+  if (pubView) return ['landing', 'home', 'eltaso', 'level-detail', 'resources', 'intern-public', 'interns-events', 'interns-clubs', 'interns-rooms', 'interns-report', 'teacher-rooms', 'reports'].includes(view) ? view : 'home'
   /* a signed-in admin never sees the sign-in screen or the public main page inside the admin shell */
   return view === 'login' || view === 'landing' ? 'home' : view
 }
@@ -206,6 +225,10 @@ function PageBody({ view, admin }: { view: View; admin: boolean }) {
     case 'teacher-rooms':
       return <RoomsPage focus={['Room 1', 'Room 2']} only />
     case 'intern-public':
+    case 'interns-events':
+    case 'interns-clubs':
+    case 'interns-rooms':
+    case 'interns-report':
       return <ClubsPage admin={false} internMode />
     case 'resources':
       return <ResourcesPage />
