@@ -168,7 +168,18 @@ function isState(x: unknown): x is { v: number } {
  * Read the live state. Blob first; if Blob is configured but still empty
  * (first run after migration), seed it from the GitHub copy automatically.
  */
-export async function readCloudState(): Promise<ReadResult> {
+const MEMO_MS = 15_000
+let memo: { at: number; res: ReadResult } | null = null
+
+export async function readCloudState(opts?: { fresh?: boolean }): Promise<ReadResult> {
+  /* a burst of visitors reuses one read instead of hitting Blob or GitHub each time */
+  if (!opts?.fresh && memo && Date.now() - memo.at < MEMO_MS) return memo.res
+  const res = await readCloudStateUncached()
+  if (res.ok) memo = { at: Date.now(), res }
+  return res
+}
+
+async function readCloudStateUncached(): Promise<ReadResult> {
   const info = getStorageInfo()
 
   if (info.mode === 'vercel-blob') {
@@ -219,6 +230,7 @@ export async function writeCloudState(
   content: string,
   message?: string,
 ): Promise<{ ok: boolean; msg: string; mode: StorageMode }> {
+  memo = null /* the next read must see this save */
   const info = getStorageInfo()
 
   if (info.mode === 'vercel-blob') {

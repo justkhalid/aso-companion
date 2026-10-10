@@ -218,7 +218,8 @@ export const useStore = create<UIStore>((set, get) => ({
     //        GitHub only as server-side fallback). No direct client-side
     //        GitHub fetches anymore: one source of truth, one route.
     try {
-      const res = await fetch('/api/state', { cache: 'no-store' })
+      /* no-cache = revalidate with the ETag: a 304 reuses the copy already downloaded */
+      const res = await fetch('/api/state', { cache: 'no-cache' })
       if (!res.ok) throw new Error('HTTP ' + res.status)
       const cloud = (await res.json()) as State
       if (!cloud || cloud.v !== 1) throw new Error('bad state version')
@@ -261,7 +262,7 @@ export const useStore = create<UIStore>((set, get) => ({
       /* v4.6: single data path through the server-side /api/state route.
          The storage provider (Vercel Blob or legacy GitHub fallback) is
          resolved on the server; the client never talks to GitHub. */
-      const res = await fetch('/api/state', { cache: 'no-store' })
+      const res = await fetch('/api/state?fresh=1', { cache: 'no-store' })
       if (!res.ok) throw new Error('HTTP ' + res.status)
       const cloud = (await res.json()) as State
       if (!cloud || cloud.v !== 1) throw new Error('bad state version')
