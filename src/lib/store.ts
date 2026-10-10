@@ -5,6 +5,7 @@ import type { State, View, Side, Theme } from './types'
 import { seedState } from './seed'
 import { LS_KEY, ROLE_KEY } from './constants'
 import { syncViewUrl } from './url-sync'
+import { readLocal, writeLocal } from './local-db'
 
 export type BootStatus = 'idle' | 'loading' | 'loaded' | 'error'
 
@@ -80,6 +81,37 @@ function lsDel(key: string) {
   } catch {
     /* ignore */
   }
+}
+
+/* Local copy writes go through one queue: the newest JSON wins, writes never
+   overlap, and a failure toasts once until a later write succeeds. */
+let pendingLocal: string | null = null
+let flushing = false
+let localFailed = false
+
+async function flushLocal() {
+  flushing = true
+  while (pendingLocal !== null) {
+    const json = pendingLocal
+    pendingLocal = null
+    try {
+      await writeLocal(LS_KEY, json)
+      localFailed = false
+    } catch {
+      if (!localFailed) {
+        localFailed = true
+        useStore
+          .getState()
+          .toast('Could not save a copy on this device. Changes may be lost if you close the tab; use Export backup.', false)
+      }
+    }
+  }
+  flushing = false
+}
+
+function saveLocal(json: string) {
+  pendingLocal = json
+  if (!flushing) void flushLocal()
 }
 
 function deepClone<T>(o: T): T {
@@ -180,18 +212,13 @@ export const useStore = create<UIStore>((set, get) => ({
   },
 
   persist: () => {
-    const s = get().state
-    try {
-      lsSet(LS_KEY, JSON.stringify(s))
-    } catch {
-      /* ignore */
-    }
+    saveLocal(JSON.stringify(get().state))
   },
 
   bootApp: async () => {
     set({ boot: 'loading', bootError: '' })
-    // 1. load local state first (instant)
-    const localRaw = lsGet(LS_KEY)
+    // 1. load local state first (IndexedDB, with localStorage fallback)
+    const localRaw = await readLocal(LS_KEY)
     let localState: State | null = null
     if (localRaw) {
       try {
@@ -232,13 +259,9 @@ export const useStore = create<UIStore>((set, get) => ({
       const merged = pickNewer(current, cloud)
       set({ state: merged, lastSync: new Date().toISOString() })
       applyTheme(merged.settings.theme)
-      // keep the newer one in localStorage too
+      // keep the newer one in the local copy too
       if (merged !== current) {
-        try {
-          lsSet(LS_KEY, JSON.stringify(merged))
-        } catch {
-          /* ignore */
-        }
+        saveLocal(JSON.stringify(merged))
       }
       // convergence: if this device was strictly newer (e.g. an edit made
       // while offline), push it up so the cloud copy catches up instead of
@@ -274,7 +297,7 @@ export const useStore = create<UIStore>((set, get) => ({
       }
       set({ state: cloud, lastSync: new Date().toISOString() })
       applyTheme(cloud.settings.theme)
-      lsSet(LS_KEY, JSON.stringify(cloud))
+      saveLocal(JSON.stringify(cloud))
       set({ syncing: false })
       return { ok: true, msg: 'Loaded from cloud' }
     } catch (e) {
@@ -319,7 +342,7 @@ export const useStore = create<UIStore>((set, get) => ({
         draft.settings.ghLastSync = new Date().toISOString()
         draft._rev = (draft._rev || 0) + 1
         set({ state: draft, lastSync: draft.settings.ghLastSync, syncing: false })
-        lsSet(LS_KEY, JSON.stringify(draft))
+        saveLocal(JSON.stringify(draft))
         return { ok: true, msg: msg || 'Saved to cloud' }
       } else {
         set({ syncing: false })
@@ -343,7 +366,7 @@ export const useStore = create<UIStore>((set, get) => ({
       draft._rev = (draft._rev || 0) + 1
       set({ state: draft })
       applyTheme(draft.settings.theme)
-      lsSet(LS_KEY, JSON.stringify(draft))
+      saveLocal(JSON.stringify(draft))
       return { ok: true, msg: 'Backup imported' }
     } catch {
       return { ok: false, msg: 'Could not parse the JSON file' }
@@ -354,7 +377,7 @@ export const useStore = create<UIStore>((set, get) => ({
     const s = seedState()
     set({ state: s, view: 'home', selectedLevelKey: '' })
     applyTheme(s.settings.theme)
-    lsSet(LS_KEY, JSON.stringify(s))
+    saveLocal(JSON.stringify(s))
     syncViewUrl('home', 'replace')
   },
 

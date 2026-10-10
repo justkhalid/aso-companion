@@ -1,5 +1,6 @@
 'use client'
 
+import { compactSize } from '@/lib/local-db'
 import * as React from 'react'
 import {
   Sun,
@@ -83,6 +84,15 @@ export function SettingsPage() {
       alive = false
     }
   }, [])
+
+  const [quota, setQuota] = React.useState<{ usage: number; quota: number } | null>(null)
+  React.useEffect(() => {
+    navigator.storage
+      ?.estimate?.()
+      .then((e) => setQuota({ usage: e.usage || 0, quota: e.quota || 0 }))
+      .catch(() => {})
+  }, [state._rev])
+  const stateChars = React.useMemo(() => compactSize(state), [state])
 
   const s = state.settings
 
@@ -298,6 +308,12 @@ export function SettingsPage() {
 
       {/* data */}
       <Section title="Data" icon={<Database className="h-4 w-4" />}>
+        <div className="mb-3 text-xs leading-relaxed text-muted-foreground" data-testid="local-size">
+          Local copy: {stateChars.toLocaleString()} characters ({(stateChars / 1_000_000).toFixed(2)} million, compact JSON)
+          {quota && quota.quota > 0
+            ? `. Browser storage for this site: ${(quota.usage / 1_048_576).toFixed(1)} MB used of ${Math.round(quota.quota / 1_048_576).toLocaleString()} MB.`
+            : '.'}
+        </div>
         <div className="flex flex-wrap gap-2">
           <Button size="sm" variant="outline" onClick={onExport}>
             <UploadCloud className="h-3.5 w-3.5" /> Export backup (JSON)
