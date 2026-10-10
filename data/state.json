@@ -36096,7 +36096,10 @@
     {
       "id": "t5",
       "name": "Nadia",
-      "role": "Volunteer Teacher",
+      "roles": [
+        "Teacher"
+      ],
+      "role": "Teacher",
       "duty": "ASO-K3 Kids",
       "phone": "",
       "email": ""
@@ -37717,5 +37720,5 @@
   ],
   "reports": [],
   "libraryPins": [],
-  "_rev": 1791659989677
+  "_rev": 1791659989678
 }
