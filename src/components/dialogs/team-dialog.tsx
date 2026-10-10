@@ -12,6 +12,8 @@ import {
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
+import { ChevronDown } from 'lucide-react'
+import { DropdownMenu, DropdownMenuCheckboxItem, DropdownMenuContent, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
 import { useStore } from '@/lib/store'
 import { PEOPLE_ROLES, rolesOf, uid } from '@/lib/app-utils'
 import { cn } from '@/lib/utils'
@@ -127,34 +129,41 @@ export function TeamDialog({
             </div>
             <Input aria-label="Other roles, separated by commas" value={other} onChange={(e) => setOther(e.target.value)} placeholder="Other roles, separated by commas" />
           </fieldset>
-          <fieldset className="flex flex-col gap-2">
-            <legend className="mb-1 text-sm font-medium">Looks after</legend>
-            {looksGroups.every((g) => g.items.length === 0) && <p className="text-xs text-muted-foreground">No classes, clubs or events exist yet.</p>}
-            {looksGroups.map((g) =>
-              g.items.length ? (
-                <div key={g.label} role="group" aria-label={g.label}>
-                  <div className="mb-1 text-[11px] font-bold uppercase tracking-wider text-muted-foreground">{g.label}</div>
-                  <div className="flex flex-wrap gap-1.5">
-                    {g.items.map((it) => (
-                      <button
-                        key={it}
-                        type="button"
-                        aria-pressed={looks.includes(it)}
-                        onClick={() => setLooks((cur) => (cur.includes(it) ? cur.filter((x) => x !== it) : [...cur, it]))}
-                        className={cn(
-                          'rounded-full border px-3 py-1 text-xs font-semibold transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring',
-                          looks.includes(it) ? 'aso-nav-pill border-transparent' : 'border-border bg-secondary text-foreground/80 hover:bg-secondary/70',
-                        )}
-                      >
-                        {it}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              ) : null,
-            )}
+          <div className="flex flex-col gap-1.5">
+            <Label id="t-looks-label">Looks after</Label>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button type="button" variant="outline" aria-labelledby="t-looks-label" className="h-auto min-h-9 justify-between gap-2 py-2 text-left font-normal">
+                  <span className="min-w-0 flex-1 whitespace-normal">
+                    {looks.length ? looks.join(', ') : <span className="text-muted-foreground">Choose classes, clubs or events</span>}
+                  </span>
+                  <ChevronDown className="h-4 w-4 shrink-0 opacity-60" aria-hidden />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="start" className="max-h-72 w-[var(--radix-dropdown-menu-trigger-width)] overflow-y-auto">
+                {looksGroups.every((g) => g.items.length === 0) && <div className="px-2 py-1.5 text-sm text-muted-foreground">No classes, clubs or events yet</div>}
+                {looksGroups.map((g, gi) =>
+                  g.items.length ? (
+                    <React.Fragment key={g.label}>
+                      {gi > 0 && <DropdownMenuSeparator />}
+                      <DropdownMenuLabel className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground">{g.label}</DropdownMenuLabel>
+                      {g.items.map((it) => (
+                        <DropdownMenuCheckboxItem
+                          key={it}
+                          checked={looks.includes(it)}
+                          onSelect={(e) => e.preventDefault()}
+                          onCheckedChange={(v) => setLooks((cur) => (v ? [...cur, it] : cur.filter((x) => x !== it)))}
+                        >
+                          {it}
+                        </DropdownMenuCheckboxItem>
+                      ))}
+                    </React.Fragment>
+                  ) : null,
+                )}
+              </DropdownMenuContent>
+            </DropdownMenu>
             <Input aria-label="Other responsibilities" value={duty} onChange={(e) => setDuty(e.target.value)} placeholder="Anything else, for example: program decisions" />
-          </fieldset>
+          </div>
           <div className="grid gap-4 sm:grid-cols-2">
             <div className="flex flex-col gap-1.5">
               <Label htmlFor="t-phone">Phone</Label>
