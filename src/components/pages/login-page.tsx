@@ -23,8 +23,14 @@ export function LoginPage() {
     inputRef.current?.focus()
   }, [])
 
-  const attempt = () => {
-    if (!login(code, remember)) {
+  const [busy, setBusy] = React.useState(false)
+
+  const attempt = async () => {
+    if (busy) return
+    setBusy(true)
+    const ok = await login(code, remember)
+    setBusy(false)
+    if (!ok) {
       toast('Wrong admin code', false)
       return
     }
@@ -59,7 +65,7 @@ export function LoginPage() {
               className="text-center text-lg tracking-[0.4em]"
             />
           </div>
-          <Button className="mt-3 w-full" onClick={attempt}>
+          <Button className="mt-3 w-full" onClick={attempt} disabled={busy}>
             <LogIn className="h-4 w-4" /> Sign in
           </Button>
           <label className="mt-3 flex cursor-pointer items-center gap-2 text-xs font-semibold">
@@ -82,7 +88,7 @@ export function LoginPage() {
         </div>
 
         <p className="mt-8 text-center text-[11px] text-muted-foreground">
-          Tip: the default code is 1234 until you change it in Settings.
+          Tip: change the admin code in Settings after your first sign in.
         </p>
       </div>
     </div>

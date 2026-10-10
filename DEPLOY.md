@@ -20,7 +20,8 @@
    old GitHub mechanism. Then you need:
    | Name | Value | Description |
    |------|-------|-------------|
-   | `GITHUB_PAT` | `github_pat_...` | GitHub Personal Access Token with "repo" scope, used by the fallback sync. Server-side only, never exposed to the browser. |
+   | `ASO_SESSION_SECRET` | Strongly recommended | derived from `BLOB_READ_WRITE_TOKEN` / `GITHUB_PAT` if set; fixed dev value outside production; random per process otherwise | Long random string (for example `openssl rand -hex 32`) used to sign the admin session cookie issued by `POST /api/login`. `POST /api/sync` returns 401 without that cookie, and `/api/state` hides `adminCode` / `teacherCode` from visitors. Changing it signs every admin out. |
+| `GITHUB_PAT` | `github_pat_...` | GitHub Personal Access Token with "repo" scope, used by the fallback sync. Server-side only, never exposed to the browser. |
    | `GITHUB_REPO` | `justkhalid/aso-companion` | The repo that hosts the state file. |
    | `GITHUB_BRANCH` | `main` | The branch to save to. |
    | `GITHUB_STATE_PATH` | `data/state.json` | The path to the state file in the repo. |
@@ -94,6 +95,8 @@ Browser (client)            Vercel (server)                Storage
   |-------------------------->|   no : PUT contents API ---->| GitHub  no deploy)
   |<--------------------------|                              |
 ```
+
+Writes need the admin session: `POST /api/login` checks the admin code on the server and sets a signed HttpOnly cookie; `POST /api/sync` rejects requests without it (401). `GET /api/state` removes `adminCode` and `teacherCode` unless the cookie is present.
 
 The PAT and Blob token never leave the Vercel server. The browser only talks to
 `/api/state` and `/api/sync` on the same origin.

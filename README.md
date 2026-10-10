@@ -47,6 +47,19 @@ browser of the admin who entered it.
 PAT from localStorage. Use a fine-grained PAT scoped to only this repo, and
 sign out (top of the sidebar) when you are done on a shared computer.
 
+## Admin sign-in and `ASO_SESSION_SECRET`
+
+The admin code is checked on the server (`POST /api/login`), which sets a signed
+HttpOnly session cookie. Saving (`POST /api/sync`) requires that cookie and
+returns 401 without it. Public visitors still read everything through
+`GET /api/state`, but `adminCode` and `teacherCode` are removed from their copy.
+
+Set `ASO_SESSION_SECRET` (a long random string, e.g. `openssl rand -hex 32`) in
+Vercel or `.env.local` to sign the cookie. Without it the app derives a key from
+`BLOB_READ_WRITE_TOKEN` / `GITHUB_PAT`, or uses a fixed development key outside
+production. If the code was ever public (it is in the repo's `data/state.json`
+history), change it in Settings after deploying.
+
 ## Library
 
 The Library page groups the Drive folders by what a teacher needs, filters by age and

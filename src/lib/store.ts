@@ -3,7 +3,7 @@
 import { create } from 'zustand'
 import type { State, View, Side, Theme } from './types'
 import { seedState } from './seed'
-import { LS_KEY, ROLE_KEY } from './constants'
+import { LS_KEY, ROLE_KEY, ADMIN_SEEN_KEY } from './constants'
 import { syncViewUrl } from './url-sync'
 
 export type BootStatus = 'idle' | 'loading' | 'loaded' | 'error'
@@ -37,8 +37,9 @@ interface UIStore {
   setView: (v: View) => void
   setSide: (s: Side) => void
   openLevel: (key: string) => void
-  login: (code: string, remember: boolean) => boolean
+  login: (code: string, remember: boolean) => Promise<boolean>
   logout: () => void
+  refreshSecrets: () => Promise<void>
   setPubView: (v: boolean) => void
 
   setState: (s: State, opts?: { persist?: boolean }) => void
@@ -138,18 +139,54 @@ export const useStore = create<UIStore>((set, get) => ({
     if (typeof window !== 'undefined') window.scrollTo({ top: 0 })
   },
 
-  login: (code, remember) => {
-    const ok = String(get().state.settings.adminCode || '1234')
-    if (code.trim() !== ok) return false
+  login: async (code, remember) => {
+    const typed = code.trim()
+    let ok = false
+    try {
+      const res = await fetch('/api/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ code: typed, remember }),
+      })
+      if (res.status >= 500) throw new Error('server unavailable')
+      ok = res.ok
+    } catch {
+      /* offline: only a device that signed in before (so it holds the admin
+         copy of the settings) may sign in locally. Saves still need the server. */
+      const known = lsGet(ADMIN_SEEN_KEY) === '1'
+      const local = get().state.settings.adminCode
+      ok = known && !!local && typed === String(local)
+    }
+    if (!ok) return false
     set({ admin: true, pubView: false, rememberDevice: remember, view: 'home', side: 'elt' })
+    lsSet(ADMIN_SEEN_KEY, '1')
     if (remember) lsSet(ROLE_KEY, 'admin')
     syncViewUrl('home', 'replace')
+    /* the public copy has no access codes: pull the admin copy of the settings */
+    void get().refreshSecrets()
     return true
   },
   logout: () => {
     set({ admin: false, pubView: false, view: 'home', side: 'elt' })
     lsDel(ROLE_KEY)
     syncViewUrl('home', 'replace')
+    void fetch('/api/logout', { method: 'POST' }).catch(() => {})
+  },
+  refreshSecrets: async () => {
+    try {
+      const res = await fetch('/api/state?fresh=1', { cache: 'no-store' })
+      if (!res.ok) return
+      const cloud = (await res.json()) as State
+      const { adminCode, teacherCode } = cloud?.settings || {}
+      if (adminCode === undefined && teacherCode === undefined) return
+      const draft = deepClone(get().state)
+      if (adminCode !== undefined && !draft.settings.adminCode) draft.settings.adminCode = adminCode
+      if (teacherCode !== undefined && !draft.settings.teacherCode) draft.settings.teacherCode = teacherCode
+      set({ state: draft })
+      get().persist()
+    } catch {
+      /* offline: codes arrive on the next admin load */
+    }
   },
   setPubView: (v) => set({ pubView: v }),
 
@@ -310,6 +347,12 @@ export const useStore = create<UIStore>((set, get) => ({
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ content }),
       })
+      if (res.status === 401) {
+        /* cookie expired or missing: back to the sign-in screen; edits stay in localStorage */
+        set({ syncing: false, admin: false, view: 'login' })
+        lsDel(ROLE_KEY)
+        return { ok: false, msg: 'Session expired. Sign in again to save.' }
+      }
       const result = await res.json()
       ok = !!result.ok
       msg = result.msg || ''
