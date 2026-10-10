@@ -46,7 +46,7 @@ export function LibraryDialog({
     setSk(folder?.sk || [])
     setCat(folder?.cat || (folder ? libGroup(folder).k : ''))
     setBands(folder?.bands || [])
-  }, [open, folder])
+  }, [open, folder?.id])
 
   const save = () => {
     if (!name.trim()) {

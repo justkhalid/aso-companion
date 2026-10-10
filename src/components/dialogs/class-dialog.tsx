@@ -50,12 +50,21 @@ export function ClassDialog({
      re-generates when the user actually switches level */
   const prevLevel = React.useRef<string | null>(null)
 
+  /* latest state for the effects below without making them re-run on every
+     autosave or cloud refresh (that used to wipe what the user was typing) */
+  const stateRef = React.useRef(state)
+  React.useEffect(() => {
+    stateRef.current = state
+  })
+
+  /* load the form once per opening of the dialog (or when another class is picked) */
   React.useEffect(() => {
     if (!open) {
       prevLevel.current = null
       return
     }
-    const lvl = cls?.level || (state.levels[0]?.label || '')
+    const st = stateRef.current
+    const lvl = cls?.level || (st.levels[0]?.label || '')
     setCodeTouched(false)
     prevLevel.current = lvl
     setLevel(lvl)
@@ -63,16 +72,17 @@ export function ClassDialog({
     setRoom(cls?.room || '')
     setDays(cls?.days || [])
     setTime(cls?.time || '')
-    setCode(cls?.code || suggestClassCode(state.classes, lvl))
-  }, [open, cls, state.levels, state.classes])
+    setCode(cls?.code || suggestClassCode(st.classes, lvl))
+  }, [open, cls?.id])
 
-  /* level switched and the code hasn't been typed by hand -> new suggestion */
+  /* new class only: switching level suggests a fresh code until the user types one.
+     An existing class keeps its code when the level changes. */
   React.useEffect(() => {
-    if (!open) return
+    if (!open || !isNew) return
     if (prevLevel.current === null || prevLevel.current === level) return
     prevLevel.current = level
-    if (!codeTouched) setCode(suggestClassCode(state.classes, level))
-  }, [level, open, codeTouched, state.classes])
+    if (!codeTouched) setCode(suggestClassCode(stateRef.current.classes, level))
+  }, [level, open, isNew, codeTouched])
 
   const roomOptions = React.useMemo(() => roomOptionsFor(state), [state])
   const teacherNames = React.useMemo(

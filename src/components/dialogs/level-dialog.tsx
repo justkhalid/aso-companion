@@ -46,7 +46,7 @@ export function LevelDialog({
     setBand(level.band || '')
     setTier(level.tier || '')
     setDesc(level.desc || '')
-  }, [open, level])
+  }, [open, level?.key])
 
   const save = () => {
     patch((draft) => {

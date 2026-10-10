@@ -39,7 +39,7 @@ export function TeamDialog({
     setRole(member?.role || '')
     setPhone(member?.phone || '')
     setEmail(member?.email || '')
-  }, [open, member])
+  }, [open, member?.id])
 
   const save = () => {
     if (!name.trim()) {
