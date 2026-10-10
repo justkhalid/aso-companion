@@ -52,7 +52,7 @@ import type { Club, EventEntry } from '@/lib/types'
 type ClubView = 'list' | 'grid'
 const CLUB_VIEW_KEY = 'aso-clubs-view-v2' // v2: grid is now the default
 
-export function ClubsPage({ admin }: { admin: boolean }) {
+export function ClubsPage({ admin, internMode = false }: { admin: boolean; internMode?: boolean }) {
   const state = useStore((s) => s.state)
   const setView = useStore((s) => s.setView)
   const patch = useStore((s) => s.patch)
@@ -161,7 +161,7 @@ export function ClubsPage({ admin }: { admin: boolean }) {
     <div className="mx-auto max-w-5xl px-4 py-6 sm:py-8">
       <PageHead
         title="Clubs & events"
-        subtitle={`The American Space week · club sessions and what is coming up${admin ? '' : ' · open to everyone'}`}
+        subtitle={internMode ? 'For ASO interns · the week of club sessions, what is coming up and every club in one place' : `The American Space week · club sessions and what is coming up${admin ? '' : ' · open to everyone'}`}
         right={
           <div className="flex flex-wrap gap-2">
             {admin && (
@@ -183,7 +183,7 @@ export function ClubsPage({ admin }: { admin: boolean }) {
       />
 
       {/* calendar with a view switcher, like the clubs section */}
-      <div className="mb-3 flex flex-wrap items-center gap-x-2 gap-y-2">
+      <div id="calendar" className="mb-3 flex scroll-mt-28 flex-wrap items-center gap-x-2 gap-y-2">
         <h2 className="text-[15px] font-extrabold tracking-tight">Weekly calendar</h2>
         <CalViewSwitcher view={calView} onChange={setCalView} className="ml-auto" />
       </div>
@@ -202,7 +202,7 @@ export function ClubsPage({ admin }: { admin: boolean }) {
       </div>
 
       {/* upcoming events */}
-      <div className="mt-7">
+      <div id="events" className="mt-7 scroll-mt-28">
         <div className="mb-3 flex items-center gap-2">
           <h2 className="text-[15px] font-extrabold tracking-tight">Upcoming events</h2>
           <span className="ml-auto text-xs font-semibold text-muted-foreground">{upcoming.length} events</span>
@@ -226,7 +226,7 @@ export function ClubsPage({ admin }: { admin: boolean }) {
       </div>
 
       {/* all clubs, list or grid, ordered by day of the week */}
-      <div className="mt-7">
+      <div id="clubs" className="mt-7 scroll-mt-28">
         <div className="mb-3 flex flex-wrap items-center gap-x-2 gap-y-2">
           <h2 className="text-[15px] font-extrabold tracking-tight">All clubs</h2>
           <span className="text-xs font-semibold text-muted-foreground">
@@ -276,7 +276,7 @@ export function ClubsPage({ admin }: { admin: boolean }) {
       </div>
 
       {/* volunteer responsibilities + path to the report section */}
-      <Responsibilities onReports={() => setView('reports')} />
+      <Responsibilities onReports={internMode ? undefined : () => setView('reports')} />
 
       {/* elegant expand overlay: poster + full details + description, X to close */}
       <ClubExpandOverlay club={expanded} onClose={() => setExpanded(null)} admin={admin} onEdit={(c) => { setExpanded(null); setClubDialog({ open: true, club: c }) }} />
@@ -711,7 +711,7 @@ function MetaCell({
 /* -------------------------------------------------------------------------
    Volunteer responsibilities: the full club cycle and where everything goes
    ------------------------------------------------------------------------- */
-function Responsibilities({ onReports }: { onReports: () => void }) {
+function Responsibilities({ onReports }: { onReports?: () => void }) {
   const steps = [
     {
       icon: Palette,
@@ -742,9 +742,11 @@ function Responsibilities({ onReports }: { onReports: () => void }) {
           </span>
         }
         right={
-          <LinkButton icon={<ArrowRight className="h-3.5 w-3.5" />} onClick={onReports}>
-            Report guide
-          </LinkButton>
+          onReports ? (
+            <LinkButton icon={<ArrowRight className="h-3.5 w-3.5" />} onClick={onReports}>
+              Report guide
+            </LinkButton>
+          ) : undefined
         }
       />
       <p className="mb-3 max-w-2xl text-sm text-muted-foreground">
@@ -783,11 +785,13 @@ function Responsibilities({ onReports }: { onReports: () => void }) {
             <span><b className="text-foreground">Everything else</b> (poster, description, attendance, questions) passes through the lead coordinator.</span>
           </li>
         </ul>
-        <div className="mt-3.5">
-          <Button size="sm" onClick={onReports}>
-            <FileText className="h-3.5 w-3.5" /> Go to the report section
-          </Button>
-        </div>
+        {onReports && (
+          <div className="mt-3.5">
+            <Button size="sm" onClick={onReports}>
+              <FileText className="h-3.5 w-3.5" /> Go to the report section
+            </Button>
+          </div>
+        )}
       </div>
     </div>
   )

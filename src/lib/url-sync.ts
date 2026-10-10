@@ -6,6 +6,7 @@ import type { View } from './types'
      /eltaso      -> ELTASO (levels & schemes of work)
      /clubs       -> clubs & events
      /resources   -> resources (library in public mode)
+     /interns     -> clubs & events only, for interns (own minimal page, no other tabs)
    Transient public sub-views (level-detail) keep the parent tab's path, and
    admin-only views never push a path; if the URL currently shows a public
    tab while an admin-only view opens, it is quietly normalised back to /.
@@ -18,6 +19,7 @@ const PATH_FOR_VIEW: Partial<Record<View, string>> = {
   'level-detail': '/eltaso',
   clubs: '/clubs',
   resources: '/resources',
+  'intern-public': '/interns',
 }
 
 /** reverse map: which public view a path stands for (never level-detail) */
@@ -28,6 +30,7 @@ export function viewFromPath(pathname: string): View | null {
   if (p === '/eltaso') return 'eltaso'
   if (p === '/clubs') return 'clubs'
   if (p === '/resources') return 'resources'
+  if (p === '/interns') return 'intern-public'
   return null
 }
 

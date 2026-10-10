@@ -11,6 +11,7 @@ import { HomePage } from './pages/home-page'
 import { EltasoPage } from './pages/eltaso-page'
 import { LevelDetailPage } from './pages/level-detail-page'
 import { ClubsPage } from './pages/clubs-page'
+import { InternShell } from './intern-shell'
 import { ResourcesPage } from './pages/resources-page'
 import { SettingsPage } from './pages/settings-page'
 import { ClassesPage } from './pages/classes-page'
@@ -65,6 +66,16 @@ export function AppShell({ initialView }: { initialView?: View }) {
   }
 
   const ev: View = computeView(view, admin, pubView)
+
+  /* /interns: clubs and events only, in its own minimal page (no tabs, no admin chrome) */
+  if (ev === 'intern-public') {
+    return (
+      <>
+        <InternShell />
+        <AppToaster />
+      </>
+    )
+  }
 
   // login screen takes over
   if (ev === 'login') {
@@ -134,9 +145,9 @@ function BootSplash() {
 }
 
 function computeView(view: View, admin: boolean, pubView: boolean): View {
-  const allowedPublic: View[] = ['home', 'eltaso', 'level-detail', 'clubs', 'resources', 'reports', 'login']
+  const allowedPublic: View[] = ['home', 'eltaso', 'level-detail', 'clubs', 'resources', 'intern-public', 'reports', 'login']
   if (!admin) return allowedPublic.includes(view) ? view : 'home'
-  if (pubView) return ['home', 'eltaso', 'level-detail', 'clubs', 'resources', 'reports'].includes(view) ? view : 'home'
+  if (pubView) return ['home', 'eltaso', 'level-detail', 'clubs', 'resources', 'intern-public', 'reports'].includes(view) ? view : 'home'
   /* a signed-in admin never sees the sign-in screen */
   return view === 'login' ? 'home' : view
 }
@@ -151,6 +162,8 @@ function PageBody({ view, admin }: { view: View; admin: boolean }) {
       return <LevelDetailPage admin={admin} />
     case 'clubs':
       return <ClubsPage admin={admin} />
+    case 'intern-public':
+      return <ClubsPage admin={false} internMode />
     case 'resources':
       return <ResourcesPage />
     case 'settings':
