@@ -47,22 +47,20 @@ browser of the admin who entered it.
 PAT from localStorage. Use a fine-grained PAT scoped to only this repo, and
 sign out (top of the sidebar) when you are done on a shared computer.
 
-## Library index
+## Library
 
 The Library page groups the Drive folders by what a teacher needs, filters by age and
-skill, shows a "most used" shelf for each age band (taken from the Teacher kits), lets
-you browse subfolders and search ~21,000 file names. The folder tree and file names come
-from `public/library-index.json`, a snapshot of the Drive.
+skill, searches folder names and descriptions, and shows a "most used" shelf for each age
+band (taken from the Teacher kits). Each card links straight to its Drive folder.
+Group, ages and skills are edited in **Library -> Edit folder**. The Drive itself is
+never changed by the app.
 
-Rebuild it whenever the Drive changes (the folders must be shared with "anyone with the link"):
+## Caching
 
-```bash
-python3 scripts/build_library_index.py              # 5 folder levels deep
-python3 scripts/build_library_index.py --max-depth 6
-```
-
-Group, age bands and skill tags for each folder are edited in **Library -> Edit folder**.
-The Drive itself is never changed by the app.
+`/api/state` sends an `ETag` built from the state revision. Browsers revalidate on every
+load and get a tiny `304 Not Modified` when nothing changed, instead of downloading the
+whole state again. The server also keeps the last read in memory for 15 seconds so a burst
+of visitors does not hit GitHub or Blob each time. Public images are cached for a day.
 
 ## Export buttons (PNG, Excel, Word)
 
