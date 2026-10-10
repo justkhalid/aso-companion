@@ -39,6 +39,7 @@ export function AppShell({ initialView }: { initialView?: View }) {
   const setView = useStore((s) => s.setView)
   const setPubView = useStore((s) => s.setPubView)
   const viewer = useStore((s) => s.viewer)
+  const loginRules = useStore((s) => s.state.settings)
   const [mobileNav, setMobileNav] = React.useState(false)
 
   // boot the app once on mount (fetches cloud state in the background).
@@ -84,8 +85,8 @@ export function AppShell({ initialView }: { initialView?: View }) {
   }
 
   /* the teachers' and interns' pages open with their own access code (the admin opens everything) */
-  const teacherOk = admin || viewer.teacher
-  const internOk = admin || viewer.intern
+  const teacherOk = admin || viewer.teacher || loginRules.teacherLoginRequired === false
+  const internOk = admin || viewer.intern || loginRules.internLoginRequired === false
   if (ev === 'intern-public' && !internOk) {
     return (
       <>

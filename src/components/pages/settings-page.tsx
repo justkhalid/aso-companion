@@ -273,7 +273,20 @@ export function SettingsPage() {
           These open the teachers' pages and the interns' page. Changing a code signs nobody out, so give people the new code and remove the old one from your messages.
         </div>
 
-        <div className="mt-4">
+        <div className="mt-4 flex flex-col gap-2">
+          <ToggleRow
+            label="Teachers need to sign in with the access code"
+            checked={s.teacherLoginRequired !== false}
+            onChange={(v) => setSettings((x) => { x.teacherLoginRequired = v })}
+          />
+          <ToggleRow
+            label="Interns and volunteers need to sign in with the access code"
+            checked={s.internLoginRequired !== false}
+            onChange={(v) => setSettings((x) => { x.internLoginRequired = v })}
+          />
+          <div className="text-xs text-muted-foreground">
+            Switched off, anyone who has the link opens that page without a code, and the teachers' plans and library are sent to everyone. Leave them on to keep those pages private.
+          </div>
           <ToggleRow
             label="Show the access box on the main page (teachers and interns buttons)"
             checked={s.showAccessBox !== false}

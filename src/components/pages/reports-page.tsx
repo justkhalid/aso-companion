@@ -7,11 +7,27 @@ import { REPORT_STEPS, REPORT_SYSTEM_URL, REPORT_EXAMPLE } from '@/lib/constants
 import { PageHead, Chip } from '@/components/ui-bits'
 import { Button } from '@/components/ui/button'
 
-export function ReportsPage() {
+export function ReportsPage({ embedded = false }: { embedded?: boolean }) {
   const toast = useStore((s) => s.toast)
   return (
-    <div className="mx-auto max-w-3xl px-4 py-6 sm:py-8">
-      <PageHead title="Reports" subtitle="How reporting works at ASO: the official system, the form, and one real example." />
+    <div className={embedded ? '' : 'mx-auto max-w-3xl px-4 py-6 sm:py-8'}>
+      {embedded ? (
+        <h2 className="mb-1 text-xl font-extrabold tracking-tight">Submit report</h2>
+      ) : (
+        <PageHead title="Submit report" subtitle="After every session: take attendance and send your report. Here is the link and a quick guide." />
+      )}
+
+      {/* the one thing to do */}
+      <div className="mb-6 mt-3 rounded-2xl border border-primary/25 bg-primary/5 p-5">
+        <div className="text-[15px] font-extrabold tracking-tight">After every session</div>
+        <p className="mt-1 text-sm leading-relaxed text-foreground/90">
+          The main requirement is to take attendance and submit your report on the official reporting platform. It takes two minutes: send a quick report on the attendance and how the session went.
+        </p>
+        <a href={REPORT_SYSTEM_URL} target="_blank" rel="noopener" className="mt-3 inline-block">
+          <Button><ExternalLink className="h-4 w-4" /> Open the reporting platform</Button>
+        </a>
+        <p className="mt-2 text-xs text-muted-foreground">It opens in a new tab and you sign in there with your ASO number and password. The steps below show what to fill in.</p>
+      </div>
 
       <div className="mb-2 text-[15px] font-extrabold tracking-tight">The official reporting system</div>
       <div className="rounded-2xl border border-border bg-card p-5">

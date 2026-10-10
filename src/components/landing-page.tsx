@@ -142,7 +142,7 @@ export function LandingPage() {
           <section className="mx-auto max-w-6xl px-4 pb-2">
             <div className="rounded-2xl border border-border bg-card p-5 shadow-sm sm:p-6">
               <h2 className="text-base font-extrabold tracking-tight">Are you a teacher, an intern or a volunteer?</h2>
-              <p className="mt-0.5 text-sm text-muted-foreground">Access your dedicated pages here. You will need the access code you were given.</p>
+              <p className="mt-0.5 text-sm text-muted-foreground">Access your dedicated pages here.{state.settings.teacherLoginRequired === false && state.settings.internLoginRequired === false ? '' : ' You will need the access code you were given.'}</p>
               <div className="mt-4 grid gap-3 sm:grid-cols-2">
                 {[
                   { icon: GraduationCap, title: 'Teachers', text: 'Weekly plans, the library and the class calendar', go: () => setView('home') },

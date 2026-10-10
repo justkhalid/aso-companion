@@ -1,12 +1,13 @@
 'use client'
 
 import * as React from 'react'
-import { CalendarDays, CalendarClock, DoorOpen, Sparkles } from 'lucide-react'
+import { CalendarDays, CalendarClock, DoorOpen, FileText, Sparkles } from 'lucide-react'
 import { Logo } from './logo'
 import { SiteFooter } from './site-footer'
 import { ThemeToggle } from './theme-toggle'
 import { ClubsPage } from './pages/clubs-page'
 import { RoomsPage } from './pages/rooms-page'
+import { ReportsPage } from './pages/reports-page'
 import { cn } from '@/lib/utils'
 
 /* /interns: the clubs and events section on its own, for ASO interns.
@@ -18,6 +19,7 @@ const JUMPS = [
   { id: 'events', label: 'Events', icon: CalendarClock },
   { id: 'clubs', label: 'Clubs', icon: Sparkles },
   { id: 'rooms', label: 'Free rooms', icon: DoorOpen },
+  { id: 'report', label: 'Submit report', icon: FileText },
 ]
 
 /* the section the reader is in: the last one whose top has passed the header */
@@ -106,6 +108,9 @@ export function InternShell() {
         <ClubsPage admin={false} internMode />
         <section id="rooms" className="mx-auto max-w-5xl scroll-mt-28 px-4 pb-10 pt-7">
           <RoomsPage embedded />
+        </section>
+        <section id="report" className="mx-auto max-w-5xl scroll-mt-28 px-4 pb-12 pt-4">
+          <ReportsPage embedded />
         </section>
       </main>
 
