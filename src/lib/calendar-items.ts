@@ -8,14 +8,15 @@ import {
   isoOf,
   parseISO,
   splitDaysByStatus,
-  toneClassForClub,
   addDays,
 } from './app-utils'
 import { DAY_KEYS } from './constants'
 import type { State } from './types'
 
 /* classes as "English class ASO-K1" with teacher and room, all in one color; cancelled days in gray */
-export const PUBLIC_CLASS_TONE = 'tone-6'
+export const PUBLIC_CLASS_TONE = 'tone-6' // classes: teal
+export const PUBLIC_CLUB_TONE = 'tone-3' // clubs: purple
+export const PUBLIC_EVENT_TONE = 'tone-7' // events: gold
 export function publicClassItems(state: State, monday: Date): GridItem[] {
   return (state.classes || [])
     .filter((c) => (c.days || []).length && c.time)
@@ -36,7 +37,7 @@ export function publicClubItems(state: State, monday: Date): GridItem[] {
     .filter((c) => (c.days || []).length && c.time)
     .flatMap((c) => {
       const base = { slot: c.time, code: c.name, room: c.room, icon: c.icon }
-      const tone = toneClassForClub(state, c.id)
+      const tone = PUBLIC_CLUB_TONE
       const lead = c.lead || undefined
       const sp = splitDaysByStatus(c.days, monday, (iso) => clubStatusOn(state, c.id, iso))
       const out: GridItem[] = []
@@ -65,7 +66,7 @@ export function publicEventItems(state: State, monday: Date): GridItem[] {
       code: off ? e.title + ' · cancelled' : e.title,
       room: e.place || '',
       icon: e.icon || 'calendar',
-      tone: off ? 'tone-8' : 'tone-7',
+      tone: off ? 'tone-8' : PUBLIC_EVENT_TONE,
     })
   }
   return out

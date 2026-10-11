@@ -13,7 +13,7 @@ import { ClubExpandOverlay, ClubGridCard, EventCard } from './pages/clubs-page'
 import { useStore } from '@/lib/store'
 import { BANDS, DAY_FULL, DAY_KEYS, FILL_GRID } from '@/lib/constants'
 import { mondayOfWeek, nextOccurrence, toneClassForClub, fmtTime } from '@/lib/app-utils'
-import { PUBLIC_CLASS_TONE, publicClassItems, publicClubItems, publicEventItems } from '@/lib/calendar-items'
+import { PUBLIC_CLASS_TONE, PUBLIC_CLUB_TONE, PUBLIC_EVENT_TONE, publicClassItems, publicClubItems, publicEventItems } from '@/lib/calendar-items'
 import { CalendarCardsView, CalendarListView, CalViewSwitcher, WeeklyGrid, readCalView, writeCalView, type CalendarView, type LegendEntry } from './weekly-grid'
 import { cn } from '@/lib/utils'
 import type { Club } from '@/lib/types'
@@ -85,9 +85,9 @@ export function LandingPage() {
     ...(calKind === 'all' || calKind === 'classes' ? classItems : []),
   ]
   const calLegend: LegendEntry[] = [
-    ...(calKind === 'all' || calKind === 'clubs' ? state.clubs.filter((c) => (c.days || []).length && c.time).map((c) => ({ label: c.name, tone: toneClassForClub(state, c.id) })) : []),
-    ...(calItems.some((i) => i.tone === 'tone-7') ? [{ label: 'Special events', tone: 'tone-7' }] : []),
     ...(calItems.some((i) => i.tone === PUBLIC_CLASS_TONE) ? [{ label: 'English classes', tone: PUBLIC_CLASS_TONE }] : []),
+    ...(calItems.some((i) => i.tone === PUBLIC_CLUB_TONE) ? [{ label: 'Clubs', tone: PUBLIC_CLUB_TONE }] : []),
+    ...(calItems.some((i) => i.tone === PUBLIC_EVENT_TONE) ? [{ label: 'Events', tone: PUBLIC_EVENT_TONE }] : []),
     ...(calItems.some((i) => i.tone === 'tone-8') ? [{ label: 'Cancelled', tone: 'tone-8' }] : []),
   ]
 

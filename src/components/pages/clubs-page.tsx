@@ -43,6 +43,7 @@ import {
   isoOf, fmtTime, fmtRange12, fmt12Min } from '@/lib/app-utils'
 import { ROOM_LEGEND, DAY_KEYS } from '@/lib/constants'
 import { buildCalendarLinks } from '@/lib/export-word'
+import { PUBLIC_CLUB_TONE, PUBLIC_EVENT_TONE } from '@/lib/calendar-items'
 import { clubIcon } from '@/lib/icons'
 import { WeeklyGrid, CalendarListView, CalendarCardsView, CalViewSwitcher, readCalView, writeCalView, type GridItem, type LegendEntry, type CalendarView } from '@/components/weekly-grid'
 import { ClubDialog } from '@/components/dialogs/club-dialog'
@@ -96,7 +97,7 @@ export function ClubsPage({ admin, internMode = false, section }: { admin: boole
     .filter((c) => (c.days || []).length && c.time)
     .flatMap((c) => {
       const base = { slot: c.time, code: c.name, meta: '', room: c.room, icon: c.icon }
-      const tone = toneClassForClub(state, c.id)
+      const tone = PUBLIC_CLUB_TONE
       const lead = c.lead || 'no lead yet'
       if (!hasAbsences) return [{ ...base, id: c.id, days: c.days, lead, tone }]
       const sp = splitDaysByStatus(c.days, thisMonday, (iso) => clubStatusOn(state, c.id, iso))
@@ -130,15 +131,15 @@ export function ClubsPage({ admin, internMode = false, section }: { admin: boole
         lead: off ? 'cancelled' : '',
         room: e.place || '',
         icon: e.icon || 'calendar',
-        tone: off ? 'tone-8' : 'tone-7',
+        tone: off ? 'tone-8' : PUBLIC_EVENT_TONE,
       }
     })
     .filter(Boolean) as GridItem[]
 
   const calItems = [...clubItems, ...eventItems]
   const calLegend: LegendEntry[] = [
-    ...(state.clubs || []).map((c) => ({ label: c.name, tone: toneClassForClub(state, c.id) })),
-    ...(eventItems.length ? [{ label: 'Special events', tone: 'tone-7' }] : []),
+    ...(clubItems.length ? [{ label: 'Clubs', tone: PUBLIC_CLUB_TONE }] : []),
+    ...(eventItems.length ? [{ label: 'Events', tone: PUBLIC_EVENT_TONE }] : []),
     ...([...clubItems, ...eventItems].some((i) => i.tone === 'tone-8') ? [{ label: 'Cancelled', tone: 'tone-8' }] : []),
   ]
 
