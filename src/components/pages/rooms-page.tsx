@@ -4,7 +4,8 @@ import * as React from 'react'
 import { ChevronLeft, ChevronRight } from 'lucide-react'
 import { useStore } from '@/lib/store'
 import { DAY_KEYS, ROOM_UNAVAILABLE } from '@/lib/constants'
-import { classStatusOn, clubStatusOn, eventStatusOn, isOnceEvent, isoOf, roomOptionsFor, toneClassForClub, toneClassForLevel, fmt12Min, hourLabel12 } from '@/lib/app-utils'
+import { PUBLIC_CLASS_TONE, PUBLIC_CLUB_TONE, PUBLIC_EVENT_TONE } from '@/lib/calendar-items'
+import { classStatusOn, clubStatusOn, eventStatusOn, isOnceEvent, isoOf, roomOptionsFor, fmt12Min, hourLabel12 } from '@/lib/app-utils'
 import { clubIcon } from '@/lib/icons'
 import { cn } from '@/lib/utils'
 import type { State } from '@/lib/types'
@@ -73,9 +74,9 @@ function bookingsForWeek(state: State, monday: Date, plain: boolean): Booking[] 
         room: c.room.trim(), day, start: slot[0], end: slot[1], kind: 'class',
         // interns only need to know an English class is on, not which group it is
         label: plain ? 'English class' : c.code,
-        tone: plain ? 'tone-0' : toneClassForLevel(state, c.level),
+        tone: PUBLIC_CLASS_TONE,
         lead: plain ? undefined : stt.kind === 'cover' ? 'Cover: ' + stt.cover : c.teacher,
-        group: plain ? 'English classes' : c.level,
+        group: 'English classes',
         cancelled: stt.kind === 'cancelled' ? stt.absence.reason || 'Teacher away' : undefined,
       })
     }
@@ -91,9 +92,9 @@ function bookingsForWeek(state: State, monday: Date, plain: boolean): Booking[] 
       const stt = clubStatusOn(state, c.id, isoOf(date))
       out.push({
         room: c.room.trim(), day, start: slot[0], end: slot[1], label: c.name, kind: 'club', note,
-        tone: toneClassForClub(state, c.id), icon: c.icon,
+        tone: PUBLIC_CLUB_TONE, icon: c.icon,
         lead: stt.kind === 'cover' ? 'Led by ' + stt.cover : c.lead,
-        group: c.name,
+        group: 'Clubs',
         cancelled: stt.kind === 'cancelled' ? stt.absence.reason || 'Cancelled' : undefined,
       })
     }
@@ -105,14 +106,14 @@ function bookingsForWeek(state: State, monday: Date, plain: boolean): Booking[] 
       if (!e.date || e.date < weekStart || e.date > weekEnd) continue
       const [y, m, d] = e.date.split('-').map(Number)
       const stt = eventStatusOn(state, e.id, e.date)
-      out.push({ room: e.place.trim(), day: dayKeyOf(new Date(y, m - 1, d)), start: slot[0], end: slot[1], label: e.title, kind: 'event', note: 'one-off', tone: 'tone-7', icon: e.icon || 'calendar', group: 'Special events', cancelled: stt.kind === 'cancelled' ? stt.absence.reason || 'Cancelled' : undefined })
+      out.push({ room: e.place.trim(), day: dayKeyOf(new Date(y, m - 1, d)), start: slot[0], end: slot[1], label: e.title, kind: 'event', note: 'one-off', tone: PUBLIC_EVENT_TONE, icon: e.icon || 'calendar', group: 'Events', cancelled: stt.kind === 'cancelled' ? stt.absence.reason || 'Cancelled' : undefined })
     } else if (e.day && inSeries(e.from, e.until)) {
       const note = e.recur === 'biweekly' ? 'every 2 weeks' : e.recur === 'monthly' ? 'monthly' : undefined
       const di = DAY_KEYS.indexOf(e.day as (typeof DAY_KEYS)[number])
       const date = new Date(monday)
       date.setDate(date.getDate() + Math.max(di, 0))
       const stt = eventStatusOn(state, e.id, isoOf(date))
-      out.push({ room: e.place.trim(), day: e.day, start: slot[0], end: slot[1], label: e.title, kind: 'event', note, tone: 'tone-7', icon: e.icon || 'calendar', group: 'Special events', cancelled: stt.kind === 'cancelled' ? stt.absence.reason || 'Cancelled' : undefined })
+      out.push({ room: e.place.trim(), day: e.day, start: slot[0], end: slot[1], label: e.title, kind: 'event', note, tone: PUBLIC_EVENT_TONE, icon: e.icon || 'calendar', group: 'Events', cancelled: stt.kind === 'cancelled' ? stt.absence.reason || 'Cancelled' : undefined })
     }
   }
   return out
