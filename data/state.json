@@ -37163,7 +37163,16 @@
               "Choose three grammar areas from Semester 1 and write two sentences for each.",
               "Read a short article in English and note ten words you want to learn, with a collocation for each."
             ],
-            "tip": "Present this as a progress check, not an exam, and give clear timings. Use the same criteria (content, communication, organisation, language) in the speaking and writing feedback so students understand their results. Record marks and prepare feedback sheets for the next week, and do not mark with red pen only: note two strengths for each student."
+            "tip": "Present this as a progress check, not an exam, and give clear timings. Use the same criteria (content, communication, organisation, language) in the speaking and writing feedback so students understand their results. Record marks and prepare feedback sheets for the next week, and do not mark with red pen only: note two strengths for each student.",
+            "checklist": [
+              "I can answer personal and opinion questions in a paired speaking task with extended answers.",
+              "I can follow a recorded conversation and answer multiple-choice and note-completion questions.",
+              "I can read a longer text and answer gist and detail questions.",
+              "I can write a 120-150 word email or article with paragraphs and linking words.",
+              "I can use narrative tenses and the perfect forms accurately.",
+              "I can use future forms, conditionals and the passive in context.",
+              "I can interact with a partner, agree and disagree politely, and reach a decision."
+            ]
           },
           "occ": {
             "act": "Winter break recap (4 January). Optional 10-minute task: students tell a partner three things they did during the break using narrative tenses, then one thing they are going to try this semester (\"I had been planning to visit my cousin for months, so I finally went to Nador.\").",
@@ -39323,7 +39332,16 @@
               "Redo the five questions you found hardest and write why you were wrong.",
               "Write one essay paragraph that improves a weak part of your exam writing."
             ],
-            "tip": "Treat the mock as a diagnostic: record every score by skill and use it to plan Weeks 28 to 30. Keep the room silent and calm, and explain that scoring a low result is useful information, not a failure. If you cannot run all four papers in two hours, run the use of English and listening papers in class and ask students to do speaking pairs in the break or in the first twenty minutes of Week 28."
+            "tip": "Treat the mock as a diagnostic: record every score by skill and use it to plan Weeks 28 to 30. Keep the room silent and calm, and explain that scoring a low result is useful information, not a failure. If you cannot run all four papers in two hours, run the use of English and listening papers in class and ask students to do speaking pairs in the break or in the first twenty minutes of Week 28.",
+            "checklist": [
+              "I can manage my time across a reading and use of English paper.",
+              "I can follow an extended listening and choose the best answer.",
+              "I can write a 140-190 word essay, article or report with a clear plan.",
+              "I can speak for one minute on a photo or topic with few pauses.",
+              "I can interact in a collaborative task and give reasons.",
+              "I can correct my own errors using a checklist.",
+              "I can name my three main targets for the final weeks."
+            ]
           },
           "kit": [
             {
@@ -39813,7 +39831,16 @@
               "Choose one English resource to use every week over the summer and write why.",
               "Write a thank-you message to someone who helped you learn English this year."
             ],
-            "tip": "Frame the assessment as a celebration of progress, not as a test of worth. Record the marks by skill, prepare the certificates and the report cards before the lesson, and use the feedback forms to plan the next course. If a student is close to B2 level, show them the Cambridge B2 First options and the free practice tasks in the Drive."
+            "tip": "Frame the assessment as a celebration of progress, not as a test of worth. Record the marks by skill, prepare the certificates and the report cards before the lesson, and use the feedback forms to plan the next course. If a student is close to B2 level, show them the Cambridge B2 First options and the free practice tasks in the Drive.",
+            "checklist": [
+              "I can talk about the topics of the year with range and detail.",
+              "I can follow authentic-style recordings and note key information.",
+              "I can read a text of about 400 words and answer questions on opinion and detail.",
+              "I can write a well-organised text of 150-190 words for a stated purpose.",
+              "I can use conditionals, reported speech, relative clauses and the passive accurately.",
+              "I can give and receive feedback and set my goals for next year.",
+              "I can take part in a discussion and keep it going with questions."
+            ]
           },
           "occ": {
             "act": "Labour Day (1 May) is close. Optional 10-minute task: in pairs, students discuss \"What makes a job worth doing?\" and \"Should everyone have the right to choose their work?\", giving two reasons and an example for each, using comparatives and emphatic structures from Week 25 (\"What matters most is...\").",
@@ -41770,5 +41797,5 @@
   ],
   "reports": [],
   "libraryPins": [],
-  "_rev": 1791669906851
+  "_rev": 1791669906852
 }
