@@ -1,7 +1,7 @@
 'use client'
 
 import * as React from 'react'
-import { CalendarRange, LayoutGrid, Rows3, Table2 } from 'lucide-react'
+import { CalendarRange, LayoutGrid, Table2 } from 'lucide-react'
 import { DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator } from '@/components/ui/dropdown-menu'
 import { useStore } from '@/lib/store'
 import { downloadClubsPng } from '@/lib/clubs-sheet'
@@ -31,7 +31,6 @@ export function ClubsExportItems({ state }: { state: State }) {
       <DropdownMenuLabel className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground">Clubs with posters</DropdownMenuLabel>
       <Item icon={LayoutGrid} title="All clubs on one page" hint="Four per row, posters in full, time and place below" run={() => downloadClubsPng(state)} done={done} />
       <Item icon={CalendarRange} title="Calendar: one column per day" hint="Each day's posters stacked under its name" run={cal('week')} done={done} />
-      <Item icon={Rows3} title="Calendar: one row per day" hint="Each day's posters side by side" run={cal('rows')} done={done} />
       <Item icon={Table2} title="Calendar: timetable and numbered posters" hint="Week timetable on top, numbered posters below" run={cal('grid')} done={done} />
     </>
   )
