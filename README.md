@@ -126,7 +126,7 @@ of visitors does not hit GitHub or Blob each time. Public images are cached for 
 - `/admin` is the admin's own site (sign-in when signed out). Dashboard at `/admin`, then `/admin/schedule`, `/admin/teaching/{classes,levels,library,reports}`, `/admin/clubs` (+ `/calendar`, `/events`), `/admin/rooms`, `/admin/people` (+ `/absences`) and `/admin/settings`. The **+ New** button in the top bar adds an absence, class, club, event or person from any page.
 - The admin signs in from the footer of the main page or the teachers' site. A remembered admin sees the public page with a bar to open the admin menu.
 - `/clubs` redirects to `/interns`; `/eltaso` and `/resources` redirect under `/teachers`.
-- Previews: `vercel.json` builds only `main` and the working branch `claude/nice-ramanujan-hntc39`. Vercel previews are visible only to people signed in to the Vercel account. Remove the branch name from `ignoreCommand` once the preview is no longer needed.
+- Deployments: `vercel.json` builds only `main`; other branches are skipped, so there are no preview deployments.
 
 ## Access codes
 
