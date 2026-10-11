@@ -17,11 +17,18 @@ import type { State } from './types'
 export const PUBLIC_CLASS_TONE = 'tone-6' // classes: teal
 export const PUBLIC_CLUB_TONE = 'tone-3' // clubs: purple
 export const PUBLIC_EVENT_TONE = 'tone-7' // events: gold
+/* ASO-K1 -> "Kids 1", ASO-T2 -> "Teens 2", ASO-A3 -> "Adults 3": the public sees the group, not the internal code */
+export function publicGroupName(code: string, fallback: string): string {
+  const m = /^ASO-([KTA])\s*(\d+)/i.exec(String(code || '').trim())
+  if (!m) return code || fallback
+  return ({ K: 'Kids', T: 'Teens', A: 'Adults' } as Record<string, string>)[m[1].toUpperCase()] + ' ' + m[2]
+}
+
 export function publicClassItems(state: State, monday: Date): GridItem[] {
   return (state.classes || [])
     .filter((c) => (c.days || []).length && c.time)
     .flatMap((c) => {
-      const base = { slot: c.time, code: 'English class ' + (c.code || c.level), room: c.room }
+      const base = { slot: c.time, code: 'English class ' + publicGroupName(c.code, c.level), room: c.room }
       const tone = PUBLIC_CLASS_TONE
       const sp = splitDaysByStatus(c.days, monday, (iso) => classStatusOn(state, c, iso))
       const out: GridItem[] = []
