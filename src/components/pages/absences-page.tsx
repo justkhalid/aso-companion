@@ -74,7 +74,8 @@ export function AbsencesPage() {
     const n = sessionsIn(a)
     const verb = a.cover ? 'covered' : 'cancelled'
     return (
-      <div key={a.id} className={`flex items-start gap-3 rounded-2xl border border-border bg-card p-4 shadow-sm ${dim ? 'opacity-60' : ''}`}>
+      <div key={a.id} className={`flex flex-col gap-3 rounded-2xl border border-border bg-card p-4 shadow-sm sm:flex-row sm:items-start ${dim ? 'opacity-60' : ''}`}>
+        <div className="flex min-w-0 flex-1 items-start gap-3">
         <div className="mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[#FF3B30]/10 text-[#FF3B30]"><UserX className="h-4.5 w-4.5" /></div>
         <div className="min-w-0 flex-1">
           <div className="flex flex-wrap items-center gap-2">
@@ -91,7 +92,8 @@ export function AbsencesPage() {
           </div>
           {a.note && <div className="mt-1 text-[13px] text-foreground/80">{a.note}</div>}
         </div>
-        <div className="flex shrink-0 items-center gap-1">
+        </div>
+        <div className="flex shrink-0 items-center justify-end gap-1">
           {a.from <= today && a.to >= today && (
             <Button variant="outline" size="sm" onClick={() => backToday(a)}>
               <UserCheck className="h-4 w-4" /> Back today

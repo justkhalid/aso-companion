@@ -113,8 +113,8 @@ export function DashboardPage() {
         ) : (
           <ul className="divide-y divide-border">
             {sessions.map((x) => (
-              <li key={x.key} className={`flex flex-wrap items-center gap-x-3 gap-y-0.5 py-2 text-sm ${x.status.kind === 'cancelled' ? 'opacity-60' : ''}`}>
-                <span className="w-36 shrink-0 font-semibold tabular-nums">{fmtTime(x.time) || '-'}</span>
+              <li key={x.key} className={`flex flex-col gap-x-3 gap-y-0.5 py-2 text-sm sm:flex-row sm:flex-wrap sm:items-center ${x.status.kind === 'cancelled' ? 'opacity-60' : ''}`}>
+                <span className="shrink-0 font-semibold tabular-nums sm:w-36">{fmtTime(x.time) || '-'}</span>
                 <span className="min-w-0 flex-1">
                   <span className="font-bold">{x.title}</span> <span className="text-muted-foreground">{x.sub}</span>
                 </span>

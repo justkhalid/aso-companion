@@ -4,6 +4,8 @@ import * as React from 'react'
 import { CalendarDays, ChevronRight, Clock, Download, GraduationCap, Lock, Sparkles } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { downloadClubsPng } from '@/lib/clubs-sheet'
+import { CalendarExportMenu } from '@/components/calendar-export'
+import { ClubsExportItems } from '@/components/clubs-export-items'
 import { Logo } from './logo'
 import { SiteFooter } from './site-footer'
 import { ThemeToggle } from './theme-toggle'
@@ -195,7 +197,20 @@ export function LandingPage() {
               <h2 className="text-xl font-extrabold tracking-tight">This week at ASO</h2>
               <p className="text-sm text-muted-foreground">Classes, clubs and events on one calendar.</p>
             </div>
-            <CalViewSwitcher view={calView} onChange={setCalView} />
+            <div className="flex items-center gap-2">
+              <CalendarExportMenu
+                buildOpts={() => ({
+                  title: state.settings.institute + ' - This week',
+                  subtitle: [state.settings.institute, state.settings.year].filter(Boolean).join(' - '),
+                  items: calItems,
+                  legend: calLegend,
+                  appUrl: window.location.origin,
+                })}
+                baseName={'ASO_Week_' + (state.settings.year || 'export').replace(/\//g, '-')}
+                extra={<ClubsExportItems state={state} />}
+              />
+              <CalViewSwitcher view={calView} onChange={setCalView} />
+            </div>
           </div>
           <div className="mb-3 flex flex-wrap gap-1.5" role="group" aria-label="Show on the calendar">
             {([['all', 'All'], ['classes', 'Classes'], ['clubs', 'Clubs'], ['events', 'Events']] as const).map(([k, label]) => (
