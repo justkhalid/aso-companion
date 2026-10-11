@@ -43303,177 +43303,137 @@
     {
       "id": "t1",
       "name": "Khalid",
-      "roles": [
-        "Coordinator",
-        "Intern"
-      ],
-      "phone": "",
-      "email": "",
+      "role": "Coordinator",
       "duty": "Program decisions, schedule, rooms, materials, teacher support",
-      "role": "Coordinator + Intern"
+      "phone": "",
+      "email": ""
     },
     {
       "id": "t2",
       "name": "Abdelatif",
-      "roles": [
-        "Administrator"
-      ],
-      "phone": "",
-      "email": "",
+      "role": "Administrator",
       "duty": "Platform: student records, reports, attendance, registration",
-      "role": "Administrator"
+      "phone": "",
+      "email": ""
     },
     {
       "id": "t3",
       "name": "Aya",
       "roles": [
-        "Teacher",
-        "Volunteer"
+        "Teacher"
       ],
+      "role": "Teacher",
+      "duty": "ASO-K1 Kids",
       "phone": "",
-      "email": "",
-      "role": "Teacher + Volunteer",
-      "looksAfter": [
-        "ASO-K1"
-      ]
+      "email": ""
     },
     {
       "id": "t4",
       "name": "Chaimaa",
       "roles": [
-        "Teacher",
-        "Volunteer"
+        "Teacher"
       ],
+      "role": "Teacher",
+      "duty": "ASO-K2 Kids",
       "phone": "",
-      "email": "",
-      "role": "Teacher + Volunteer",
-      "looksAfter": [
-        "ASO-K2"
-      ]
+      "email": ""
     },
     {
       "id": "t5",
       "name": "Nadia",
       "roles": [
-        "Teacher",
-        "Volunteer"
+        "Teacher"
       ],
+      "role": "Teacher",
+      "duty": "ASO-K3 Kids",
       "phone": "",
-      "email": "",
-      "role": "Teacher + Volunteer",
-      "looksAfter": [
-        "ASO-K3"
-      ]
+      "email": ""
     },
     {
       "id": "t6",
       "name": "Saoussan",
       "roles": [
-        "Teacher",
-        "Volunteer"
+        "Teacher"
       ],
+      "role": "Teacher",
+      "duty": "ASO-K4 Kids",
       "phone": "",
-      "email": "",
-      "role": "Teacher + Volunteer",
-      "looksAfter": [
-        "ASO-K4"
-      ]
+      "email": ""
     },
     {
       "id": "t7",
       "name": "Wafae",
       "roles": [
-        "Teacher",
-        "Volunteer"
+        "Teacher"
       ],
+      "role": "Teacher",
+      "duty": "ASO-T1 Teens",
       "phone": "",
-      "email": "",
-      "role": "Teacher + Volunteer",
-      "looksAfter": [
-        "ASO-T1"
-      ]
+      "email": ""
     },
     {
       "id": "t8",
       "name": "Jamal",
       "roles": [
-        "Teacher",
-        "Volunteer"
+        "Teacher"
       ],
+      "role": "Teacher",
+      "duty": "ASO-T2 Teens",
       "phone": "",
-      "email": "",
-      "role": "Teacher + Volunteer",
-      "looksAfter": [
-        "ASO-T2"
-      ]
+      "email": ""
     },
     {
       "id": "t9",
       "name": "Yousra",
       "roles": [
-        "Teacher",
-        "Volunteer"
+        "Teacher"
       ],
+      "role": "Teacher",
+      "duty": "ASO-A1 Adults",
       "phone": "",
-      "email": "",
-      "role": "Teacher + Volunteer",
-      "looksAfter": [
-        "ASO-A1"
-      ]
+      "email": ""
     },
     {
       "id": "t10",
       "name": "Amine",
       "roles": [
-        "Teacher",
-        "Volunteer"
+        "Teacher"
       ],
+      "role": "Teacher",
+      "duty": "ASO-A2 Adults",
       "phone": "",
-      "email": "",
-      "role": "Teacher + Volunteer",
-      "looksAfter": [
-        "ASO-A2"
-      ]
+      "email": ""
     },
     {
       "id": "xmuzojl19cu38f",
       "name": "Mustapha",
       "roles": [
-        "Teacher",
-        "Volunteer"
+        "Teacher"
       ],
+      "role": "Teacher",
+      "duty": "ASO-K5",
       "phone": "",
-      "email": "",
-      "role": "Teacher + Volunteer",
-      "looksAfter": [
-        "ASO-K5"
-      ]
+      "email": ""
     },
     {
       "id": "xmv0wq8j8hiaeg",
       "name": "Douae",
       "roles": [
-        "Teacher"
+        "Volunteer"
       ],
+      "role": "Volunteer",
       "phone": "",
-      "email": "",
-      "role": "Teacher",
-      "looksAfter": [
-        "ASO-A4"
-      ]
+      "email": ""
     },
     {
       "id": "xmv0wqe6bw99k0",
       "name": "Oumaima",
       "roles": [
-        "Teacher"
+        "Volunteer"
       ],
+      "role": "Volunteer",
       "phone": "",
-      "email": "",
-      "role": "Teacher",
-      "looksAfter": [
-        "ASO-A5"
-      ]
+      "email": ""
     },
     {
       "id": "xmv1azchv277le",
@@ -43482,72 +43442,12 @@
         "Teacher",
         "Volunteer"
       ],
-      "phone": "",
-      "email": "",
       "role": "Teacher + Volunteer",
       "looksAfter": [
-        "ASO-A3",
-        "Public Speaking Club"
-      ]
-    },
-    {
-      "id": "t15",
-      "name": "Ayoub",
-      "roles": [
-        "Volunteer"
+        "ASO-A3"
       ],
       "phone": "",
-      "email": "",
-      "role": "Volunteer",
-      "looksAfter": [
-        "Philo Physics Club"
-      ]
-    },
-    {
-      "id": "t16",
-      "name": "Abdelhak",
-      "roles": [
-        "Volunteer"
-      ],
-      "phone": "",
-      "email": "",
-      "role": "Volunteer"
-    },
-    {
-      "id": "t17",
-      "name": "Honore",
-      "roles": [
-        "Volunteer"
-      ],
-      "phone": "",
-      "email": "",
-      "role": "Volunteer",
-      "looksAfter": [
-        "Discover Africa"
-      ]
-    },
-    {
-      "id": "t18",
-      "name": "Siham",
-      "roles": [
-        "Volunteer"
-      ],
-      "phone": "",
-      "email": "",
-      "role": "Volunteer"
-    },
-    {
-      "id": "t19",
-      "name": "Imane",
-      "roles": [
-        "Volunteer"
-      ],
-      "phone": "",
-      "email": "",
-      "role": "Volunteer",
-      "looksAfter": [
-        "Psychology Club"
-      ]
+      "email": ""
     }
   ],
   "library": [
@@ -44945,7 +44845,56 @@
     }
   ],
   "prep": {},
-  "volunteers": [],
+  "volunteers": [
+    {
+      "id": "xmuzo55uz8v9ny",
+      "name": "Ayoub",
+      "role": "Volunteer",
+      "phone": "",
+      "aso": "",
+      "email": ""
+    },
+    {
+      "id": "xmuzo5lnakkwug",
+      "name": "Abdelhak",
+      "role": "Volunteer",
+      "phone": "",
+      "aso": "",
+      "email": ""
+    },
+    {
+      "id": "xmuzo5rdls56k0",
+      "name": "Honore",
+      "role": "Volunteer",
+      "phone": "",
+      "aso": "",
+      "email": ""
+    },
+    {
+      "id": "xmuzo620pdbfwr",
+      "name": "Siham",
+      "role": "Volunteer",
+      "phone": "",
+      "aso": "",
+      "email": ""
+    },
+    {
+      "id": "xmuzo67dnpoteq",
+      "name": "Zineb",
+      "role": "Volunteer",
+      "phone": "",
+      "aso": "",
+      "email": ""
+    },
+    {
+      "id": "xmuzopdfvqsm4p",
+      "name": "Khalid",
+      "role": "Lead Intern",
+      "phone": "",
+      "aso": "",
+      "email": ""
+    }
+  ],
   "clubs": [
     {
       "id": "xmuzvr51m52js5",
@@ -45021,7 +44970,7 @@
       "desc": "📢 **إعلان | دورة تكوينية مجانية**\n🎓 **ينظم الفضاء الأمريكي بوجدة**\n*دورة تكوينية مجانية طيلة شهر **أكتوبر 2026**، تتمحور حول موضوعي:*\n📚 **الديداكتيك وعلوم التربية**\n⚖️ **التشريع التربوي**\n👨‍🏫 **من تأطير الدكتور محمد بنعمر**\n📅 **أول حصة:** السبت 3 أكتوبر 2026\n🕙 **التوقيت:** الساعة العاشرة صباحًا\n📍 **المكان:** الفضاء الأمريكي بوجدة\n✨ **فرصة للاستفادة من تكوين مجاني وتعزيز المعارف والكفاءات في المجال التربوي.**\n*🔹 🔹*للتسجيل يرجى ملئ و ارسال الاستمارة عبر الرابط أدناه قبل السبت 03 أكتوبر 2026.*",
       "recur": "weekly",
       "day": "Sat",
-      "from": "2026-10-10",
+      "from": "2026-10-03",
       "until": "2026-10-31",
       "time": "10:00-12:00",
       "place": "Main Hall",
@@ -45031,5 +44980,5 @@
   ],
   "reports": [],
   "libraryPins": [],
-  "_rev": 1791669906854
+  "_rev": 1791669906855
 }
