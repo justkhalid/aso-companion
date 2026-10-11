@@ -1,13 +1,17 @@
 import { DAY_FULL, DAY_KEYS } from './constants'
 import { clubDayOrder, fmtTime, hourLabel12, parseSlot } from './app-utils'
 import { TONE_RGB } from './export-canvas'
+import { clubIcon } from './icons'
+import { createElement, type ElementType } from 'react'
+import { flushSync } from 'react-dom'
+import { createRoot } from 'react-dom/client'
+import { Sparkles } from 'lucide-react'
 import type { Club, State } from './types'
 
 /* Clubs as a calendar, every poster shown in full (never cropped), dressed like the website:
    iOS grey page, white cards with a faint blue gradient, Playfair headings, the blue pill.
-   week     one column per day, the day's cards stacked under its name
-   grid     a week timetable on top, the numbered cards below it */
-export type ClubsCalendarStyle = 'week' | 'grid'
+   grid     a week timetable on top, the cards below it */
+export type ClubsCalendarStyle = 'grid'
 
 type Fonts = { body: string; display: string }
 const RATIO = 1200 / 848 // A4 poster, used when a club has none
@@ -25,6 +29,25 @@ const load = (src: string) =>
     im.onerror = () => res(null)
     im.src = src
   })
+
+/* a club's own icon (the one chosen in the editor and shown on the calendars), drawn as an image */
+async function iconImage(Icon: ElementType, color: string, size: number): Promise<HTMLImageElement | null> {
+  try {
+    const host = document.createElement('div')
+    const root = createRoot(host)
+    flushSync(() => root.render(createElement(Icon, { size, color, strokeWidth: 2.3 })))
+    const svg = host.querySelector('svg')
+    if (!svg) return null
+    svg.setAttribute('xmlns', 'http://www.w3.org/2000/svg')
+    const url = URL.createObjectURL(new Blob([svg.outerHTML], { type: 'image/svg+xml' }))
+    const im = await load(url)
+    URL.revokeObjectURL(url)
+    root.unmount()
+    return im
+  } catch {
+    return null
+  }
+}
 
 /* the fonts the page itself is using, so the image reads like the site */
 async function siteFonts(): Promise<Fonts> {
@@ -101,7 +124,7 @@ const pill = (g: CanvasRenderingContext2D, text: string, cx: number, y: number, 
   return w
 }
 
-type Card = { h: number; draw: (g: CanvasRenderingContext2D, x: number, y: number, badge?: { n: number; color: string }) => void }
+type Card = { h: number; draw: (g: CanvasRenderingContext2D, x: number, y: number) => void }
 
 /* one club: white card, the poster in full, the name, then time and place as pills */
 function makeCard(f: Fonts, scratch: CanvasRenderingContext2D, c: Club, im: HTMLImageElement | null, w: number, withDay = false): Card {
@@ -125,7 +148,7 @@ function makeCard(f: Fonts, scratch: CanvasRenderingContext2D, c: Club, im: HTML
   const h = P + ph + info + P
   return {
     h,
-    draw(g, x, y, badge) {
+    draw(g, x, y) {
       shadowCard(g, x, y, w, h)
       /* poster, full */
       g.save()
@@ -171,23 +194,6 @@ function makeCard(f: Fonts, scratch: CanvasRenderingContext2D, c: Club, im: HTML
         const left = x + w / 2 - total / 2
         pill(g, time, left + wTime / 2, yy, 'rgba(11,92,230,.12)', '#0A54C4', pillFont, pillH)
         if (c.room) pill(g, c.room, left + wTime + 14 + wRoom / 2, yy, 'rgba(120,120,128,.16)', INK, `800 ${Math.round(w * 0.05)}px ${f.body}`, pillH)
-      }
-      if (badge) {
-        const r = Math.round(w * 0.06)
-        g.fillStyle = '#ffffff'
-        g.beginPath()
-        g.arc(x + P + r + 6, y + P + r + 6, r + 5, 0, Math.PI * 2)
-        g.fill()
-        g.fillStyle = badge.color
-        g.beginPath()
-        g.arc(x + P + r + 6, y + P + r + 6, r, 0, Math.PI * 2)
-        g.fill()
-        g.fillStyle = '#ffffff'
-        g.font = `800 ${Math.round(r * 1.1)}px ${f.body}`
-        g.textAlign = 'center'
-        g.textBaseline = 'middle'
-        g.fillText(String(badge.n), x + P + r + 6, y + P + r + 8)
-        g.textAlign = 'left'
       }
     },
   }
@@ -274,40 +280,21 @@ export async function renderClubsCalendar(state: State, style: ClubsCalendarStyl
     return { canvas, g }
   }
 
-  if (style === 'week') {
-    const CW = 560
-    const GAP = 44
-    const DH = 76
-    const cols = days.map((d) => byDay(d).map((c) => makeCard(f, scratch, c, imgOf(c), CW)))
-    const colH = cols.map((cs) => DH + 30 + cs.reduce((n, c) => n + c.h + 36, -36))
-    const W = Math.max(M * 2 + days.length * CW + (days.length - 1) * GAP, 1500)
-    const { canvas, g } = mk(W, HEAD + Math.max(...colH) + FOOT + 20)
-    const offX = (W - (days.length * CW + (days.length - 1) * GAP)) / 2
-    days.forEach((d, i) => {
-      const x = offX + i * (CW + GAP)
-      bluePill(g, f, DAY_FULL[d] || d, x, HEAD, CW, DH, 38)
-      let y = HEAD + DH + 30
-      cols[i].forEach((c) => {
-        c.draw(g, x, y)
-        y += c.h + 36
-      })
-    })
-    return canvas
-  }
-
-  /* grid: week timetable in one card, the numbered club cards under it */
+  /* grid: week timetable in one card (each club with its own icon), the club cards under it */
   const COLS = 4
   const CW = 560
   const GAP = 44
   const W = M * 2 + COLS * CW + (COLS - 1) * GAP
-  const cards = clubs.map((c, n) => makeCard(f, scratch, c, imgOf(c), CW, true))
+  const cards = clubs.map((c) => makeCard(f, scratch, c, imgOf(c), CW, true))
+  const icons = await Promise.all(clubs.map((c) => iconImage(clubIcon(c.icon)?.Icon || Sparkles, '#ffffff', 48)))
   const ends_ = clubs.map((c) => {
     const m = /-(\d{1,2}):(\d{2})/.exec(c.time || '')
     return m ? +m[1] * 60 + +m[2] : parseSlot(c.time).mins + 120
   })
   const starts = clubs.map((c) => parseSlot(c.time).mins)
-  const h0 = Math.min(9, Math.floor(Math.min(...starts) / 60))
-  const h1 = Math.max(18, Math.ceil(Math.max(...ends_) / 60))
+  /* the timetable covers the hours the clubs actually use, so every block is wide enough to read */
+  const h0 = Math.floor(Math.min(...starts) / 60)
+  const h1 = Math.max(h0 + 4, Math.ceil(Math.max(...ends_) / 60))
   const LABEL = 210
   const ROW = 100
   const HEADROW = 76
@@ -393,12 +380,10 @@ export async function renderClubsCalendar(state: State, style: ClubsCalendarStyl
       g.beginPath()
       g.arc(x + Math.min(36, w / 2), y + h / 2, 22, 0, Math.PI * 2)
       g.fill()
-      g.fillStyle = '#ffffff'
-      g.font = `800 25px ${f.body}`
-      g.textAlign = 'center'
-      g.textBaseline = 'middle'
-      g.fillText(String(n + 1), x + Math.min(36, w / 2), y + h / 2 + 1)
+      const ic = icons[n]
+      if (ic) g.drawImage(ic, x + Math.min(36, w / 2) - 13, y + h / 2 - 13, 26, 26)
       g.textAlign = 'left'
+      g.textBaseline = 'middle'
       g.fillStyle = tone.txt
       if (w >= 330) {
         g.font = `800 25px ${f.body}`
@@ -422,7 +407,7 @@ export async function renderClubsCalendar(state: State, style: ClubsCalendarStyl
     if (n % COLS === 0 && n > 0) y += rowHs[r - 1] + 44
     const inRow = Math.min(COLS, cards.length - r * COLS)
     const x = M + ((COLS - inRow) * (CW + GAP)) / 2 + (n % COLS) * (CW + GAP)
-    card.draw(g, x, y, { n: n + 1, color: toneOf(n).txt })
+    card.draw(g, x, y)
   })
   return canvas
 }
