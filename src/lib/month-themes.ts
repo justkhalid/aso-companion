@@ -190,8 +190,8 @@ export function drawMotif(g: CanvasRenderingContext2D, t: MonthTheme, month: num
     cluster(W - 120, H - 70, 420, 10, 120) // bottom right
     cluster(100, H - 60, 360, 6, 100) // bottom left
   } else {
-    cluster(50, H - 110, 200, 5, 100) // over the card's bottom corners
-    cluster(W - 60, H - 150, 200, 5, 100)
+    cluster(40, H - 40, 150, 4, 80) // only the bottom edge, clear of the last row
+    cluster(W - 50, H - 40, 150, 4, 80)
   }
   g.restore()
   /* sun and sea add one big shape */
