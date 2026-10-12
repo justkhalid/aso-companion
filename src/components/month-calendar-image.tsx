@@ -9,7 +9,6 @@ import { Button } from '@/components/ui/button'
 /* the month calendar picture shown on the page: arrows to change month, a download button for the admin */
 export function MonthCalendarImage({ clubs = true, events = true, classes = false }: { clubs?: boolean; events?: boolean; classes?: boolean }) {
   const state = useStore((s) => s.state)
-  const admin = useStore((s) => s.admin)
   const toast = useStore((s) => s.toast)
   const now = new Date()
   const [ym, setYm] = React.useState({ year: now.getFullYear(), month: now.getMonth() })
@@ -48,14 +47,14 @@ export function MonthCalendarImage({ clubs = true, events = true, classes = fals
         <Button type="button" variant="outline" size="icon" className="h-9 w-9 rounded-full" onClick={() => step(1)} aria-label="Next month">
           <ChevronRight className="h-4 w-4" />
         </Button>
-        {admin && (
+        {(
           <Button
             type="button"
             variant="outline"
             size="sm"
             onClick={() => void downloadMonth(state, { ...ym, clubs, events, classes, holidays: true }).then((ok) => toast(ok ? 'Image downloaded' : 'Nothing to export', ok))}
           >
-            <Download className="h-4 w-4" aria-hidden /> Download PNG
+            <Download className="h-4 w-4" aria-hidden /> Download calendar
           </Button>
         )}
       </div>

@@ -11,6 +11,7 @@ import {
   addDays,
 } from './app-utils'
 import { DAY_KEYS } from './constants'
+import { closedHoliday } from './holidays'
 import type { State } from './types'
 
 /* classes as "English class ASO-K1" with teacher and room, all in one color; cancelled days in gray */
@@ -24,7 +25,36 @@ export function publicGroupName(code: string, fallback: string): string {
   return ({ K: 'Kids', T: 'Teens', A: 'Adults' } as Record<string, string>)[m[1].toUpperCase()] + ' ' + m[2]
 }
 
-export function publicClassItems(state: State, monday: Date): GridItem[] {
+
+/* a public holiday closes the space: those days show as "closed" rather than "cancelled" */
+function withHolidays(items: GridItem[], monday: Date): GridItem[] {
+  const closedName = (day: string): string | null => {
+    const di = DAY_KEYS.indexOf(day as (typeof DAY_KEYS)[number])
+    return di < 0 ? null : closedHoliday(isoOf(addDays(monday, di)))?.name || null
+  }
+  const out: GridItem[] = []
+  for (const it of items) {
+    const closed = it.days.filter((d) => closedName(d))
+    if (!closed.length) {
+      out.push(it)
+      continue
+    }
+    const open = it.days.filter((d) => !closedName(d))
+    if (open.length) out.push({ ...it, days: open })
+    out.push({ ...it, id: it.id + ':closed', days: closed, code: it.code.replace(/ · cancelled$/, '') + ' · closed', lead: closedName(closed[0]) || undefined, tone: 'tone-8' })
+  }
+  /* the same session closed by a holiday and by an absence shows once */
+  const seen = new Set<string>()
+  return out.filter((i) => {
+    const k = i.code + '|' + i.slot + '|' + i.days.join()
+    if (!i.id.endsWith(':closed')) return true
+    if (seen.has(k)) return false
+    seen.add(k)
+    return true
+  })
+}
+
+function rawClassItems(state: State, monday: Date): GridItem[] {
   return (state.classes || [])
     .filter((c) => (c.days || []).length && c.time)
     .flatMap((c) => {
@@ -39,7 +69,7 @@ export function publicClassItems(state: State, monday: Date): GridItem[] {
     })
 }
 
-export function publicClubItems(state: State, monday: Date): GridItem[] {
+function rawClubItems(state: State, monday: Date): GridItem[] {
   return (state.clubs || [])
     .filter((c) => (c.days || []).length && c.time)
     .flatMap((c) => {
@@ -55,7 +85,7 @@ export function publicClubItems(state: State, monday: Date): GridItem[] {
     })
 }
 
-export function publicEventItems(state: State, monday: Date): GridItem[] {
+function rawEventItems(state: State, monday: Date): GridItem[] {
   const out: GridItem[] = []
   for (const e of state.events || []) {
     let day = ''
@@ -78,3 +108,7 @@ export function publicEventItems(state: State, monday: Date): GridItem[] {
   }
   return out
 }
+
+export const publicClassItems = (state: State, monday: Date): GridItem[] => withHolidays(rawClassItems(state, monday), monday)
+export const publicClubItems = (state: State, monday: Date): GridItem[] => withHolidays(rawClubItems(state, monday), monday)
+export const publicEventItems = (state: State, monday: Date): GridItem[] => withHolidays(rawEventItems(state, monday), monday)
