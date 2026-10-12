@@ -270,7 +270,7 @@ export async function renderMonth(state: State, o: MonthOptions): Promise<HTMLCa
   const WD = 84
   const room = (H: number) => H - TOP - WD - 56 - FOOT
   /* the biggest text that fits the slide */
-  let s = 1.0 // every month uses the same text size at most, an emptier month gets more air instead of bigger text
+  let s = 0.58 // every month uses the same text size at most (the size October needs), an emptier month gets more air instead of bigger text
   while (layout(s).need.reduce((a, b) => a + b, 0) > room(H16) && s > 0.4) s = Math.round((s - 0.04) * 100) / 100
   const L = layout(s)
   const needSum = L.need.reduce((a, b) => a + b, 0)
