@@ -10,7 +10,7 @@ import { Logo } from './logo'
 import { SiteFooter } from './site-footer'
 import { ThemeToggle } from './theme-toggle'
 import { ClubExpandOverlay, ClubGridCard, EventGridCard } from './pages/clubs-page'
-import { MonthCalendarImage } from './month-calendar-image'
+import { DownloadCalendarButton, MonthCalendarImage } from './month-calendar-image'
 import { CalendarSwitch, type CalTab } from './calendar-switch'
 import { useStore } from '@/lib/store'
 import { BANDS, DAY_FULL, DAY_KEYS, FILL_GRID } from '@/lib/constants'
@@ -175,6 +175,7 @@ export function LandingPage() {
         <section id="calendar" className="mx-auto max-w-6xl scroll-mt-28 px-4 py-4">
           <div className="relative mb-4 flex flex-wrap items-center justify-center gap-3">
             <CalendarSwitch tab={tab} onChange={setTab} />
+            {tab === 'cluev' && <div className="sm:absolute sm:right-0 sm:top-1/2 sm:-translate-y-1/2"><DownloadCalendarButton clubs events classes={false} /></div>}
             {tab === 'classes' && <div className="sm:absolute sm:right-0 sm:top-1/2 sm:-translate-y-1/2"><CalViewSwitcher view={calView} onChange={setCalView} /></div>}
           </div>
           {tab === 'cluev' ? (

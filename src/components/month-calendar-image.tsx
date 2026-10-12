@@ -39,7 +39,7 @@ export function MonthCalendarImage({ clubs = true, events = true, classes = fals
 
   return (
     <div>
-      <div className="mb-3 flex flex-wrap items-center justify-center gap-2">
+      {stepper && <div className="mb-3 flex flex-wrap items-center justify-center gap-2">
         {stepper && (
           <>
         <Button type="button" variant="outline" size="icon" className="h-9 w-9 rounded-full" onClick={() => step(-1)} aria-label="Previous month">
@@ -61,7 +61,7 @@ export function MonthCalendarImage({ clubs = true, events = true, classes = fals
             <Download className="h-4 w-4" aria-hidden /> Download calendar
           </Button>
         )}
-      </div>
+      </div>}
       <div className="relative overflow-hidden rounded-2xl border border-border bg-card shadow-sm">
         {src ? (
           <img src={src} alt={`Calendar of clubs and events, ${monthLabel(ym.year, ym.month)}`} className="block h-auto w-full" />
@@ -70,5 +70,22 @@ export function MonthCalendarImage({ clubs = true, events = true, classes = fals
         )}
       </div>
     </div>
+  )
+}
+
+/* "Download calendar" for the current month, used where the picture has no month arrows */
+export function DownloadCalendarButton({ clubs = true, events = true, classes = false }: { clubs?: boolean; events?: boolean; classes?: boolean }) {
+  const state = useStore((s) => s.state)
+  const toast = useStore((s) => s.toast)
+  const now = new Date()
+  return (
+    <Button
+      type="button"
+      variant="outline"
+      size="sm"
+      onClick={() => void downloadMonth(state, { year: now.getFullYear(), month: now.getMonth(), clubs, events, classes, holidays: true }).then((ok) => toast(ok ? 'Image downloaded' : 'Nothing to export', ok))}
+    >
+      <Download className="h-4 w-4" aria-hidden /> Download calendar
+    </Button>
   )
 }
