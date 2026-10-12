@@ -43469,6 +43469,9 @@
         "Volunteer"
       ],
       "role": "Volunteer",
+      "looksAfter": [
+        "Psychology Club"
+      ],
       "phone": "",
       "email": ""
     }
@@ -45038,5 +45041,5 @@
   ],
   "reports": [],
   "libraryPins": [],
-  "_rev": 1791669906870
+  "_rev": 1791669906871
 }
