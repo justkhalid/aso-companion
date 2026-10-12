@@ -264,6 +264,7 @@ export const useStore = create<UIStore>((set, get) => ({
     const draft = deepClone(get().state)
     fn(draft)
     draft._rev = (draft._rev || 0) + 1
+    draft._updated = new Date().toISOString()
     set({ state: draft })
     get().persist()
     if (draft.settings.ghAutoSave) scheduleAutoSave(() => get().saveToCloud({ background: true }))
@@ -273,6 +274,7 @@ export const useStore = create<UIStore>((set, get) => ({
     const draft = deepClone(get().state)
     fn(draft.settings)
     draft._rev = (draft._rev || 0) + 1
+    draft._updated = new Date().toISOString()
     set({ state: draft })
     get().persist()
     applyTheme(draft.settings.theme)
@@ -464,6 +466,7 @@ export const useStore = create<UIStore>((set, get) => ({
       if (!s || s.v !== 1) return { ok: false, msg: 'Not a valid ASO Companion backup' }
       const draft = s
       draft._rev = (draft._rev || 0) + 1
+      draft._updated = new Date().toISOString()
       set({ state: draft })
       applyTheme(draft.settings.theme)
       saveLocal(JSON.stringify(draft))

@@ -33,7 +33,7 @@ function clubItem(c: Club): PosterItem {
   return { name: c.name, days: c.days || [], time: c.time, room: c.room, icon: c.icon, poster: c.poster, when: whenOf(c), dayText: (c.days || []).map((d) => DAY_FULL[d] || d).join(' and ') }
 }
 
-function eventItem(e: EventEntry): PosterItem {
+export function eventPosterItem(e: EventEntry): PosterItem {
   const once = isOnceEvent(e)
   const key = once ? (e.date ? dayKeyOf(parseISO(e.date)) : '') : e.day || ''
   const dayName = DAY_FULL[key] || key
@@ -61,7 +61,7 @@ export function posterItems(state: State, kind: PosterKind): PosterItem[] {
   const list: { it: PosterItem; sort: number }[] =
     kind === 'clubs'
       ? (state.clubs || []).filter((c) => !c.placeholder).map((c) => ({ it: clubItem(c), sort: 0 }))
-      : (state.events || []).map((e) => ({ it: eventItem(e), sort: isOnceEvent(e) && e.date ? parseISO(e.date).getTime() : 0 }))
+      : (state.events || []).map((e) => ({ it: eventPosterItem(e), sort: isOnceEvent(e) && e.date ? parseISO(e.date).getTime() : 0 }))
   const wk = (it: PosterItem) => {
     const i = Math.min(...it.days.map((d) => DAY_KEYS.indexOf(d as (typeof DAY_KEYS)[number])).filter((n) => n >= 0), 99)
     return i * 10000 + (it.time ? parseSlot(it.time).mins : 9999)

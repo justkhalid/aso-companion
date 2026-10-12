@@ -45,6 +45,7 @@ import { ROOM_LEGEND, DAY_KEYS } from '@/lib/constants'
 import { buildCalendarLinks } from '@/lib/export-word'
 import { PUBLIC_CLUB_TONE, PUBLIC_EVENT_TONE } from '@/lib/calendar-items'
 import { clubIcon } from '@/lib/icons'
+import { eventPosterItem } from '@/lib/poster-items'
 import { WeeklyGrid, CalendarListView, CalendarCardsView, CalViewSwitcher, readCalView, writeCalView, type GridItem, type LegendEntry, type CalendarView } from '@/components/weekly-grid'
 import { ClubDialog } from '@/components/dialogs/club-dialog'
 import { EventDialog } from '@/components/dialogs/event-dialog'
@@ -582,6 +583,34 @@ export function ClubGridCard({
             )
           )}
         </div>
+      </div>
+    </div>
+  )
+}
+
+/* an event in the same card as a club: poster, name, when and where */
+export function EventGridCard({ event }: { event: EventEntry }) {
+  const it = eventPosterItem(event)
+  const Icon = clubIcon(event.icon)?.Icon || Sparkles
+  return (
+    <div className="flex h-full flex-col overflow-hidden rounded-2xl border border-border bg-card shadow-sm">
+      <div className="aspect-[848/1200] w-full bg-secondary">
+        {event.poster ? (
+          <img src={event.poster} alt={`${event.title} poster`} className="h-full w-full object-cover" />
+        ) : (
+          <div className="flex h-full w-full flex-col items-center justify-center gap-3 bg-gradient-to-br from-secondary to-background p-4 text-center">
+            <div className="flex h-16 w-16 items-center justify-center rounded-full bg-primary/10 text-primary"><Icon className="h-8 w-8" /></div>
+            <div className="px-2 text-sm font-extrabold leading-tight text-foreground/80" dir="auto">{event.title}</div>
+          </div>
+        )}
+      </div>
+      <div className="flex flex-1 flex-col gap-2 p-4">
+        <h3 className="font-bold leading-tight" dir="auto">{event.title}</h3>
+        <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs font-semibold text-muted-foreground">
+          <span className="inline-flex items-center gap-1"><CalendarDays className="h-3.5 w-3.5" /> {it.when || 'Date to be confirmed'}</span>
+          {event.place && <span className="inline-flex items-center gap-1"><MapPin className="h-3.5 w-3.5" /> {event.place}</span>}
+        </div>
+        {event.desc && <ClampedText text={event.desc.replace(/[*_]+/g, "")} />}
       </div>
     </div>
   )

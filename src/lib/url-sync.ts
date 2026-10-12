@@ -27,6 +27,7 @@ import type { View } from './types'
 /** path each public tab lives on (level-detail rides on /eltaso) */
 const PATH_FOR_VIEW: Partial<Record<View, string>> = {
   landing: '/',
+  director: '/calendar',
   home: '/teachers',
   eltaso: '/teachers/eltaso',
   'level-detail': '/teachers/eltaso',
@@ -45,6 +46,7 @@ export function viewFromPath(pathname: string): View | null {
   if (typeof window === 'undefined') return null
   const p = pathname.length > 1 ? pathname.replace(/\/+$/, '') : pathname
   if (p === '/') return 'landing'
+  if (p === '/calendar') return 'director'
   if (p === '/teachers') return 'home'
   if (p === '/teachers/eltaso') return 'eltaso'
   if (p === '/teachers/resources') return 'resources'

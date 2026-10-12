@@ -13,6 +13,7 @@ import { LevelDetailPage } from './pages/level-detail-page'
 import { ClubsPage } from './pages/clubs-page'
 import { InternShell } from './intern-shell'
 import { LandingPage } from './landing-page'
+import { DirectorPage } from './pages/director-page'
 import { SiteFooter } from './site-footer'
 import { AccessGate } from './access-gate'
 import { ResourcesPage } from './pages/resources-page'
@@ -88,6 +89,16 @@ export function AppShell({ initialView }: { initialView?: View }) {
   }
 
   const ev: View = computeView(view, admin, pubView)
+
+  /* /calendar: calendar and free rooms on one plain page, no sign-in, nothing to click but the arrows */
+  if (ev === 'director') {
+    return (
+      <>
+        <DirectorPage />
+        <AppToaster />
+      </>
+    )
+  }
 
   /* /: the main page for the general public (classes, clubs and events on offer) */
   if (ev === 'landing') {
@@ -203,9 +214,9 @@ function BootSplash() {
 const INTERN_PAGES: View[] = ['intern-public', 'interns-events', 'interns-clubs', 'interns-rooms', 'interns-report']
 
 function computeView(view: View, admin: boolean, pubView: boolean): View {
-  const allowedPublic: View[] = ['landing', 'home', 'eltaso', 'level-detail', 'resources', 'intern-public', 'interns-events', 'interns-clubs', 'interns-rooms', 'interns-report', 'teacher-rooms', 'reports', 'login']
+  const allowedPublic: View[] = ['landing', 'director', 'home', 'eltaso', 'level-detail', 'resources', 'intern-public', 'interns-events', 'interns-clubs', 'interns-rooms', 'interns-report', 'teacher-rooms', 'reports', 'login']
   if (!admin) return allowedPublic.includes(view) ? view : 'home'
-  if (pubView) return ['landing', 'home', 'eltaso', 'level-detail', 'resources', 'intern-public', 'interns-events', 'interns-clubs', 'interns-rooms', 'interns-report', 'teacher-rooms', 'reports'].includes(view) ? view : 'home'
+  if (pubView) return ['landing', 'director', 'home', 'eltaso', 'level-detail', 'resources', 'intern-public', 'interns-events', 'interns-clubs', 'interns-rooms', 'interns-report', 'teacher-rooms', 'reports'].includes(view) ? view : 'home'
   /* a signed-in admin never sees the sign-in screen or the public main page inside the admin shell */
   return view === 'login' || view === 'landing' ? 'dashboard' : view === 'intern' ? 'dashboard' : view
 }
