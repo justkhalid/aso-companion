@@ -279,3 +279,14 @@
 }
 /* calendars never glow (the card around a calendar included) */
 .bg-card.aso-no-glow, .bg-card:has(.aso-no-glow) { --glow-a: 0 !important; }
+
+
+/* what appears when the clubs/events and classes switch changes: it rises and fades in */
+@keyframes aso-tab-in {
+  from { opacity: 0; transform: translateY(14px) scale(0.99); }
+  to { opacity: 1; transform: none; }
+}
+.aso-tab-in { animation: aso-tab-in .55s cubic-bezier(.2,.8,.2,1) both; }
+@media (prefers-reduced-motion: reduce) {
+  .aso-tab-in { animation: none; }
+}
