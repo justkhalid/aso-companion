@@ -174,15 +174,33 @@ export async function renderMonth(state: State, o: MonthOptions): Promise<HTMLCa
     if (!cells.some(busyOf)) return 0
     return Math.max(...cells.map((d) => blocksIn(d).length))
   })
-  /* every column that has something in it gets the same width, so the busy days are symmetric; empty ones are narrow */
-  const widest = Math.max(1, ...colWeight)
-  const busyWeight = 1 + Math.min(1.2, 0.85 * (widest - 1))
-  for (let i = 0; i < 7; i++) colWeight[i] = colWeight[i] === 0 ? 0.22 : busyWeight
+  /* a busy column is as wide as its widest entry plus the same margin on both sides; the days with nothing in them share what is left */
+  const SIDE = 70
+  const contentW = (i: number) => {
+    let m = 0
+    for (let w = 0; w < weeks; w++) {
+      for (const bl of blocksIn(cellsOf(w)[i])) {
+        scratch.font = `800 56px ${f.body}`
+        const nw = scratch.measureText(bl.names[0].title).width
+        scratch.font = `700 46px ${f.body}`
+        const tw = scratch.measureText(bl.off ? 'Cancelled' : fmtTime(bl.time)).width
+        m = Math.max(m, 95 + 18 + Math.max(nw, tw))
+      }
+    }
+    return m
+  }
+  const widthsRaw = colWeight.map((c, i) => (c === 0 ? 0 : contentW(i) + SIDE * 2))
+  const busyTotal = widthsRaw.reduce((a, b) => a + b, 0)
+  const emptyN = widthsRaw.filter((x) => x === 0).length
+  const avail = W - M * 2 - 20
+  const emptyEach = emptyN ? Math.max(210, (avail - busyTotal) / emptyN) : 0
+  const shrink = Math.min(1, (avail - emptyEach * emptyN) / Math.max(1, busyTotal))
+  for (let i = 0; i < 7; i++) colWeight[i] = widthsRaw[i] === 0 ? emptyEach : widthsRaw[i] * shrink
   const inner = W - M * 2 - 20
   const weightSum = colWeight.reduce((a, b) => a + b, 0)
   const colW = colWeight.map((w) => (inner * w) / weightSum)
   const colX = colW.map((_, i) => M + 10 + colW.slice(0, i).reduce((a, c) => a + c, 0))
-  const narrow = colWeight.map((w) => w <= 0.22)
+  const narrow = widthsRaw.map((x) => x === 0)
   const busyRow = Array.from({ length: weeks }, (_, w) => cellsOf(w).some(busyOf))
 
   /* a block: each name with its own big icon on the left and the name beside it, one time line under them */
@@ -286,33 +304,26 @@ export async function renderMonth(state: State, o: MonthOptions): Promise<HTMLCa
   drawMotif(g, theme, o.month, W, H, 'back')
   drawMotif(g, theme, o.month, W, H, 'front') // drawn before the calendar text, so it never covers a name
 
-  /* header: month name in the middle, school on the left, what the page shows on the right, one baseline for all three */
+  /* header: the month name and the year with the school logo as the centre piece between them, what it shows underneath */
   const what = o.clubs && o.events ? 'Clubs and events' : o.clubs ? 'Clubs' : 'Events'
-  const midY = 112
+  const midY = 98
+  const LOGO = 132
   g.textBaseline = 'middle'
-  g.textAlign = 'center'
-  g.font = `800 150px ${f.display}`
-  g.fillStyle = theme.title
-  g.fillText(theme.name, W / 2, midY + 6)
-  const LOGO = 150
   if (logo) {
     const k = Math.min(LOGO / logo.width, LOGO / logo.height)
-    g.drawImage(logo, 700, midY - (logo.height * k) / 2, logo.width * k, logo.height * k)
+    g.drawImage(logo, W / 2 - (logo.width * k) / 2, midY - (logo.height * k) / 2, logo.width * k, logo.height * k)
   }
-  const lx0 = 700 + (logo ? LOGO + 28 : 0)
-  const inst = state.settings.institute.split(' ')
-  const half = Math.ceil(inst.length / 2)
-  g.textAlign = 'left'
-  g.font = `700 48px ${f.display}`
-  g.fillStyle = theme.title
-  g.fillText(inst.slice(0, half).join(' '), lx0, midY - 28)
-  g.fillText(inst.slice(half).join(' '), lx0, midY + 30)
   g.textAlign = 'right'
-  g.font = `700 48px ${f.display}`
-  g.fillText(what, W - 700, midY - 30)
-  g.font = `800 48px ${f.display}`
+  g.font = `800 150px ${f.display}`
+  g.fillStyle = theme.title
+  g.fillText(theme.name, W / 2 - LOGO / 2 - 50, midY + 6)
+  g.textAlign = 'left'
   g.fillStyle = theme.accent
-  g.fillText(String(o.year), W - 700, midY + 30)
+  g.fillText(String(o.year), W / 2 + LOGO / 2 + 50, midY + 6)
+  g.textAlign = 'center'
+  g.font = `600 44px ${f.body}`
+  g.fillStyle = MUTED
+  g.fillText(`${what} · ${state.settings.institute}`, W / 2, 208)
 
   /* the calendar sits straight on the month's page: fine lines in the month's colour, and a large faint drawing
      in some of the empty days, the way a printed wall calendar does it */
@@ -329,7 +340,7 @@ export async function renderMonth(state: State, o: MonthOptions): Promise<HTMLCa
   g.textAlign = 'center'
   DAY_KEYS.forEach((d, i) => {
     g.fillStyle = theme.accent
-    g.font = `800 ${narrow[i] ? 30 : 46}px ${f.display}`
+    g.font = `800 ${narrow[i] ? 38 : 46}px ${f.display}`
     g.fillText(narrow[i] ? (DAY_FULL[d] || d).slice(0, 3) : DAY_FULL[d] || d, colX[i] + colW[i] / 2, TOP + WD / 2 - 4)
   })
   g.textAlign = 'left'
