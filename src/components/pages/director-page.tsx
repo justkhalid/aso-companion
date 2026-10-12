@@ -67,33 +67,27 @@ export function DirectorPage() {
         <h1 className="font-display text-3xl font-extrabold tracking-tight sm:text-4xl">Calendar</h1>
         <p className="mt-2 text-muted-foreground">Everything that happens at the American Space, on one page. Use the arrows to move between weeks.</p>
 
-        {/* when it was last updated */}
-        <div id="updated" className="mt-6 scroll-mt-20 flex items-start gap-4 rounded-2xl border border-primary/25 bg-primary/5 p-5">
-          <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary"><Clock className="h-6 w-6" aria-hidden /></div>
-          <div className="min-w-0">
-            <div className="text-sm font-bold uppercase tracking-wider text-muted-foreground">Last updated</div>
-            {valid ? (
-              <>
-                <div className="text-2xl font-extrabold leading-tight">
-                  {updated!.toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })} at {updated!.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })}
-                </div>
-                <div className="mt-0.5 text-muted-foreground">{ago(updated!, now)}</div>
-              </>
-            ) : (
-              <div className="text-lg font-semibold">The time of the last update is not recorded yet. It will show here after the next change.</div>
-            )}
-          </div>
+        {/* when it was last updated: one small line */}
+        <div id="updated" className="mt-4 flex scroll-mt-20 items-center gap-2 text-sm text-muted-foreground">
+          <Clock className="h-4 w-4 shrink-0" aria-hidden />
+          {valid ? (
+            <span>
+              Last updated <span className="font-semibold text-foreground">{updated!.toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })} at {updated!.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })}</span> · {ago(updated!, now)}
+            </span>
+          ) : (
+            <span>Last updated: not recorded yet, it will show after the next change.</span>
+          )}
         </div>
 
         {/* the calendar: the month picture first, a switch to the classes */}
         <h2 id="calendar" className="mt-10 scroll-mt-20 text-2xl font-extrabold tracking-tight">1. The calendar</h2>
         <div className="mt-3"><CalendarSwitch tab={tab} onChange={setTab} large /></div>
         {tab === 'cluev' ? (
-          <div className="mt-4">
+          <div key="cluev" className="aso-tab-in mt-4">
             <MonthCalendarImage clubs events classes={false} />
           </div>
         ) : (
-          <>
+          <div key="classes" className="aso-tab-in">
             <p className="mt-3 text-muted-foreground">English classes. Grey means a class will not take place.</p>
             <div className="mt-3 flex flex-wrap items-center gap-2">
               <Button variant="outline" size="lg" onClick={() => shift(-1)}><ChevronLeft className="h-5 w-5" aria-hidden /> Previous week</Button>
@@ -104,7 +98,7 @@ export function DirectorPage() {
             <div className="mt-3 rounded-2xl bg-card">
               <WeeklyGrid items={items} legend={legend} weekMonday={monday} emptyMessage="No classes this week" />
             </div>
-          </>
+          </div>
         )}
 
         {/* free rooms */}

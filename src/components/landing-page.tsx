@@ -175,25 +175,12 @@ export function LandingPage() {
         <section id="calendar" className="mx-auto max-w-6xl scroll-mt-28 px-4 py-4">
           <div className="mb-4 flex flex-wrap items-center justify-center gap-3">
             <CalendarSwitch tab={tab} onChange={setTab} />
-            {admin && (
-            <CalendarExportMenu
-              buildOpts={() => ({
-                title: state.settings.institute + ' - Weekly schedule',
-                subtitle: [state.settings.institute, state.settings.year].filter(Boolean).join(' - '),
-                items: calItems,
-                legend: calLegend,
-                appUrl: window.location.origin,
-              })}
-              baseName={'ASO_Week_' + (state.settings.year || 'export').replace(/\//g, '-')}
-              extra={<ClubsExportItems state={state} />}
-            />
-            )}
             {tab === 'classes' && <CalViewSwitcher view={calView} onChange={setCalView} />}
           </div>
           {tab === 'cluev' ? (
-            <MonthCalendarImage clubs events classes={false} />
+            <div key="cluev" className="aso-tab-in"><MonthCalendarImage clubs events classes={false} /></div>
           ) : (
-            <>
+            <div key="classes" className="aso-tab-in">
               <p className="mb-3 text-center text-sm text-muted-foreground">English classes this week.</p>
               <div className="rounded-2xl bg-card">
                 {calView === 'grid' ? (
@@ -204,12 +191,12 @@ export function LandingPage() {
                   <CalendarListView items={calItems} legend={calLegend} weekMonday={monday} emptyMessage="Nothing scheduled yet" />
                 )}
               </div>
-            </>
+            </div>
           )}
         </section>
 
         {tab === 'cluev' && (
-          <>
+          <div className="aso-tab-in">
             {/* clubs: four to a row */}
             <section id="clubs" className="mx-auto max-w-6xl scroll-mt-28 px-4 py-8">
               <div className="mb-5 flex flex-wrap items-end gap-x-3 gap-y-2">
@@ -263,10 +250,10 @@ export function LandingPage() {
                 </div>
               )}
             </section>
-          </>
+          </div>
         )}
         {tab === 'classes' && (
-        <section id="classes" className="mx-auto max-w-6xl scroll-mt-28 px-4 py-8 pb-14">
+        <section id="classes" className="aso-tab-in mx-auto max-w-6xl scroll-mt-28 px-4 py-8 pb-14">
           <h2 className="mb-1 text-xl font-extrabold tracking-tight">Classes</h2>
           <p className="mb-5 text-sm text-muted-foreground">English classes by age and level. Each class meets once or twice a week.</p>
           {bands.length === 0 ? (
