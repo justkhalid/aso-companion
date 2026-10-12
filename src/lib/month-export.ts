@@ -304,26 +304,31 @@ export async function renderMonth(state: State, o: MonthOptions): Promise<HTMLCa
   drawMotif(g, theme, o.month, W, H, 'back')
   drawMotif(g, theme, o.month, W, H, 'front') // drawn before the calendar text, so it never covers a name
 
-  /* header: the month name and the year with the school logo as the centre piece between them, what it shows underneath */
-  const what = o.clubs && o.events ? 'Clubs and events' : o.clubs ? 'Clubs' : 'Events'
-  const midY = 98
-  const LOGO = 132
+  /* header: the month name alone and large, a fine rule with a star under it carrying the year and what the page shows */
+  const what = o.clubs && o.events ? 'CLUBS AND EVENTS' : o.clubs ? 'CLUBS' : 'EVENTS'
   g.textBaseline = 'middle'
-  if (logo) {
-    const k = Math.min(LOGO / logo.width, LOGO / logo.height)
-    g.drawImage(logo, W / 2 - (logo.width * k) / 2, midY - (logo.height * k) / 2, logo.width * k, logo.height * k)
-  }
-  g.textAlign = 'right'
-  g.font = `800 150px ${f.display}`
-  g.fillStyle = theme.title
-  g.fillText(theme.name, W / 2 - LOGO / 2 - 50, midY + 6)
-  g.textAlign = 'left'
-  g.fillStyle = theme.accent
-  g.fillText(String(o.year), W / 2 + LOGO / 2 + 50, midY + 6)
   g.textAlign = 'center'
-  g.font = `600 44px ${f.body}`
-  g.fillStyle = MUTED
-  g.fillText(`${what} · ${state.settings.institute}`, W / 2, 208)
+  g.font = `800 140px ${f.display}`
+  g.fillStyle = theme.title
+  g.fillText(theme.name, W / 2, 104)
+  g.font = `700 40px ${f.body}`
+  g.letterSpacing = '8px'
+  const sub = `${o.year}   ·   ${what}`
+  const sw = g.measureText(sub).width
+  g.fillStyle = theme.accent
+  g.fillText(sub, W / 2 + 4, 206)
+  g.letterSpacing = '0px'
+  g.strokeStyle = theme.accent + '88'
+  g.lineWidth = 3
+  for (const dir of [-1, 1]) {
+    g.beginPath()
+    g.moveTo(W / 2 + dir * (sw / 2 + 50), 206)
+    g.lineTo(W / 2 + dir * (sw / 2 + 330), 206)
+    g.stroke()
+  }
+  g.fillStyle = theme.accent
+  star(g, W / 2 - (sw / 2 + 330) - 22, 206, 11)
+  star(g, W / 2 + (sw / 2 + 330) + 22, 206, 11)
 
   /* the calendar sits straight on the month's page: fine lines in the month's colour, and a large faint drawing
      in some of the empty days, the way a printed wall calendar does it */
@@ -466,6 +471,8 @@ export async function renderMonth(state: State, o: MonthOptions): Promise<HTMLCa
         cy += HF + 4 * s
       }
       const pc = placeCell(d, i, L.NAME, L.TIME, s, L.HOL)
+      /* a day that only holds sessions: the group sits in the vertical middle of its box */
+      if (pc.items.length && !hasHol(d)) cy = y + Math.max(cy - y, (rows[w] - (pc.h - 18 * s)) / 2)
       for (const it of pc.items) {
         const lx = x + it.lane * pc.laneW
         const ink = it.bl.off ? INKS.off : INKS[it.bl.kind]
@@ -499,7 +506,19 @@ export async function renderMonth(state: State, o: MonthOptions): Promise<HTMLCa
     y += rows[w]
   }
   const moon = Array.from(hol.entries()).some(([k, v]) => k.startsWith(`${o.year}-${String(o.month + 1).padStart(2, '0')}`) && v.some((h) => h.moon))
-  footer(g, f, W, H, `${state.settings.institute} · ${theme.name} ${o.year}${moon ? ' · Islamic holiday dates follow the moon and can shift by a day' : ''}`)
+  const note = `${state.settings.institute}${moon ? ' · Islamic holiday dates follow the moon and can shift by a day' : ''}`
+  g.font = `600 28px ${f.body}`
+  g.textAlign = 'left'
+  g.textBaseline = 'middle'
+  g.fillStyle = MUTED
+  const nwid = g.measureText(note).width
+  const LG = 56
+  const fx = (W - (logo ? LG + 18 : 0) - nwid) / 2
+  if (logo) {
+    const k = Math.min(LG / logo.width, LG / logo.height)
+    g.drawImage(logo, fx, H - 44 - (logo.height * k) / 2, logo.width * k, logo.height * k)
+  }
+  g.fillText(note, fx + (logo ? LG + 18 : 0), H - 44)
   return canvas
 }
 
