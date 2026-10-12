@@ -32,7 +32,9 @@
     "adminCode": "01110",
     "teacherCode": "eltaso2026",
     "internCode": "aso2026",
-    "showAccessBox": true
+    "showAccessBox": true,
+    "teacherLoginRequired": false,
+    "internLoginRequired": false
   },
   "rootUrl": "https://drive.google.com/drive/folders/0B2Q8XuO2ebzxMEYzb0RYV1NBZVU",
   "levels": [
@@ -45043,5 +45045,6 @@
   ],
   "reports": [],
   "libraryPins": [],
-  "_rev": 1791669906873
+  "_rev": 1791669906875,
+  "_updated": "2026-10-12T17:56:54.819Z"
 }
