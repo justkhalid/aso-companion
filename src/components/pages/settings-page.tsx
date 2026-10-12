@@ -299,16 +299,16 @@ export function SettingsPage() {
         <div className="mt-4 flex flex-col gap-2">
           <ToggleRow
             label="Teachers need to sign in with the access code"
-            checked={s.teacherLoginRequired !== false}
+            checked={s.teacherLoginRequired === true}
             onChange={(v) => setSettings((x) => { x.teacherLoginRequired = v })}
           />
           <ToggleRow
             label="Interns and volunteers need to sign in with the access code"
-            checked={s.internLoginRequired !== false}
+            checked={s.internLoginRequired === true}
             onChange={(v) => setSettings((x) => { x.internLoginRequired = v })}
           />
           <div className="text-xs text-muted-foreground">
-            Switched off, anyone who has the link opens that page without a code, and the teachers' plans and library are sent to everyone. Leave them on to keep those pages private.
+            Switched off (the default), anyone who has the link opens that page without a code, and the teachers' plans and library are sent to everyone. Switch them on to keep those pages private.
           </div>
           <ToggleRow
             label="Show the access box on the main page (teachers and interns buttons)"
