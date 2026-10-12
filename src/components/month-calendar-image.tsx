@@ -7,7 +7,7 @@ import { downloadMonth, monthLabel, renderMonth } from '@/lib/month-export'
 import { Button } from '@/components/ui/button'
 
 /* the month calendar picture shown on the page: arrows to change month, a download button for the admin */
-export function MonthCalendarImage({ clubs = true, events = true, classes = false }: { clubs?: boolean; events?: boolean; classes?: boolean }) {
+export function MonthCalendarImage({ clubs = true, events = true, classes = false, stepper = true }: { clubs?: boolean; events?: boolean; classes?: boolean; stepper?: boolean }) {
   const state = useStore((s) => s.state)
   const toast = useStore((s) => s.toast)
   const now = new Date()
@@ -40,6 +40,8 @@ export function MonthCalendarImage({ clubs = true, events = true, classes = fals
   return (
     <div>
       <div className="mb-3 flex flex-wrap items-center justify-center gap-2">
+        {stepper && (
+          <>
         <Button type="button" variant="outline" size="icon" className="h-9 w-9 rounded-full" onClick={() => step(-1)} aria-label="Previous month">
           <ChevronLeft className="h-4 w-4" />
         </Button>
@@ -47,6 +49,8 @@ export function MonthCalendarImage({ clubs = true, events = true, classes = fals
         <Button type="button" variant="outline" size="icon" className="h-9 w-9 rounded-full" onClick={() => step(1)} aria-label="Next month">
           <ChevronRight className="h-4 w-4" />
         </Button>
+          </>
+        )}
         {(
           <Button
             type="button"

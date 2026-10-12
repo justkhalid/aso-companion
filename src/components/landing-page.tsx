@@ -173,12 +173,12 @@ export function LandingPage() {
 
         {/* the calendar follows: a switch between clubs and events, and the classes */}
         <section id="calendar" className="mx-auto max-w-6xl scroll-mt-28 px-4 py-4">
-          <div className="mb-4 flex flex-wrap items-center justify-center gap-3">
+          <div className="relative mb-4 flex flex-wrap items-center justify-center gap-3">
             <CalendarSwitch tab={tab} onChange={setTab} />
-            {tab === 'classes' && <CalViewSwitcher view={calView} onChange={setCalView} />}
+            {tab === 'classes' && <div className="sm:absolute sm:right-0 sm:top-1/2 sm:-translate-y-1/2"><CalViewSwitcher view={calView} onChange={setCalView} /></div>}
           </div>
           {tab === 'cluev' ? (
-            <div key="cluev" className="aso-tab-in"><MonthCalendarImage clubs events classes={false} /></div>
+            <div key="cluev" className="aso-tab-in"><MonthCalendarImage clubs events classes={false} stepper={false} /></div>
           ) : (
             <div key="classes" className="aso-tab-in">
               <p className="mb-3 text-center text-sm text-muted-foreground">English classes this week.</p>
