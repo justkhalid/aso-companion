@@ -153,7 +153,7 @@ export async function renderMonth(state: State, o: MonthOptions): Promise<HTMLCa
   const H16 = 1800 // 16:9 like a slide; only taller when a month is too full
   const M = 70
   const TOP = 240
-  const FOOT = 70
+  const FOOT = 128
   const first = new Date(o.year, o.month, 1)
   const lead = dayIdx(first)
   const daysInMonth = new Date(o.year, o.month + 1, 0).getDate()
@@ -507,18 +507,18 @@ export async function renderMonth(state: State, o: MonthOptions): Promise<HTMLCa
   }
   const moon = Array.from(hol.entries()).some(([k, v]) => k.startsWith(`${o.year}-${String(o.month + 1).padStart(2, '0')}`) && v.some((h) => h.moon))
   const note = `${state.settings.institute}${moon ? ' · Islamic holiday dates follow the moon and can shift by a day' : ''}`
-  g.font = `600 28px ${f.body}`
+  g.font = `600 32px ${f.body}`
   g.textAlign = 'left'
   g.textBaseline = 'middle'
   g.fillStyle = MUTED
   const nwid = g.measureText(note).width
-  const LG = 56
-  const fx = (W - (logo ? LG + 18 : 0) - nwid) / 2
+  const LG = 92
+  const fx = (W - (logo ? LG + 22 : 0) - nwid) / 2
   if (logo) {
     const k = Math.min(LG / logo.width, LG / logo.height)
-    g.drawImage(logo, fx, H - 44 - (logo.height * k) / 2, logo.width * k, logo.height * k)
+    g.drawImage(logo, fx, H - 66 - (logo.height * k) / 2, logo.width * k, logo.height * k)
   }
-  g.fillText(note, fx + (logo ? LG + 18 : 0), H - 44)
+  g.fillText(note, fx + (logo ? LG + 22 : 0), H - 66)
   return canvas
 }
 
