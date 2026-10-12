@@ -24,6 +24,7 @@ export function MonthExportHost() {
   const [ym, setYm] = React.useState({ year: now.getFullYear(), month: now.getMonth() })
   const [clubs, setClubs] = React.useState(true)
   const [events, setEvents] = React.useState(true)
+  const [holidays, setHolidays] = React.useState(true)
   const [preview, setPreview] = React.useState('')
   const [busy, setBusy] = React.useState(false)
 
@@ -40,7 +41,7 @@ export function MonthExportHost() {
     }
     let alive = true
     setBusy(true)
-    void renderMonth(state, { ...ym, clubs, events })
+    void renderMonth(state, { ...ym, clubs, events, holidays })
       .then((c) => {
         if (alive) setPreview(c.toDataURL('image/jpeg', 0.7))
       })
@@ -48,7 +49,7 @@ export function MonthExportHost() {
     return () => {
       alive = false
     }
-  }, [open, ym.year, ym.month, clubs, events, state])
+  }, [open, ym.year, ym.month, clubs, events, holidays, state])
 
   const step = (n: number) => setYm((v) => {
     const d = new Date(v.year, v.month + n, 1)
@@ -85,6 +86,7 @@ export function MonthExportHost() {
           <div role="group" aria-label="What to include" className="flex gap-1.5">
             {toggle('Clubs', clubs, setClubs)}
             {toggle('Events', events, setEvents)}
+            {toggle('Holidays', holidays, setHolidays)}
           </div>
         </div>
         <div className="max-h-[48vh] min-h-40 overflow-auto rounded-2xl border border-border bg-secondary/40 p-2">
@@ -102,7 +104,7 @@ export function MonthExportHost() {
             type="button"
             disabled={(!clubs && !events) || busy}
             onClick={async () => {
-              const ok = await downloadMonth(state, { ...ym, clubs, events })
+              const ok = await downloadMonth(state, { ...ym, clubs, events, holidays })
               toast(ok ? 'Image downloaded' : 'Could not create the image', ok)
             }}
           >
