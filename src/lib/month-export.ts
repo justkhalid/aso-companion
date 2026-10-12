@@ -5,6 +5,8 @@ import { clubIcon } from './icons'
 import { BookOpen, Sparkles } from 'lucide-react'
 import { publicGroupName } from './calendar-items'
 import { MONTH_THEMES, drawMotif } from './month-themes'
+import { renderClassesMonth } from './month-classes'
+import { paintBackdrop, paintFooter, paintHeader, star } from './month-frame'
 import { holidaysOf, type Holiday } from './holidays'
 import type { State } from './types'
 
@@ -126,18 +128,9 @@ function blocksOf(list: Occ[]): Block[] {
 /* text colours sit straight on the page: dark enough to read on every month's background */
 const INKS = { club: '#6B2D8F', event: '#8A5A00', class: '#0F6B66', off: '#8A8A93' }
 
-function star(g: CanvasRenderingContext2D, cx: number, cy: number, r: number) {
-  g.beginPath()
-  for (let i = 0; i < 10; i++) {
-    const rad = i % 2 ? r * 0.45 : r
-    const a = -Math.PI / 2 + (i * Math.PI) / 5
-    g.lineTo(cx + Math.cos(a) * rad, cy + Math.sin(a) * rad)
-  }
-  g.closePath()
-  g.fill()
-}
-
 export async function renderMonth(state: State, o: MonthOptions): Promise<HTMLCanvasElement> {
+  /* classes on their own are a weekly timetable in the month's theme */
+  if (o.classes && !o.clubs && !o.events) return renderClassesMonth(state, o)
   const occ = monthOccurrences(state, o)
   const [logo, f] = await Promise.all([load('/aso-logo.png'), siteFonts()])
   const theme = MONTH_THEMES[o.month]
@@ -306,40 +299,10 @@ export async function renderMonth(state: State, o: MonthOptions): Promise<HTMLCa
   canvas.width = W
   canvas.height = H
   const g = canvas.getContext('2d')!
-  const bg = g.createLinearGradient(0, 0, W * 0.4, H)
-  bg.addColorStop(0, theme.bg[0])
-  bg.addColorStop(1, theme.bg[1])
-  g.fillStyle = bg
-  g.fillRect(0, 0, W, H)
-  drawMotif(g, theme, o.month, W, H, 'back')
-  drawMotif(g, theme, o.month, W, H, 'front') // drawn before the calendar text, so it never covers a name
+  paintBackdrop(g, theme, o.month, W, H)
 
-  /* header: the month name alone and large, a fine rule with a star under it carrying the year and what the page shows */
   const names = [o.classes && 'CLASSES', o.clubs && 'CLUBS', o.events && 'EVENTS'].filter(Boolean) as string[]
-  const what = names.length > 1 ? names.slice(0, -1).join(', ') + ' AND ' + names[names.length - 1] : names[0] || ''
-  g.textBaseline = 'middle'
-  g.textAlign = 'center'
-  g.font = `800 140px ${f.display}`
-  g.fillStyle = theme.title
-  g.fillText(theme.name, W / 2, 104)
-  g.font = `700 40px ${f.body}`
-  g.letterSpacing = '8px'
-  const sub = `${o.year}   ·   ${what}`
-  const sw = g.measureText(sub).width
-  g.fillStyle = theme.accent
-  g.fillText(sub, W / 2 + 4, 206)
-  g.letterSpacing = '0px'
-  g.strokeStyle = theme.accent + '88'
-  g.lineWidth = 3
-  for (const dir of [-1, 1]) {
-    g.beginPath()
-    g.moveTo(W / 2 + dir * (sw / 2 + 50), 206)
-    g.lineTo(W / 2 + dir * (sw / 2 + 330), 206)
-    g.stroke()
-  }
-  g.fillStyle = theme.accent
-  star(g, W / 2 - (sw / 2 + 330) - 22, 206, 11)
-  star(g, W / 2 + (sw / 2 + 330) + 22, 206, 11)
+  paintHeader(g, f, theme, o.year, names)
 
   /* the calendar sits straight on the month's page: fine lines in the month's colour, and a large faint drawing
      in some of the empty days, the way a printed wall calendar does it */
@@ -517,20 +480,7 @@ export async function renderMonth(state: State, o: MonthOptions): Promise<HTMLCa
     y += rows[w]
   }
   const moon = Array.from(hol.entries()).some(([k, v]) => k.startsWith(`${o.year}-${String(o.month + 1).padStart(2, '0')}`) && v.some((h) => h.moon))
-  const note = `${state.settings.institute}${moon ? ' · Islamic holiday dates follow the moon and can shift by a day' : ''}`
-  g.font = `600 32px ${f.body}`
-  g.textAlign = 'left'
-  g.textBaseline = 'middle'
-  g.fillStyle = MUTED
-  const nwid = g.measureText(note).width
-  const LG = 92
-  const fy = (TOP + gridH + H) / 2 - 4 // centred between the end of the calendar and the page edge
-  const fx = (W - (logo ? LG + 22 : 0) - nwid) / 2
-  if (logo) {
-    const k = Math.min(LG / logo.width, LG / logo.height)
-    g.drawImage(logo, fx, fy - (logo.height * k) / 2, logo.width * k, logo.height * k)
-  }
-  g.fillText(note, fx + (logo ? LG + 22 : 0), fy)
+  paintFooter(g, f, logo, `${state.settings.institute}${moon ? ' · Islamic holiday dates follow the moon and can shift by a day' : ''}`, W, H, TOP + gridH)
   return canvas
 }
 
