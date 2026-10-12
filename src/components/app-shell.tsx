@@ -12,6 +12,9 @@ import { EltasoPage } from './pages/eltaso-page'
 import { LevelDetailPage } from './pages/level-detail-page'
 import { ClubsPage } from './pages/clubs-page'
 import { InternShell } from './intern-shell'
+import { LandingPage } from './landing-page'
+import { SiteFooter } from './site-footer'
+import { AccessGate } from './access-gate'
 import { ResourcesPage } from './pages/resources-page'
 import { SettingsPage } from './pages/settings-page'
 import { ClassesPage } from './pages/classes-page'
@@ -20,11 +23,10 @@ import { RoomsPage } from './pages/rooms-page'
 import { AbsencesPage } from './pages/absences-page'
 import { LibraryPage } from './pages/library-page'
 import { ReportsPage } from './pages/reports-page'
-import { InternOverview } from './pages/intern-overview'
+import { DashboardPage } from './pages/dashboard-page'
 import { InternClubsPage } from './pages/intern-clubs-page'
 import { InternEventsPage } from './pages/intern-events-page'
-import { InternVolunteersPage } from './pages/intern-volunteers-page'
-import { viewFromPath } from '@/lib/url-sync'
+import { viewFromPath, adminViewFromPath, isAdminPath } from '@/lib/url-sync'
 import type { View } from '@/lib/types'
 
 export function AppShell({ initialView }: { initialView?: View }) {
@@ -35,6 +37,8 @@ export function AppShell({ initialView }: { initialView?: View }) {
   const view = useStore((s) => s.view)
   const setView = useStore((s) => s.setView)
   const setPubView = useStore((s) => s.setPubView)
+  const viewer = useStore((s) => s.viewer)
+  const loginRules = useStore((s) => s.state.settings)
   const [mobileNav, setMobileNav] = React.useState(false)
 
   // boot the app once on mount (fetches cloud state in the background).
@@ -42,22 +46,38 @@ export function AppShell({ initialView }: { initialView?: View }) {
     void bootApp()
   }, [bootApp])
 
-  // deep link: /eltaso, /clubs or /resources land directly on that tab
+  // deep link: /teachers/eltaso, /teachers/resources land directly on that tab
   // (no-op when the URL is /, the default home). Runs before the boot
   // splash lifts, so the first real paint is already the requested tab.
   React.useEffect(() => {
-    if (initialView && initialView !== 'home') setView(initialView)
+    if (initialView && !isAdminPath(window.location.pathname)) setView(initialView)
   }, [])
 
   // browser back / forward walks through public tab paths
   React.useEffect(() => {
     const onPop = () => {
-      const v = viewFromPath(window.location.pathname)
+      const path = window.location.pathname
+      const st = useStore.getState()
+      const v = isAdminPath(path) ? (st.admin ? adminViewFromPath(path) : 'login') : viewFromPath(path)
       if (v) setView(v) // syncViewUrl skips the push when already on the path
     }
     window.addEventListener('popstate', onPop)
     return () => window.removeEventListener('popstate', onPop)
   }, [])
+
+  // /admin/...: once the session is known, signed-in admins land on that admin screen and everyone else on the sign-in
+  const adminLanded = React.useRef(false)
+  React.useEffect(() => {
+    if (boot !== 'loaded' || adminLanded.current) return
+    adminLanded.current = true
+    const path = window.location.pathname
+    if (!isAdminPath(path)) return
+    const st = useStore.getState()
+    if (st.admin) {
+      st.setPubView(false)
+      setView(adminViewFromPath(path) || 'dashboard')
+    } else setView('login')
+  }, [boot])
 
   // v4.7 boot splash: until the app state is ready, show a branded splash
   // instead of rendering anything. This kills the split-second flash of the
@@ -69,8 +89,41 @@ export function AppShell({ initialView }: { initialView?: View }) {
 
   const ev: View = computeView(view, admin, pubView)
 
+  /* /: the main page for the general public (classes, clubs and events on offer) */
+  if (ev === 'landing') {
+    return (
+      <>
+        <LandingPage />
+        <AppToaster />
+      </>
+    )
+  }
+
+  /* the teachers' and interns' pages open with their own access code (the admin opens everything) */
+  const teacherOk = admin || viewer.teacher || loginRules.teacherLoginRequired === false
+  const internOk = admin || viewer.intern || loginRules.internLoginRequired === false
+  const internView = INTERN_PAGES.includes(ev)
+  if (internView && !internOk) {
+    return (
+      <>
+        <AccessGate role="intern" />
+        <AppToaster />
+      </>
+    )
+  }
+  if (!admin || pubView) {
+    if (['home', 'eltaso', 'level-detail', 'resources', 'reports', 'teacher-rooms'].includes(ev) && !teacherOk) {
+      return (
+        <>
+          <AccessGate role="teacher" />
+          <AppToaster />
+        </>
+      )
+    }
+  }
+
   /* /interns: clubs and events only, in its own minimal page (no tabs, no admin chrome) */
-  if (ev === 'intern-public') {
+  if (internView) {
     return (
       <>
         <InternShell />
@@ -99,7 +152,7 @@ export function AppShell({ initialView }: { initialView?: View }) {
             <div className="mx-auto flex max-w-6xl items-center gap-2 px-4 py-2">
               <span className="text-xs font-semibold text-primary">Public view · signed in as admin</span>
               <button
-                onClick={() => setPubView(false)}
+                onClick={() => { setPubView(false); setView('dashboard') }}
                 className="ml-auto text-xs font-bold text-primary hover:underline"
               >
                 Open admin menu
@@ -108,9 +161,9 @@ export function AppShell({ initialView }: { initialView?: View }) {
           </div>
         )}
         <main className="flex-1">
-          <PageBody view={ev} admin={false} />
+          <div key={ev} className="aso-page"><PageBody view={ev} admin={false} /></div>
         </main>
-        <PublicFooter admin={admin} onAdmin={() => (admin ? setPubView(false) : setView('login'))} />
+        <SiteFooter current="teachers" />
         <AppToaster />
       </div>
     )
@@ -119,11 +172,12 @@ export function AppShell({ initialView }: { initialView?: View }) {
   // admin chrome
   return (
     <div className="flex min-h-screen bg-background">
+      <a href="#main" className="sr-only focus:not-sr-only focus:fixed focus:left-3 focus:top-3 focus:z-[200] focus:rounded-full focus:bg-primary focus:px-4 focus:py-2 focus:text-sm focus:font-bold focus:text-primary-foreground">Skip to content</a>
       <AdminSidebar mobileNavOpen={mobileNav} setMobileNavOpen={setMobileNav} />
       <div className="flex min-w-0 flex-1 flex-col">
         <AdminTopbar setMobileNavOpen={setMobileNav} />
-        <main className="flex-1">
-          <PageBody view={ev} admin />
+        <main id="main" tabIndex={-1} className="flex-1 outline-none">
+          <div key={ev} className="aso-page"><PageBody view={ev} admin /></div>
         </main>
       </div>
       <AppToaster />
@@ -146,16 +200,20 @@ function BootSplash() {
   )
 }
 
+const INTERN_PAGES: View[] = ['intern-public', 'interns-events', 'interns-clubs', 'interns-rooms', 'interns-report']
+
 function computeView(view: View, admin: boolean, pubView: boolean): View {
-  const allowedPublic: View[] = ['home', 'eltaso', 'level-detail', 'clubs', 'resources', 'intern-public', 'reports', 'login']
+  const allowedPublic: View[] = ['landing', 'home', 'eltaso', 'level-detail', 'resources', 'intern-public', 'interns-events', 'interns-clubs', 'interns-rooms', 'interns-report', 'teacher-rooms', 'reports', 'login']
   if (!admin) return allowedPublic.includes(view) ? view : 'home'
-  if (pubView) return ['home', 'eltaso', 'level-detail', 'clubs', 'resources', 'intern-public', 'reports'].includes(view) ? view : 'home'
-  /* a signed-in admin never sees the sign-in screen */
-  return view === 'login' ? 'home' : view
+  if (pubView) return ['landing', 'home', 'eltaso', 'level-detail', 'resources', 'intern-public', 'interns-events', 'interns-clubs', 'interns-rooms', 'interns-report', 'teacher-rooms', 'reports'].includes(view) ? view : 'home'
+  /* a signed-in admin never sees the sign-in screen or the public main page inside the admin shell */
+  return view === 'login' || view === 'landing' ? 'dashboard' : view === 'intern' ? 'dashboard' : view
 }
 
 function PageBody({ view, admin }: { view: View; admin: boolean }) {
   switch (view) {
+    case 'dashboard':
+      return admin ? <DashboardPage /> : <HomePage admin={false} />
     case 'home':
       return <HomePage admin={admin} />
     case 'eltaso':
@@ -163,8 +221,16 @@ function PageBody({ view, admin }: { view: View; admin: boolean }) {
     case 'level-detail':
       return <LevelDetailPage admin={admin} />
     case 'clubs':
-      return <ClubsPage admin={admin} />
+      return <ClubsPage admin={admin} section={admin ? 'calendar' : undefined} />
+    case 'landing':
+      return <HomePage admin={admin} />
+    case 'teacher-rooms':
+      return <RoomsPage focus={['Room 1', 'Room 2']} only />
     case 'intern-public':
+    case 'interns-events':
+    case 'interns-clubs':
+    case 'interns-rooms':
+    case 'interns-report':
       return <ClubsPage admin={false} internMode />
     case 'resources':
       return <ResourcesPage />
@@ -183,13 +249,11 @@ function PageBody({ view, admin }: { view: View; admin: boolean }) {
     case 'reports':
       return <ReportsPage />
     case 'intern':
-      return admin ? <InternOverview /> : <HomePage admin={false} />
+      return admin ? <DashboardPage /> : <HomePage admin={false} />
     case 'intern-clubs':
       return admin ? <InternClubsPage /> : <ClubsPage admin={false} />
     case 'intern-events':
       return admin ? <InternEventsPage /> : <ClubsPage admin={false} />
-    case 'intern-volunteers':
-      return admin ? <InternVolunteersPage /> : <ClubsPage admin={false} />
     case 'login':
       return <LoginPage />
     default:
@@ -197,23 +261,3 @@ function PageBody({ view, admin }: { view: View; admin: boolean }) {
   }
 }
 
-function PublicFooter({ admin, onAdmin }: { admin: boolean; onAdmin: () => void }) {
-  return (
-    <footer className="mt-auto border-t border-border bg-background">
-      <div className="mx-auto flex max-w-6xl flex-col items-center gap-3 px-4 py-6 text-center sm:flex-row sm:justify-between sm:text-left">
-        <div className="flex items-center gap-2">
-          <Logo size={24} />
-          <div className="text-xs text-muted-foreground">
-            ASO Companion · American Space Oujda
-          </div>
-        </div>
-        <div className="flex items-center gap-3 text-xs text-muted-foreground">
-          <span>{new Date().getFullYear()}</span>
-          <button onClick={onAdmin} className="font-bold text-primary hover:underline">
-            {admin ? 'Open admin menu' : 'Admin sign in'}
-          </button>
-        </div>
-      </div>
-    </footer>
-  )
-}

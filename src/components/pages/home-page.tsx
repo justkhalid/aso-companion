@@ -28,9 +28,8 @@ import {
   eventStatusOn,
   splitDaysByStatus,
   isoOf,
-  addDays,
-} from '@/lib/app-utils'
-import { DAY_FULL, DAY_KEYS, ROOM_LEGEND } from '@/lib/constants'
+  addDays, fmtTime } from '@/lib/app-utils'
+import { DAY_FULL, DAY_KEYS, FILL_GRID, ROOM_LEGEND } from '@/lib/constants'
 import { buildCalendarLinks } from '@/lib/export-word'
 import { WeeklyGrid, CalendarListView, CalendarCardsView, CalViewSwitcher, readCalView, writeCalView, type GridItem, type LegendEntry, type CalendarView } from '@/components/weekly-grid'
 import { ClassDialog } from '@/components/dialogs/class-dialog'
@@ -158,14 +157,14 @@ export function HomePage({ admin }: { admin: boolean }) {
       title: `${c.code} · ${c.level}${stt.kind === 'cancelled' ? ' · cancelled' : ''}`,
       sub:
         stt.kind === 'cancelled'
-          ? [c.time, c.room, `${c.teacher} is away`].filter(Boolean).join(' · ')
+          ? [fmtTime(c.time), c.room, `${c.teacher} is away`].filter(Boolean).join(' · ')
           : stt.kind === 'cover'
-            ? [c.time, c.room, `cover: ${stt.cover}`].filter(Boolean).join(' · ')
-            : [c.time, c.room, c.teacher].filter(Boolean).join(' · '),
+            ? [fmtTime(c.time), c.room, `cover: ${stt.cover}`].filter(Boolean).join(' · ')
+            : [fmtTime(c.time), c.room, c.teacher].filter(Boolean).join(' · '),
       kind: 'class',
     })
   })
-  ;(state.clubs || []).forEach((c) => {
+  ;(admin ? state.clubs || [] : []).forEach((c) => {
     if (!(c.days || []).includes(tKey)) return
     const stt = clubStatusOn(state, c.id, isoOf(new Date()))
     todayItems.push({
@@ -173,12 +172,12 @@ export function HomePage({ admin }: { admin: boolean }) {
       title: c.name + (stt.kind === 'cancelled' ? ' · cancelled' : ''),
       sub:
         stt.kind === 'cancelled'
-          ? [c.time, c.room, 'cancelled'].filter(Boolean).join(' · ')
-          : [c.time, c.room, stt.kind === 'cover' ? `led by ${stt.cover}` : c.lead ? `lead: ${c.lead}` : ''].filter(Boolean).join(' · '),
+          ? [fmtTime(c.time), c.room, 'cancelled'].filter(Boolean).join(' · ')
+          : [fmtTime(c.time), c.room, stt.kind === 'cover' ? `led by ${stt.cover}` : c.lead ? `lead: ${c.lead}` : ''].filter(Boolean).join(' · '),
       kind: 'club',
     })
   })
-  ;(state.events || []).forEach((e) => {
+  ;(admin ? state.events || [] : []).forEach((e) => {
     const isToday =
       e.recur === 'none'
         ? e.date && now.toDateString() === new Date(e.date).toDateString()
@@ -188,7 +187,7 @@ export function HomePage({ admin }: { admin: boolean }) {
     todayItems.push({
       mins: parseSlot(e.time || '23:59').mins,
       title: e.title + (off ? ' · cancelled' : ''),
-      sub: [e.time, e.place].filter(Boolean).join(' · ') || 'all day',
+      sub: [fmtTime(e.time), e.place].filter(Boolean).join(' · ') || 'all day',
       kind: 'event',
     })
   })
@@ -328,7 +327,8 @@ export function HomePage({ admin }: { admin: boolean }) {
         )}
       </div>
 
-      {/* clubs & events */}
+      {/* clubs & events: admin only, visitors find them on /interns */}
+      {admin && (
       <div className="mt-7">
         <SectionHeader
           title="Clubs & events"
@@ -369,7 +369,7 @@ export function HomePage({ admin }: { admin: boolean }) {
                   <div className="font-semibold" dir="auto">{e.title}</div>
                   <div className="text-sm text-muted-foreground">
                     {fmtD(d!, { weekday: 'long', day: 'numeric', month: 'long' })}
-                    {e.time ? ` · ${e.time}` : ''}
+                    {e.time ? ` · ${fmtTime(e.time)}` : ''}
                     {e.place ? ` · ${e.place}` : ''}
                   </div>
                 </div>
@@ -379,6 +379,7 @@ export function HomePage({ admin }: { admin: boolean }) {
           </div>
         )}
       </div>
+      )}
 
       {/* today */}
       <div className="mt-7">
@@ -465,7 +466,7 @@ function AdminHomeExtra() {
               {g.band}
             </div>
           )}
-          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+          <div className="grid gap-3" style={FILL_GRID}>
             {g.levels.map((l) => {
               const w = wi >= 0 && wi < l.weeks.length ? l.weeks[wi] : null
               const showWi = w ? wi : Math.min(l.weeks.length - 1, Math.max(0, wi))

@@ -1,24 +1,24 @@
 'use client'
 
 import * as React from 'react'
-import { Plus, Pencil, Trash2, ExternalLink, Sparkles, Clock, MapPin, User, AlertTriangle } from 'lucide-react'
+import { Plus, ExternalLink, Sparkles, Clock, MapPin, User, AlertTriangle } from 'lucide-react'
 import { useStore } from '@/lib/store'
 import { PageHead, EmptyState, Chip } from '@/components/ui-bits'
 import { Button } from '@/components/ui/button'
 import { ClubDialog } from '@/components/dialogs/club-dialog'
+import { RowActions } from '@/components/admin/row-actions'
+import { uid, fmtTime } from '@/lib/app-utils'
 import type { Club } from '@/lib/types'
 
 export function InternClubsPage() {
   const state = useStore((s) => s.state)
   const patch = useStore((s) => s.patch)
-  const toast = useStore((s) => s.toast)
   const [dialog, setDialog] = React.useState<{ open: boolean; club: Club | null }>({ open: false, club: null })
 
-  const remove = (c: Club) => {
-    patch((draft) => {
-      draft.clubs = draft.clubs.filter((x) => x.id !== c.id)
-    })
-    toast('Club removed')
+  const duplicate = (c: Club) => {
+    const copy = { ...c, id: uid(), name: c.name + ' copy' }
+    patch((d) => { d.clubs.push(copy) })
+    setDialog({ open: true, club: copy })
   }
 
   return (
@@ -44,7 +44,7 @@ export function InternClubsPage() {
               </div>
               <div className="flex flex-wrap gap-x-3 gap-y-1 text-xs font-semibold text-muted-foreground">
                 <span className="inline-flex items-center gap-1"><Sparkles className="h-3.5 w-3.5" /> {(c.days || []).join(' / ') || 'no day set'}</span>
-                <span className="inline-flex items-center gap-1"><Clock className="h-3.5 w-3.5" /> {c.time || '-'}</span>
+                <span className="inline-flex items-center gap-1"><Clock className="h-3.5 w-3.5" /> {fmtTime(c.time) || '-'}</span>
                 {c.room && <span className="inline-flex items-center gap-1"><MapPin className="h-3.5 w-3.5" /> {c.room}</span>}
               </div>
               <div className="mt-1.5 text-xs">
@@ -63,9 +63,13 @@ export function InternClubsPage() {
                     <Button variant="outline" size="sm"><ExternalLink className="h-3.5 w-3.5" /> Link</Button>
                   </a>
                 )}
-                <div className="ml-auto flex gap-1">
-                  <Button variant="ghost" size="icon" onClick={() => setDialog({ open: true, club: c })} title="Edit"><Pencil className="h-4 w-4" /></Button>
-                  <Button variant="ghost" size="icon" className="text-destructive" onClick={() => remove(c)} title="Delete"><Trash2 className="h-4 w-4" /></Button>
+                <div className="ml-auto">
+                  <RowActions
+                    name={c.name}
+                    onEdit={() => setDialog({ open: true, club: c })}
+                    onDuplicate={() => duplicate(c)}
+                    remove={(d) => { d.clubs = d.clubs.filter((x) => x.id !== c.id) }}
+                  />
                 </div>
               </div>
             </div>

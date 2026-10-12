@@ -28,7 +28,7 @@ export async function POST(req: NextRequest) {
     }
 
     /* basic sanity check: never overwrite good data with a broken payload */
-    let parsed: { v?: number; settings?: Record<string, unknown> }
+    let parsed: { v?: number; settings?: Record<string, unknown>; _filtered?: boolean }
     try {
       parsed = JSON.parse(content)
       if (!parsed || parsed.v !== 1) {
@@ -42,6 +42,11 @@ export async function POST(req: NextRequest) {
         { ok: false, msg: 'Refusing to save: payload is not valid JSON' },
         { status: 400 },
       )
+    }
+
+    /* a copy that was cut down for a visitor (no weekly plans, no library) must never replace the real data */
+    if (parsed._filtered) {
+      return NextResponse.json({ ok: false, msg: 'Refusing to save a partial copy of the data. Reload as admin first.' }, { status: 400 })
     }
 
     /* a client that loaded the public (code-less) state must not wipe the stored codes */

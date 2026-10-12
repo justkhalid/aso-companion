@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { readCloudState, getStorageInfo } from '@/lib/state-store'
-import { isAdmin, stripSecrets } from '@/lib/auth'
+import { filterStateFor, rolesOf } from '@/lib/auth'
 
 /**
  * GET /api/state
@@ -22,7 +22,10 @@ import { isAdmin, stripSecrets } from '@/lib/auth'
  */
 export async function GET(req: NextRequest) {
   /* ?fresh=1 (the admin's "Load now" button) skips the short server memo */
-  const admin = isAdmin(req)
+  const roles = rolesOf(req)
+  const admin = roles.includes('admin')
+  /* the body depends on who asks, so the ETag and caches are keyed by role */
+  const roleKey = admin ? '-a' : (roles.includes('teacher') ? '-t' : '')
   /* ?fresh=1 is admin-only so anonymous traffic cannot bypass the memo */
   const result = await readCloudState({ fresh: admin && req.nextUrl.searchParams.get('fresh') === '1' })
 
@@ -38,9 +41,9 @@ export async function GET(req: NextRequest) {
 
   const rev = Number((result.state as { _rev?: number })._rev) || 0
   /* admin and public bodies differ, so they must not share an ETag or a cache entry */
-  const etag = `W/"rev-${rev}${admin ? '-a' : ''}"`
+  const etag = `W/"rev-${rev}${roleKey}"`
   const headers = {
-    'Cache-Control': admin ? 'private, no-cache' : 'no-cache',
+    'Cache-Control': roleKey ? 'private, no-cache' : 'no-cache',
     Vary: 'Cookie',
     ETag: etag,
     'X-ASO-Storage': result.source,
@@ -49,5 +52,5 @@ export async function GET(req: NextRequest) {
   if (rev > 0 && req.headers.get('if-none-match') === etag) {
     return new NextResponse(null, { status: 304, headers })
   }
-  return NextResponse.json(admin ? result.state : stripSecrets(result.state), { headers })
+  return NextResponse.json(admin ? result.state : filterStateFor(result.state, roles), { headers })
 }

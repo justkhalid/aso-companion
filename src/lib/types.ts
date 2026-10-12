@@ -16,6 +16,11 @@ export interface Settings {
   /** Only present in admin responses; the server strips both codes for visitors. */
   adminCode?: string
   teacherCode?: string
+  internCode?: string
+  teacherLoginRequired?: boolean // default true; off = anyone can open the teachers' pages
+  internLoginRequired?: boolean // default true; off = anyone can open the interns' page
+  hiddenLevels?: string[] // level keys teachers do not see on the ELTASO tab
+  showAccessBox?: boolean // main page: the box that sends teachers and interns to their own pages
   ghToken?: string
   ghRepo?: string
   ghBranch?: string
@@ -166,12 +171,17 @@ export interface Note {
   text: string
 }
 
+/* one person at ASO; they can hold several roles (a teacher who also volunteers, a coordinator who is also an intern) */
 export interface TeamMember {
   id: string
   name: string
-  role: string
+  roles?: string[] // Coordinator, Administrator, Teacher, Intern, Volunteer, or a custom one
+  role?: string // older entries: one free-text role, read through rolesOf()
+  looksAfter?: string[] // classes (code), clubs (name) and events (title) they look after, picked from what exists
+  duty?: string // other responsibilities, free text
   phone: string
   email: string
+  aso?: string // ASO number
 }
 
 /* something that does not run as usual for a few days or weeks: a teacher who is away (their classes),
@@ -204,17 +214,25 @@ export interface State {
   notes: Note[]
   team: TeamMember[]
   absences?: Absence[]
+  _filtered?: boolean // a cut-down copy sent to visitors; never saved back
   rootUrl?: string
 }
 
 /* ---- view routing (single-page app) ---- */
 export type View =
+  | 'landing'
+  | 'dashboard'
   | 'home'
   | 'eltaso'
   | 'level-detail'
   | 'clubs'
   | 'resources'
   | 'intern-public'
+  | 'interns-events'
+  | 'interns-clubs'
+  | 'interns-rooms'
+  | 'interns-report'
+  | 'teacher-rooms'
   | 'login'
   | 'settings'
   | 'intern'
@@ -226,7 +244,6 @@ export type View =
   | 'reports'
   | 'intern-clubs'
   | 'intern-events'
-  | 'intern-volunteers'
 
 export type Side = 'elt' | 'intern'
 

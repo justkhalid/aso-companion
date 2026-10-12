@@ -1,10 +1,6 @@
-import type { Metadata } from 'next'
-import { AppShell } from '@/components/app-shell'
+import { redirect } from 'next/navigation'
 
-export const metadata: Metadata = {
-  title: 'ELTASO · ASO Companion',
-}
-
-export default function EltasoPage() {
-  return <AppShell initialView="eltaso" />
+/* Moved under /teachers. */
+export default function Old() {
+  redirect('/teachers/eltaso')
 }

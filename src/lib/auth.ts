@@ -40,20 +40,40 @@ export function safeEqual(a: string, b: string): boolean {
   return timingSafeEqual(ha, hb)
 }
 
-export function createSessionToken(days = SESSION_DAYS): string {
+/* roles a session can hold: the admin sees everything, teachers and interns each see their own pages */
+export type Role = 'admin' | 'teacher' | 'intern'
+const ROLES: Role[] = ['admin', 'teacher', 'intern']
+
+/* token: `<roles joined by +>.<expiry>.<signature>`; the old two-part `<expiry>.<signature>` form is an admin session */
+export function createSessionToken(roles: Role[] = ['admin'], days = SESSION_DAYS): string {
   const exp = String(Date.now() + days * 86_400_000)
-  return `${exp}.${sign(exp)}`
+  const head = roles.join('+') + '.' + exp
+  return `${head}.${sign(head)}`
+}
+
+export function sessionRoles(token: string | undefined | null): Role[] {
+  if (!token) return []
+  const parts = token.split('.')
+  if (parts.length === 2) {
+    const [exp, sig] = parts
+    return /^\d+$/.test(exp) && Number(exp) >= Date.now() && safeEqual(sig, sign(exp)) ? ['admin'] : []
+  }
+  if (parts.length !== 3) return []
+  const [rolesPart, exp, sig] = parts
+  if (!/^\d+$/.test(exp) || Number(exp) < Date.now() || !safeEqual(sig, sign(rolesPart + '.' + exp))) return []
+  return rolesPart.split('+').filter((r): r is Role => (ROLES as string[]).includes(r))
 }
 
 export function verifySessionToken(token: string | undefined | null): boolean {
-  if (!token) return false
-  const [exp, sig] = token.split('.')
-  if (!exp || !sig || !/^\d+$/.test(exp) || Number(exp) < Date.now()) return false
-  return safeEqual(sig, sign(exp))
+  return sessionRoles(token).includes('admin')
+}
+
+export function rolesOf(req: NextRequest): Role[] {
+  return sessionRoles(req.cookies.get(SESSION_COOKIE)?.value)
 }
 
 export function isAdmin(req: NextRequest): boolean {
-  return verifySessionToken(req.cookies.get(SESSION_COOKIE)?.value)
+  return rolesOf(req).includes('admin')
 }
 
 export function sessionCookie(token: string, persistent: boolean) {
@@ -90,8 +110,10 @@ export function clearFailures(key: string) {
 }
 
 /* ---- secrets in the state ---- */
-export const SECRET_KEYS = ['adminCode', 'teacherCode'] as const
+export const SECRET_KEYS = ['adminCode', 'teacherCode', 'internCode'] as const
 export const DEFAULT_ADMIN_CODE = '1234'
+export const DEFAULT_TEACHER_CODE = 'eltaso2026'
+export const DEFAULT_INTERN_CODE = 'aso2026'
 
 type AnyState = { settings?: Record<string, unknown> } & Record<string, unknown>
 
@@ -108,6 +130,44 @@ export function stripSecrets<T>(state: T): T {
 export function storedAdminCode(state: unknown): string {
   const c = (state as AnyState | null)?.settings?.adminCode
   return typeof c === 'string' && c.trim() ? c.trim() : DEFAULT_ADMIN_CODE
+}
+
+/** Stored code for a role, falling back to the default when none is set. */
+export function storedCode(state: unknown, role: Role): string {
+  if (role === 'admin') return storedAdminCode(state)
+  const key = role === 'teacher' ? 'teacherCode' : 'internCode'
+  const c = (state as AnyState | null)?.settings?.[key]
+  /* 'eltaso' was the old placeholder teachers' code in the starter data, never a chosen one: treat it as unset */
+  const set = typeof c === 'string' && c.trim() && c.trim() !== 'eltaso'
+  return set ? (c as string).trim() : role === 'teacher' ? DEFAULT_TEACHER_CODE : DEFAULT_INTERN_CODE
+}
+
+/**
+ * What a visitor may receive. The admin gets everything (handled by the caller).
+ * Everyone else gets the public part: levels without their weekly plans, the classes,
+ * clubs, events and cancellations (without the reasons). Teachers also get the weekly
+ * plans, the library and the notes. The copy is marked `_filtered` so a client never saves it back.
+ */
+export function filterStateFor<T>(state: T, roles: Role[]): T {
+  const s = stripSecrets(state) as unknown as Record<string, unknown> & { levels?: Record<string, unknown>[]; absences?: Record<string, unknown>[] }
+  if (!s || typeof s !== 'object') return state
+  /* with the teachers' login switched off in Settings, everyone gets what a teacher gets */
+  const teacher = roles.includes('teacher') || (s.settings as { teacherLoginRequired?: boolean } | undefined)?.teacherLoginRequired === false
+  const out: Record<string, unknown> = {
+    ...s,
+    _filtered: true,
+    team: [],
+    volunteers: [],
+    reports: [],
+    prep: {},
+    rootUrl: teacher ? s.rootUrl : '',
+    library: teacher ? s.library : [],
+    libraryPins: teacher ? s.libraryPins : [],
+    notes: teacher ? s.notes : [],
+    levels: (s.levels || []).map((l) => (teacher ? l : { ...l, weeks: [] })),
+    absences: (s.absences || []).map((a) => ({ ...a, reason: '', note: undefined })),
+  }
+  return out as unknown as T
 }
 
 /** Keep the stored codes when an incoming save omits or blanks them. */

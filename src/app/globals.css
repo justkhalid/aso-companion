@@ -237,6 +237,11 @@
 @keyframes aso-fade-up { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
 .aso-fade-up { animation: aso-fade-up .35s cubic-bezier(.32,.72,0,1) both; }
 
+/* page change: the new page eases in */
+@keyframes aso-page-in { from { opacity: 0; transform: translateY(10px) scale(.995); } to { opacity: 1; transform: none; } }
+.aso-page { animation: aso-page-in .42s cubic-bezier(.22,.8,.2,1) both; }
+@media (prefers-reduced-motion: reduce) { .aso-page, .aso-fade-up { animation: none; } }
+
 /* active navigation pill: marine gradient that sweeps lighter */
 .aso-nav-pill {
   background-image: linear-gradient(135deg, #0A4FB8 0%, #1173D4 52%, #2E9BE0 100%);
@@ -251,15 +256,26 @@
 /* card surfaces: white-to-faint-blue gradient, glossy sheen, fine grain */
 .bg-card {
   background-image:
+    radial-gradient(circle 260px at var(--mx, 50%) var(--my, 50%), color-mix(in srgb, var(--primary) calc(var(--glow-a) * 15%), transparent), transparent 72%),
     url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='140' height='140' filter='url(%23n)' opacity='0.035'/%3E%3C/svg%3E"),
     radial-gradient(130% 62% at 16% 0%, rgba(255,255,255,.75), rgba(255,255,255,0) 55%),
     linear-gradient(160deg, #ffffff 0%, #f8fbff 45%, #ecf3fd 100%);
-  background-size: 140px 140px, auto, auto;
+  background-size: auto, 140px 140px, auto, auto;
 }
 .dark .bg-card {
   background-image:
+    radial-gradient(circle 260px at var(--mx, 50%) var(--my, 50%), color-mix(in srgb, var(--primary) calc(var(--glow-a) * 15%), transparent), transparent 72%),
     url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='140' height='140' filter='url(%23n)' opacity='0.05'/%3E%3C/svg%3E"),
     radial-gradient(130% 62% at 16% 0%, rgba(150,190,255,.09), rgba(150,190,255,0) 55%),
     linear-gradient(160deg, rgba(34,34,42,.94) 0%, rgba(28,29,38,.92) 45%, rgba(24,27,37,.92) 100%);
-  background-size: 140px 140px, auto, auto;
+  background-size: auto, 140px 140px, auto, auto;
 }
+
+/* cursor glow: a soft spot of light follows the pointer inside a hovered card (first layer of .bg-card) */
+@property --glow-a { syntax: '<number>'; inherits: false; initial-value: 0; }
+.bg-card { transition: --glow-a .45s ease; }
+@media (hover: hover) and (prefers-reduced-motion: no-preference) {
+  .bg-card:hover { --glow-a: 1; }
+}
+/* calendars never glow (the card around a calendar included) */
+.bg-card.aso-no-glow, .bg-card:has(.aso-no-glow) { --glow-a: 0 !important; }

@@ -61,7 +61,7 @@ export function SettingsPage() {
   const syncing = useStore((s) => s.syncing)
   const lastSync = useStore((s) => s.lastSync)
 
-  const { setTheme } = useTheme()
+  const { theme: deviceTheme, setTheme } = useTheme()
   const fileRef = React.useRef<HTMLInputElement>(null)
   const [newNoteWeek, setNewNoteWeek] = React.useState('')
   const [newNoteText, setNewNoteText] = React.useState('')
@@ -95,13 +95,11 @@ export function SettingsPage() {
   const stateChars = React.useMemo(() => compactSize(state), [state])
 
   const s = state.settings
+  const [tab, setTab] = React.useState<'general' | 'access' | 'data'>('general')
 
-  const setThemeVal = (t: Theme) => {
-    setSettings((x) => {
-      x.theme = t
-    })
-    setTheme(t === 'auto' ? 'system' : t)
-  }
+  /* the theme is chosen per device; the site opens in light mode */
+  const setThemeVal = (t: Theme) => setTheme(t === 'auto' ? 'system' : t)
+  const shownTheme: Theme = deviceTheme === 'system' ? 'auto' : deviceTheme === 'dark' ? 'dark' : 'light'
 
   const onSaveCloud = async () => {
     const r = await saveToCloud()
@@ -156,10 +154,33 @@ export function SettingsPage() {
     <div className="mx-auto max-w-2xl px-4 py-6 sm:py-8">
       <PageHead title="Settings" subtitle="Appearance, profile, academic year, access and cloud storage." />
 
+      <div role="tablist" aria-label="Settings sections" className="mb-4 flex gap-1 rounded-full bg-secondary p-1">
+        {TABS.map((t) => (
+          <button
+            key={t.id}
+            role="tab"
+            id={`settings-tab-${t.id}`}
+            aria-selected={tab === t.id}
+            aria-controls={`settings-panel-${t.id}`}
+            tabIndex={tab === t.id ? 0 : -1}
+            onClick={() => setTab(t.id)}
+            onKeyDown={(e) => {
+              const i = TABS.findIndex((x) => x.id === tab)
+              if (e.key === 'ArrowRight') setTab(TABS[(i + 1) % TABS.length].id)
+              if (e.key === 'ArrowLeft') setTab(TABS[(i + TABS.length - 1) % TABS.length].id)
+            }}
+            className={cn('flex-1 rounded-full px-3 py-1.5 text-sm font-semibold transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring', tab === t.id ? 'bg-background shadow-sm' : 'text-muted-foreground hover:text-foreground')}
+          >
+            {t.label}
+          </button>
+        ))}
+      </div>
+
+      <div role="tabpanel" id="settings-panel-general" aria-labelledby="settings-tab-general" hidden={tab !== 'general'}>
       {/* appearance */}
       <Section title="Appearance" icon={<Sun className="h-4 w-4" />}>
         <div className="flex items-center gap-2">
-          <span className="text-sm font-semibold">Theme</span>
+          <span className="text-sm font-semibold">Theme on this device</span>
           <div className="ml-auto grid grid-cols-3 gap-1 rounded-full bg-secondary p-1">
             {(['light', 'dark', 'auto'] as Theme[]).map((t) => (
               <button
@@ -167,7 +188,7 @@ export function SettingsPage() {
                 onClick={() => setThemeVal(t)}
                 className={cn(
                   'flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-bold capitalize transition',
-                  s.theme === t ? 'bg-background shadow-sm' : 'text-muted-foreground',
+                  shownTheme === t ? 'bg-background shadow-sm' : 'text-muted-foreground',
                 )}
               >
                 {t === 'light' ? <Sun className="h-3.5 w-3.5" /> : t === 'dark' ? <Moon className="h-3.5 w-3.5" /> : <Smartphone className="h-3.5 w-3.5" />}
@@ -240,6 +261,8 @@ export function SettingsPage() {
       </Section>
 
       {/* access */}
+      </div>
+      <div role="tabpanel" id="settings-panel-access" aria-labelledby="settings-tab-access" hidden={tab !== 'access'}>
       <Section title="Access" icon={<KeyRound className="h-4 w-4" />}>
         <FieldText
           label="Admin code (4 digits)"
@@ -251,8 +274,73 @@ export function SettingsPage() {
         <div className="mt-2 text-xs text-muted-foreground">
           The code to sign in as the admin. Keep it short and memorable.
         </div>
+
+        <div className="mt-5 grid gap-3 sm:grid-cols-2">
+          <FieldText
+            label="Teachers' access code"
+            /* same rule as the server: the old placeholder 'eltaso' or an empty field means the default code */
+            value={s.teacherCode && s.teacherCode !== 'eltaso' ? s.teacherCode : 'eltaso2026'}
+            onChange={(v) => setSettings((x) => { x.teacherCode = v })}
+            placeholder="eltaso2026"
+            type="text"
+          />
+          <FieldText
+            label="Interns' and volunteers' access code"
+            value={s.internCode || 'aso2026'}
+            onChange={(v) => setSettings((x) => { x.internCode = v })}
+            placeholder="aso2026"
+            type="text"
+          />
+        </div>
+        <div className="mt-2 text-xs text-muted-foreground">
+          These open the teachers' pages and the interns' page. Changing a code signs nobody out, so give people the new code and remove the old one from your messages.
+        </div>
+
+        <div className="mt-4 flex flex-col gap-2">
+          <ToggleRow
+            label="Teachers need to sign in with the access code"
+            checked={s.teacherLoginRequired !== false}
+            onChange={(v) => setSettings((x) => { x.teacherLoginRequired = v })}
+          />
+          <ToggleRow
+            label="Interns and volunteers need to sign in with the access code"
+            checked={s.internLoginRequired !== false}
+            onChange={(v) => setSettings((x) => { x.internLoginRequired = v })}
+          />
+          <div className="text-xs text-muted-foreground">
+            Switched off, anyone who has the link opens that page without a code, and the teachers' plans and library are sent to everyone. Leave them on to keep those pages private.
+          </div>
+          <ToggleRow
+            label="Show the access box on the main page (teachers and interns buttons)"
+            checked={s.showAccessBox !== false}
+            onChange={(v) => setSettings((x) => { x.showAccessBox = v })}
+          />
+        </div>
       </Section>
 
+      <Section title="ELTASO levels shown to teachers" icon={<GraduationCap className="h-4 w-4" />}>
+        <div className="flex flex-col gap-2">
+          {state.levels.map((l) => (
+            <ToggleRow
+              key={l.key}
+              label={l.label}
+              checked={!(s.hiddenLevels || []).includes(l.key)}
+              onChange={(v) =>
+                setSettings((x) => {
+                  const h = (x.hiddenLevels || []).filter((k) => k !== l.key)
+                  x.hiddenLevels = v ? h : [...h, l.key]
+                })
+              }
+            />
+          ))}
+          <div className="text-xs text-muted-foreground">
+            Switched off, a level disappears from the ELTASO tab for teachers. You still see every level.
+          </div>
+        </div>
+      </Section>
+
+      </div>
+      <div role="tabpanel" id="settings-panel-data" aria-labelledby="settings-tab-data" hidden={tab !== 'data'}>
       {/* cloud storage */}
       <Section title="Cloud storage" icon={<Cloud className="h-4 w-4" />}>
         <div
@@ -364,10 +452,17 @@ export function SettingsPage() {
         </div>
       </Section>
 
+      </div>
       <div className="h-8" />
     </div>
   )
 }
+
+const TABS = [
+  { id: 'general', label: 'General' },
+  { id: 'access', label: 'Access and visibility' },
+  { id: 'data', label: 'Data and backup' },
+] as const
 
 function Section({
   title,

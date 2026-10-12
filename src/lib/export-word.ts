@@ -9,6 +9,7 @@ import {
   type ExportOptions,
   type DocLink,
 } from './export-canvas'
+import { hourLabel12 } from './app-utils'
 import { DAY_KEYS, DAY_FULL, ROOM_LEGEND, REPORT_SYSTEM_URL, KIT_STAGE_LABELS } from './constants'
 
 /* ==========================================================================
@@ -379,8 +380,10 @@ export async function exportLevelDoc(state: State, lv: Level) {
       '<td ' + td + '>' + esc(w.obj || '') + '</td>' +
       '<td ' + td + '>' + esc(w.lang || '') + '</td>' +
       '<td ' + td + ' style="white-space:pre-wrap;">' + skills + '</td>' +
-      '<td ' + td + '>' + esc(w.res || '') + '</td>' +
-      '<td ' + td + '>' + esc(w.act || '') + '</td>' +
+      '<td ' + td + '>' + esc(w.res || '') +
+      ((w.kit || []).length ? '<br>' + (w.kit || []).map((k) => '<a href="' + esc(k.u) + '">' + esc((KIT_STAGE_LABELS[k.s] || k.s) + ': ' + k.l) + '</a>').join('<br>') : '') + '</td>' +
+      '<td ' + td + '>' + esc(w.act || '') +
+      (w.occ && (w.occ.act || w.occ.hw) ? '<br><b style="color:#8A6A00;">Occasion:</b> ' + esc([w.occ.act, w.occ.hw && 'Homework: ' + w.occ.hw].filter(Boolean).join(' / ')) : '') + '</td>' +
       '<td ' + td + '>' + esc(w.hw || '') + '</td>' +
       '<td ' + td + ' style="color:#8A6A00;font-weight:bold;">' + esc('') + '</td>' +
       '</tr>'
@@ -396,13 +399,14 @@ export async function exportLevelDoc(state: State, lv: Level) {
     '<b>Skills</b> use L / S / R / W for Listening, Speaking, Reading and Writing.',
     '<b>Resources</b> listed each week are found in the drives linked at the end of this document.',
     'All sessions last <b>2 hours</b> with a short break.',
-    '<b>Rooms:</b> ' + esc(ROOM_LEGEND) + '. All times are 24h.',
+    '<b>Rooms:</b> ' + esc(ROOM_LEGEND) + '. Times are shown in AM/PM.',
     'Write your own remarks in the empty <b>Note</b> column and share them with the lead coordinator.',
   ])
 
   const html = docHead('ELTASO ' + lv.label + ' Schemes of Work', A4_PORTRAIT) + '<body><div class="Section1">' +
     docHeaderBlock(logo, 'ELTASO - ' + esc(lv.label) + ' - Schemes of Work',
       esc(s.institute || '') + ' - ' + year + ' - ' + lv.weeks.length + ' weeks - ' + esc(lv.cefr || '')) +
+    (lv.desc ? '<p style="margin:0 0 8pt 0;font-size:10pt;">' + esc(lv.desc) + '</p>' : '') +
     guide +
     '<h2>Semester 1 - Weeks 1 to ' + s1Weeks.length + '</h2>' +
     '<table class="plan">' + tableHead + s1Weeks.map((w, i) => weekRow(w, i)).join('') + '</table>' +
@@ -452,27 +456,53 @@ export async function exportLessonPlanDoc(
     ? { hello: '0:00-0:10', wu: '0:10-0:20', pres: '0:20-0:35', prac: '0:35-0:50', ls: '0:50-1:00', brk: '1:00-1:10', re: '1:10-1:20', prod: '1:20-1:45', rw: '1:45-1:55', st: '1:55-2:00' }
     : { hello: '0:00-0:05', wu: '0:05-0:15', pres: '0:15-0:35', prac: '0:35-0:55', ls: '0:55-1:05', brk: '1:05-1:15', re: '1:15-1:25', prod: '1:25-1:45', rw: '1:45-1:55', st: '1:55-2:00' }
 
-  const stages: [string, string, string, boolean][] = [
-    ['Hello & routine', T.hello, helloTxt, false],
-    ['Warm-up review', T.wu, p.wu, false],
-    ['Presentation', T.pres, p.pres, false],
-    ['Practice (guided)', T.prac, p.prac, false],
-    ['Listening slot', T.ls, p.ls, false],
-    ['BREAK', T.brk, brkTxt, true],
-    ['Reactivation game', T.re, p.re, false],
-    ['Production task', T.prod, p.prod, false],
-    ['Reading & writing', T.rw, p.rw, false],
-    ['Story / song + goodbye', T.st, p.st, false],
+  /* the Teacher kit: Drive files and folders for this week, each tied to a lesson stage */
+  const kit = w.kit || []
+  const kitLink = (k: (typeof kit)[number]) => '<a href="' + esc(k.u) + '">' + esc(k.l) + '</a>'
+
+  const stages: [string, string, string, boolean, string[] | undefined, string | undefined][] = [
+    ['Hello & routine', T.hello, helloTxt, false, undefined, undefined],
+    ['Warm-up review', T.wu, p.wu, false, p.wuAlt, 'wu'],
+    ['Presentation', T.pres, p.pres, false, p.presAlt, 'pres'],
+    ['Practice (guided)', T.prac, p.prac, false, p.pracAlt, 'prac'],
+    ['Listening slot', T.ls, p.ls, false, undefined, 'ls'],
+    ['BREAK', T.brk, brkTxt, true, undefined, undefined],
+    ['Reactivation game', T.re, p.re, false, undefined, 're'],
+    ['Production task', T.prod, p.prod, false, undefined, 'prod'],
+    ['Reading & writing', T.rw, p.rw, false, undefined, 'rw'],
+    ['Story / song + goodbye', T.st, p.st, false, undefined, 'st'],
   ]
 
   const stageRows = stages
-    .map(([name, tm, main, brk]) =>
-      '<tr' + (brk ? ' style="background:#FBF3DC;"' : '') + '>' +
-      '<td ' + td + ' style="font-weight:bold;width:22%;">' + esc(name) + '</td>' +
-      '<td ' + td + ' style="font-weight:bold;width:13%;color:#8A6A00;white-space:nowrap;">' + esc(tm) + '</td>' +
-      '<td ' + td + '>' + esc(main) + '</td></tr>',
-    )
+    .map(([name, tm, main, brk, alts, key]) => {
+      const stageKit = key ? kit.filter((k) => k.s === key) : []
+      return (
+        '<tr' + (brk ? ' style="background:#FBF3DC;"' : '') + '>' +
+        '<td ' + td + ' style="font-weight:bold;width:22%;">' + esc(name) + '</td>' +
+        '<td ' + td + ' style="font-weight:bold;width:13%;color:#8A6A00;white-space:nowrap;">' + esc(tm) + '</td>' +
+        '<td ' + td + '>' + esc(main) +
+        (alts && alts.length ? '<br><span style="color:#5C5C63;font-size:9.5pt;"><b style="color:#8A6A00;">Also try:</b> ' + alts.map(esc).join(' &middot; ') + '</span>' : '') +
+        (stageKit.length ? '<br><span style="font-size:9.5pt;"><b>Open:</b> ' + stageKit.map(kitLink).join(' &middot; ') + '</span>' : '') +
+        '</td></tr>'
+      )
+    })
     .join('')
+
+  const kitTable = kit.length
+    ? '<h2>Teacher kit &middot; open before class</h2>' +
+      '<table class="plan">' +
+      kit.map((k) => '<tr><td ' + td + ' style="font-weight:bold;width:28%;">' + esc(KIT_STAGE_LABELS[k.s] || k.s) + '</td><td ' + td + '>' + kitLink(k) + '</td></tr>').join('') +
+      '</table>'
+    : ''
+
+  const occBox =
+    w.occ && (w.occ.act || w.occ.hw)
+      ? '<table class="plan" style="margin-bottom:8pt;"><tr><td style="border:1px solid #E8D9A8;background:#FBF3DC;padding:8px 12px;font-size:10pt;">' +
+        '<div style="color:#8A6A00;font-weight:bold;font-size:9.5pt;margin-bottom:3pt;">OCCASION THIS WEEK (OPTIONAL)</div>' +
+        (w.occ.act ? '<div><b>Activity:</b> ' + esc(w.occ.act) + '</div>' : '') +
+        (w.occ.hw ? '<div><b>Homework:</b> ' + esc(w.occ.hw) + '</div>' : '') +
+        '</td></tr></table>'
+      : ''
 
   const bulletList = (items: string[]) =>
     items && items.length
@@ -504,8 +534,9 @@ export async function exportLessonPlanDoc(
     '<b>Differentiation</b> gives one easier and one harder variant of the same task so every student works on the same topic.',
     'Tick the <b>assessment checklist</b> during activities, never as a separate test.',
     'Pick <b>ONE</b> homework option; the menu exists so you can rotate across terms.',
+    kit.length ? 'The <b>Teacher kit</b> lists this week\'s Drive files; the same links sit next to the stage that uses them.' : '',
     'Print this week\'s resources any time from the folders linked at the end of this document.',
-  ])
+  ].filter(Boolean))
 
   const html = docHead('ELTASO ' + level.label + ' - Lesson Plan W' + (weekIndex + 1), A4_PORTRAIT) + '<body><div class="Section1">' +
 
@@ -518,6 +549,9 @@ export async function exportLessonPlanDoc(
     /* objectives banner */
     '<table class="plan"><tr><th ' + th + ' style="width:22%;">Objectives</th><td ' + td + '>students can ' + esc(w.obj || '-') + '</td>' +
     '<th ' + th + ' style="width:18%;">Key language</th><td ' + td + '>' + esc(w.lang || '-') + '</td></tr></table>' +
+
+    occBox +
+    kitTable +
 
     /* stages */
     '<h2>The ' + esc(dur) + ' arc</h2>' +
@@ -572,7 +606,7 @@ export async function exportCalendarGridDoc(o: ExportOptions, filename: string) 
   const byDay = groupByDay(parsed)
 
   const hourHead = '<th ' + dayTh + '>Day</th>' +
-    Array.from({ length: GRID_COLS }, (_, i) => '<th ' + th + '>' + pad2(GRID_START + i) + ':00</th>').join('')
+    Array.from({ length: GRID_COLS }, (_, i) => '<th ' + th + '>' + hourLabel12(GRID_START + i) + '</th>').join('')
 
   const rows = DAY_KEYS.map((d) => {
     const evs = (byDay[d] || []).slice().sort((a, b) => a.startMin - b.startMin)
@@ -632,7 +666,7 @@ export async function exportCalendarGridDoc(o: ExportOptions, filename: string) 
   }).join('')
 
   const guide = docGuideBox('How to read this timetable', [
-    'Times are <b>24h</b>. One color per level, club or event type, matching the legend above.',
+    'Times are in <b>AM/PM</b>. One color per level, club or event type, matching the legend above.',
     '<b>Rooms:</b> ' + esc(ROOM_LEGEND) + '.',
     'This Word table is fully editable: move, rename or recolor sessions freely; the hour grid stays aligned.',
     'New teachers: what to teach each week lives in ELTASO (Schemes of Work); clubs and events are described on the Clubs &amp; events page.',
@@ -687,7 +721,7 @@ export async function exportCalendarListDoc(o: ExportOptions, filename: string) 
   }).filter(Boolean).join('')
 
   const guide = docGuideBox('How to read this handout', [
-    'Times are <b>24h</b>. One color per level, club or event type, matching the legend above.',
+    'Times are in <b>AM/PM</b>. One color per level, club or event type, matching the legend above.',
     '<b>Rooms:</b> ' + esc(ROOM_LEGEND) + '.',
     'Print it as is for the notice board, or edit any table for your own weekly plan.',
   ])

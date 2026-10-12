@@ -13,6 +13,7 @@ interface Toast {
   id: number
   msg: string
   ok: boolean
+  action?: { label: string; run: () => void }
 }
 
 interface UIStore {
@@ -30,6 +31,8 @@ interface UIStore {
   admin: boolean
   pubView: boolean
   rememberDevice: boolean
+  /* teachers and interns sign in with their own access code; the server keeps the session */
+  viewer: { teacher: boolean; intern: boolean }
 
   /* toast */
   toasts: Toast[]
@@ -40,6 +43,8 @@ interface UIStore {
   openLevel: (key: string) => void
   login: (code: string, remember: boolean) => Promise<boolean>
   logout: () => void
+  loginAs: (role: 'teacher' | 'intern', code: string, remember: boolean) => Promise<{ ok: boolean; msg: string }>
+  signOutViewer: () => void
   refreshSecrets: () => Promise<void>
   setPubView: (v: boolean) => void
 
@@ -57,7 +62,7 @@ interface UIStore {
   importBackup: (json: string) => { ok: boolean; msg: string }
   resetAll: () => void
 
-  toast: (msg: string, ok?: boolean) => void
+  toast: (msg: string, ok?: boolean, action?: { label: string; run: () => void }) => void
   dismissToast: (id: number) => void
 }
 
@@ -127,19 +132,8 @@ function pickNewer(a: State, b: State): State {
   return rb >= ra ? b : a
 }
 
-/* apply the theme to the <html> class */
-function applyTheme(theme: Theme) {
-  if (typeof window === 'undefined') return
-  const root = document.documentElement
-  const effective =
-    theme === 'auto'
-      ? window.matchMedia('(prefers-color-scheme: dark)').matches
-        ? 'dark'
-        : 'light'
-      : theme
-  if (effective === 'dark') root.classList.add('dark')
-  else root.classList.remove('dark')
-}
+/* the theme is a per-device choice kept by next-themes (light by default); the shared data no longer sets it */
+function applyTheme(_theme: Theme) {}
 
 /* autosave: wait for a quiet moment so a burst of edits becomes one save
    (one commit) instead of one request per keystroke or click */
@@ -165,6 +159,7 @@ export const useStore = create<UIStore>((set, get) => ({
   admin: false,
   pubView: false,
   rememberDevice: true,
+  viewer: { teacher: false, intern: false },
 
   toasts: [],
 
@@ -174,7 +169,7 @@ export const useStore = create<UIStore>((set, get) => ({
       window.scrollTo({ top: 0 })
       /* public tabs own their path (/clubs, /eltaso, ...); admin-only views
          normalise the URL back to / instead of advertising a tab path */
-      syncViewUrl(v)
+      syncViewUrl(v, 'push', get().admin && !get().pubView)
     }
   },
   setSide: (s) => set({ side: s }),
@@ -202,19 +197,44 @@ export const useStore = create<UIStore>((set, get) => ({
       ok = known && !!local && typed === String(local)
     }
     if (!ok) return false
-    set({ admin: true, pubView: false, rememberDevice: remember, view: 'home', side: 'elt' })
+    set({ admin: true, pubView: false, rememberDevice: remember, view: 'dashboard', side: 'elt' })
     lsSet(ADMIN_SEEN_KEY, '1')
     if (remember) lsSet(ROLE_KEY, 'admin')
-    syncViewUrl('home', 'replace')
-    /* the public copy has no access codes: pull the admin copy of the settings */
-    void get().refreshSecrets()
+    syncViewUrl('dashboard', 'replace', true)
+    /* the copy this device holds may be the cut-down public one: pull the full admin copy */
+    void get().loadFromCloud()
     return true
   },
   logout: () => {
-    set({ admin: false, pubView: false, view: 'home', side: 'elt' })
+    set({ admin: false, pubView: false, view: 'landing', side: 'elt', viewer: { teacher: false, intern: false } })
     lsDel(ROLE_KEY)
-    syncViewUrl('home', 'replace')
+    syncViewUrl('landing', 'replace')
     void fetch('/api/logout', { method: 'POST' }).catch(() => {})
+  },
+  loginAs: async (role, code, remember) => {
+    try {
+      const res = await fetch('/api/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ code: code.trim(), as: role, remember }),
+      })
+      const body = (await res.json().catch(() => ({}))) as { ok?: boolean; msg?: string; roles?: string[] }
+      if (!res.ok || !body.ok) return { ok: false, msg: body.msg || 'Wrong access code' }
+      const roles = body.roles || [role]
+      set({ viewer: { teacher: roles.includes('teacher'), intern: roles.includes('intern') } })
+      /* the page data for this role (weekly plans, library) arrives with a fresh load */
+      await get().loadFromCloud()
+      return { ok: true, msg: '' }
+    } catch {
+      return { ok: false, msg: 'Could not reach the server. Check your connection and try again.' }
+    }
+  },
+  signOutViewer: () => {
+    set({ viewer: { teacher: false, intern: false }, view: 'landing' })
+    syncViewUrl('landing', 'replace')
+    void fetch('/api/logout', { method: 'POST' })
+      .catch(() => {})
+      .then(() => get().loadFromCloud())
   },
   refreshSecrets: async () => {
     try {
@@ -277,11 +297,27 @@ export const useStore = create<UIStore>((set, get) => ({
     const base = localState && localState.v === 1 ? localState : seedState()
     set({ state: base })
     applyTheme(base.settings.theme)
+    /* who is this visitor? the server cookie says which pages they may open */
+    let adminSession = false
+    try {
+      const sres = await fetch('/api/session', { cache: 'no-store' })
+      if (sres.ok) {
+        const { roles } = (await sres.json()) as { roles: string[] }
+        adminSession = roles.includes('admin')
+        set({ viewer: { teacher: roles.includes('teacher'), intern: roles.includes('intern') } })
+        /* a remembered admin whose session has ended has to sign in again */
+        if (!roles.includes('admin') && lsGet(ROLE_KEY) === 'admin') lsDel(ROLE_KEY)
+      }
+    } catch {
+      /* offline: keep what this device remembers */
+    }
     // restore admin session if remembered
     const role = lsGet(ROLE_KEY)
     /* a remembered admin still lands on the public view: the site's main link
        always opens what visitors see, and the admin menu opens on request */
     if (role === 'admin') set({ admin: true, pubView: true })
+    /* a live admin session reopening /admin continues there, remembered or not */
+    else if (adminSession && typeof window !== 'undefined' && /^\/admin(\/|$)/.test(window.location.pathname)) set({ admin: true, pubView: false })
 
     // v4.7: returning visitors (data already in localStorage) render right
     // away and the cloud copy still merges in below. Fresh visitors stay on
@@ -361,6 +397,9 @@ export const useStore = create<UIStore>((set, get) => ({
        The PAT lives in Vercel environment variables, NOT in the browser.
        With Vercel Blob connected this never touches GitHub; without it,
        the server falls back to the legacy GitHub commit mechanism. */
+    if (s._filtered) {
+      return { ok: false, msg: 'This device only has the public copy of the data. Sign in as admin to save.' }
+    }
     set({ syncing: true })
     try {
       /* strip the token + lastSync from the saved JSON (security: PAT never
@@ -442,10 +481,10 @@ export const useStore = create<UIStore>((set, get) => ({
     syncViewUrl('home', 'replace')
   },
 
-  toast: (msg, ok = true) => {
+  toast: (msg, ok = true, action) => {
     const id = toastSeq++
-    set((st) => ({ toasts: [...st.toasts, { id, msg, ok }] }))
-    setTimeout(() => get().dismissToast(id), 2600)
+    set((st) => ({ toasts: [...st.toasts, { id, msg, ok, action }] }))
+    setTimeout(() => get().dismissToast(id), action ? 7000 : 2600)
   },
   dismissToast: (id) =>
     set((st) => ({ toasts: st.toasts.filter((t) => t.id !== id) })),
@@ -455,11 +494,11 @@ export const useStore = create<UIStore>((set, get) => ({
 export function effectiveView(store: UIStore): View {
   if (!store.admin) {
     // public: only home/eltaso/level-detail/clubs/resources/login
-    const allowed: View[] = ['home', 'eltaso', 'level-detail', 'clubs', 'resources', 'intern-public', 'login']
+    const allowed: View[] = ['landing', 'home', 'eltaso', 'level-detail', 'resources', 'intern-public', 'interns-events', 'interns-clubs', 'interns-rooms', 'interns-report', 'teacher-rooms', 'login']
     return allowed.includes(store.view) ? store.view : 'home'
   }
   if (store.pubView) {
-    const allowed: View[] = ['home', 'eltaso', 'level-detail', 'clubs', 'resources', 'intern-public']
+    const allowed: View[] = ['landing', 'home', 'eltaso', 'level-detail', 'resources', 'intern-public', 'interns-events', 'interns-clubs', 'interns-rooms', 'interns-report', 'teacher-rooms']
     return allowed.includes(store.view) ? store.view : 'home'
   }
   return store.view

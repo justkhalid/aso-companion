@@ -1,119 +1,94 @@
 'use client'
 
 import * as React from 'react'
-import { CalendarDays, CalendarClock, DoorOpen, Sparkles } from 'lucide-react'
+import { DoorOpen, Menu, X } from 'lucide-react'
 import { Logo } from './logo'
+import { SiteFooter } from './site-footer'
 import { ThemeToggle } from './theme-toggle'
 import { ClubsPage } from './pages/clubs-page'
 import { RoomsPage } from './pages/rooms-page'
+import { ReportsPage } from './pages/reports-page'
+import { Button } from '@/components/ui/button'
+import { useStore } from '@/lib/store'
+import type { View } from '@/lib/types'
 import { cn } from '@/lib/utils'
 
-/* /interns: the clubs and events section on its own, for ASO interns.
-   No teacher tabs, no admin menu and no sign-in link: one page with a
-   jump bar that follows the scroll position. */
+/* /interns: the interns' own site, one page per tab like the teachers' site.
+   No teacher tabs and no admin menu. */
 
-const JUMPS = [
-  { id: 'calendar', label: 'Calendar', icon: CalendarDays },
-  { id: 'events', label: 'Events', icon: CalendarClock },
-  { id: 'clubs', label: 'Clubs', icon: Sparkles },
-  { id: 'rooms', label: 'Free rooms', icon: DoorOpen },
+const NAV: { label: string; view: View; icon?: React.ComponentType<{ className?: string }> }[] = [
+  { label: 'Calendar', view: 'intern-public' },
+  { label: 'Events', view: 'interns-events' },
+  { label: 'Clubs', view: 'interns-clubs' },
+  { label: 'Free rooms', view: 'interns-rooms', icon: DoorOpen },
+  { label: 'Submit report', view: 'interns-report' },
 ]
 
-/* the section the reader is in: the last one whose top has passed the header */
-function useActiveSection(ids: string[]) {
-  const [active, setActive] = React.useState(ids[0])
-  React.useEffect(() => {
-    let raf = 0
-    const update = () => {
-      raf = 0
-      const line = 150
-      let cur = ids[0]
-      for (const id of ids) {
-        const el = document.getElementById(id)
-        if (el && el.getBoundingClientRect().top <= line) cur = id
-      }
-      /* at the very bottom the last section wins even if it is short */
-      if (window.innerHeight + window.scrollY >= document.documentElement.scrollHeight - 4) cur = ids[ids.length - 1]
-      setActive(cur)
-    }
-    const onScroll = () => {
-      if (!raf) raf = requestAnimationFrame(update)
-    }
-    update()
-    window.addEventListener('scroll', onScroll, { passive: true })
-    window.addEventListener('resize', onScroll)
-    return () => {
-      window.removeEventListener('scroll', onScroll)
-      window.removeEventListener('resize', onScroll)
-      if (raf) cancelAnimationFrame(raf)
-    }
-  }, [ids])
-  return active
-}
-
-const IDS = JUMPS.map((j) => j.id)
-
 export function InternShell() {
-  const active = useActiveSection(IDS)
-  const jump = (id: string) => {
-    document.getElementById(id)?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+  const view = useStore((s) => s.view)
+  const setView = useStore((s) => s.setView)
+  const [open, setOpen] = React.useState(false)
+  const go = (v: View) => {
+    setView(v)
+    setOpen(false)
+    window.scrollTo(0, 0)
   }
 
-  const tabs = (
-    <nav className="flex items-center gap-1" aria-label="On this page">
-      {JUMPS.map((j) => {
-        const on = active === j.id
-        return (
-          <button
-            key={j.id}
-            onClick={() => jump(j.id)}
-            aria-current={on ? 'true' : undefined}
-            className={cn(
-              'inline-flex shrink-0 items-center gap-1.5 rounded-full px-3.5 py-1.5 text-sm font-semibold transition',
-              on ? 'aso-nav-pill shadow-sm' : 'text-foreground/80 hover:bg-secondary',
-            )}
-          >
-            <j.icon className="h-3.5 w-3.5" />
-            {j.label}
-          </button>
-        )
-      })}
-    </nav>
+  const item = (n: (typeof NAV)[number], mobile: boolean) => (
+    <button
+      key={n.view}
+      onClick={() => go(n.view)}
+      aria-current={view === n.view ? 'page' : undefined}
+      className={cn(
+        mobile ? 'rounded-full px-4 py-2.5 text-left text-[15px] font-semibold transition' : 'rounded-full px-3.5 py-1.5 text-sm font-semibold transition',
+        view === n.view ? (mobile ? 'aso-nav-pill' : 'aso-nav-pill shadow-sm') : 'text-foreground/80 hover:bg-secondary',
+      )}
+    >
+      {n.icon && <n.icon className={mobile ? 'mr-2 inline h-4 w-4 align-[-3px]' : 'mr-1.5 inline h-3.5 w-3.5 align-[-2px]'} />}
+      {n.label}
+    </button>
   )
 
   return (
     <div className="flex min-h-screen flex-col bg-background">
       <header className="aso-nav-glass sticky top-0 z-40 border-b border-border">
-        <div className="mx-auto grid h-14 max-w-5xl grid-cols-[1fr_auto_1fr] items-center gap-3 px-4">
-          <div className="flex min-w-0 items-center gap-2">
+        <div className="mx-auto grid h-14 max-w-6xl grid-cols-[1fr_auto_1fr] items-center gap-3 px-4 md:gap-2">
+          <button onClick={() => go('landing')} className="col-start-1 flex w-fit items-center gap-2 rounded-full pr-2 text-left" aria-label="ASO Companion home">
             <Logo size={30} />
-            <div className="min-w-0 leading-tight">
-              <div className="font-display truncate text-[16px] font-extrabold tracking-tight">ASO Companion</div>
-              <div className="hidden truncate text-[11px] font-semibold text-muted-foreground sm:block">Clubs and events for interns</div>
-            </div>
-          </div>
-          <div className="hidden md:block">{tabs}</div>
-          <div className="col-start-3 flex justify-end md:col-start-3">
+            <span className="font-display hidden text-[16px] font-extrabold tracking-tight sm:inline">ASO Companion</span>
+          </button>
+          <nav className="col-start-2 hidden items-center gap-1 justify-self-center md:flex">{NAV.map((n) => item(n, false))}</nav>
+          <div className="col-start-3 flex items-center justify-end gap-1">
             <ThemeToggle />
+            <Button variant="ghost" size="icon" className="rounded-full md:hidden" aria-label={open ? 'Close menu' : 'Open menu'} aria-expanded={open} onClick={() => setOpen((o) => !o)}>
+              {open ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+            </Button>
           </div>
         </div>
-        {/* phones: the same tabs on their own row, scrolling sideways */}
-        <div className="mx-auto max-w-5xl overflow-x-auto px-4 pb-2 md:hidden [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">{tabs}</div>
+        {open && (
+          <div className="aso-nav-glass border-t border-border md:hidden">
+            <nav className="mx-auto flex max-w-6xl flex-col gap-1 px-4 py-3">{NAV.map((n) => item(n, true))}</nav>
+          </div>
+        )}
       </header>
 
-      <main className="flex-1">
-        <ClubsPage admin={false} internMode />
-        <section id="rooms" className="mx-auto max-w-5xl scroll-mt-28 px-4 pb-10 pt-7">
-          <RoomsPage embedded />
-        </section>
+      <main key={view} className="aso-page flex-1">
+        {view === 'intern-public' && <ClubsPage admin={false} internMode section="calendar" />}
+        {view === 'interns-events' && <ClubsPage admin={false} internMode section="events" />}
+        {view === 'interns-clubs' && <ClubsPage admin={false} internMode section="clubs" />}
+        {view === 'interns-rooms' && (
+          <div className="mx-auto max-w-5xl px-4 py-7">
+            <RoomsPage embedded />
+          </div>
+        )}
+        {view === 'interns-report' && (
+          <div className="mx-auto max-w-5xl px-4 py-7">
+            <ReportsPage embedded />
+          </div>
+        )}
       </main>
 
-      <footer className="border-t border-border">
-        <div className="mx-auto flex max-w-5xl items-center gap-2 px-4 py-5 text-xs text-muted-foreground">
-          <Logo size={20} />
-          <span>ASO Companion · American Space Oujda</span>
-        </div>
-      </footer>
+      <SiteFooter current="interns" />
     </div>
   )
 }

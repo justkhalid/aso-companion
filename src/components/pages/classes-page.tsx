@@ -1,21 +1,13 @@
 'use client'
 
 import * as React from 'react'
-import { Plus, Pencil, Trash2, Clock, CalendarDays, Home, Users } from 'lucide-react'
+import { Plus, Clock, CalendarDays, Home, Users } from 'lucide-react'
 import { useStore } from '@/lib/store'
 import { PageHead, EmptyState, Chip } from '@/components/ui-bits'
 import { Button } from '@/components/ui/button'
 import { ClassDialog } from '@/components/dialogs/class-dialog'
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from '@/components/ui/alert-dialog'
+import { RowActions } from '@/components/admin/row-actions'
+import { uid, fmtTime } from '@/lib/app-utils'
 import type { ClassEntry } from '@/lib/types'
 
 export function ClassesPage() {
@@ -24,15 +16,11 @@ export function ClassesPage() {
   const toast = useStore((s) => s.toast)
 
   const [dialog, setDialog] = React.useState<{ open: boolean; cls: ClassEntry | null }>({ open: false, cls: null })
-  const [toDelete, setToDelete] = React.useState<ClassEntry | null>(null)
 
-  const remove = () => {
-    if (!toDelete) return
-    patch((draft) => {
-      draft.classes = draft.classes.filter((c) => c.id !== toDelete.id)
-    })
-    toast('Class deleted')
-    setToDelete(null)
+  const duplicate = (c: ClassEntry) => {
+    const copy = { ...c, id: uid(), code: c.code + ' copy' }
+    patch((d) => { d.classes.push(copy) })
+    setDialog({ open: true, cls: copy })
   }
 
   return (
@@ -58,7 +46,7 @@ export function ClassesPage() {
                 <Chip tone="primary">{c.level}</Chip>
               </div>
               <div className="flex items-center gap-1.5 text-xs font-semibold text-muted-foreground">
-                <Clock className="h-3.5 w-3.5" /> {c.time || '-'}
+                <Clock className="h-3.5 w-3.5" /> {fmtTime(c.time) || '-'}
               </div>
               <div className="flex items-center gap-1.5 text-xs font-semibold text-muted-foreground">
                 <CalendarDays className="h-3.5 w-3.5" /> {(c.days || []).join(' · ') || '-'}
@@ -69,13 +57,14 @@ export function ClassesPage() {
               <div className="mt-2 flex items-center gap-1.5">
                 <Users className="h-3.5 w-3.5 text-foreground" />
                 <span className="text-sm font-semibold">{c.teacher || '-'}</span>
-                <div className="ml-auto flex gap-1">
-                  <Button variant="ghost" size="icon" onClick={() => setDialog({ open: true, cls: c })} title="Edit">
-                    <Pencil className="h-4 w-4" />
-                  </Button>
-                  <Button variant="ghost" size="icon" className="text-destructive" onClick={() => setToDelete(c)} title="Delete">
-                    <Trash2 className="h-4 w-4" />
-                  </Button>
+                <div className="ml-auto">
+                  <RowActions
+                    name={c.code}
+                    onEdit={() => setDialog({ open: true, cls: c })}
+                    onDuplicate={() => duplicate(c)}
+                    remove={(d) => { d.classes = d.classes.filter((x) => x.id !== c.id) }}
+                    deleteNote="The class card is removed. Weeks and team are not affected."
+                  />
                 </div>
               </div>
             </div>
@@ -85,20 +74,6 @@ export function ClassesPage() {
 
       <ClassDialog open={dialog.open} onOpenChange={(v) => setDialog((s) => ({ ...s, open: v }))} cls={dialog.cls} />
 
-      <AlertDialog open={!!toDelete} onOpenChange={(v) => !v && setToDelete(null)}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Delete {toDelete?.code}?</AlertDialogTitle>
-            <AlertDialogDescription>
-              The class card will be removed. Weeks and team are not affected.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction onClick={remove}>Delete</AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
     </div>
   )
 }

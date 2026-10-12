@@ -4,7 +4,7 @@ import * as React from 'react'
 import { GraduationCap, BookOpen, ArrowRight, ClipboardList } from 'lucide-react'
 import { useStore } from '@/lib/store'
 import { termStatus } from '@/lib/app-utils'
-import { BANDS } from '@/lib/constants'
+import { BANDS, FILL_GRID } from '@/lib/constants'
 import { Chip, PageHead } from '@/components/ui-bits'
 
 export function EltasoPage() {
@@ -17,10 +17,13 @@ export function EltasoPage() {
   const inSession = st.mode === 's1' || st.mode === 's2'
   const wi = inSession ? (st.week || 1) - 1 : -1
 
-  // Only levels that actually have at least one class this year get a card.
-  const withClasses = state.levels.filter((l) =>
-    (state.classes || []).some((c) => c.level === l.label),
-  )
+  /* Teachers see only the levels that have a class this year and that were not switched off in Settings.
+     The admin (outside the public preview) sees every level, with a note on the ones teachers do not see. */
+  const asAdmin = admin && !pubView
+  const hidden = state.settings.hiddenLevels || []
+  const hasClass = (label: string) => (state.classes || []).some((c) => c.level === label)
+  const withClasses = state.levels.filter((l) => asAdmin || (!hidden.includes(l.key) && hasClass(l.label)))
+  const whyHidden = (l: (typeof state.levels)[number]) => (hidden.includes(l.key) ? 'Hidden from teachers' : !hasClass(l.label) ? 'No class yet, teachers do not see it' : '')
 
   // group by band preserving canonical order
   const groups: { band: string; levels: typeof state.levels }[] = BANDS.map((band) => ({
@@ -52,7 +55,7 @@ export function EltasoPage() {
               {g.band}
             </div>
           )}
-          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+          <div className="grid gap-3" style={FILL_GRID}>
             {g.levels.map((l) => {
               const w = wi >= 0 && wi < l.weeks.length ? l.weeks[wi] : null
               const showWi = w ? wi : Math.min(l.weeks.length - 1, Math.max(0, wi))
@@ -70,6 +73,7 @@ export function EltasoPage() {
                     <div className="flex-1 font-bold leading-tight">{l.label}</div>
                     <Chip tone="primary">{l.cefr}</Chip>
                   </div>
+                  {asAdmin && whyHidden(l) && <div><Chip tone="gold">{whyHidden(l)}</Chip></div>}
                   {sw && (
                     <div className="text-xs font-semibold text-primary">
                       {w ? 'This week' : 'Next up'} · W{showWi + 1} · {sw.theme}

@@ -9,6 +9,7 @@ import {
   CalendarDays,
   Star,
   Trash2,
+  FileDown,
 } from 'lucide-react'
 import { useStore } from '@/lib/store'
 import {
@@ -145,8 +146,19 @@ export function LevelDetailPage({ admin }: { admin: boolean }) {
             {total} weeks · {state.settings.year} · all four skills weekly · tap a week to open it
           </p>
         </div>
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={async () => {
+            const { exportLevelDoc } = await import('@/lib/export-word')
+            await exportLevelDoc(state, level)
+            useStore.getState().toast('Word file downloaded')
+          }}
+        >
+          <FileDown className="h-4 w-4" /> Word
+        </Button>
         {admin && (
-          <Button variant="ghost" size="icon" onClick={() => setEditLevelOpen(true)} title="Rename / remove level">
+          <Button variant="ghost" size="icon" onClick={() => setEditLevelOpen(true)} title="Rename / remove level" aria-label="Rename or remove level">
             <Pencil className="h-4 w-4" />
           </Button>
         )}

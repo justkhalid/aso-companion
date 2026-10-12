@@ -40,15 +40,16 @@ import {
   eventStatusOn,
   splitDaysByStatus,
   mondayOfWeek,
-  isoOf,
-} from '@/lib/app-utils'
+  isoOf, fmtTime, fmtRange12, fmt12Min } from '@/lib/app-utils'
 import { ROOM_LEGEND, DAY_KEYS } from '@/lib/constants'
 import { buildCalendarLinks } from '@/lib/export-word'
+import { PUBLIC_CLUB_TONE, PUBLIC_EVENT_TONE } from '@/lib/calendar-items'
 import { clubIcon } from '@/lib/icons'
 import { WeeklyGrid, CalendarListView, CalendarCardsView, CalViewSwitcher, readCalView, writeCalView, type GridItem, type LegendEntry, type CalendarView } from '@/components/weekly-grid'
 import { ClubDialog } from '@/components/dialogs/club-dialog'
 import { EventDialog } from '@/components/dialogs/event-dialog'
 import { CalendarExportMenu } from '@/components/calendar-export'
+import { ClubsExportItems } from '@/components/clubs-export-items'
 import { PageHead, SectionHeader, LinkButton, Chip, EmptyState } from '@/components/ui-bits'
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
@@ -57,7 +58,8 @@ import type { Club, EventEntry } from '@/lib/types'
 type ClubView = 'list' | 'grid'
 const CLUB_VIEW_KEY = 'aso-clubs-view-v2' // v2: grid is now the default
 
-export function ClubsPage({ admin, internMode = false }: { admin: boolean; internMode?: boolean }) {
+export function ClubsPage({ admin, internMode = false, section }: { admin: boolean; internMode?: boolean; section?: 'calendar' | 'events' | 'clubs' }) {
+  const show = (k: 'calendar' | 'events' | 'clubs') => !section || section === k
   const state = useStore((s) => s.state)
   const setView = useStore((s) => s.setView)
   const patch = useStore((s) => s.patch)
@@ -95,7 +97,7 @@ export function ClubsPage({ admin, internMode = false }: { admin: boolean; inter
     .filter((c) => (c.days || []).length && c.time)
     .flatMap((c) => {
       const base = { slot: c.time, code: c.name, meta: '', room: c.room, icon: c.icon }
-      const tone = toneClassForClub(state, c.id)
+      const tone = PUBLIC_CLUB_TONE
       const lead = c.lead || 'no lead yet'
       if (!hasAbsences) return [{ ...base, id: c.id, days: c.days, lead, tone }]
       const sp = splitDaysByStatus(c.days, thisMonday, (iso) => clubStatusOn(state, c.id, iso))
@@ -129,15 +131,15 @@ export function ClubsPage({ admin, internMode = false }: { admin: boolean; inter
         lead: off ? 'cancelled' : '',
         room: e.place || '',
         icon: e.icon || 'calendar',
-        tone: off ? 'tone-8' : 'tone-7',
+        tone: off ? 'tone-8' : PUBLIC_EVENT_TONE,
       }
     })
     .filter(Boolean) as GridItem[]
 
   const calItems = [...clubItems, ...eventItems]
   const calLegend: LegendEntry[] = [
-    ...(state.clubs || []).map((c) => ({ label: c.name, tone: toneClassForClub(state, c.id) })),
-    ...(eventItems.length ? [{ label: 'Special events', tone: 'tone-7' }] : []),
+    ...(clubItems.length ? [{ label: 'Clubs', tone: PUBLIC_CLUB_TONE }] : []),
+    ...(eventItems.length ? [{ label: 'Events', tone: PUBLIC_EVENT_TONE }] : []),
     ...([...clubItems, ...eventItems].some((i) => i.tone === 'tone-8') ? [{ label: 'Cancelled', tone: 'tone-8' }] : []),
   ]
 
@@ -173,16 +175,16 @@ export function ClubsPage({ admin, internMode = false }: { admin: boolean; inter
   return (
     <div className="mx-auto max-w-5xl px-4 py-6 sm:py-8">
       <PageHead
-        title="Clubs & events"
-        subtitle={internMode ? 'For ASO interns · the week of club sessions, what is coming up and every club in one place' : `The American Space week · club sessions and what is coming up${admin ? '' : ' · open to everyone'}`}
+        title={section === 'calendar' ? 'Calendar' : section === 'events' ? 'Events' : section === 'clubs' ? 'Clubs' : 'Clubs & events'}
+        subtitle={section === 'calendar' ? 'The week of club sessions' : section === 'events' ? 'What is coming up, with dates and how often it repeats' : section === 'clubs' ? 'Every club, and what is expected of volunteers' : internMode ? 'For ASO interns · the week of club sessions, what is coming up and every club in one place' : `The American Space week · club sessions and what is coming up${admin ? '' : ' · open to everyone'}`}
         right={
           <div className="flex flex-wrap gap-2">
-            {admin && (
+            {admin && !section && (
               <Button size="sm" onClick={() => setClubDialog({ open: true, club: null })}>
                 <Plus className="h-4 w-4" /> Add club
               </Button>
             )}
-            {admin && (
+            {admin && !section && (
               <Button size="sm" variant="outline" onClick={() => setEventDialog({ open: true, event: null })}>
                 <Plus className="h-4 w-4" /> Add event
               </Button>
@@ -190,12 +192,14 @@ export function ClubsPage({ admin, internMode = false }: { admin: boolean; inter
             <CalendarExportMenu
               buildOpts={buildClubOpts}
               baseName={'ASO_Clubs_Events_Weekly_' + exportYear}
+              extra={<ClubsExportItems state={state} />}
             />
           </div>
         }
       />
 
       {/* calendar with a view switcher, like the clubs section */}
+      {show('calendar') && (<>
       <div id="calendar" className="mb-3 flex scroll-mt-28 flex-wrap items-center gap-x-2 gap-y-2">
         <h2 className="text-[15px] font-extrabold tracking-tight">Weekly calendar</h2>
         <CalViewSwitcher view={calView} onChange={setCalView} className="ml-auto" />
@@ -214,8 +218,11 @@ export function ClubsPage({ admin, internMode = false }: { admin: boolean; inter
         )}
       </div>
 
+      </>)}
+
       {/* upcoming events */}
-      <div id="events" className="mt-7 scroll-mt-28">
+      {show('events') && (
+      <div id="events" className={section ? 'scroll-mt-28' : 'mt-7 scroll-mt-28'}>
         <div className="mb-3 flex items-center gap-2">
           <h2 className="text-[15px] font-extrabold tracking-tight">Upcoming events</h2>
           <span className="ml-auto text-xs font-semibold text-muted-foreground">{upcoming.length} events</span>
@@ -238,8 +245,11 @@ export function ClubsPage({ admin, internMode = false }: { admin: boolean; inter
         )}
       </div>
 
+      )}
+
       {/* all clubs, list or grid, ordered by day of the week */}
-      <div id="clubs" className="mt-7 scroll-mt-28">
+      {show('clubs') && (<>
+      <div id="clubs" className={section ? 'scroll-mt-28' : 'mt-7 scroll-mt-28'}>
         <div className="mb-3 flex flex-wrap items-center gap-x-2 gap-y-2">
           <h2 className="text-[15px] font-extrabold tracking-tight">All clubs</h2>
           <span className="text-xs font-semibold text-muted-foreground">
@@ -270,16 +280,17 @@ export function ClubsPage({ admin, internMode = false }: { admin: boolean; inter
               ))}
             </div>
           ) : (
-            <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+            <div className="flex flex-wrap justify-center gap-3">
               {orderedClubs.map((c) => (
-                <ClubGridCard
-                  key={c.id}
-                  club={c}
-                  admin={admin}
-                  onExpand={() => setExpanded(c)}
-                  onEdit={() => setClubDialog({ open: true, club: c })}
-                  onDelete={() => deleteClub(c)}
-                />
+                <div key={c.id} className="flex w-full sm:w-[calc(50%-0.375rem)] lg:w-[calc(33.333%-0.5rem)]">
+                  <ClubGridCard
+                    club={c}
+                    admin={admin}
+                    onExpand={() => setExpanded(c)}
+                    onEdit={() => setClubDialog({ open: true, club: c })}
+                    onDelete={() => deleteClub(c)}
+                  />
+                </div>
               ))}
             </div>
           )
@@ -290,6 +301,7 @@ export function ClubsPage({ admin, internMode = false }: { admin: boolean; inter
 
       {/* volunteer responsibilities + path to the report section */}
       <Responsibilities onReports={internMode ? undefined : () => setView('reports')} />
+      </>)}
 
       {/* elegant expand overlay: poster + full details + description, X to close */}
       <ClubExpandOverlay club={expanded} onClose={() => setExpanded(null)} admin={admin} onEdit={(c) => { setExpanded(null); setClubDialog({ open: true, club: c }) }} />
@@ -343,7 +355,7 @@ function PosterFallback({ club, compact }: { club: Club; compact?: boolean }) {
 /* meta line shared by the cards: days · time · room */
 function ClubMeta({ club }: { club: Club }) {
   const days = (club.days || []).length ? club.days.join(' / ') : 'no day set'
-  const time = club.time || 'no time set'
+  const time = club.time ? fmtTime(club.time) : 'no time set'
   return (
     <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs font-semibold text-muted-foreground">
       <span className="inline-flex items-center gap-1"><CalendarDays className="h-3.5 w-3.5" /> {days}</span>
@@ -484,7 +496,24 @@ function ClubListCard({
   )
 }
 
-function ClubGridCard({
+/* a description that never just stops: three lines, then a visible Read more that opens the rest in place */
+function ClampedText({ text }: { text: string }) {
+  const [more, setMore] = React.useState(false)
+  const long = text.length > 150 || text.split('\n').length > 3
+  return (
+    <div className="text-[13px] text-muted-foreground" dir="auto" onClick={(e) => e.stopPropagation()}>
+      <p className={cn('whitespace-pre-line break-words', long && !more && 'line-clamp-3')}>{text}</p>
+      {long && (
+        <button type="button" onClick={() => setMore((m) => !m)} className="mt-1 inline-flex items-center gap-1 text-xs font-bold text-primary">
+          <ChevronDown className={cn('h-3.5 w-3.5 transition', more && 'rotate-180')} />
+          {more ? 'Show less' : 'Read more'}
+        </button>
+      )}
+    </div>
+  )
+}
+
+export function ClubGridCard({
   club,
   admin,
   onExpand,
@@ -522,7 +551,7 @@ function ClubGridCard({
         <ClubFreqLine club={club} />
         <LeadLine club={club} />
 
-        {club.desc && <p className="line-clamp-2 text-[13px] text-muted-foreground" dir="auto">{club.desc}</p>}
+        {club.desc && <ClampedText text={club.desc} />}
 
         {(vol || club.url) && (
           <div className="text-xs font-semibold text-muted-foreground">
@@ -561,7 +590,7 @@ function ClubGridCard({
 /* -------------------------------------------------------------------------
    Elegant expand overlay: the whole club in one calm card with an X to close
    ------------------------------------------------------------------------- */
-function ClubExpandOverlay({
+export function ClubExpandOverlay({
   club,
   onClose,
   admin,
@@ -641,7 +670,7 @@ function ClubExpandOverlay({
               {/* meta tiles, a calm symmetric grid */}
               <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
                 <MetaCell icon={CalendarDays} label="Day" value={(club.days || []).length ? club.days.join(' / ') : 'Not set'} />
-                <MetaCell icon={Clock} label="Time" value={club.time || 'Not set'} />
+                <MetaCell icon={Clock} label="Time" value={club.time ? fmtTime(club.time) : 'Not set'} />
                 <MetaCell icon={MapPin} label="Room" value={club.room || 'Not set'} />
                 <MetaCell icon={User} label="Lead" value={club.lead || 'Not set'} />
               </div>
@@ -812,7 +841,7 @@ function Responsibilities({ onReports }: { onReports?: () => void }) {
   )
 }
 
-/* "14:00-16:00" -> { start: "14:00", end: "16:00", length: "2 h" } */
+/* "14:00-16:00" -> { start: "2:00 PM - 4:00 PM", length: "2 h" } */
 function splitTime(t: string): { start: string; end: string; length: string } | null {
   const m = /^(\d{1,2}):(\d{2})\s*-\s*(\d{1,2}):(\d{2})$/.exec((t || '').trim())
   if (!m) return null
@@ -822,10 +851,10 @@ function splitTime(t: string): { start: string; end: string; length: string } | 
   const h = Math.floor((b - a) / 60)
   const min = (b - a) % 60
   const length = (h ? h + ' h' : '') + (h && min ? ' ' : '') + (min ? min + ' min' : '')
-  return { start: m[1].padStart(2, '0') + ':' + m[2], end: m[3].padStart(2, '0') + ':' + m[4], length }
+  return { start: fmtRange12(a, b), end: fmt12Min(b), length }
 }
 
-function EventCard({
+export function EventCard({
   event,
   nextDate,
   admin,
@@ -850,7 +879,7 @@ function EventCard({
   const longDesc = desc.length > 160
 
   /* every fact about the event, written out: one time or repeating, when it starts and when it ends */
-  const timeText = t ? `${t.start} - ${t.end} · ${t.length}` : event.time || 'Time to be confirmed'
+  const timeText = t ? `${t.start} · ${t.length}` : event.time ? fmtTime(event.time) : 'Time to be confirmed'
   const cells: { icon: React.ComponentType<{ className?: string }>; label: string; value: string }[] = isOnce
     ? [
         { icon: CalendarDays, label: 'Date', value: event.date ? longDate(parseISO(event.date)) : 'Date to be confirmed' },

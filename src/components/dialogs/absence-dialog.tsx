@@ -14,7 +14,7 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { PickOrType } from '@/components/forms/form-controls'
 import { useStore } from '@/lib/store'
-import { isoOf, uid } from '@/lib/app-utils'
+import { peopleOf, isoOf, uid } from '@/lib/app-utils'
 import { cn } from '@/lib/utils'
 import type { Absence } from '@/lib/types'
 
@@ -69,7 +69,7 @@ export function AbsenceDialog({
   }, [open, absence?.id])
 
   const people = React.useMemo(() => {
-    const names = [...state.team.map((t) => t.name), ...state.classes.map((c) => c.teacher)].filter(Boolean)
+    const names = [...peopleOf(state).map((t) => t.name), ...state.classes.map((c) => c.teacher)].filter(Boolean)
     return Array.from(new Set(names))
   }, [state.team, state.classes])
   const theirClasses = state.classes.filter((c) => c.teacher === teacher)

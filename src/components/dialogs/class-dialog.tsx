@@ -21,7 +21,7 @@ import {
 } from '@/components/ui/select'
 import { DayPills, TimeRangeSelect, PickOrType } from '@/components/forms/form-controls'
 import { useStore } from '@/lib/store'
-import { uid, suggestClassCode, roomOptionsFor } from '@/lib/app-utils'
+import { uid, peopleOf, rolesOf, suggestClassCode, roomOptionsFor } from '@/lib/app-utils'
 import type { ClassEntry } from '@/lib/types'
 
 export function ClassDialog({
@@ -86,8 +86,8 @@ export function ClassDialog({
 
   const roomOptions = React.useMemo(() => roomOptionsFor(state), [state])
   const teacherNames = React.useMemo(
-    () => state.team.map((t) => t.name).filter(Boolean),
-    [state.team],
+    () => [...peopleOf(state).filter((t) => rolesOf(t).includes('Teacher')), ...peopleOf(state).filter((t) => !rolesOf(t).includes('Teacher'))].map((t) => t.name).filter(Boolean),
+    [state],
   )
 
   const save = () => {
@@ -177,7 +177,7 @@ export function ClassDialog({
           </div>
 
           <div className="flex flex-col gap-1.5">
-            <Label>Time slot (24h)</Label>
+            <Label>Time slot</Label>
             <TimeRangeSelect value={time} onChange={setTime} />
           </div>
 

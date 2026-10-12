@@ -117,3 +117,21 @@ of visitors does not hit GitHub or Blob each time. Public images are cached for 
 
 - `/interns` is a page for ASO interns with the clubs and events section only (weekly calendar, upcoming events, all clubs, volunteer steps, and which rooms are free each day). It has no teacher tabs, no admin menu and no sign-in link, and it is not indexed by search engines. Share that link with interns. It hides the other sections; it does not make them private.
 - Only `main` deploys. `vercel.json` skips the build for every other branch, so there are no preview deployments. Merging a pull request into `main` is what updates the live site.
+
+## Pages
+
+- `/` is the main page for the general public: the classes (with days and times), the clubs and the coming events. No teacher names, class codes or admin tools.
+- `/teachers` is the teachers' site: home calendar, with `/teachers/eltaso` (weekly plans), `/teachers/resources`, `/teachers/rooms` and `/teachers/reports`.
+- `/interns` is for ASO interns, one page per tab like the teachers' site: `/interns` (calendar), `/interns/events`, `/interns/clubs`, `/interns/rooms`, `/interns/report`.
+- `/admin` is the admin's own site (sign-in when signed out). Dashboard at `/admin`, then `/admin/schedule`, `/admin/teaching/{classes,levels,library,reports}`, `/admin/clubs` (+ `/calendar`, `/events`), `/admin/rooms`, `/admin/people` (+ `/absences`) and `/admin/settings`. The **+ New** button in the top bar adds an absence, class, club, event or person from any page.
+- The admin signs in from the footer of the main page or the teachers' site. A remembered admin sees the public page with a bar to open the admin menu.
+- `/clubs` redirects to `/interns`; `/eltaso` and `/resources` redirect under `/teachers`.
+- Previews: `vercel.json` builds only `main` and the working branch `claude/nice-ramanujan-hntc39`. Vercel previews are visible only to people signed in to the Vercel account. Remove the branch name from `ignoreCommand` once the preview is no longer needed.
+
+## Access codes
+
+- **Admin:** the admin code in Settings, Access. It opens the admin menu and is the only code that can save changes.
+- **Teachers:** `/teachers`, `/teachers/eltaso`, `/teachers/resources`, `/teachers/rooms` and `/teachers/reports` open with the teachers' code (default `eltaso2026`).
+- **Interns and volunteers:** `/interns` opens with the interns' code (default `aso2026`).
+- The two codes can be changed in Settings, Access. The same section has a switch for the access box on the main page (the box with the "For teachers" and "For interns and volunteers" buttons).
+- Codes are checked on the server and a signed session cookie remembers the sign-in (30 days when "Keep me signed in" is ticked). The server also decides what each visitor receives: the public gets the classes, clubs, events and cancellations (without reasons); teachers also get the weekly plans, the library and the notes; the admin gets everything. Cancellation reasons, the team list, volunteers and reports are never sent to anyone but the admin.

@@ -4,7 +4,8 @@ import * as React from 'react'
 import { ChevronLeft, ChevronRight } from 'lucide-react'
 import { useStore } from '@/lib/store'
 import { DAY_KEYS, ROOM_UNAVAILABLE } from '@/lib/constants'
-import { classStatusOn, clubStatusOn, eventStatusOn, isOnceEvent, isoOf, roomOptionsFor, toneClassForClub, toneClassForLevel } from '@/lib/app-utils'
+import { PUBLIC_CLASS_TONE, PUBLIC_CLUB_TONE, PUBLIC_EVENT_TONE } from '@/lib/calendar-items'
+import { classStatusOn, clubStatusOn, eventStatusOn, isOnceEvent, isoOf, roomOptionsFor, fmt12Min, hourLabel12 } from '@/lib/app-utils'
 import { clubIcon } from '@/lib/icons'
 import { cn } from '@/lib/utils'
 import type { State } from '@/lib/types'
@@ -13,7 +14,7 @@ import type { State } from '@/lib/types'
    week; events count on their own date (one-off) or their weekday (repeating).
    Opening hours below only set the window the free time is measured in. */
 const OPEN = 9 * 60
-const CLOSE = 18 * 60 // ASO closes at 18:00; free time is only counted inside OPEN-CLOSE
+const CLOSE = 18 * 60 // ASO closes at 6 PM; free time is only counted inside OPEN-CLOSE
 
 type Kind = 'class' | 'club' | 'event'
 interface Booking {
@@ -36,7 +37,7 @@ const toMin = (t: string) => {
   const m = /^(\d{1,2}):(\d{2})$/.exec(t.trim())
   return m ? Number(m[1]) * 60 + Number(m[2]) : NaN
 }
-const fmt = (n: number) => String(Math.floor(n / 60)).padStart(2, '0') + ':' + String(n % 60).padStart(2, '0')
+const fmt = (n: number) => fmt12Min(n)
 function parseSlot(slot: string): [number, number] | null {
   const [a, b] = String(slot || '').split('-')
   if (!a || !b) return null
@@ -73,9 +74,9 @@ function bookingsForWeek(state: State, monday: Date, plain: boolean): Booking[] 
         room: c.room.trim(), day, start: slot[0], end: slot[1], kind: 'class',
         // interns only need to know an English class is on, not which group it is
         label: plain ? 'English class' : c.code,
-        tone: plain ? 'tone-0' : toneClassForLevel(state, c.level),
+        tone: PUBLIC_CLASS_TONE,
         lead: plain ? undefined : stt.kind === 'cover' ? 'Cover: ' + stt.cover : c.teacher,
-        group: plain ? 'English classes' : c.level,
+        group: 'English classes',
         cancelled: stt.kind === 'cancelled' ? stt.absence.reason || 'Teacher away' : undefined,
       })
     }
@@ -91,9 +92,9 @@ function bookingsForWeek(state: State, monday: Date, plain: boolean): Booking[] 
       const stt = clubStatusOn(state, c.id, isoOf(date))
       out.push({
         room: c.room.trim(), day, start: slot[0], end: slot[1], label: c.name, kind: 'club', note,
-        tone: toneClassForClub(state, c.id), icon: c.icon,
+        tone: PUBLIC_CLUB_TONE, icon: c.icon,
         lead: stt.kind === 'cover' ? 'Led by ' + stt.cover : c.lead,
-        group: c.name,
+        group: 'Clubs',
         cancelled: stt.kind === 'cancelled' ? stt.absence.reason || 'Cancelled' : undefined,
       })
     }
@@ -105,14 +106,14 @@ function bookingsForWeek(state: State, monday: Date, plain: boolean): Booking[] 
       if (!e.date || e.date < weekStart || e.date > weekEnd) continue
       const [y, m, d] = e.date.split('-').map(Number)
       const stt = eventStatusOn(state, e.id, e.date)
-      out.push({ room: e.place.trim(), day: dayKeyOf(new Date(y, m - 1, d)), start: slot[0], end: slot[1], label: e.title, kind: 'event', note: 'one-off', tone: 'tone-7', icon: e.icon || 'calendar', group: 'Special events', cancelled: stt.kind === 'cancelled' ? stt.absence.reason || 'Cancelled' : undefined })
+      out.push({ room: e.place.trim(), day: dayKeyOf(new Date(y, m - 1, d)), start: slot[0], end: slot[1], label: e.title, kind: 'event', note: 'one-off', tone: PUBLIC_EVENT_TONE, icon: e.icon || 'calendar', group: 'Events', cancelled: stt.kind === 'cancelled' ? stt.absence.reason || 'Cancelled' : undefined })
     } else if (e.day && inSeries(e.from, e.until)) {
       const note = e.recur === 'biweekly' ? 'every 2 weeks' : e.recur === 'monthly' ? 'monthly' : undefined
       const di = DAY_KEYS.indexOf(e.day as (typeof DAY_KEYS)[number])
       const date = new Date(monday)
       date.setDate(date.getDate() + Math.max(di, 0))
       const stt = eventStatusOn(state, e.id, isoOf(date))
-      out.push({ room: e.place.trim(), day: e.day, start: slot[0], end: slot[1], label: e.title, kind: 'event', note, tone: 'tone-7', icon: e.icon || 'calendar', group: 'Special events', cancelled: stt.kind === 'cancelled' ? stt.absence.reason || 'Cancelled' : undefined })
+      out.push({ room: e.place.trim(), day: e.day, start: slot[0], end: slot[1], label: e.title, kind: 'event', note, tone: PUBLIC_EVENT_TONE, icon: e.icon || 'calendar', group: 'Events', cancelled: stt.kind === 'cancelled' ? stt.absence.reason || 'Cancelled' : undefined })
     }
   }
   return out
@@ -139,6 +140,7 @@ const LABEL_W = 64 // day label column
 const ROOM_W = 84 // room label column in the all-rooms view
 const MIN_GRID = 760 // below this width the calendar scrolls sideways
 const ALL = '__all'
+const FOCUS = '__focus' // the rooms a group cares about most (teachers: Room 1 and Room 2)
 
 /* stacked lanes for bookings that overlap in the same room and day */
 function withLanes(list: Booking[]): { b: Booking; lane: number }[] {
@@ -152,10 +154,11 @@ function withLanes(list: Booking[]): { b: Booking; lane: number }[] {
   })
 }
 
-export function RoomsPage({ embedded = false }: { embedded?: boolean }) {
+/* focus: rooms that get a combined first tab; only: the tabs are those rooms plus one overview of every space (teachers) */
+export function RoomsPage({ embedded = false, focus, only = false }: { embedded?: boolean; focus?: string[]; only?: boolean }) {
   const state = useStore((s) => s.state)
   const [monday, setMonday] = React.useState(() => mondayOf(new Date()))
-  const [picked, setPicked] = React.useState<string>(ALL)
+  const [picked, setPicked] = React.useState<string>(focus ? FOCUS : ALL)
 
   const bookings = React.useMemo(() => bookingsForWeek(state, monday, embedded), [state, monday, embedded])
   const rooms = React.useMemo(() => {
@@ -163,10 +166,14 @@ export function RoomsPage({ embedded = false }: { embedded?: boolean }) {
     bookings.forEach((b) => set.add(b.room))
     return Array.from(set)
   }, [state, bookings])
-  const mode = picked === ALL || rooms.includes(picked) ? picked : ALL
-  const all = mode === ALL
-  const shown = all ? rooms : [mode]
-  const CHIP_H = all ? 38 : 50
+  const focusRooms = (focus || []).filter((f) => rooms.includes(f))
+  const hasFocus = focusRooms.length > 1
+  /* teachers (only): Room 1 and 2 together, each of them, and one overview of every space */
+  const tabRooms = only ? focusRooms : rooms
+  const mode = picked === ALL || (picked === FOCUS && hasFocus) || tabRooms.includes(picked) ? picked : hasFocus ? FOCUS : ALL
+  const all = mode === ALL || mode === FOCUS // several rooms in one calendar
+  const shown = mode === ALL ? rooms : mode === FOCUS ? focusRooms : [mode]
+  const CHIP_H = all ? 38 : 60
 
   const sunday = new Date(monday)
   sunday.setDate(sunday.getDate() + 6)
@@ -234,7 +241,7 @@ export function RoomsPage({ embedded = false }: { embedded?: boolean }) {
 
       {/* all rooms, or one room */}
       <div className="mb-3 flex gap-1 overflow-x-auto rounded-[10px] bg-black/[0.06] p-0.5 dark:bg-white/10 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden" role="tablist" aria-label="Room">
-        {[ALL, ...rooms].map((r) => {
+        {[...(hasFocus ? [FOCUS] : []), ...(only ? [...tabRooms, ALL] : [ALL, ...tabRooms])].map((r) => {
           const on = r === mode
           return (
             <button
@@ -247,7 +254,7 @@ export function RoomsPage({ embedded = false }: { embedded?: boolean }) {
                 on ? 'bg-card font-semibold shadow-[0_1px_3px_rgba(0,0,0,0.12),0_1px_1px_rgba(0,0,0,0.06)]' : 'font-medium text-foreground/70 hover:bg-black/[0.04]',
               )}
             >
-              {r === ALL ? 'All rooms' : r}
+              {r === ALL ? (only ? 'All spaces' : 'All rooms') : r === FOCUS ? focusRooms.map((x) => x.replace(/^Room /, '')).join(' and ').replace(/^/, 'Room ') : r}
             </button>
           )
         })}
@@ -260,12 +267,12 @@ export function RoomsPage({ embedded = false }: { embedded?: boolean }) {
       )}
 
       {/* days on the left, hours across the top, like the other calendars */}
-      <div className="overflow-x-auto rounded-2xl border border-border bg-card shadow-sm">
+      <div className="overflow-x-auto rounded-2xl border border-border bg-card aso-no-glow shadow-sm">
         <div style={{ minWidth: MIN_GRID }}>
           <div className="flex border-b border-border bg-secondary/40 text-[11px] font-bold text-muted-foreground">
             <div style={{ width: labelW }} className="shrink-0" />
             {HOURS.slice(0, -1).map((h) => (
-              <div key={h} className={cn('min-w-0 flex-1 border-l border-border/60 px-1.5 py-1.5 tabular-nums', (h * 60 < OPEN || h * 60 >= CLOSE) && 'opacity-50')}>{String(h).padStart(2, '0')}:00</div>
+              <div key={h} className={cn('min-w-0 flex-1 border-l border-border/60 px-1.5 py-1.5 tabular-nums', (h * 60 < OPEN || h * 60 >= CLOSE) && 'opacity-50')}>{hourLabel12(h)}</div>
             ))}
           </div>
 
@@ -355,12 +362,14 @@ export function RoomsPage({ embedded = false }: { embedded?: boolean }) {
                                 <span aria-hidden className="absolute left-[3px] top-1 bottom-1 w-[3px] rounded-full" style={{ background: 'var(--tone-txt)', opacity: 0.45 }} />
                                 <span className="flex w-full items-center gap-1 text-[11px] font-bold leading-[13px]">
                                   {Icon ? <Icon className="h-3 w-3 shrink-0" /> : <i className="inline-block h-1.5 w-1.5 shrink-0 rounded-full" style={{ background: 'var(--tone-txt)' }} />}
-                                  <span className="truncate" dir="auto">{b.label}</span>
+                                  <span className={all ? 'truncate' : 'line-clamp-3 break-words leading-[12px]'} dir="auto">
+                                    {b.label}
+                                    {b.lead && <span className="font-medium opacity-80"> · {b.lead}</span>}
+                                  </span>
                                 </span>
                                 <span className="truncate text-[10px] font-semibold leading-[12px] tabular-nums" style={{ opacity: 0.92 }}>
                                   {fmt(b.start)}-{fmt(b.end)}{b.note ? ' · ' + b.note : ''}
                                 </span>
-                                {!all && b.lead && <span className="truncate text-[10px] font-medium leading-[12px]" style={{ opacity: 0.75 }}>{b.lead}</span>}
                               </div>
                             </div>
                           )
@@ -400,7 +409,7 @@ export function RoomsPage({ embedded = false }: { embedded?: boolean }) {
         )}
         {(viewOpen < OPEN || viewClose > CLOSE) && (
           <span className="flex items-center gap-1.5 text-[11.5px] font-semibold text-muted-foreground">
-            <i className="inline-block h-2 w-2 rounded-sm bg-black/15 dark:bg-white/25" /> Outside opening hours (09:00-18:00)
+            <i className="inline-block h-2 w-2 rounded-sm bg-black/15 dark:bg-white/25" /> Outside opening hours (9 AM - 6 PM)
           </span>
         )}
         {days.some((d) => d.rows.some((r) => r.closed)) && (
