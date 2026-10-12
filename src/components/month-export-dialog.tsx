@@ -22,6 +22,7 @@ export function MonthExportHost() {
   const now = new Date()
   const [open, setOpen] = React.useState(false)
   const [ym, setYm] = React.useState({ year: now.getFullYear(), month: now.getMonth() })
+  const [classes, setClasses] = React.useState(false)
   const [clubs, setClubs] = React.useState(true)
   const [events, setEvents] = React.useState(true)
   const [holidays, setHolidays] = React.useState(true)
@@ -35,13 +36,13 @@ export function MonthExportHost() {
   }, [])
 
   React.useEffect(() => {
-    if (!open || (!clubs && !events)) {
+    if (!open || (!classes && !clubs && !events)) {
       setPreview('')
       return
     }
     let alive = true
     setBusy(true)
-    void renderMonth(state, { ...ym, clubs, events, holidays })
+    void renderMonth(state, { ...ym, classes, clubs, events, holidays })
       .then((c) => {
         if (alive) setPreview(c.toDataURL('image/jpeg', 0.7))
       })
@@ -49,7 +50,7 @@ export function MonthExportHost() {
     return () => {
       alive = false
     }
-  }, [open, ym.year, ym.month, clubs, events, holidays, state])
+  }, [open, ym.year, ym.month, classes, clubs, events, holidays, state])
 
   const step = (n: number) => setYm((v) => {
     const d = new Date(v.year, v.month + n, 1)
@@ -71,7 +72,7 @@ export function MonthExportHost() {
       <DialogContent className="max-h-[92vh] overflow-y-auto sm:max-w-3xl">
         <DialogHeader>
           <DialogTitle>Monthly calendar</DialogTitle>
-          <DialogDescription>Clubs and events for one month as a calendar picture with big, readable names and times.</DialogDescription>
+          <DialogDescription>Classes, clubs and events for one month as a calendar picture with big, readable names and times.</DialogDescription>
         </DialogHeader>
         <div className="flex flex-wrap items-center gap-3">
           <div className="flex items-center gap-1 rounded-full border border-border bg-secondary/60 p-1">
@@ -84,6 +85,7 @@ export function MonthExportHost() {
             </Button>
           </div>
           <div role="group" aria-label="What to include" className="flex gap-1.5">
+            {toggle('Classes', classes, setClasses)}
             {toggle('Clubs', clubs, setClubs)}
             {toggle('Events', events, setEvents)}
             {toggle('Holidays', holidays, setHolidays)}
@@ -91,7 +93,7 @@ export function MonthExportHost() {
         </div>
         <div className="max-h-[48vh] min-h-40 overflow-auto rounded-2xl border border-border bg-secondary/40 p-2">
           {!clubs && !events ? (
-            <p className="p-6 text-center text-sm text-muted-foreground">Choose clubs, events or both.</p>
+            <p className="p-6 text-center text-sm text-muted-foreground">Choose classes, clubs or events.</p>
           ) : preview ? (
             <img src={preview} alt={`Preview of the ${monthLabel(ym.year, ym.month)} calendar`} className={cn('mx-auto w-full rounded-lg', busy && 'opacity-60')} />
           ) : (
@@ -102,9 +104,9 @@ export function MonthExportHost() {
           <Button type="button" variant="ghost" onClick={() => setOpen(false)}>Close</Button>
           <Button
             type="button"
-            disabled={(!clubs && !events) || busy}
+            disabled={(!classes && !clubs && !events) || busy}
             onClick={async () => {
-              const ok = await downloadMonth(state, { ...ym, clubs, events, holidays })
+              const ok = await downloadMonth(state, { ...ym, classes, clubs, events, holidays })
               toast(ok ? 'Image downloaded' : 'Could not create the image', ok)
             }}
           >

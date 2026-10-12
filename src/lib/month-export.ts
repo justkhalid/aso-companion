@@ -1,8 +1,9 @@
 import { DAY_FULL, DAY_KEYS } from './constants'
-import { addDays, clubStatusOn, eventStatusOn, fmtTime, isOnceEvent, isoOf, parseISO, parseSlot } from './app-utils'
+import { addDays, classStatusOn, clubStatusOn, eventStatusOn, fmtTime, isOnceEvent, isoOf, parseISO, parseSlot } from './app-utils'
 import { MUTED, footer, iconImage, load, siteFonts, wrap } from './clubs-calendar-export'
 import { clubIcon } from './icons'
-import { Sparkles } from 'lucide-react'
+import { BookOpen, Sparkles } from 'lucide-react'
+import { publicGroupName } from './calendar-items'
 import { MONTH_THEMES, drawMotif } from './month-themes'
 import { holidaysOf, type Holiday } from './holidays'
 import type { State } from './types'
@@ -15,11 +16,13 @@ export interface MonthOptions {
   month: number // 0-11
   clubs: boolean
   events: boolean
+  classes?: boolean
   holidays?: boolean
 }
 
+type Kind = 'club' | 'event' | 'class'
 interface Occ {
-  kind: 'club' | 'event'
+  kind: Kind
   title: string
   time: string
   startMin: number
@@ -61,6 +64,13 @@ export function monthOccurrences(state: State, o: MonthOptions): Map<string, Occ
         push(iso, { kind: 'club', title: c.name, time: c.time, startMin: parseSlot(c.time).mins, place: c.room, icon: c.icon, off: st.kind === 'cancelled', cover: st.kind === 'cover' ? st.cover : undefined })
       }
     }
+    if (o.classes) {
+      for (const c of state.classes || []) {
+        if (!c.time || !repeatsOn(d, c.days || [], undefined, undefined, undefined, anchor)) continue
+        const st = classStatusOn(state, c, iso)
+        push(iso, { kind: 'class', title: publicGroupName(c.code, c.level), time: c.time, startMin: parseSlot(c.time).mins, place: c.room, off: st.kind === 'cancelled' })
+      }
+    }
     if (o.events) {
       for (const e of state.events || []) {
         const hit = isOnceEvent(e) ? e.date === iso : !!e.day && repeatsOn(d, [e.day], e.recur, e.from, e.until, anchor)
@@ -100,7 +110,7 @@ function hatch(g: CanvasRenderingContext2D, color: string): CanvasPattern | stri
 
 /* every club and event keeps its own time line */
 interface Block {
-  kind: 'club' | 'event'
+  kind: Kind
   off: boolean
   names: { title: string; icon?: string }[]
   time: string
@@ -114,7 +124,7 @@ function blocksOf(list: Occ[]): Block[] {
 }
 
 /* text colours sit straight on the page: dark enough to read on every month's background */
-const INKS = { club: '#6B2D8F', event: '#8A5A00', off: '#8A8A93' }
+const INKS = { club: '#6B2D8F', event: '#8A5A00', class: '#0F6B66', off: '#8A8A93' }
 
 function star(g: CanvasRenderingContext2D, cx: number, cy: number, r: number) {
   g.beginPath()
@@ -136,14 +146,14 @@ export async function renderMonth(state: State, o: MonthOptions): Promise<HTMLCa
   const closedOn = (iso: string) => (hol.get(iso) || []).some((h) => h.closed)
   for (const iso of Array.from(occ.keys())) if (closedOn(iso)) occ.delete(iso)
   /* each club and event keeps its own icon, drawn big in front of its name, in the same colour as the text */
-  const iconKey = (icon: string | undefined, kind: 'club' | 'event', off: boolean) => `${icon || ''}|${off ? 'off' : kind}`
+  const iconKey = (icon: string | undefined, kind: Kind, off: boolean) => `${icon || ''}|${off ? 'off' : kind}`
   const iconImgs = new Map<string, HTMLImageElement | null>()
   {
-    const want = new Map<string, { icon?: string; kind: 'club' | 'event'; off: boolean }>()
+    const want = new Map<string, { icon?: string; kind: Kind; off: boolean }>()
     for (const list of occ.values()) for (const x of list) want.set(iconKey(x.icon, x.kind, x.off), { icon: x.icon, kind: x.kind, off: x.off })
     await Promise.all(
       Array.from(want.entries()).map(async ([k, v]) => {
-        const Icon = clubIcon(v.icon)?.Icon || Sparkles
+        const Icon = v.kind === 'class' ? BookOpen : clubIcon(v.icon)?.Icon || Sparkles
         iconImgs.set(k, await iconImage(Icon, v.off ? INKS.off : INKS[v.kind], 120))
       }),
     )
@@ -305,7 +315,8 @@ export async function renderMonth(state: State, o: MonthOptions): Promise<HTMLCa
   drawMotif(g, theme, o.month, W, H, 'front') // drawn before the calendar text, so it never covers a name
 
   /* header: the month name alone and large, a fine rule with a star under it carrying the year and what the page shows */
-  const what = o.clubs && o.events ? 'CLUBS AND EVENTS' : o.clubs ? 'CLUBS' : 'EVENTS'
+  const names = [o.classes && 'CLASSES', o.clubs && 'CLUBS', o.events && 'EVENTS'].filter(Boolean) as string[]
+  const what = names.length > 1 ? names.slice(0, -1).join(', ') + ' AND ' + names[names.length - 1] : names[0] || ''
   g.textBaseline = 'middle'
   g.textAlign = 'center'
   g.font = `800 140px ${f.display}`
@@ -513,12 +524,13 @@ export async function renderMonth(state: State, o: MonthOptions): Promise<HTMLCa
   g.fillStyle = MUTED
   const nwid = g.measureText(note).width
   const LG = 92
+  const fy = (TOP + gridH + H) / 2 - 4 // centred between the end of the calendar and the page edge
   const fx = (W - (logo ? LG + 22 : 0) - nwid) / 2
   if (logo) {
     const k = Math.min(LG / logo.width, LG / logo.height)
-    g.drawImage(logo, fx, H - 66 - (logo.height * k) / 2, logo.width * k, logo.height * k)
+    g.drawImage(logo, fx, fy - (logo.height * k) / 2, logo.width * k, logo.height * k)
   }
-  g.fillText(note, fx + (logo ? LG + 22 : 0), H - 66)
+  g.fillText(note, fx + (logo ? LG + 22 : 0), fy)
   return canvas
 }
 
@@ -529,7 +541,7 @@ export async function downloadMonth(state: State, o: MonthOptions): Promise<bool
   const url = URL.createObjectURL(blob)
   const a = document.createElement('a')
   a.href = url
-  a.download = `ASO_${o.clubs && o.events ? 'Clubs_Events' : o.clubs ? 'Clubs' : 'Events'}_${o.year}-${String(o.month + 1).padStart(2, '0')}.png`
+  a.download = `ASO_${[o.classes && 'Classes', o.clubs && 'Clubs', o.events && 'Events'].filter(Boolean).join('_')}_${o.year}-${String(o.month + 1).padStart(2, '0')}.png`
   a.click()
   setTimeout(() => URL.revokeObjectURL(url), 5000)
   return true
