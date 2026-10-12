@@ -175,6 +175,7 @@ export function LandingPage() {
         <section id="calendar" className="mx-auto max-w-6xl scroll-mt-28 px-4 py-4">
           <div className="mb-4 flex flex-wrap items-center justify-center gap-3">
             <CalendarSwitch tab={tab} onChange={setTab} />
+            {admin && (
             <CalendarExportMenu
               buildOpts={() => ({
                 title: state.settings.institute + ' - Weekly schedule',
@@ -186,6 +187,7 @@ export function LandingPage() {
               baseName={'ASO_Week_' + (state.settings.year || 'export').replace(/\//g, '-')}
               extra={<ClubsExportItems state={state} />}
             />
+            )}
             {tab === 'classes' && <CalViewSwitcher view={calView} onChange={setCalView} />}
           </div>
           {tab === 'cluev' ? (
@@ -217,7 +219,7 @@ export function LandingPage() {
                 </div>
                 {clubs.length > 0 && (
                   <Button variant="outline" size="sm" onClick={() => { void downloadClubsPng(state) }}>
-                    <Download className="h-4 w-4" aria-hidden /> Download all clubs (PNG)
+                    <Download className="h-4 w-4" aria-hidden /> Download all clubs
                   </Button>
                 )}
               </div>
@@ -243,7 +245,7 @@ export function LandingPage() {
                 </div>
                 {events.length > 0 && (
                   <Button variant="outline" size="sm" onClick={() => { void downloadClubsPng(state, 'events') }}>
-                    <Download className="h-4 w-4" aria-hidden /> Download all events (PNG)
+                    <Download className="h-4 w-4" aria-hidden /> Download all events
                   </Button>
                 )}
               </div>

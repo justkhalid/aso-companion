@@ -110,7 +110,7 @@ export function MonthExportHost() {
               toast(ok ? 'Image downloaded' : 'Could not create the image', ok)
             }}
           >
-            <Download className="h-4 w-4" /> Download PNG
+            <Download className="h-4 w-4" /> Download calendar
           </Button>
         </DialogFooter>
       </DialogContent>
