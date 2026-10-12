@@ -152,7 +152,7 @@ export function filterStateFor<T>(state: T, roles: Role[]): T {
   const s = stripSecrets(state) as unknown as Record<string, unknown> & { levels?: Record<string, unknown>[]; absences?: Record<string, unknown>[] }
   if (!s || typeof s !== 'object') return state
   /* with the teachers' login switched off in Settings, everyone gets what a teacher gets */
-  const teacher = roles.includes('teacher') || (s.settings as { teacherLoginRequired?: boolean } | undefined)?.teacherLoginRequired === false
+  const teacher = roles.includes('teacher') || (s.settings as { teacherLoginRequired?: boolean } | undefined)?.teacherLoginRequired !== true
   const out: Record<string, unknown> = {
     ...s,
     _filtered: true,

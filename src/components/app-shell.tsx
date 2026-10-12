@@ -111,8 +111,8 @@ export function AppShell({ initialView }: { initialView?: View }) {
   }
 
   /* the teachers' and interns' pages open with their own access code (the admin opens everything) */
-  const teacherOk = admin || viewer.teacher || loginRules.teacherLoginRequired === false
-  const internOk = admin || viewer.intern || loginRules.internLoginRequired === false
+  const teacherOk = admin || viewer.teacher || loginRules.teacherLoginRequired !== true
+  const internOk = admin || viewer.intern || loginRules.internLoginRequired !== true
   const internView = INTERN_PAGES.includes(ev)
   if (internView && !internOk) {
     return (
