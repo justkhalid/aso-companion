@@ -24,6 +24,7 @@ function Item({ icon: Icon, title, hint, run, done }: { icon: React.ElementType;
 /* the clubs entries of the export menu: the poster board and the calendar-style pages (posters in full) */
 export function ClubsExportItems({ state }: { state: State }) {
   const toast = useStore((s) => s.toast)
+  const admin = useStore((s) => s.admin)
   const done = (ok: boolean) => toast(ok ? 'Image downloaded' : 'Nothing to export', ok)
   const cal = (style: ClubsCalendarStyle) => () => downloadClubsCalendar(state, style)
   return (
@@ -31,13 +32,15 @@ export function ClubsExportItems({ state }: { state: State }) {
       <DropdownMenuSeparator />
       <DropdownMenuLabel className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground">Clubs with posters</DropdownMenuLabel>
       <Item icon={LayoutGrid} title="All clubs on one page" hint="Four per row, posters in full, time and place below" run={() => downloadClubsPng(state)} done={done} />
-      <DropdownMenuItem className="items-start gap-3 py-2" onSelect={() => openMonthExport()}>
-        <CalendarDays className="mt-0.5 h-4 w-4" aria-hidden />
-        <span className="flex flex-col">
-          <span className="text-sm font-semibold">Monthly calendar</span>
-          <span className="text-xs text-muted-foreground">Pick a month; a calendar with big, readable names</span>
-        </span>
-      </DropdownMenuItem>
+      {admin && (
+        <DropdownMenuItem className="items-start gap-3 py-2" onSelect={() => openMonthExport()}>
+          <CalendarDays className="mt-0.5 h-4 w-4" aria-hidden />
+          <span className="flex flex-col">
+            <span className="text-sm font-semibold">Monthly calendar</span>
+            <span className="text-xs text-muted-foreground">Pick a month; a calendar with big, readable names</span>
+          </span>
+        </DropdownMenuItem>
+      )}
       <Item icon={Table2} title="Weekly calendar with posters" hint="Week timetable on top, every poster in full below" run={cal('grid')} done={done} />
     </>
   )

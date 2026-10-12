@@ -199,7 +199,7 @@ export function LandingPage() {
             <div className="flex items-center gap-2">
               <CalendarExportMenu
                 buildOpts={() => ({
-                  title: state.settings.institute + ' - This week',
+                  title: state.settings.institute + ' - Weekly schedule',
                   subtitle: [state.settings.institute, state.settings.year].filter(Boolean).join(' - '),
                   items: calItems,
                   legend: calLegend,
