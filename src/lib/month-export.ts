@@ -1,5 +1,5 @@
 import { DAY_FULL, DAY_KEYS } from './constants'
-import { isRTL, addDays, clubStatusOn, eventStatusOn, fmtTime, isOnceEvent, isoOf, parseISO, parseSlot } from './app-utils'
+import { addDays, clubStatusOn, eventStatusOn, fmtTime, isOnceEvent, isoOf, parseISO, parseSlot } from './app-utils'
 import { MUTED, footer, iconImage, load, siteFonts, wrap } from './clubs-calendar-export'
 import { clubIcon } from './icons'
 import { Sparkles } from 'lucide-react'
@@ -152,7 +152,7 @@ export async function renderMonth(state: State, o: MonthOptions): Promise<HTMLCa
   const W = 3200
   const H16 = 1800 // 16:9 like a slide; only taller when a month is too full
   const M = 70
-  const TOP = 285
+  const TOP = 240
   const FOOT = 70
   const first = new Date(o.year, o.month, 1)
   const lead = dayIdx(first)
@@ -177,26 +177,28 @@ export async function renderMonth(state: State, o: MonthOptions): Promise<HTMLCa
   /* every column that has something in it gets the same width, so the busy days are symmetric; empty ones are narrow */
   const widest = Math.max(1, ...colWeight)
   const busyWeight = 1 + Math.min(1.2, 0.85 * (widest - 1))
-  for (let i = 0; i < 7; i++) colWeight[i] = colWeight[i] === 0 ? 0.3 : busyWeight
+  for (let i = 0; i < 7; i++) colWeight[i] = colWeight[i] === 0 ? 0.22 : busyWeight
   const inner = W - M * 2 - 20
   const weightSum = colWeight.reduce((a, b) => a + b, 0)
   const colW = colWeight.map((w) => (inner * w) / weightSum)
   const colX = colW.map((_, i) => M + 10 + colW.slice(0, i).reduce((a, c) => a + c, 0))
-  const narrow = colWeight.map((w) => w <= 0.3)
+  const narrow = colWeight.map((w) => w <= 0.22)
   const busyRow = Array.from({ length: weeks }, (_, w) => cellsOf(w).some(busyOf))
 
   /* a block: each name with its own big icon on the left and the name beside it, one time line under them */
+  const PAD = 70
   const blockLayout = (bl: Block, laneW: number, NAME: number, TIME: number, s: number) => {
     scratch.font = `800 ${NAME}px ${f.body}`
     const isz = Math.round(NAME * 1.7)
-    const textW = laneW - 40 - isz - 16
+    const textW = laneW - PAD - 30 - isz - 18
     /* a long name simply takes more lines (the text size shrinks to fit the slide), it is never cut */
     const rows = bl.names.map((n) => {
       const lines = wrap(scratch, n.title, textW, 99)
       const lineW = Math.max(...lines.map((l) => scratch.measureText(l).width))
-      return { lines, lineW, h: Math.max(lines.length * (NAME + 4 * s), isz) }
+      const hasTime = bl.off || !!bl.time
+      return { lines, lineW, h: Math.max(lines.length * (NAME + 2 * s) + (hasTime ? TIME + 4 * s : 0), isz) }
     })
-    const h = Math.round(rows.reduce((n, r) => n + r.h, 0) + (rows.length - 1) * 8 * s + (bl.off || bl.time ? TIME + 14 * s : 6 * s))
+    const h = Math.round(rows.reduce((n, r) => n + r.h, 0))
     return { rows, isz, textW, h }
   }
   const holFont = (d: Date, cw: number, HOL: number) => {
@@ -223,11 +225,13 @@ export async function renderMonth(state: State, o: MonthOptions): Promise<HTMLCa
       const lay = blockLayout(bl, laneW, NAME, TIME, s)
       const lane = heights.indexOf(Math.min(...heights))
       items.push({ bl, lane, y: heights[lane], lay, laneW })
-      heights[lane] += lay.h + Math.round(22 * s)
+      heights[lane] += lay.h + Math.round(18 * s)
     }
     const hl = holLines(d, colW[i], HOL).length * (holFont(d, colW[i], HOL) + 4 * s) + (closedOn(isoOf(d)) ? 44 : 0)
     return { items, lanes, laneW, hl, h: hl + Math.max(0, ...heights) }
   }
+  /* a day that only holds sessions puts its date in the left strip, so the sessions start at the top of the cell */
+  const headOf = (d: Date, DAYH: number, s: number) => (blocksIn(d).length > 0 && !hasHol(d) ? Math.round(14 * s) : DAYH)
   const layout = (s: number) => {
     const NAME = Math.round(56 * s)
     const TIME = Math.round(46 * s)
@@ -236,9 +240,9 @@ export async function renderMonth(state: State, o: MonthOptions): Promise<HTMLCa
     const need = Array.from({ length: weeks }, (_, w) => {
       let tallest = 0
       cellsOf(w).forEach((d, i) => {
-        if (d) tallest = Math.max(tallest, placeCell(d, i, NAME, TIME, s, HOL).h)
+        if (d) tallest = Math.max(tallest, headOf(d, DAYH, s) + placeCell(d, i, NAME, TIME, s, HOL).h)
       })
-      return Math.round(DAYH + tallest + 14 * s)
+      return Math.round(tallest + 14 * s)
     })
     return { NAME, TIME, HOL, DAYH, need }
   }
@@ -253,6 +257,21 @@ export async function renderMonth(state: State, o: MonthOptions): Promise<HTMLCa
   const spare = Math.max(0, room(H) - needSum)
   const wsum = busyRow.reduce((n, b) => n + (b ? 1 : 0.4), 0)
   const rows = L.need.map((n, w) => n + (spare * (busyRow[w] ? 1 : 0.4)) / wsum)
+  /* the entries of a column share one left edge, placed so the empty space on both sides of the column is equal */
+  const colOff = colW.map((cw, i) => {
+    if (narrow[i]) return PAD
+    let widest = 0
+    for (let w = 0; w < weeks; w++) {
+      const d = cellsOf(w)[i]
+      if (!d) continue
+      for (const it of placeCell(d, i, L.NAME, L.TIME, s, L.HOL).items) {
+        scratch.font = `700 ${L.TIME}px ${f.body}`
+        const tw = it.bl.off ? scratch.measureText('Cancelled').width : scratch.measureText(fmtTime(it.bl.time)).width
+        widest = Math.max(widest, it.lay.isz + 18 + Math.max(it.lay.rows[0].lineW, tw))
+      }
+    }
+    return Math.max(PAD, (cw - widest) / 2)
+  })
   const gridH = WD + rows.reduce((a, b) => a + b, 0) + 24
 
   const canvas = document.createElement('canvas')
@@ -267,25 +286,33 @@ export async function renderMonth(state: State, o: MonthOptions): Promise<HTMLCa
   drawMotif(g, theme, o.month, W, H, 'back')
   drawMotif(g, theme, o.month, W, H, 'front') // drawn before the calendar text, so it never covers a name
 
-  /* header: the school logo and the month name form one line of lettering, what it shows sits under it */
+  /* header: month name in the middle, school on the left, what the page shows on the right, one baseline for all three */
   const what = o.clubs && o.events ? 'Clubs and events' : o.clubs ? 'Clubs' : 'Events'
-  g.textBaseline = 'top'
-  g.font = `800 165px ${f.display}`
-  const tw = g.measureText(theme.name).width
+  const midY = 112
+  g.textBaseline = 'middle'
+  g.textAlign = 'center'
+  g.font = `800 150px ${f.display}`
+  g.fillStyle = theme.title
+  g.fillText(theme.name, W / 2, midY + 6)
   const LOGO = 150
-  const gapL = logo ? 36 : 0
-  const startX = (W - ((logo ? LOGO : 0) + gapL + tw)) / 2
   if (logo) {
     const k = Math.min(LOGO / logo.width, LOGO / logo.height)
-    g.drawImage(logo, startX + (LOGO - logo.width * k) / 2, 44 + 88 - (logo.height * k) / 2, logo.width * k, logo.height * k)
+    g.drawImage(logo, 700, midY - (logo.height * k) / 2, logo.width * k, logo.height * k)
   }
+  const lx0 = 700 + (logo ? LOGO + 28 : 0)
+  const inst = state.settings.institute.split(' ')
+  const half = Math.ceil(inst.length / 2)
   g.textAlign = 'left'
+  g.font = `700 48px ${f.display}`
   g.fillStyle = theme.title
-  g.fillText(theme.name, startX + (logo ? LOGO + gapL : 0), 44)
-  g.textAlign = 'center'
-  g.font = `600 46px ${f.body}`
-  g.fillStyle = MUTED
-  g.fillText(`${what} · ${o.year} · ${state.settings.institute}`, W / 2, 222)
+  g.fillText(inst.slice(0, half).join(' '), lx0, midY - 28)
+  g.fillText(inst.slice(half).join(' '), lx0, midY + 30)
+  g.textAlign = 'right'
+  g.font = `700 48px ${f.display}`
+  g.fillText(what, W - 700, midY - 30)
+  g.font = `800 48px ${f.display}`
+  g.fillStyle = theme.accent
+  g.fillText(String(o.year), W - 700, midY + 30)
 
   /* the calendar sits straight on the month's page: fine lines in the month's colour, and a large faint drawing
      in some of the empty days, the way a printed wall calendar does it */
@@ -352,7 +379,7 @@ export async function renderMonth(state: State, o: MonthOptions): Promise<HTMLCa
       g.fillStyle = isToday ? '#ffffff' : MUTED
       g.font = `800 ${nr}px ${f.body}`
       g.fillText(String(d.getDate()), x + 12 + nr * 0.95, y + 12 + nr * 0.73)
-      let cy = y + L.DAYH
+      let cy = y + headOf(d, L.DAYH, s)
       const closed = closedOn(iso)
       if (closed) {
         /* a closed day is a hatched box, like "not available" in the free-rooms calendar, saying the space is closed */
@@ -368,21 +395,47 @@ export async function renderMonth(state: State, o: MonthOptions): Promise<HTMLCa
         g.fillStyle = hatch(g, theme.accent)
         g.fillRect(bx, by, bw, bh)
         g.restore()
-        const names = (hol.get(iso) || []).filter((h, k, a) => a.findIndex((x2) => x2.name === h.name) === k).flatMap((h) => wrap(scratch, h.name, bw - 40, 3))
-        const lh = L.HOL + 6 * s
-        const total = names.length * lh + L.HOL + 10
-        let ty2 = by + L.DAYH * 0.7 + (bh - L.DAYH * 0.7 - total) / 2
-        g.textBaseline = 'top'
+        const names = (hol.get(iso) || []).map((h) => h.name).filter((n, k, arr) => arr.indexOf(n) === k)
+        const mid = by + L.DAYH * 0.7 + (bh - L.DAYH * 0.7) / 2
+        g.textBaseline = 'middle'
         g.textAlign = 'center'
-        g.font = `800 ${L.HOL}px ${f.body}`
-        for (const nm of names) {
-          g.fillStyle = theme.title
-          g.fillText(nm, bx + bw / 2, ty2)
-          ty2 += lh
-        }
         g.fillStyle = MUTED
-        g.font = `700 ${Math.round(L.HOL * 0.9)}px ${f.body}`
-        g.fillText('Space closed', bx + bw / 2, ty2 + 8)
+        if (bw < 300) {
+          const sm = Math.round(L.HOL * 0.7)
+          g.font = `800 ${sm}px ${f.body}`
+          g.fillText('Space', bx + bw / 2, mid - sm * 0.6 - 20)
+          g.fillText('closed', bx + bw / 2, mid + sm * 0.6 - 20)
+        } else {
+          g.font = `800 ${L.HOL}px ${f.body}`
+          g.fillText('Space closed', bx + bw / 2, mid)
+        }
+        /* the holiday's own name in the bottom corner; two holidays take the left and the right corner */
+        g.font = `700 ${Math.round(L.HOL * 0.85)}px ${f.body}`
+        g.fillStyle = theme.title
+        if (bw < 300) {
+          /* a narrow weekday cell: both texts wrap and are centred */
+          const small = Math.round(L.HOL * 0.7)
+          g.font = `700 ${small}px ${f.body}`
+          scratch.font = g.font
+          const lines = names.flatMap((n) => wrap(scratch, n, bw - 16, 3))
+          g.textAlign = 'center'
+          let yy = by + bh - 14 - lines.length * (small + 4)
+          for (const l of lines) {
+            g.fillText(l, bx + bw / 2, yy + small / 2)
+            yy += small + 4
+          }
+        } else {
+          const cy2 = by + bh - Math.round(L.HOL * 0.85) * 0.7
+          if (names.length === 1) {
+            g.textAlign = 'right'
+            g.fillText(names[0], bx + bw - 18, cy2)
+          } else if (names.length >= 2) {
+            g.textAlign = 'left'
+            g.fillText(names[0], bx + 18, cy2)
+            g.textAlign = 'right'
+            g.fillText(names[1], bx + bw - 18, cy2)
+          }
+        }
         return
       }
       /* holidays under the date (a closed day is drawn above) */
@@ -408,30 +461,28 @@ export async function renderMonth(state: State, o: MonthOptions): Promise<HTMLCa
         g.fillStyle = ink
         g.textBaseline = 'top'
         g.font = `800 ${L.NAME}px ${f.body}`
-        let ty = cy + it.y
-        it.lay.rows.forEach((row, n) => {
-          const img = iconImgs.get(iconKey(it.bl.names[n].icon, it.bl.kind, it.bl.off))
-          /* icon and name are one group, centred in the lane; the lines of a long name are centred under each other */
-          const groupW = it.lay.isz + 16 + row.lineW
-          const gx0 = lx + (pc.laneW - groupW) / 2
-          if (img) g.drawImage(img, gx0, ty + (row.h - it.lay.isz) / 2, it.lay.isz, it.lay.isz)
-          const cx0 = gx0 + it.lay.isz + 16 + row.lineW / 2
-          const blockTextH = row.lines.length * (L.NAME + 4 * s)
-          let ly = ty + (row.h - blockTextH) / 2
-          g.textAlign = 'center'
-          g.direction = isRTL(it.bl.names[n].title) ? 'rtl' : 'ltr'
-          row.lines.forEach((l) => {
-            g.fillText(l, cx0, ly)
-            if (it.bl.off) g.fillRect(cx0 - g.measureText(l).width / 2, ly + L.NAME * 0.56, g.measureText(l).width, 4)
-            ly += L.NAME + 4 * s
-          })
-          g.direction = 'ltr'
-          ty += row.h + 8 * s
+        const ty = cy + it.y
+        const row = it.lay.rows[0]
+        const nm = it.bl.names[0]
+        const img = iconImgs.get(iconKey(nm.icon, it.bl.kind, it.bl.off))
+        /* the icon spans the name and the time; both texts start on one left edge shared by every entry */
+        const gx0 = lx + colOff[i]
+        if (img) g.drawImage(img, gx0, ty + (row.h - it.lay.isz) / 2, it.lay.isz, it.lay.isz)
+        const tx0 = gx0 + it.lay.isz + 18
+        const hasTime = it.bl.off || !!it.bl.time
+        const textH = row.lines.length * (L.NAME + 2 * s) + (hasTime ? L.TIME + 4 * s : 0)
+        let ly = ty + (row.h - textH) / 2
+        g.textAlign = 'left'
+        g.direction = 'ltr'
+        g.font = `800 ${L.NAME}px ${f.body}`
+        row.lines.forEach((l) => {
+          g.fillText(l, tx0, ly)
+          if (it.bl.off) g.fillRect(tx0, ly + L.NAME * 0.56, g.measureText(l).width, 4)
+          ly += L.NAME + 2 * s
         })
-        g.textAlign = 'center'
         g.font = `700 ${L.TIME}px ${f.body}`
-        if (it.bl.off) g.fillText('Cancelled', lx + pc.laneW / 2, ty + 2)
-        else if (it.bl.time) g.fillText(fmtTime(it.bl.time), lx + pc.laneW / 2, ty + 2)
+        if (it.bl.off) g.fillText('Cancelled', tx0, ly + 4 * s)
+        else if (it.bl.time) g.fillText(fmtTime(it.bl.time), tx0, ly + 4 * s)
       }
     })
     y += rows[w]

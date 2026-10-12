@@ -185,8 +185,6 @@ export function drawMotif(g: CanvasRenderingContext2D, t: MonthTheme, month: num
   if (layer === 'back') {
     cluster(120, 90, 420, 11, 120) // top left
     cluster(W - 150, 70, 300, 6, 100) // top right
-    cluster(W * 0.2, 40, 440, 4, 70) // along the top, away from the month name
-    cluster(W * 0.8, 40, 440, 4, 70)
     cluster(W - 120, H - 70, 420, 10, 120) // bottom right
     cluster(100, H - 60, 360, 6, 100) // bottom left
   } else {
