@@ -268,7 +268,7 @@ export async function renderTimetablePNG(o: ExportOptions): Promise<Blob | null>
   }
   const hours: number[] = []
   for (let h = START_HOUR; h <= END_HOUR; h++) hours.push(h)
-  const HOUR_W = (W - PAD * 2 - DAY_LABEL_W) / hours.length
+  const HOUR_W = (W - PAD * 2 - DAY_LABEL_W) / Math.max(1, hours.length - 1) // the last label sits on the right edge, no empty column after it
   const pad2 = (n: number) => String(n).padStart(2, '0')
 
   // Parse items
