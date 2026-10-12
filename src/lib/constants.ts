@@ -131,7 +131,7 @@ Date: 2026-10-17 (Saturday)
 Time: 3:00 PM - 5:00 PM
 Topic: Public Speaking Club · Telling a story in two minutes
 Speaker: Sara (intern, Main Hall)
-Total audience: 14   <- auto-filled from the session's "Number of attendees", locked
+Total audience: 14   <- the number of people who came, as you counted them
 Type of activities: Club          (Meeting / Club / Event / Workshop / Class)
 Type of categories: English Language Learning
                     (Information about the USA / English Language Learning / Education on the U.S.A. / Alumni Activities / Community Engagement)
