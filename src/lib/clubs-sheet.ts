@@ -1,29 +1,35 @@
-import { DAY_FULL } from './constants'
-import { clubDayOrder, fmtTime } from './app-utils'
-import type { Club, State } from './types'
+import { posterItems, type PosterKind } from './poster-items'
+import type { State } from './types'
 
 /* Clubs export: one PNG with every club on a single page. */
 
 
 
-export function whenOf(c: Club): string {
-  const names = (c.days || []).map((d) => DAY_FULL[d] || d).join(' and ')
-  const lead = !names ? '' : c.freq === 'biweekly' ? 'Every other ' + names : c.freq === 'monthly' ? 'Monthly on ' + names : 'Every ' + names
-  return [lead, fmtTime(c.time)].filter(Boolean).join(' · ')
-}
+export { whenOf } from './poster-items'
 
 /* One PNG with every club side by side, four to a row: poster in full (never cropped),
    name, days and time, and place underneath. Returns false when there is nothing to draw. */
-export async function downloadClubsPng(state: State): Promise<boolean> {
-  /* in week order: Monday first, then by time */
-  const clubs = (state.clubs || []).filter((c) => !c.placeholder).sort((a, b) => clubDayOrder(a) - clubDayOrder(b))
+export async function downloadClubsPng(state: State, kind: PosterKind = 'clubs'): Promise<boolean> {
+  const clubs = posterItems(state, kind)
   if (!clubs.length) return false
   const COLS = 4
   const CW = 560 // column width
   const PH = Math.round((CW * 1200) / 848) // poster box height (A4 ratio)
   const GAP = 48
   const M = 72
-  const INFO = 170
+  /* the info block under a poster is as tall as the longest name and schedule need */
+  const sc = document.createElement('canvas').getContext('2d')!
+  const nLines = (text: string, px: number, wt: number) => {
+    sc.font = `${wt} ${px}px -apple-system, "Segoe UI", Inter, Arial, sans-serif`
+    let lines = 0
+    let cur = ''
+    for (const w of text.split(/\s+/)) {
+      const t = cur ? cur + ' ' + w : w
+      if (sc.measureText(t).width > CW && cur) { lines++; cur = w } else cur = t
+    }
+    return Math.min(2, lines + (cur ? 1 : 0))
+  }
+  const INFO = Math.max(170, ...clubs.map((c) => 22 + nLines(c.name, 36, 800) * 42 + 16 + nLines(c.when || 'To be confirmed', 28, 600) * 34 + 8 + 34 + 10))
   const HEAD = 190
   const rows = Math.ceil(clubs.length / COLS)
   const W = M * 2 + COLS * CW + (COLS - 1) * GAP
@@ -50,8 +56,8 @@ export async function downloadClubsPng(state: State): Promise<boolean> {
   ])
 
   /* header: the logo to the left of the title, the pair centred on the page */
-  const title = `${state.settings.institute} clubs`
-  const sub = `${clubs.length} clubs · ${state.settings.year}`
+  const title = `${state.settings.institute} ${kind}`
+  const sub = `${clubs.length} ${kind} · ${state.settings.year}`
   const LOGO = 120
   g.font = font(800, 64)
   const wTitle = g.measureText(title).width
@@ -127,9 +133,11 @@ export async function downloadClubsPng(state: State): Promise<boolean> {
     const nameLines = wrap(c.name, CW, 2).length
     g.fillStyle = '#0b5ce6'
     g.font = font(600, 28)
-    g.fillText(whenOf(c) || 'To be confirmed', x + CW / 2, y + PH + 22 + nameLines * 42 + 8, CW)
+    g.font = font(600, 28)
+    const whenLines = wrap(c.when || 'To be confirmed', CW, 2)
+    whenLines.forEach((l, n) => g.fillText(l, x + CW / 2, y + PH + 22 + nameLines * 42 + 8 + n * 34))
     /* the place, in bold */
-    const ly = y + PH + 22 + nameLines * 42 + 50
+    const ly = y + PH + 22 + nameLines * 42 + 16 + whenLines.length * 34 + 8
     g.fillStyle = '#1c1c1e'
     g.font = font(800, 28)
     if (c.room) g.fillText(c.room, x + CW / 2, ly, CW)
@@ -141,7 +149,7 @@ export async function downloadClubsPng(state: State): Promise<boolean> {
   const url = URL.createObjectURL(blob)
   const a = document.createElement('a')
   a.href = url
-  a.download = `ASO_Clubs_${(state.settings.year || '').replace(/[^0-9-]/g, '')}.png`
+  a.download = `ASO_${kind === 'clubs' ? 'Clubs' : 'Events'}_${(state.settings.year || '').replace(/[^0-9-]/g, '')}.png`
   a.click()
   setTimeout(() => URL.revokeObjectURL(url), 5000)
   return true

@@ -244,7 +244,7 @@ export async function renderTimetablePNG(o: ExportOptions): Promise<Blob | null>
      reads bigger relative to the sheet without changing the design */
   const S = Math.max(1, Math.min(2, o.zoom || 1))
   const W = Math.round(1320 * (1 + (S - 1) * 0.45))
-  const PAD = Math.round(48 * S)
+  const PAD = Math.round(48 * S) + Math.round(24 * S) // the last hour label hangs half outside the right line, so the margins stay equal on both sides
   const DAY_LABEL_W = Math.round(72 * S)
   const HEADER_H = Math.round(118 * S)
   const HOUR_HEAD_H = Math.round(48 * S)
