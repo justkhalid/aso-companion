@@ -280,7 +280,7 @@ export function RoomsPage({ embedded = false, focus, only = false }: { embedded?
 
           <div className="relative">
             {days.map((d, di) => (
-              <div key={d.day} className={cn('flex', di > 0 && 'border-t border-border', d.isToday && 'bg-primary/[0.04]')}>
+              <div key={d.day} className={cn('flex', di > 0 && 'border-t-[3px] border-foreground/30', d.isToday && 'bg-primary/[0.04]')}>
                 <div style={{ width: LABEL_W }} className="flex shrink-0 flex-col items-center justify-center border-r border-border bg-secondary/40 leading-tight">
                   <span className={cn('text-[11px] font-bold uppercase', d.isToday ? 'text-primary' : 'text-muted-foreground')}>{d.day}</span>
                   <span className={cn('text-[11px] font-medium tabular-nums', d.isToday ? 'text-primary' : 'text-muted-foreground')}>{d.date.getDate()}/{d.date.getMonth() + 1}</span>
