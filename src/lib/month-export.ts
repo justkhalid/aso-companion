@@ -178,7 +178,8 @@ export async function renderMonth(state: State, o: MonthOptions): Promise<HTMLCa
     return Math.max(...cells.map((d) => blocksIn(d).length))
   })
   /* a busy column is as wide as its widest entry plus the same margin on both sides; the days with nothing in them share what is left */
-  const SIDE = 70
+  const SIDE = 50
+  const CAP = 0.58 // the text size every month uses at most
   const contentW = (i: number) => {
     let m = 0
     for (let w = 0; w < weeks; w++) {
@@ -187,18 +188,20 @@ export async function renderMonth(state: State, o: MonthOptions): Promise<HTMLCa
         const nw = scratch.measureText(bl.names[0].title).width
         scratch.font = `700 46px ${f.body}`
         const tw = scratch.measureText(bl.off ? 'Cancelled' : fmtTime(bl.time)).width
-        m = Math.max(m, 95 + 18 + Math.max(nw, tw))
+        m = Math.max(m, (95 + 18 + Math.max(nw, tw)) * CAP)
       }
     }
     return m
   }
-  const widthsRaw = colWeight.map((c, i) => (c === 0 ? 0 : contentW(i) + SIDE * 2))
+  /* a column is as wide as what is written in it (and at least wide enough for a closed day), the empty days stay slim,
+     and whatever width is left is shared by the columns that have something in them */
+  const widthsRaw = colWeight.map((c, i) => (c === 0 ? 0 : Math.max(330, contentW(i) + SIDE * 2 + 110)))
   const busyTotal = widthsRaw.reduce((a, b) => a + b, 0)
   const emptyN = widthsRaw.filter((x) => x === 0).length
   const avail = W - M * 2 - 20
-  const emptyEach = emptyN ? Math.max(210, (avail - busyTotal) / emptyN) : 0
-  const shrink = Math.min(1, (avail - emptyEach * emptyN) / Math.max(1, busyTotal))
-  for (let i = 0; i < 7; i++) colWeight[i] = widthsRaw[i] === 0 ? emptyEach : widthsRaw[i] * shrink
+  const emptyEach = emptyN ? Math.min(280, Math.max(210, (avail - busyTotal) / emptyN)) : 0
+  const room2 = avail - emptyEach * emptyN
+  for (let i = 0; i < 7; i++) colWeight[i] = widthsRaw[i] === 0 ? emptyEach : (widthsRaw[i] * room2) / Math.max(1, busyTotal)
   const inner = W - M * 2 - 20
   const weightSum = colWeight.reduce((a, b) => a + b, 0)
   const colW = colWeight.map((w) => (inner * w) / weightSum)
