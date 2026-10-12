@@ -93,6 +93,9 @@ export const ROOM_LEGEND = 'Ground floor: Room 1 & Library · Upstairs: Room 2 &
 export const REPORT_SYSTEM_URL =
   'https://sites.google.com/view/espaceamericainoujda/accueil/teacher-volunteer-intern-trainer'
 
+/* the Google Form for photos of an activity (paste its link here; the button on the report page appears once it is set) */
+export const PHOTO_FORM_URL = ''
+
 export const REPORT_STEPS = [
   { t: 'Sign in', d: 'Open the reporting site and login using your ASO number and password.' },
   { t: 'First Class Info', d: 'The first tab you should see. Fill in the details of your class: when your class starts, which student category and level, and the repetition · weekly, bi-weekly and so on.' },
