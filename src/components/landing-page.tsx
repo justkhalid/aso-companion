@@ -9,7 +9,8 @@ import { ClubsExportItems } from '@/components/clubs-export-items'
 import { Logo } from './logo'
 import { SiteFooter } from './site-footer'
 import { ThemeToggle } from './theme-toggle'
-import { ClubExpandOverlay, ClubGridCard, EventCard } from './pages/clubs-page'
+import { ClubExpandOverlay, ClubGridCard, EventGridCard } from './pages/clubs-page'
+import { MonthCalendarImage } from './month-calendar-image'
 import { useStore } from '@/lib/store'
 import { BANDS, DAY_FULL, DAY_KEYS, FILL_GRID } from '@/lib/constants'
 import { mondayOfWeek, nextOccurrence, toneClassForClub, fmtTime } from '@/lib/app-utils'
@@ -43,11 +44,15 @@ export function LandingPage() {
   const setPubView = useStore((s) => s.setPubView)
   const [expanded, setExpanded] = React.useState<Club | null>(null)
   const [calView, setCalView] = React.useState<CalendarView>('grid')
-  const [calKind, setCalKind] = React.useState<'all' | 'classes' | 'clubs' | 'events'>('all')
+  const [tab, setTab] = React.useState<'cluev' | 'classes'>('cluev')
   React.useEffect(() => { setCalView(readCalView()) }, [])
   React.useEffect(() => { writeCalView(calView) }, [calView])
 
-  const jump = (id: string) => document.getElementById(id)?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+  const jump = (id: string) => {
+    const want = id === 'classes' ? 'classes' : id === 'calendar' ? tab : 'cluev'
+    setTab(want)
+    window.setTimeout(() => document.getElementById(id === 'classes' ? 'calendar' : id)?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 60)
+  }
 
   /* levels that actually run this year, grouped by age band */
   const levels = state.levels
@@ -79,11 +84,7 @@ export function LandingPage() {
   const clubItems = publicClubItems(state, monday)
   const eventItems = publicEventItems(state, monday)
   const classItems = publicClassItems(state, monday)
-  const calItems = [
-    ...(calKind === 'all' || calKind === 'clubs' ? clubItems : []),
-    ...(calKind === 'all' || calKind === 'events' ? eventItems : []),
-    ...(calKind === 'all' || calKind === 'classes' ? classItems : []),
-  ]
+  const calItems = tab === 'classes' ? classItems : [...clubItems, ...eventItems]
   const calLegend: LegendEntry[] = [
     ...(calItems.some((i) => i.tone === PUBLIC_CLASS_TONE) ? [{ label: 'English classes', tone: PUBLIC_CLASS_TONE }] : []),
     ...(calItems.some((i) => i.tone === PUBLIC_CLUB_TONE) ? [{ label: 'Clubs', tone: PUBLIC_CLUB_TONE }] : []),
@@ -135,18 +136,59 @@ export function LandingPage() {
 
       <main className="flex-1">
         {/* hero */}
-        <section className="mx-auto max-w-6xl px-4 pb-6 pt-12 text-center sm:pt-16">
-          <h1 className="font-display mx-auto max-w-3xl text-balance text-[34px] font-extrabold leading-[1.1] tracking-tight sm:text-5xl">
+        <section className="mx-auto max-w-6xl px-4 pb-4 pt-9 text-center sm:pt-12">
+          <h1 className="font-display mx-auto max-w-3xl text-balance text-[32px] font-extrabold leading-[1.1] tracking-tight sm:text-5xl">
             American Space Oujda
           </h1>
-          <p className="mx-auto mt-4 max-w-2xl text-balance text-base text-muted-foreground sm:text-lg">
-            English for kids, teens and adults. Everything on offer this year: the clubs, the events and the classes.
+          <p className="mx-auto mt-3 max-w-2xl text-balance text-base text-muted-foreground sm:text-lg">
+            English for kids, teens and adults. What is on this month: the clubs, the events and the classes.
           </p>
-          <div className="mx-auto mt-7 grid max-w-lg grid-cols-3 gap-3">
-            {stat(clubs.length, clubs.length === 1 ? 'club' : 'clubs')}
-            {stat(events.length, events.length === 1 ? 'event' : 'events')}
-            {stat(state.classes.filter((c) => (c.days || []).length && c.time && levels.some((x) => x.level.label === c.level)).length, 'class groups')}
+        </section>
+
+        {/* the calendar comes first: a switch between clubs and events, and the classes */}
+        <section id="calendar" className="mx-auto max-w-6xl scroll-mt-28 px-4 py-4">
+          <div className="mb-4 flex flex-wrap items-center justify-center gap-3">
+            <div className="inline-flex rounded-full bg-secondary p-1" role="group" aria-label="What to show">
+              {([['cluev', 'Clubs and events'], ['classes', 'Classes']] as const).map(([k, label]) => (
+                <button
+                  key={k}
+                  onClick={() => setTab(k)}
+                  aria-pressed={tab === k}
+                  className={'rounded-full px-5 py-2 text-sm font-bold transition ' + (tab === k ? 'aso-nav-pill shadow-sm' : 'text-foreground/80 hover:bg-background/60')}
+                >
+                  {label}
+                </button>
+              ))}
+            </div>
+            <CalendarExportMenu
+              buildOpts={() => ({
+                title: state.settings.institute + ' - Weekly schedule',
+                subtitle: [state.settings.institute, state.settings.year].filter(Boolean).join(' - '),
+                items: calItems,
+                legend: calLegend,
+                appUrl: window.location.origin,
+              })}
+              baseName={'ASO_Week_' + (state.settings.year || 'export').replace(/\//g, '-')}
+              extra={<ClubsExportItems state={state} />}
+            />
+            {tab === 'classes' && <CalViewSwitcher view={calView} onChange={setCalView} />}
           </div>
+          {tab === 'cluev' ? (
+            <MonthCalendarImage clubs events classes={false} />
+          ) : (
+            <>
+              <p className="mb-3 text-center text-sm text-muted-foreground">English classes this week.</p>
+              <div className="rounded-2xl bg-card">
+                {calView === 'grid' ? (
+                  <WeeklyGrid items={calItems} legend={calLegend} weekMonday={monday} emptyMessage="Nothing scheduled yet" />
+                ) : calView === 'cards' ? (
+                  <CalendarCardsView items={calItems} legend={calLegend} weekMonday={monday} emptyMessage="Nothing scheduled yet" />
+                ) : (
+                  <CalendarListView items={calItems} legend={calLegend} weekMonday={monday} emptyMessage="Nothing scheduled yet" />
+                )}
+              </div>
+            </>
+          )}
         </section>
 
         {/* the way in for teachers, interns and volunteers (the admin can switch it off in Settings) */}
@@ -189,94 +231,64 @@ export function LandingPage() {
           </section>
         )}
 
-        {/* the whole week in one calendar */}
-        <section id="calendar" className="mx-auto max-w-6xl scroll-mt-28 px-4 py-8">
-          <div className="mb-4 flex flex-wrap items-center gap-x-3 gap-y-2">
-            <div className="min-w-0 flex-1">
-              <h2 className="text-xl font-extrabold tracking-tight">This week at ASO</h2>
-              <p className="text-sm text-muted-foreground">Classes, clubs and events on one calendar.</p>
-            </div>
-            <div className="flex items-center gap-2">
-              <CalendarExportMenu
-                buildOpts={() => ({
-                  title: state.settings.institute + ' - Weekly schedule',
-                  subtitle: [state.settings.institute, state.settings.year].filter(Boolean).join(' - '),
-                  items: calItems,
-                  legend: calLegend,
-                  appUrl: window.location.origin,
-                })}
-                baseName={'ASO_Week_' + (state.settings.year || 'export').replace(/\//g, '-')}
-                extra={<ClubsExportItems state={state} />}
-              />
-              <CalViewSwitcher view={calView} onChange={setCalView} />
-            </div>
-          </div>
-          <div className="mb-3 flex flex-wrap gap-1.5" role="group" aria-label="Show on the calendar">
-            {([['all', 'All'], ['classes', 'Classes'], ['clubs', 'Clubs'], ['events', 'Events']] as const).map(([k, label]) => (
-              <button
-                key={k}
-                onClick={() => setCalKind(k)}
-                aria-pressed={calKind === k}
-                className={'rounded-full px-3.5 py-1.5 text-sm font-semibold transition ' + (calKind === k ? 'aso-nav-pill shadow-sm' : 'bg-secondary text-foreground/80 hover:bg-secondary/70')}
-              >
-                {label}
-              </button>
-            ))}
-          </div>
-          <div className="rounded-2xl bg-card">
-            {calView === 'grid' ? (
-              <WeeklyGrid items={calItems} legend={calLegend} weekMonday={monday} emptyMessage="Nothing scheduled yet" />
-            ) : calView === 'cards' ? (
-              <CalendarCardsView items={calItems} legend={calLegend} weekMonday={monday} emptyMessage="Nothing scheduled yet" />
-            ) : (
-              <CalendarListView items={calItems} legend={calLegend} weekMonday={monday} emptyMessage="Nothing scheduled yet" />
-            )}
-          </div>
-        </section>
-
-        {/* clubs */}
-        <section id="clubs" className="mx-auto max-w-6xl scroll-mt-28 px-4 py-8">
-          <div className="mb-5 flex flex-wrap items-end gap-x-3 gap-y-2">
-            <div className="min-w-0 flex-1">
-              <h2 className="mb-1 text-xl font-extrabold tracking-tight">Clubs</h2>
-              <p className="text-sm text-muted-foreground">Weekly clubs run by our volunteers. Tap a club to see the details.</p>
-            </div>
-            {clubs.length > 0 && (
-              <Button variant="outline" size="sm" onClick={() => { void downloadClubsPng(state) }}>
-                <Download className="h-4 w-4" aria-hidden /> Download all clubs (PNG)
-              </Button>
-            )}
-          </div>
-          {clubs.length === 0 ? (
-            <div className="rounded-2xl border border-border bg-card p-8 text-center text-sm text-muted-foreground">Clubs will be listed here soon.</div>
-          ) : (
-            <div className="flex flex-wrap justify-center gap-3">
-              {clubs.map((c) => (
-                <div key={c.id} className="flex w-full sm:w-[calc(50%-0.375rem)] lg:w-[calc(33.333%-0.5rem)]">
-                  <ClubGridCard club={c} admin={false} onExpand={() => setExpanded(c)} onEdit={() => {}} onDelete={() => {}} />
+        {tab === 'cluev' && (
+          <>
+            {/* clubs: four to a row */}
+            <section id="clubs" className="mx-auto max-w-6xl scroll-mt-28 px-4 py-8">
+              <div className="mb-5 flex flex-wrap items-end gap-x-3 gap-y-2">
+                <div className="min-w-0 flex-1">
+                  <h2 className="mb-1 text-xl font-extrabold tracking-tight">Clubs</h2>
+                  <p className="text-sm text-muted-foreground">Weekly clubs run by our volunteers. Tap a club to see the details.</p>
                 </div>
-              ))}
-            </div>
-          )}
-        </section>
+                {clubs.length > 0 && (
+                  <Button variant="outline" size="sm" onClick={() => { void downloadClubsPng(state) }}>
+                    <Download className="h-4 w-4" aria-hidden /> Download all clubs (PNG)
+                  </Button>
+                )}
+              </div>
+              {clubs.length === 0 ? (
+                <div className="rounded-2xl border border-border bg-card p-8 text-center text-sm text-muted-foreground">Clubs will be listed here soon.</div>
+              ) : (
+                <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
+                  {clubs.map((c) => (
+                    <div key={c.id} className="flex">
+                      <ClubGridCard club={c} admin={false} onExpand={() => setExpanded(c)} onEdit={() => {}} onDelete={() => {}} />
+                    </div>
+                  ))}
+                </div>
+              )}
+            </section>
 
-        {/* events */}
-        <section id="events" className="mx-auto max-w-6xl scroll-mt-28 px-4 py-8">
-          <h2 className="mb-1 text-xl font-extrabold tracking-tight">Events</h2>
-          <p className="mb-5 text-sm text-muted-foreground">What is coming up. Check the date and place before you come.</p>
-          {events.length === 0 ? (
-            <div className="rounded-2xl border border-border bg-card p-8 text-center text-sm text-muted-foreground">
-              <Sparkles className="mx-auto mb-2 h-5 w-5" /> No events are planned right now. Check back soon.
-            </div>
-          ) : (
-            <div className="grid gap-3">
-              {events.map(({ e, d }) => (
-                <EventCard key={e.id} event={e} nextDate={d!} admin={false} onEdit={() => {}} onDelete={() => {}} />
-              ))}
-            </div>
-          )}
-        </section>
-        {/* classes */}
+            {/* events: the same card as a club, four to a row */}
+            <section id="events" className="mx-auto max-w-6xl scroll-mt-28 px-4 py-8 pb-14">
+              <div className="mb-5 flex flex-wrap items-end gap-x-3 gap-y-2">
+                <div className="min-w-0 flex-1">
+                  <h2 className="mb-1 text-xl font-extrabold tracking-tight">Events</h2>
+                  <p className="text-sm text-muted-foreground">What is coming up. Check the date and place before you come.</p>
+                </div>
+                {events.length > 0 && (
+                  <Button variant="outline" size="sm" onClick={() => { void downloadClubsPng(state, 'events') }}>
+                    <Download className="h-4 w-4" aria-hidden /> Download all events (PNG)
+                  </Button>
+                )}
+              </div>
+              {events.length === 0 ? (
+                <div className="rounded-2xl border border-border bg-card p-8 text-center text-sm text-muted-foreground">
+                  <Sparkles className="mx-auto mb-2 h-5 w-5" /> No events are planned right now. Check back soon.
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
+                  {events.map(({ e }) => (
+                    <div key={e.id} className="flex">
+                      <EventGridCard event={e} />
+                    </div>
+                  ))}
+                </div>
+              )}
+            </section>
+          </>
+        )}
+        {tab === 'classes' && (
         <section id="classes" className="mx-auto max-w-6xl scroll-mt-28 px-4 py-8 pb-14">
           <h2 className="mb-1 text-xl font-extrabold tracking-tight">Classes</h2>
           <p className="mb-5 text-sm text-muted-foreground">English classes by age and level. Each class meets once or twice a week.</p>
@@ -314,6 +326,8 @@ export function LandingPage() {
             ))
           )}
         </section>
+
+        )}
 
       </main>
 

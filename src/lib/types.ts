@@ -203,6 +203,7 @@ export interface Absence {
 export interface State {
   v: 1
   _rev: number
+  _updated?: string // ISO time of the last change, shown to the director
   settings: Settings
   levels: Level[]
   classes: ClassEntry[]
@@ -221,6 +222,7 @@ export interface State {
 /* ---- view routing (single-page app) ---- */
 export type View =
   | 'landing'
+  | 'director'
   | 'dashboard'
   | 'home'
   | 'eltaso'
