@@ -1,7 +1,7 @@
 'use client'
 
 import * as React from 'react'
-import { CalendarDays, ChevronRight, Clock, Download, GraduationCap, Lock, Sparkles } from 'lucide-react'
+import { CalendarDays, ChevronRight, Clock, Download, GraduationCap, Sparkles } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { downloadClubsPng } from '@/lib/clubs-sheet'
 import { CalendarExportMenu } from '@/components/calendar-export'
@@ -161,8 +161,8 @@ export function LandingPage() {
               </p>
               <div className="mt-5 grid gap-4 sm:grid-cols-2">
                 {[
-                  { icon: GraduationCap, title: 'Teachers', text: 'Weekly plans, the library and the class calendar', go: () => setView('home'), tone: 'aso-nav-pill', needs: state.settings.teacherLoginRequired !== false },
-                  { icon: Sparkles, title: 'Interns and volunteers', text: 'Clubs, events, free rooms and how to report', go: () => setView('intern-public'), tone: 'bg-gradient-to-br from-emerald-700 to-teal-600 text-white shadow-[0_2px_10px_rgba(4,120,87,.35)]', needs: state.settings.internLoginRequired !== false },
+                  { icon: GraduationCap, title: 'Teachers', text: 'Weekly plans, the library and the class calendar', go: () => setView('home'), tone: 'aso-nav-pill' },
+                  { icon: Sparkles, title: 'Interns and volunteers', text: 'Clubs, events, free rooms and how to report', go: () => setView('intern-public'), tone: 'bg-gradient-to-br from-emerald-700 to-teal-600 text-white shadow-[0_2px_10px_rgba(4,120,87,.35)]' },
                 ].map((t) => (
                   <button
                     key={t.title}
@@ -179,8 +179,7 @@ export function LandingPage() {
                       </span>
                     </span>
                     <span className="inline-flex w-fit items-center gap-1.5 rounded-full bg-white px-4 py-1.5 text-sm font-bold text-neutral-900">
-                      {t.needs && <Lock className="h-3.5 w-3.5" aria-hidden />}
-                      {t.needs ? 'Sign in' : 'Open'}
+                      Open
                       <ChevronRight className="h-4 w-4 transition group-hover:translate-x-0.5" aria-hidden />
                     </span>
                   </button>

@@ -13,15 +13,15 @@ import type { Club, State } from './types'
    grid     a week timetable on top, the cards below it */
 export type ClubsCalendarStyle = 'grid'
 
-type Fonts = { body: string; display: string }
+export type Fonts = { body: string; display: string }
 const RATIO = 1200 / 848 // A4 poster, used when a club has none
-const INK = '#1c1c1e'
-const MUTED = '#6b6b73'
-const BLUE = '#0b5ce6'
-const PAGE = '#f2f2f7'
+export const INK = '#1c1c1e'
+export const MUTED = '#6b6b73'
+export const BLUE = '#0b5ce6'
+export const PAGE = '#f2f2f7'
 const TONES = TONE_RGB
 
-const load = (src: string) =>
+export const load = (src: string) =>
   new Promise<HTMLImageElement | null>((res) => {
     const im = new Image()
     im.crossOrigin = 'anonymous'
@@ -31,7 +31,7 @@ const load = (src: string) =>
   })
 
 /* a club's own icon (the one chosen in the editor and shown on the calendars), drawn as an image */
-async function iconImage(Icon: ElementType, color: string, size: number): Promise<HTMLImageElement | null> {
+export async function iconImage(Icon: ElementType, color: string, size: number): Promise<HTMLImageElement | null> {
   try {
     const host = document.createElement('div')
     const root = createRoot(host)
@@ -50,7 +50,7 @@ async function iconImage(Icon: ElementType, color: string, size: number): Promis
 }
 
 /* the fonts the page itself is using, so the image reads like the site */
-async function siteFonts(): Promise<Fonts> {
+export async function siteFonts(): Promise<Fonts> {
   let body = '-apple-system, "Segoe UI", Inter, Arial, sans-serif'
   let display = 'Georgia, serif'
   try {
@@ -71,7 +71,7 @@ const tracking = (g: CanvasRenderingContext2D, text: string) => {
   return text.toUpperCase().split('').join(' ')
 }
 
-function wrap(g: CanvasRenderingContext2D, text: string, max: number, maxLines: number): string[] {
+export function wrap(g: CanvasRenderingContext2D, text: string, max: number, maxLines: number): string[] {
   const words = text.split(/\s+/)
   const lines: string[] = []
   let cur = ''
@@ -86,7 +86,7 @@ function wrap(g: CanvasRenderingContext2D, text: string, max: number, maxLines: 
   return lines.slice(0, maxLines)
 }
 
-function shadowCard(g: CanvasRenderingContext2D, x: number, y: number, w: number, h: number, r = 30) {
+export function shadowCard(g: CanvasRenderingContext2D, x: number, y: number, w: number, h: number, r = 30) {
   g.save()
   g.shadowColor = 'rgba(16,24,40,.12)'
   g.shadowBlur = 36
@@ -109,7 +109,7 @@ function shadowCard(g: CanvasRenderingContext2D, x: number, y: number, w: number
   g.stroke()
 }
 
-const pill = (g: CanvasRenderingContext2D, text: string, cx: number, y: number, bg: string, fg: string, font: string, h = 50) => {
+export const pill = (g: CanvasRenderingContext2D, text: string, cx: number, y: number, bg: string, fg: string, font: string, h = 50) => {
   g.font = font
   const w = g.measureText(text).width + 44
   g.fillStyle = bg
@@ -222,7 +222,7 @@ function bluePill(g: CanvasRenderingContext2D, f: Fonts, text: string, x: number
   g.textAlign = 'left'
 }
 
-function header(g: CanvasRenderingContext2D, f: Fonts, W: number, logo: HTMLImageElement | null, title: string, sub: string) {
+export function header(g: CanvasRenderingContext2D, f: Fonts, W: number, logo: HTMLImageElement | null, title: string, sub: string) {
   const LOGO = 124
   g.textBaseline = 'top'
   g.font = `800 68px ${f.display}`
@@ -245,7 +245,7 @@ function header(g: CanvasRenderingContext2D, f: Fonts, W: number, logo: HTMLImag
   g.fillText(sub, tx, hy + 90)
 }
 
-const footer = (g: CanvasRenderingContext2D, f: Fonts, W: number, H: number, text: string) => {
+export const footer = (g: CanvasRenderingContext2D, f: Fonts, W: number, H: number, text: string) => {
   g.fillStyle = MUTED
   g.font = `600 24px ${f.body}`
   g.textAlign = 'center'
