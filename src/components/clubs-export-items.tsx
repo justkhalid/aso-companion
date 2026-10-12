@@ -6,7 +6,7 @@ import { DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator } from '@/co
 import { useStore } from '@/lib/store'
 import { openMonthExport } from '@/components/month-export-dialog'
 import { downloadClubsPng } from '@/lib/clubs-sheet'
-import { downloadClubsCalendar, type ClubsCalendarStyle } from '@/lib/clubs-calendar-export'
+import { downloadClubsCalendar } from '@/lib/clubs-calendar-export'
 import type { State } from '@/lib/types'
 
 function Item({ icon: Icon, title, hint, run, done }: { icon: React.ElementType; title: string; hint: string; run: () => Promise<boolean>; done: (ok: boolean) => void }) {
@@ -26,7 +26,7 @@ export function ClubsExportItems({ state }: { state: State }) {
   const toast = useStore((s) => s.toast)
   const admin = useStore((s) => s.admin)
   const done = (ok: boolean) => toast(ok ? 'Image downloaded' : 'Nothing to export', ok)
-  const cal = (style: ClubsCalendarStyle) => () => downloadClubsCalendar(state, style)
+  const cal = (kind: 'clubs' | 'events') => () => downloadClubsCalendar(state, 'grid', kind)
   return (
     <>
       <DropdownMenuSeparator />
@@ -41,7 +41,11 @@ export function ClubsExportItems({ state }: { state: State }) {
           </span>
         </DropdownMenuItem>
       )}
-      <Item icon={Table2} title="Weekly calendar with posters" hint="Week timetable on top, every poster in full below" run={cal('grid')} done={done} />
+      <Item icon={Table2} title="Weekly calendar with posters" hint="Week timetable on top, every poster in full below" run={cal('clubs')} done={done} />
+      <DropdownMenuSeparator />
+      <DropdownMenuLabel className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground">Events with posters</DropdownMenuLabel>
+      <Item icon={LayoutGrid} title="All events on one page" hint="Four per row, posters in full, date, time and place below" run={() => downloadClubsPng(state, 'events')} done={done} />
+      <Item icon={Table2} title="Weekly calendar of events with posters" hint="Week timetable on top, every poster in full below" run={cal('events')} done={done} />
     </>
   )
 }

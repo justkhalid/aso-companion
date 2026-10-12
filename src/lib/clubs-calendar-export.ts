@@ -1,12 +1,13 @@
 import { DAY_FULL, DAY_KEYS } from './constants'
-import { clubDayOrder, fmtTime, hourLabel12, parseSlot } from './app-utils'
+import { fmtTime, hourLabel12, parseSlot } from './app-utils'
+import { posterItems, type PosterItem, type PosterKind } from './poster-items'
 import { TONE_RGB } from './export-canvas'
 import { clubIcon } from './icons'
 import { createElement, type ElementType } from 'react'
 import { flushSync } from 'react-dom'
 import { createRoot } from 'react-dom/client'
 import { Sparkles } from 'lucide-react'
-import type { Club, State } from './types'
+import type { State } from './types'
 
 /* Clubs as a calendar, every poster shown in full (never cropped), dressed like the website:
    iOS grey page, white cards with a faint blue gradient, Playfair headings, the blue pill.
@@ -127,7 +128,7 @@ export const pill = (g: CanvasRenderingContext2D, text: string, cx: number, y: n
 type Card = { h: number; draw: (g: CanvasRenderingContext2D, x: number, y: number) => void }
 
 /* one club: white card, the poster in full, the name, then time and place as pills */
-function makeCard(f: Fonts, scratch: CanvasRenderingContext2D, c: Club, im: HTMLImageElement | null, w: number, withDay = false): Card {
+function makeCard(f: Fonts, scratch: CanvasRenderingContext2D, c: PosterItem, im: HTMLImageElement | null, w: number, withDay = false): Card {
   const P = Math.round(w * 0.045)
   const pw = w - P * 2
   const ph = im ? Math.round((pw * im.height) / im.width) : Math.round(pw * RATIO)
@@ -135,7 +136,7 @@ function makeCard(f: Fonts, scratch: CanvasRenderingContext2D, c: Club, im: HTML
   scratch.font = `800 ${nameSize}px ${f.display}`
   const nameLines = wrap(scratch, c.name, pw, 2)
   const lh = Math.round(nameSize * 1.25)
-  const days = (c.days || []).map((d) => DAY_FULL[d] || d).join(' and ')
+  const days = c.dayText
   const time = fmtTime(c.time) || 'Time to be confirmed'
   const pillFont = `700 ${Math.round(w * 0.05)}px ${f.body}`
   const pillH = Math.round(w * 0.092)
@@ -254,17 +255,18 @@ export const footer = (g: CanvasRenderingContext2D, f: Fonts, W: number, H: numb
   g.textAlign = 'left'
 }
 
-export async function renderClubsCalendar(state: State, style: ClubsCalendarStyle): Promise<HTMLCanvasElement | null> {
-  const clubs = (state.clubs || []).filter((c) => !c.placeholder && (c.days || []).length).sort((a, b) => clubDayOrder(a) - clubDayOrder(b))
+export async function renderClubsCalendar(state: State, style: ClubsCalendarStyle, kind: PosterKind = 'clubs'): Promise<HTMLCanvasElement | null> {
+  void style
+  const clubs = posterItems(state, kind).filter((c) => c.days.length && c.time)
   if (!clubs.length) return null
   const [imgs, logo, f] = await Promise.all([Promise.all(clubs.map((c) => (c.poster ? load(c.poster) : Promise.resolve(null)))), load('/aso-logo.png'), siteFonts()])
-  const imgOf = (c: Club) => imgs[clubs.indexOf(c)]
+  const imgOf = (c: PosterItem) => imgs[clubs.indexOf(c)]
   const scratch = document.createElement('canvas').getContext('2d')!
   const M = 80
   const HEAD = 260
   const FOOT = 90
-  const title = `${state.settings.institute} clubs`
-  const sub = `${clubs.length} clubs · weekly calendar · ${state.settings.year}`
+  const title = `${state.settings.institute} ${kind}`
+  const sub = `${clubs.length} ${kind} · weekly calendar · ${state.settings.year}`
   const foot = `${state.settings.institute} · ${state.settings.year}`
   const days = DAY_KEYS.filter((d) => clubs.some((c) => c.days.includes(d)))
   const byDay = (d: string) => clubs.filter((c) => c.days.includes(d)).sort((a, b) => parseSlot(a.time).mins - parseSlot(b.time).mins)
@@ -412,15 +414,15 @@ export async function renderClubsCalendar(state: State, style: ClubsCalendarStyl
   return canvas
 }
 
-export async function downloadClubsCalendar(state: State, style: ClubsCalendarStyle): Promise<boolean> {
-  const canvas = await renderClubsCalendar(state, style)
+export async function downloadClubsCalendar(state: State, style: ClubsCalendarStyle, kind: PosterKind = 'clubs'): Promise<boolean> {
+  const canvas = await renderClubsCalendar(state, style, kind)
   if (!canvas) return false
   const blob: Blob | null = await new Promise((res) => canvas.toBlob(res, 'image/png'))
   if (!blob) return false
   const url = URL.createObjectURL(blob)
   const a = document.createElement('a')
   a.href = url
-  a.download = `ASO_Clubs_Calendar_${style}.png`
+  a.download = `ASO_${kind === 'clubs' ? 'Clubs' : 'Events'}_Calendar_${style}.png`
   a.click()
   setTimeout(() => URL.revokeObjectURL(url), 5000)
   return true
