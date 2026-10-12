@@ -7,6 +7,7 @@ import { DAY_KEYS, ROOM_UNAVAILABLE } from '@/lib/constants'
 import { PUBLIC_CLASS_TONE, PUBLIC_CLUB_TONE, PUBLIC_EVENT_TONE } from '@/lib/calendar-items'
 import { classStatusOn, clubStatusOn, eventStatusOn, isOnceEvent, isoOf, roomOptionsFor, fmt12Min, hourLabel12 } from '@/lib/app-utils'
 import { clubIcon } from '@/lib/icons'
+import { closedHoliday } from '@/lib/holidays'
 import { cn } from '@/lib/utils'
 import type { State } from '@/lib/types'
 
@@ -205,12 +206,13 @@ export function RoomsPage({ embedded = false, focus, only = false }: { embedded?
     const date = new Date(monday)
     date.setDate(date.getDate() + i)
     const rowsForDay = shown.map((room) => {
-      const closed = !!ROOM_UNAVAILABLE[room]?.includes(day)
+      const holiday = closedHoliday(iso(date))
+      const closed = !!ROOM_UNAVAILABLE[room]?.includes(day) || !!holiday
       const list = visible.filter((b) => b.room === room && b.day === day)
       const lanes = withLanes(list)
       const cancelledHere = cancelledAll.filter((b) => b.room === room && b.day === day)
       const laneCount = Math.max(1, ...lanes.map((l) => l.lane + 1))
-      return { room, closed, lanes, cancelledHere, free: closed ? [] : freeWindows(list), height: laneCount * CHIP_H + (laneCount + 1) * 4 }
+      return { room, closed, holiday: holiday?.name, lanes, cancelledHere, free: closed ? [] : freeWindows(list), height: laneCount * CHIP_H + (laneCount + 1) * 4 }
     })
     return { day, date, isToday: iso(date) === iso(now), rows: rowsForDay }
   })
@@ -304,7 +306,7 @@ export function RoomsPage({ embedded = false, focus, only = false }: { embedded?
                             className="absolute inset-1 flex items-center justify-center rounded-lg text-[11px] font-semibold text-muted-foreground"
                             style={{ backgroundImage: 'repeating-linear-gradient(135deg, transparent 0 7px, rgba(120,120,128,0.16) 7px 8px)' }}
                           >
-                            Not available
+                            {r.holiday ? `Space closed · ${r.holiday}` : 'Not available'}
                           </div>
                         )}
 

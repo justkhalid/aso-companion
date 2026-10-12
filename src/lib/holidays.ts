@@ -16,7 +16,23 @@ const ISLAMIC: Record<number, { ramadan: string; fitr: string; adha: string; new
   2028: { ramadan: '2028-01-28', fitr: '2028-02-26', adha: '2028-05-05', newYear: '2028-05-26', mawlid: '2028-08-04' },
 }
 
+const cache = new Map<number, Map<string, Holiday[]>>()
 export function holidaysOf(year: number): Map<string, Holiday[]> {
+  const hit = cache.get(year)
+  if (hit) return hit
+  const made = buildHolidays(year)
+  cache.set(year, made)
+  return made
+}
+
+/** the public holiday that closes the space on this date (YYYY-MM-DD), if any */
+export function closedHoliday(isoDate: string): Holiday | undefined {
+  const y = Number(isoDate.slice(0, 4))
+  if (!y) return undefined
+  return (holidaysOf(y).get(isoDate) || []).find((h) => h.closed)
+}
+
+function buildHolidays(year: number): Map<string, Holiday[]> {
   const out = new Map<string, Holiday[]>()
   const add = (date: string, name: string, closed = false, moon = false) => out.set(date, [...(out.get(date) || []), { name, closed, moon }])
   const nextDay = (date: string) => {

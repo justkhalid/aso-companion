@@ -11,6 +11,7 @@ import { SiteFooter } from './site-footer'
 import { ThemeToggle } from './theme-toggle'
 import { ClubExpandOverlay, ClubGridCard, EventGridCard } from './pages/clubs-page'
 import { MonthCalendarImage } from './month-calendar-image'
+import { CalendarSwitch, type CalTab } from './calendar-switch'
 import { useStore } from '@/lib/store'
 import { BANDS, DAY_FULL, DAY_KEYS, FILL_GRID } from '@/lib/constants'
 import { mondayOfWeek, nextOccurrence, toneClassForClub, fmtTime } from '@/lib/app-utils'
@@ -44,7 +45,7 @@ export function LandingPage() {
   const setPubView = useStore((s) => s.setPubView)
   const [expanded, setExpanded] = React.useState<Club | null>(null)
   const [calView, setCalView] = React.useState<CalendarView>('grid')
-  const [tab, setTab] = React.useState<'cluev' | 'classes'>('cluev')
+  const [tab, setTab] = React.useState<CalTab>('cluev')
   React.useEffect(() => { setCalView(readCalView()) }, [])
   React.useEffect(() => { writeCalView(calView) }, [calView])
 
@@ -147,37 +148,22 @@ export function LandingPage() {
 
         {/* the way in for teachers, interns and volunteers (the admin can switch it off in Settings) */}
         {state.settings.showAccessBox !== false && (
-          <section aria-labelledby="access-title" className="mx-auto max-w-6xl px-4 pb-2">
-            <div className="rounded-3xl border border-primary/25 bg-primary/[0.06] p-5 shadow-sm sm:p-7">
-              <h2 id="access-title" className="text-xl font-extrabold tracking-tight sm:text-2xl">Teacher, intern or volunteer?</h2>
-              <p className="mt-1 text-sm text-muted-foreground sm:text-base">
-                {state.settings.teacherLoginRequired === false && state.settings.internLoginRequired === false
-                  ? 'Open your own page.'
-                  : 'Sign in to your own page with the access code you were given.'}
-              </p>
-              <div className="mt-5 grid gap-4 sm:grid-cols-2">
+          <section aria-labelledby="access-title" className="mx-auto max-w-6xl px-4 pb-1">
+            <div className="flex flex-wrap items-center justify-center gap-x-4 gap-y-2 rounded-2xl border border-primary/25 bg-primary/[0.06] px-4 py-3">
+              <h2 id="access-title" className="text-sm font-extrabold tracking-tight sm:text-base">Teacher, intern or volunteer?</h2>
+              <div className="flex flex-wrap items-center justify-center gap-2">
                 {[
-                  { icon: GraduationCap, title: 'Teachers', text: 'Weekly plans, the library and the class calendar', go: () => setView('home'), tone: 'aso-nav-pill' },
-                  { icon: Sparkles, title: 'Interns and volunteers', text: 'Clubs, events, free rooms and how to report', go: () => setView('intern-public'), tone: 'bg-gradient-to-br from-emerald-700 to-teal-600 text-white shadow-[0_2px_10px_rgba(4,120,87,.35)]' },
+                  { icon: GraduationCap, title: 'Teachers', go: () => setView('home'), tone: 'aso-nav-pill' },
+                  { icon: Sparkles, title: 'Interns and volunteers', go: () => setView('intern-public'), tone: 'bg-gradient-to-br from-emerald-700 to-teal-600 text-white shadow-[0_2px_10px_rgba(4,120,87,.3)]' },
                 ].map((t) => (
                   <button
                     key={t.title}
                     onClick={t.go}
-                    className={`group flex min-h-[120px] flex-col justify-between gap-4 rounded-2xl p-5 text-left transition hover:brightness-110 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-ring/50 active:scale-[0.99] ${t.tone}`}
+                    className={`group inline-flex items-center gap-2 rounded-full px-4 py-2 text-sm font-bold transition hover:brightness-110 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-ring/50 active:scale-[0.99] ${t.tone}`}
                   >
-                    <span className="flex items-start gap-3.5">
-                      <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-white/20">
-                        <t.icon className="h-6 w-6" aria-hidden />
-                      </span>
-                      <span className="min-w-0">
-                        <span className="block text-lg font-extrabold leading-tight">{t.title}</span>
-                        <span className="mt-1 block text-sm leading-snug text-white/90">{t.text}</span>
-                      </span>
-                    </span>
-                    <span className="inline-flex w-fit items-center gap-1.5 rounded-full bg-white px-4 py-1.5 text-sm font-bold text-neutral-900">
-                      Open
-                      <ChevronRight className="h-4 w-4 transition group-hover:translate-x-0.5" aria-hidden />
-                    </span>
+                    <t.icon className="h-4 w-4" aria-hidden />
+                    {t.title}
+                    <ChevronRight className="h-4 w-4 transition group-hover:translate-x-0.5" aria-hidden />
                   </button>
                 ))}
               </div>
@@ -188,18 +174,7 @@ export function LandingPage() {
         {/* the calendar follows: a switch between clubs and events, and the classes */}
         <section id="calendar" className="mx-auto max-w-6xl scroll-mt-28 px-4 py-4">
           <div className="mb-4 flex flex-wrap items-center justify-center gap-3">
-            <div className="inline-flex rounded-full bg-secondary p-1" role="group" aria-label="What to show">
-              {([['cluev', 'Clubs and events'], ['classes', 'Classes']] as const).map(([k, label]) => (
-                <button
-                  key={k}
-                  onClick={() => setTab(k)}
-                  aria-pressed={tab === k}
-                  className={'rounded-full px-5 py-2 text-sm font-bold transition ' + (tab === k ? 'aso-nav-pill shadow-sm' : 'text-foreground/80 hover:bg-background/60')}
-                >
-                  {label}
-                </button>
-              ))}
-            </div>
+            <CalendarSwitch tab={tab} onChange={setTab} />
             <CalendarExportMenu
               buildOpts={() => ({
                 title: state.settings.institute + ' - Weekly schedule',

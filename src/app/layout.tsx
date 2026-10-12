@@ -4,6 +4,7 @@ import "./globals.css";
 import { Toaster } from "@/components/ui/toaster";
 import { ThemeProvider } from "@/components/theme-provider";
 import { CursorGlow } from "@/components/cursor-glow";
+import { HoverMotion } from "@/components/hover-motion";
 import { MonthExportHost } from "@/components/month-export-dialog";
 
 const interSans = Inter({
@@ -68,6 +69,7 @@ export default function RootLayout({
           disableTransitionOnChange
         >
           <CursorGlow />
+          <HoverMotion />
           <MonthExportHost />
           {children}
           <Toaster />

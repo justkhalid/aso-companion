@@ -1,5 +1,6 @@
 /* ASO Companion - pure helper functions (no React) */
 import { DAY_KEYS, DAY_FULL, ROOM_OPTIONS } from './constants'
+import { closedHoliday } from './holidays'
 import type { State, Level, EventEntry, ClassEntry, Absence, TeamMember } from './types'
 
 export function parseISO(iso: string): Date {
@@ -388,6 +389,12 @@ export type ClassStatus =
   | { kind: 'cancelled'; absence: Absence }
   | { kind: 'cover'; absence: Absence; cover: string }
 
+/* a public holiday closes the space: everything that day counts as cancelled, the reason is the holiday's name */
+function holidayAbsence(iso: string): Absence | undefined {
+  const h = closedHoliday(iso)
+  return h ? ({ id: 'holiday-' + iso, from: iso, to: iso, reason: h.name } as unknown as Absence) : undefined
+}
+
 function statusFrom(a: Absence | undefined): ClassStatus {
   if (!a) return { kind: 'normal' }
   return a.cover ? { kind: 'cover', absence: a, cover: a.cover } : { kind: 'cancelled', absence: a }
@@ -396,6 +403,7 @@ const within = (a: Absence, iso: string) => iso >= a.from && iso <= a.to
 
 export function classStatusOn(state: Pick<State, 'absences'>, c: ClassEntry, iso: string): ClassStatus {
   return statusFrom(
+    holidayAbsence(iso) ||
     (state.absences || []).find(
       (a) => (!a.kind || a.kind === 'teacher') && a.teacher && a.teacher === c.teacher && (!a.classId || a.classId === c.id) && within(a, iso),
     ),
@@ -403,11 +411,11 @@ export function classStatusOn(state: Pick<State, 'absences'>, c: ClassEntry, iso
 }
 
 export function clubStatusOn(state: Pick<State, 'absences'>, clubId: string, iso: string): ClassStatus {
-  return statusFrom((state.absences || []).find((a) => a.kind === 'club' && a.clubId === clubId && within(a, iso)))
+  return statusFrom(holidayAbsence(iso) || (state.absences || []).find((a) => a.kind === 'club' && a.clubId === clubId && within(a, iso)))
 }
 
 export function eventStatusOn(state: Pick<State, 'absences'>, eventId: string, iso: string): ClassStatus {
-  return statusFrom((state.absences || []).find((a) => a.kind === 'event' && a.eventId === eventId && within(a, iso)))
+  return statusFrom(holidayAbsence(iso) || (state.absences || []).find((a) => a.kind === 'event' && a.eventId === eventId && within(a, iso)))
 }
 
 /* split a weekly pattern's days into normal days, cancelled days and covered days for one week */
