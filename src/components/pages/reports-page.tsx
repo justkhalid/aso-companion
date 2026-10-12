@@ -3,7 +3,7 @@
 import * as React from 'react'
 import { ExternalLink, Copy, Camera, FileText, CalendarDays, Pencil, Users, CheckSquare, LayoutGrid, MessageSquare } from 'lucide-react'
 import { useStore } from '@/lib/store'
-import { REPORT_STEPS, REPORT_SYSTEM_URL, REPORT_EXAMPLE, PHOTO_FORM_URL } from '@/lib/constants'
+import { REPORT_STEPS, REPORT_SYSTEM_URL, REPORT_EXAMPLE, REPORT_EXAMPLE_CLUB, PHOTO_FORM_URL } from '@/lib/constants'
 import { PageHead, Chip } from '@/components/ui-bits'
 import { Button } from '@/components/ui/button'
 
@@ -103,19 +103,19 @@ export function ReportsPage({ embedded = false }: { embedded?: boolean }) {
       <div className="mb-2 mt-6 text-[15px] font-extrabold tracking-tight">A filled example</div>
       <div className="rounded-2xl border border-border bg-card p-5">
         <div className="mb-2 flex items-center gap-2">
-          <div className="font-bold">Kids · Beginners · W3 Colors · filed on the reporting site</div>
-          <Chip tone="muted">a class report, exactly as the form wants it</Chip>
+          <div className="font-bold">{embedded ? 'Public Speaking Club · a club session · filed on the reporting site' : 'Kids · Beginners · W3 Colors · filed on the reporting site'}</div>
+          <Chip tone="muted">{embedded ? 'a club report, exactly as the form wants it' : 'a class report, exactly as the form wants it'}</Chip>
           <Button
             variant="outline"
             size="sm"
             className="ml-auto"
-            onClick={() => navigator.clipboard?.writeText(REPORT_EXAMPLE).then(() => toast('Example copied'))}
+            onClick={() => navigator.clipboard?.writeText(embedded ? REPORT_EXAMPLE_CLUB : REPORT_EXAMPLE).then(() => toast('Example copied'))}
           >
             <Copy className="h-3.5 w-3.5" /> Copy example
           </Button>
         </div>
         <pre className="overflow-x-auto scroll-thin rounded-lg bg-secondary p-4 text-[12.5px] leading-relaxed whitespace-pre-wrap font-mono">
-          {REPORT_EXAMPLE}
+          {embedded ? REPORT_EXAMPLE_CLUB : REPORT_EXAMPLE}
         </pre>
       </div>
     </div>
