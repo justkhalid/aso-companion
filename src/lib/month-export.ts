@@ -1,14 +1,12 @@
 import { DAY_FULL, DAY_KEYS } from './constants'
-import { addDays, clubStatusOn, eventStatusOn, fmtEventWhen, fmtTime, isOnceEvent, isoOf, parseISO, parseSlot } from './app-utils'
+import { addDays, clubStatusOn, eventStatusOn, fmtTime, isOnceEvent, isoOf, parseISO, parseSlot } from './app-utils'
 import { PUBLIC_CLUB_TONE, PUBLIC_EVENT_TONE } from './calendar-items'
-import { clubIcon } from './icons'
 import { TONE_RGB } from './export-canvas'
-import { BLUE, INK, MUTED, PAGE, footer, header as drawHeader, iconImage, load, shadowCard, siteFonts, wrap, type Fonts } from './clubs-calendar-export'
-import { Sparkles } from 'lucide-react'
-import type { Club, EventEntry, State } from './types'
+import { BLUE, INK, MUTED, PAGE, footer, load, shadowCard, siteFonts, wrap } from './clubs-calendar-export'
+import type { State } from './types'
 
-/* A month of clubs and events as one picture: the days as a calendar grid in the site's style, then the
-   events of the month and the clubs underneath. Clubs are purple, events gold, cancelled sessions grey. */
+/* A month of clubs and events as one calendar picture in the site's style, with big readable names and times.
+   Clubs are purple, events gold, cancelled sessions grey. */
 
 export interface MonthOptions {
   year: number
@@ -88,33 +86,15 @@ export const monthLabel = (year: number, month: number) => `${MONTHS[month]} ${y
 export async function renderMonth(state: State, o: MonthOptions): Promise<HTMLCanvasElement> {
   const occ = monthOccurrences(state, o)
   const [logo, f] = await Promise.all([load('/aso-logo.png'), siteFonts()])
-  const icons = new Map<string, HTMLImageElement | null>()
-  for (const [key, color] of [['club', TONES.club.txt], ['event', TONES.event.txt], ['off', TONES.off.txt]] as const) {
-    for (const list of occ.values()) {
-      for (const x of list) {
-        const k = `${x.kind}:${x.icon || ''}:${x.off ? 'off' : key}`
-        if (!icons.has(k)) icons.set(k, null)
-      }
-    }
-    void color
-  }
-  await Promise.all(
-    Array.from(icons.keys()).map(async (k) => {
-      const [kind, icon, off] = k.split(':')
-      const Icon = clubIcon(icon || undefined)?.Icon || Sparkles
-      const color = off === 'off' ? TONES.off.txt : kind === 'event' ? TONES.event.txt : TONES.club.txt
-      icons.set(k, await iconImage(Icon, color, 40))
-    }),
-  )
-
   const scratch = document.createElement('canvas').getContext('2d')!
-  const M = 80
-  const CW = 330
+  const M = 70
+  const CW = 370
   const W = M * 2 + CW * 7
-  const HEAD = 270
-  const DAYH = 64
-  const CHIP = 74
-  const GAPC = 8
+  const HEAD = 330
+  const DAYH = 70
+  const GAP = 12
+  const NAME = 36 // session names are big on purpose: this is printed and read from a distance
+  const TIME = 30
   const first = new Date(o.year, o.month, 1)
   const lead = dayIdx(first)
   const daysInMonth = new Date(o.year, o.month + 1, 0).getDate()
@@ -124,166 +104,117 @@ export async function renderMonth(state: State, o: MonthOptions): Promise<HTMLCa
       const day = w * 7 + i - lead + 1
       return day >= 1 && day <= daysInMonth ? new Date(o.year, o.month, day) : null
     })
-  const rowH = (w: number) => Math.max(190, DAYH + Math.max(0, ...cellsOf(w).map((d) => (d ? (occ.get(isoOf(d)) || []).length : 0))) * (CHIP + GAPC) + 16)
-  const rows = Array.from({ length: weeks }, (_, w) => rowH(w))
-  const WD = 70
-  const gridH = WD + rows.reduce((a, b) => a + b, 0) + 24
 
-  /* the lists under the grid */
-  const eventsList: { iso: string; e: EventEntry }[] = []
-  if (o.events) {
-    const seen = new Set<string>()
-    for (const [iso, list] of occ) for (const x of list) if (x.kind === 'event' && !seen.has(x.title)) {
-      seen.add(x.title)
-      const e = (state.events || []).find((v) => v.title === x.title)
-      if (e) eventsList.push({ iso, e })
-    }
-    eventsList.sort((a, b) => a.iso.localeCompare(b.iso))
+  /* every session becomes a tinted block: centred name (up to 3 lines) and the time under it */
+  scratch.font = `800 ${NAME}px ${f.body}`
+  const blockOf = (x: Occ) => {
+    const all = wrap(scratch, x.title, CW - 56, 99)
+    const lines = all.slice(0, 3)
+    if (all.length > 3) lines[2] = fit(scratch, lines[2] + '...', CW - 56)
+    return { x, lines, h: 26 + lines.length * (NAME + 6) + (x.off || x.time ? TIME + 20 : 8) }
   }
-  const clubsList: Club[] = o.clubs ? (state.clubs || []).filter((c) => !c.placeholder && Array.from(occ.values()).some((l) => l.some((x) => x.kind === 'club' && x.title === c.name))) : []
-  const LROW = 118
-  const hasBoth = o.clubs && o.events
-  const colW = hasBoth ? (W - M * 2 - 40) / 2 : W - M * 2
-  const listRows = Math.max(eventsList.length, clubsList.length)
-  const listH = listRows ? 90 + listRows * LROW + 24 : 0
-  void scratch
+  const cellBlocks = (d: Date | null) => (d ? (occ.get(isoOf(d)) || []).map(blockOf) : [])
+  const rows = Array.from({ length: weeks }, (_, w) =>
+    Math.max(230, DAYH + Math.max(0, ...cellsOf(w).map((d) => cellBlocks(d).reduce((n, bl) => n + bl.h + GAP, 0))) + 14),
+  )
+  const WD = 84
+  const gridH = WD + rows.reduce((a, b) => a + b, 0) + 24
+  const H = HEAD + gridH + 130
 
-  const H = HEAD + gridH + (listH ? 60 + listH : 0) + 120
   const canvas = document.createElement('canvas')
   canvas.width = W
   canvas.height = H
   const g = canvas.getContext('2d')!
   g.fillStyle = PAGE
   g.fillRect(0, 0, W, H)
-  const nSessions = Array.from(occ.values()).reduce((n, l) => n + l.length, 0)
   const what = o.clubs && o.events ? 'Clubs and events' : o.clubs ? 'Clubs' : 'Events'
-  drawHeader(g, f, W, logo, `${what} · ${monthLabel(o.year, o.month)}`, `${state.settings.institute} · ${nSessions} ${nSessions === 1 ? 'session' : 'sessions'}`)
-  footer(g, f, W, H, `${state.settings.institute} · ${monthLabel(o.year, o.month)}`)
 
-  /* grid card */
-  shadowCard(g, M, HEAD, W - M * 2, gridH, 36)
-  const gx = M + 8
+  /* header: logo and the month in big serif letters, what it shows underneath */
+  const title = `${MONTHS[o.month]} ${o.year}`
+  g.textBaseline = 'top'
+  g.font = `800 120px ${f.display}`
+  const tw = g.measureText(title).width
+  const LOGO = 170
+  const startX = (W - (LOGO + 40 + tw)) / 2
+  if (logo) {
+    const k = Math.min(LOGO / logo.width, LOGO / logo.height)
+    g.drawImage(logo, startX + (LOGO - logo.width * k) / 2, 70 + (LOGO - logo.height * k) / 2, logo.width * k, logo.height * k)
+  }
+  g.fillStyle = INK
+  g.fillText(title, startX + LOGO + 40, 52)
+  g.fillStyle = MUTED
+  g.font = `600 40px ${f.body}`
+  g.fillText(`${what} · ${state.settings.institute}`, startX + LOGO + 44, 196)
+  footer(g, f, W, H, `${state.settings.institute} · ${title}`)
+
+  /* the calendar card */
+  shadowCard(g, M, HEAD, W - M * 2, gridH, 40)
+  const gx = M + 10
   g.textBaseline = 'middle'
   g.textAlign = 'center'
   DAY_KEYS.forEach((d, i) => {
-    g.fillStyle = MUTED
-    g.font = `800 24px ${f.body}`
-    g.fillText((DAY_FULL[d] || d).toUpperCase().split('').join(' '), gx + i * CW + CW / 2, HEAD + WD / 2)
+    g.fillStyle = BLUE
+    g.font = `800 32px ${f.display}`
+    g.fillText(DAY_FULL[d] || d, gx + i * CW + CW / 2, HEAD + WD / 2)
   })
   g.textAlign = 'left'
   let y = HEAD + WD
   const todayIso = isoOf(new Date())
   for (let w = 0; w < weeks; w++) {
-    g.strokeStyle = 'rgba(60,60,67,.12)'
+    g.strokeStyle = 'rgba(60,60,67,.14)'
     g.lineWidth = 2
     g.beginPath()
-    g.moveTo(M + 20, y)
-    g.lineTo(W - M - 20, y)
+    g.moveTo(M + 24, y)
+    g.lineTo(W - M - 24, y)
     g.stroke()
     cellsOf(w).forEach((d, i) => {
       const x = gx + i * CW
       if (i > 0) {
         g.beginPath()
-        g.moveTo(x, y + 12)
-        g.lineTo(x, y + rows[w] - 12)
+        g.moveTo(x, y + 14)
+        g.lineTo(x, y + rows[w] - 14)
         g.stroke()
       }
       if (!d) return
       const iso = isoOf(d)
       const isToday = iso === todayIso
+      g.textAlign = 'center'
+      g.textBaseline = 'middle'
       if (isToday) {
         g.fillStyle = BLUE
         g.beginPath()
-        g.roundRect(x + 16, y + 12, 48, 40, 20)
+        g.roundRect(x + 14, y + 12, 56, 46, 23)
         g.fill()
       }
-      g.fillStyle = isToday ? '#ffffff' : INK
-      g.font = `800 26px ${f.body}`
-      g.textAlign = 'center'
-      g.fillText(String(d.getDate()), x + 40, y + 33)
-      g.textAlign = 'left'
+      g.fillStyle = isToday ? '#ffffff' : MUTED
+      g.font = `800 30px ${f.body}`
+      g.fillText(String(d.getDate()), x + 42, y + 36)
       let cy = y + DAYH
-      for (const x2 of occ.get(iso) || []) {
-        const tone = x2.off ? TONES.off : x2.kind === 'event' ? TONES.event : TONES.club
+      for (const bl of cellBlocks(d)) {
+        const tone = bl.x.off ? TONES.off : bl.x.kind === 'event' ? TONES.event : TONES.club
         g.fillStyle = tone.bg
         g.beginPath()
-        g.roundRect(x + 10, cy, CW - 20, CHIP, 14)
+        g.roundRect(x + 12, cy, CW - 24, bl.h, 18)
         g.fill()
         g.strokeStyle = tone.line
+        g.lineWidth = 2
         g.beginPath()
-        g.roundRect(x + 10, cy, CW - 20, CHIP, 14)
+        g.roundRect(x + 12, cy, CW - 24, bl.h, 18)
         g.stroke()
-        const ic = icons.get(`${x2.kind}:${x2.icon || ''}:${x2.off ? 'off' : x2.kind}`)
-        if (ic) g.drawImage(ic, x + 22, cy + CHIP / 2 - 13, 26, 26)
-        g.save()
-        g.beginPath()
-        g.rect(x + 56, cy, CW - 70, CHIP)
-        g.clip()
         g.fillStyle = tone.txt
-        g.font = `800 22px ${f.body}`
-        g.fillText(fit(g, x2.title, CW - 76), x + 56, cy + 27)
-        g.font = `600 19px ${f.body}`
-        g.fillText(x2.off ? 'Cancelled' : fmtTime(x2.time) || '', x + 56, cy + 53)
-        g.restore()
-        cy += CHIP + GAPC
+        g.font = `800 ${NAME}px ${f.body}`
+        g.textBaseline = 'top'
+        bl.lines.forEach((l, k) => g.fillText(l, x + CW / 2, cy + 16 + k * (NAME + 6)))
+        g.font = `700 ${TIME}px ${f.body}`
+        const ty = cy + 16 + bl.lines.length * (NAME + 6) + 2
+        if (bl.x.off) g.fillText('Cancelled', x + CW / 2, ty)
+        else if (bl.x.time) g.fillText(fmtTime(bl.x.time), x + CW / 2, ty)
+        g.textBaseline = 'middle'
+        cy += bl.h + GAP
       }
+      g.textAlign = 'left'
     })
     y += rows[w]
-  }
-
-  /* lists */
-  if (listH) {
-    let ly = HEAD + gridH + 60
-    const drawList = (title: string, x: number, items: { head: string; name: string; sub: string; place?: string; tone: typeof TONES.club }[]) => {
-      shadowCard(g, x, ly, colW, listH, 36)
-      g.fillStyle = INK
-      g.font = `800 36px ${f.display}`
-      g.textBaseline = 'top'
-      g.textAlign = 'left'
-      g.fillText(title, x + 36, ly + 30)
-      items.forEach((it, n) => {
-        const iy = ly + 90 + n * LROW
-        g.fillStyle = it.tone.bg
-        g.beginPath()
-        g.roundRect(x + 30, iy + 6, 150, 90, 20)
-        g.fill()
-        g.fillStyle = it.tone.txt
-        g.font = `800 24px ${f.body}`
-        g.textAlign = 'center'
-        g.textBaseline = 'middle'
-        wrap(g, it.head, 130, 2).forEach((l, k, a) => g.fillText(l, x + 105, iy + 51 + (k - (a.length - 1) / 2) * 28))
-        g.textAlign = 'left'
-        g.textBaseline = 'top'
-        g.fillStyle = INK
-        g.font = `800 28px ${f.body}`
-        g.fillText(wrap(g, it.name, colW - 260, 1)[0] || '', x + 204, iy + 8, colW - 240)
-        g.fillStyle = MUTED
-        g.font = `600 23px ${f.body}`
-        g.fillText(it.sub, x + 204, iy + 46, colW - 240)
-        if (it.place) {
-          g.fillStyle = INK
-          g.font = `800 23px ${f.body}`
-          g.fillText(it.place, x + 204, iy + 76, colW - 240)
-        }
-      })
-    }
-    let cx = M
-    if (o.events) {
-      drawList('Events this month', cx, eventsList.map(({ iso, e }) => {
-        const d = parseISO(iso)
-        return { head: `${DAY_FULL[DAY_KEYS[dayIdx(d)]]?.slice(0, 3)} ${d.getDate()}`, name: e.title, sub: [isOnceEvent(e) ? '' : fmtEventWhen(e), fmtTime(e.time)].filter(Boolean).join(' · '), place: e.place, tone: TONES.event }
-      }))
-      cx += colW + 40
-    }
-    if (o.clubs) {
-      drawList('Clubs', hasBoth ? cx : M, clubsList.map((c) => ({
-        head: (c.days || []).map((d) => (DAY_FULL[d] || d).slice(0, 3)).join(' '),
-        name: c.name,
-        sub: fmtTime(c.time),
-        place: c.room,
-        tone: TONES.club,
-      })))
-    }
   }
   return canvas
 }

@@ -70,7 +70,7 @@ export function MonthExportHost() {
       <DialogContent className="max-h-[92vh] overflow-y-auto sm:max-w-3xl">
         <DialogHeader>
           <DialogTitle>Monthly calendar</DialogTitle>
-          <DialogDescription>Clubs and events for one month as a picture: a calendar grid, then the events and clubs listed under it.</DialogDescription>
+          <DialogDescription>Clubs and events for one month as a calendar picture with big, readable names and times.</DialogDescription>
         </DialogHeader>
         <div className="flex flex-wrap items-center gap-3">
           <div className="flex items-center gap-1 rounded-full border border-border bg-secondary/60 p-1">

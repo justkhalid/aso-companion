@@ -35,7 +35,7 @@ export function ClubsExportItems({ state }: { state: State }) {
         <CalendarDays className="mt-0.5 h-4 w-4" aria-hidden />
         <span className="flex flex-col">
           <span className="text-sm font-semibold">Monthly calendar (clubs and events)</span>
-          <span className="text-xs text-muted-foreground">Pick a month; a calendar grid with the lists under it</span>
+          <span className="text-xs text-muted-foreground">Pick a month; a calendar with big, readable names</span>
         </span>
       </DropdownMenuItem>
       <Item icon={Table2} title="Weekly calendar with posters" hint="Week timetable on top, every poster in full below" run={cal('grid')} done={done} />
