@@ -182,7 +182,6 @@ export function LandingPage() {
             <div key="cluev" className="aso-tab-in"><MonthCalendarImage clubs events classes={false} stepper={false} /></div>
           ) : (
             <div key="classes" className="aso-tab-in">
-              <p className="mb-3 text-center text-sm text-muted-foreground">English classes this week.</p>
               <div className="rounded-2xl bg-card">
                 {calView === 'grid' ? (
                   <WeeklyGrid items={calItems} legend={calLegend} weekMonday={monday} emptyMessage="Nothing scheduled yet" />

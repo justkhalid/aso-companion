@@ -8,12 +8,15 @@ import { PageHead, Chip } from '@/components/ui-bits'
 import { peopleOf, rolesOf, fmtAbsenceRange, isoOf, nextOccurrence, termStatus, classStatusOn, clubStatusOn, eventStatusOn, isOnceEvent, fmtTime, parseSlot } from '@/lib/app-utils'
 import { Button } from '@/components/ui/button'
 import { openQuickAdd } from '@/components/admin/quick-add'
+import { CalendarSwitch, type CalTab } from '@/components/calendar-switch'
+import { MonthCalendarImage } from '@/components/month-calendar-image'
 import type { View } from '@/lib/types'
 
 /* the admin's landing page: what needs attention today, today's sessions, and the way to every list */
 export function DashboardPage() {
   const state = useStore((s) => s.state)
   const setView = useStore((s) => s.setView)
+  const [calTab, setCalTab] = React.useState<CalTab>('cluev')
 
   const now = new Date()
   const today = isoOf(now)
@@ -125,6 +128,17 @@ export function DashboardPage() {
             ))}
           </ul>
         )}
+      </section>
+
+      {/* the new designed calendar, as the public sees it, with month arrows and a download */}
+      <section className="mt-4 rounded-2xl border border-border bg-card p-4 shadow-sm">
+        <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
+          <h2 className="text-[15px] font-extrabold tracking-tight">Calendar</h2>
+          <CalendarSwitch tab={calTab} onChange={setCalTab} />
+        </div>
+        <div key={calTab} className="aso-tab-in">
+          {calTab === 'cluev' ? <MonthCalendarImage clubs events classes={false} /> : <MonthCalendarImage clubs={false} events={false} classes />}
+        </div>
       </section>
 
       <nav aria-label="Sections" className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
