@@ -12,7 +12,7 @@ import { PUBLIC_CLASS_TONE, PUBLIC_CLUB_TONE, PUBLIC_EVENT_TONE, publicClassItem
 import { mondayOfWeek } from '@/lib/app-utils'
 import { Button } from '@/components/ui/button'
 
-/* /director: two things only, written plainly. When the information was last updated, the calendar of everything,
+/* /calendar: two things only, written plainly. When the information was last updated, the calendar of everything,
    and which rooms are free. No sign-in, nothing to click except the arrows. */
 
 function ago(then: Date, now: Date): string {
@@ -57,8 +57,8 @@ export function DirectorPage() {
       </header>
 
       <main className="mx-auto w-full max-w-5xl flex-1 px-4 py-8 text-[17px]">
-        <h1 className="font-display text-3xl font-extrabold tracking-tight sm:text-4xl">Overview for the Director</h1>
-        <p className="mt-2 text-muted-foreground">Everything that happens at the American Space, on one page. There is nothing to sign in to. Use the arrows to move between weeks.</p>
+        <h1 className="font-display text-3xl font-extrabold tracking-tight sm:text-4xl">Calendar</h1>
+        <p className="mt-2 text-muted-foreground">Everything that happens at the American Space, on one page. Use the arrows to move between weeks.</p>
 
         {/* when it was last updated */}
         <div className="mt-6 flex items-start gap-4 rounded-2xl border border-primary/25 bg-primary/5 p-5">

@@ -90,7 +90,7 @@ export function AppShell({ initialView }: { initialView?: View }) {
 
   const ev: View = computeView(view, admin, pubView)
 
-  /* /director: the director's page, no sign-in, nothing to click but the arrows */
+  /* /calendar: calendar and free rooms on one plain page, no sign-in, nothing to click but the arrows */
   if (ev === 'director') {
     return (
       <>
