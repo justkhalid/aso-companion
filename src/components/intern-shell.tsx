@@ -7,7 +7,7 @@ import { SiteFooter } from './site-footer'
 import { ThemeToggle } from './theme-toggle'
 import { ClubsPage } from './pages/clubs-page'
 import { RoomsPage } from './pages/rooms-page'
-import { ReportsPage } from './pages/reports-page'
+import { InternReportPage } from '@/components/pages/intern-report-page'
 import { Button } from '@/components/ui/button'
 import { useStore } from '@/lib/store'
 import type { View } from '@/lib/types'
@@ -83,7 +83,7 @@ export function InternShell() {
         )}
         {view === 'interns-report' && (
           <div className="mx-auto max-w-5xl px-4 py-7">
-            <ReportsPage embedded />
+            <InternReportPage />
           </div>
         )}
       </main>

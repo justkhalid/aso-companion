@@ -1,9 +1,9 @@
 'use client'
 
 import * as React from 'react'
-import { ExternalLink, Copy, Camera, FileText, CalendarDays, Pencil, Users, CheckSquare, LayoutGrid, MessageSquare } from 'lucide-react'
+import { ExternalLink, Copy, FileText, CalendarDays, Pencil, Users, CheckSquare, LayoutGrid, MessageSquare } from 'lucide-react'
 import { useStore } from '@/lib/store'
-import { REPORT_STEPS, REPORT_SYSTEM_URL, REPORT_EXAMPLE, REPORT_EXAMPLE_CLUB, PHOTO_FORM_URL } from '@/lib/constants'
+import { REPORT_STEPS, REPORT_SYSTEM_URL, REPORT_EXAMPLE } from '@/lib/constants'
 import { PageHead, Chip } from '@/components/ui-bits'
 import { Button } from '@/components/ui/button'
 
@@ -27,26 +27,6 @@ export function ReportsPage({ embedded = false }: { embedded?: boolean }) {
           <Button><ExternalLink className="h-4 w-4" /> Open the reporting platform</Button>
         </a>
         <p className="mt-2 text-xs text-muted-foreground">It opens in a new tab and you sign in there with your ASO number and password. The steps below show what to fill in.</p>
-      </div>
-
-      {/* photos of the activity: its own short form */}
-      <div className="mb-6 rounded-2xl border border-border bg-card p-5">
-        <div className="flex items-center gap-2 text-[15px] font-extrabold tracking-tight">
-          <Camera className="h-4 w-4" aria-hidden /> Photos of the activity
-        </div>
-        <p className="mt-1 text-sm leading-relaxed text-foreground/90">
-          After the report, send the photos of your session with a short caption through the ASO Photos Activities form.
-        </p>
-        <ul className="mt-2 flex list-disc flex-col gap-1 pl-5 text-sm text-muted-foreground">
-          <li><span className="font-semibold text-foreground">Full name</span> and the <span className="font-semibold text-foreground">activity</span>, picked from the list (choose Other if yours is not there)</li>
-          <li>The <span className="font-semibold text-foreground">date</span> of the activity and a short <span className="font-semibold text-foreground">caption</span></li>
-          <li>Up to <span className="font-semibold text-foreground">10 photos</span>, 100 MB in total</li>
-        </ul>
-        {PHOTO_FORM_URL ? (
-          <a href={PHOTO_FORM_URL} target="_blank" rel="noopener" className="mt-3 inline-block">
-            <Button variant="outline"><ExternalLink className="h-4 w-4" /> Open the photos form</Button>
-          </a>
-        ) : null}
       </div>
 
       <div className="mb-2 text-[15px] font-extrabold tracking-tight">The official reporting system</div>
@@ -103,19 +83,19 @@ export function ReportsPage({ embedded = false }: { embedded?: boolean }) {
       <div className="mb-2 mt-6 text-[15px] font-extrabold tracking-tight">A filled example</div>
       <div className="rounded-2xl border border-border bg-card p-5">
         <div className="mb-2 flex items-center gap-2">
-          <div className="font-bold">{embedded ? 'Public Speaking Club · a club session · filed on the reporting site' : 'Kids · Beginners · W3 Colors · filed on the reporting site'}</div>
-          <Chip tone="muted">{embedded ? 'a club report, exactly as the form wants it' : 'a class report, exactly as the form wants it'}</Chip>
+          <div className="font-bold">Kids · Beginners · W3 Colors · filed on the reporting site</div>
+          <Chip tone="muted">a class report, exactly as the form wants it</Chip>
           <Button
             variant="outline"
             size="sm"
             className="ml-auto"
-            onClick={() => navigator.clipboard?.writeText(embedded ? REPORT_EXAMPLE_CLUB : REPORT_EXAMPLE).then(() => toast('Example copied'))}
+            onClick={() => navigator.clipboard?.writeText(REPORT_EXAMPLE).then(() => toast('Example copied'))}
           >
             <Copy className="h-3.5 w-3.5" /> Copy example
           </Button>
         </div>
         <pre className="overflow-x-auto scroll-thin rounded-lg bg-secondary p-4 text-[12.5px] leading-relaxed whitespace-pre-wrap font-mono">
-          {embedded ? REPORT_EXAMPLE_CLUB : REPORT_EXAMPLE}
+          {REPORT_EXAMPLE}
         </pre>
       </div>
     </div>
