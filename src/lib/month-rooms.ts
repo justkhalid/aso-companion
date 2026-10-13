@@ -16,7 +16,7 @@ const AMBER = '#C77700'
 const GREY = '#7A7A85'
 const INKS = { class: '#0F6B66', club: '#6B2D8F', event: '#8A5A00' }
 
-interface Slot {
+export interface Slot {
   start: number
   end: number
   name: string
@@ -302,4 +302,53 @@ export async function downloadRoomsMonth(state: State, o: { year: number; month:
   a.click()
   setTimeout(() => URL.revokeObjectURL(url), 5000)
   return true
+}
+
+/* the clickable day boxes of the overview picture, as fractions of the picture (it is always 3200 x 1800) */
+export function roomsCells(year: number, month: number): { day: number; iso: string; x: number; y: number; w: number; h: number }[] {
+  const W = 3200
+  const H = 1800
+  const M = 80
+  const TOP = 250
+  const FOOT = 128
+  const LEG = 70
+  const first = new Date(year, month, 1)
+  const lead = (first.getDay() + 6) % 7
+  const days = new Date(year, month + 1, 0).getDate()
+  const weeks = Math.ceil((lead + days) / 7)
+  const gridTop = TOP + 70
+  const gridBottom = H - FOOT - LEG
+  const rowH = (gridBottom - gridTop) / weeks
+  const colW = (W - M * 2) / 7
+  return Array.from({ length: days }, (_, i) => {
+    const idx = lead + i
+    return { day: i + 1, iso: isoOf(new Date(year, month, i + 1)), x: (M + colW * (idx % 7)) / W, y: (gridTop + rowH * Math.floor(idx / 7)) / H, w: colW / W, h: rowH / H }
+  })
+}
+
+export interface RoomDay {
+  room: string
+  closed: boolean
+  holiday?: string
+  slots: Slot[]
+  free: [number, number][]
+}
+
+/* what is in each room on one date: bookings and the free hours between them */
+export function roomDayDetail(state: State, iso: string): RoomDay[] {
+  const d = new Date(iso + 'T00:00:00')
+  const occ = monthOccurrences(state, { year: d.getFullYear(), month: d.getMonth(), clubs: true, events: true, classes: true })
+  const list = (occ.get(iso) || []).filter((x) => !x.off)
+  const dk = DAY_KEYS[(d.getDay() + 6) % 7]
+  const hol = closedHoliday(iso)
+  return roomOptionsFor(state)
+    .filter((r) => r !== 'Online')
+    .map((room) => {
+      const slots: Slot[] = list
+        .filter((x) => x.place === room)
+        .map((x) => ({ start: parseSlot(x.time).mins, end: endOf(x.time, parseSlot(x.time).mins), name: x.title, kind: x.kind }))
+        .sort((a, b) => a.start - b.start)
+      const closed = !!hol || !!ROOM_UNAVAILABLE[room]?.includes(dk)
+      return { room, closed, holiday: hol?.name, slots, free: closed ? [] : freeWindows(slots) }
+    })
 }
