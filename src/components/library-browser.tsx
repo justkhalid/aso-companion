@@ -1,7 +1,7 @@
 'use client'
 
 import * as React from 'react'
-import { ChevronRight, ExternalLink, FileText, Folder, FolderOpen, Pencil, Search, Star, Trash2 } from 'lucide-react'
+import { ChevronRight, ExternalLink, FileText, Folder, FolderOpen, Pencil, Pin, Search, Star, Trash2 } from 'lucide-react'
 import { useStore } from '@/lib/store'
 import { LIB_GROUPS, libGroup } from '@/lib/constants'
 import {
@@ -66,6 +66,77 @@ function picksFor(state: State, band: LibBand) {
     .slice(0, 12)
 }
 
+
+/* Pinned resources: the admin pins the best folders and files, everyone who opens the library sees them first.
+   A pin is stored as "kind|id|name" in the shared state (kind: lib = a Library folder, dir = a Drive subfolder, file = a Drive file). */
+type PinKind = 'lib' | 'dir' | 'file'
+const pinStart = (kind: PinKind, id: string) => kind + '|' + id + '|'
+function parsePin(p: string): { kind: PinKind; id: string; name: string } | null {
+  const [kind, id, ...rest] = p.split('|')
+  if ((kind !== 'lib' && kind !== 'dir' && kind !== 'file') || !id) return null
+  return { kind, id, name: rest.join('|') }
+}
+
+function PinButton({ kind, id, name }: { kind: PinKind; id: string; name: string }) {
+  const admin = useStore((s) => s.admin)
+  const pins = useStore((s) => s.state.libraryPins) || []
+  const patch = useStore((s) => s.patch)
+  const toast = useStore((s) => s.toast)
+  if (!admin) return null
+  const on = pins.some((p) => p.startsWith(pinStart(kind, id)))
+  return (
+    <button
+      type="button"
+      title={on ? 'Unpin from the best resources' : 'Pin to the best resources'}
+      aria-label={on ? 'Unpin' : 'Pin'}
+      aria-pressed={on}
+      onClick={(e) => {
+        e.preventDefault()
+        e.stopPropagation()
+        patch((d) => {
+          const cur = d.libraryPins || []
+          d.libraryPins = on ? cur.filter((p) => !p.startsWith(pinStart(kind, id))) : [...cur, pinStart(kind, id) + name.replace(/\|/g, '/')]
+        })
+        toast(on ? 'Unpinned' : 'Pinned to the best resources', true)
+      }}
+      className={cn('flex h-7 w-7 shrink-0 items-center justify-center rounded-full transition', on ? 'bg-[var(--aso-gold-tint)] text-[var(--aso-gold)]' : 'text-muted-foreground hover:bg-secondary hover:text-foreground')}
+    >
+      <Pin className={cn("h-4 w-4", on && "fill-current")} />
+    </button>
+  )
+}
+
+function PinnedList({ state }: { state: State }) {
+  const pins = (state.libraryPins || []).map(parsePin).filter((x): x is NonNullable<typeof x> => !!x)
+  if (!pins.length) return null
+  const rows = pins.map((p) => {
+    if (p.kind === 'lib') {
+      const l = state.library.find((x) => x.id === p.id)
+      return { ...p, name: l?.name || p.name, url: l?.url || '' }
+    }
+    return { ...p, url: p.kind === 'dir' ? driveFolderUrl(p.id) : driveFileUrl(p.id) }
+  }).filter((r) => r.url)
+  if (!rows.length) return null
+  return (
+    <div className="mb-5 rounded-2xl border border-[var(--aso-gold)]/40 bg-[var(--aso-gold-tint)] p-4">
+      <div className="mb-2 flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider text-[var(--aso-gold)]">
+        <Pin className="h-3.5 w-3.5 fill-current" /> Best resources
+      </div>
+      <div className="grid gap-1 sm:grid-cols-2">
+        {rows.map((r) => (
+          <div key={r.kind + r.id} className="flex items-center gap-1 rounded-md hover:bg-card">
+            <a href={r.url} target="_blank" rel="noopener" className="flex min-w-0 flex-1 items-center gap-1.5 px-1.5 py-1 text-[13px] font-semibold text-primary hover:underline">
+              {r.kind === 'file' ? <FileText className="h-3.5 w-3.5 shrink-0" /> : <Folder className="h-3.5 w-3.5 shrink-0" />}
+              <span className="min-w-0 flex-1 truncate">{r.name}</span>
+            </a>
+            <PinButton kind={r.kind} id={r.id} name={r.name} />
+          </div>
+        ))}
+      </div>
+    </div>
+  )
+}
+
 function TreeList({ nodes, depth, showAll }: { nodes: IndexNode[]; depth: number; showAll: boolean }) {
   const [open, setOpen] = React.useState<Record<string, boolean>>({})
   const rows = nodes
@@ -100,6 +171,7 @@ function TreeList({ nodes, depth, showAll }: { nodes: IndexNode[]; depth: number
               <span className="shrink-0 text-[11px] text-muted-foreground">
                 {n[4] & FLAG_UNSCANNED ? 'not scanned' : n[2] + (n[2] === 1 ? ' file' : ' files')}
               </span>
+              <PinButton kind="dir" id={n[1]} name={n[0]} />
             </div>
             {isOpen && kids.length > 0 && <TreeList nodes={kids} depth={depth + 1} showAll={showAll} />}
           </li>
@@ -161,6 +233,7 @@ function FolderCard({
           <a href={l.url} target="_blank" rel="noopener" className="text-muted-foreground hover:text-foreground" title="Open in Drive">
             <ExternalLink className="h-4 w-4" />
           </a>
+          <PinButton kind="lib" id={l.id} name={l.name} />
           {admin && (
             <>
               <Button variant="ghost" size="icon" onClick={() => admin.onEdit(l)} title="Edit">
@@ -268,6 +341,8 @@ export function LibraryBrowser({ admin }: { admin?: AdminActions }) {
         Show everything (empty and duplicate folders, Flash games that no longer run)
       </label>
 
+      {!query && <PinnedList state={state} />}
+
       {picks.length > 0 && !query && (
         <div className="mb-5 rounded-2xl border border-[var(--aso-gold)]/40 bg-[var(--aso-gold-tint)] p-4">
           <div className="mb-2 flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider text-[var(--aso-gold)]">
@@ -296,14 +371,17 @@ export function LibraryBrowser({ admin }: { admin?: AdminActions }) {
           {skillPicks.length > 0 && (
             <div className="grid gap-1 sm:grid-cols-2">
               {skillPicks.map((f) => (
-                <a key={f.id} href={driveFolderUrl(f.id)} target="_blank" rel="noopener" className="flex items-center gap-1.5 rounded-md px-1.5 py-1 text-[13px] font-semibold text-primary hover:bg-secondary hover:underline">
-                  <Folder className="h-3.5 w-3.5 shrink-0" />
-                  <span className="min-w-0 flex-1">
-                    <span className="block truncate">{f.name}</span>
-                    <span className="block truncate text-[11px] font-medium text-muted-foreground">{[f.rootName, f.path].filter(Boolean).join(' > ')}</span>
-                  </span>
-                  <span className="shrink-0 text-[11px] font-medium text-muted-foreground">{f.count} {f.count === 1 ? 'file' : 'files'}</span>
-                </a>
+                <div key={f.id} className="flex items-center gap-1 rounded-md hover:bg-secondary">
+                  <a href={driveFolderUrl(f.id)} target="_blank" rel="noopener" className="flex min-w-0 flex-1 items-center gap-1.5 px-1.5 py-1 text-[13px] font-semibold text-primary hover:underline">
+                    <Folder className="h-3.5 w-3.5 shrink-0" />
+                    <span className="min-w-0 flex-1">
+                      <span className="block truncate">{f.name}</span>
+                      <span className="block truncate text-[11px] font-medium text-muted-foreground">{[f.rootName, f.path].filter(Boolean).join(' > ')}</span>
+                    </span>
+                    <span className="shrink-0 text-[11px] font-medium text-muted-foreground">{f.count} {f.count === 1 ? 'file' : 'files'}</span>
+                  </a>
+                  <PinButton kind="dir" id={f.id} name={f.name} />
+                </div>
               ))}
             </div>
           )}
@@ -317,11 +395,14 @@ export function LibraryBrowser({ admin }: { admin?: AdminActions }) {
               <div className="mb-1.5 text-xs font-bold uppercase tracking-wider text-muted-foreground">Library folders</div>
               <div className="grid grid-cols-[minmax(0,1fr)] gap-2">
                 {folderMatches.map((l) => (
-                  <a key={l.id} href={l.url} target="_blank" rel="noopener" className="flex items-center gap-2 rounded-xl border border-border bg-card px-3 py-2 text-sm hover:border-primary/40">
-                    <FolderOpen className="h-4 w-4 shrink-0 text-primary" />
-                    <span className="font-bold">{l.name}</span>
-                    <span className="min-w-0 flex-1 truncate text-muted-foreground">{l.desc}</span>
-                  </a>
+                  <div key={l.id} className="flex items-center gap-1 rounded-xl border border-border bg-card pr-2 hover:border-primary/40">
+                    <a href={l.url} target="_blank" rel="noopener" className="flex min-w-0 flex-1 items-center gap-2 px-3 py-2 text-sm">
+                      <FolderOpen className="h-4 w-4 shrink-0 text-primary" />
+                      <span className="font-bold">{l.name}</span>
+                      <span className="min-w-0 flex-1 truncate text-muted-foreground">{l.desc}</span>
+                    </a>
+                    <PinButton kind="lib" id={l.id} name={l.name} />
+                  </div>
                 ))}
               </div>
             </div>
@@ -333,14 +414,17 @@ export function LibraryBrowser({ admin }: { admin?: AdminActions }) {
               <div className="mb-1.5 text-xs font-bold uppercase tracking-wider text-muted-foreground">Subfolders</div>
               <div className="grid grid-cols-[minmax(0,1fr)] gap-1.5">
                 {result.folders.map((f) => (
-                  <a key={f.id} href={driveFolderUrl(f.id)} target="_blank" rel="noopener" className="flex items-center gap-2 rounded-xl border border-border bg-card px-3 py-2 text-sm hover:border-primary/40">
-                    <Folder className="h-4 w-4 shrink-0 text-primary" />
-                    <div className="min-w-0 flex-1">
-                      <div className="truncate font-semibold">{f.name}</div>
-                      <div className="truncate text-xs text-muted-foreground">{[f.rootName, f.path].filter(Boolean).join(' > ')}</div>
-                    </div>
-                    <span className="shrink-0 text-[11px] text-muted-foreground">{f.count} {f.count === 1 ? 'file' : 'files'}</span>
-                  </a>
+                  <div key={f.id} className="flex items-center gap-1 rounded-xl border border-border bg-card pr-2 hover:border-primary/40">
+                    <a href={driveFolderUrl(f.id)} target="_blank" rel="noopener" className="flex min-w-0 flex-1 items-center gap-2 px-3 py-2 text-sm">
+                      <Folder className="h-4 w-4 shrink-0 text-primary" />
+                      <div className="min-w-0 flex-1">
+                        <div className="truncate font-semibold">{f.name}</div>
+                        <div className="truncate text-xs text-muted-foreground">{[f.rootName, f.path].filter(Boolean).join(' > ')}</div>
+                      </div>
+                      <span className="shrink-0 text-[11px] text-muted-foreground">{f.count} {f.count === 1 ? 'file' : 'files'}</span>
+                    </a>
+                    <PinButton kind="dir" id={f.id} name={f.name} />
+                  </div>
                 ))}
               </div>
             </div>
@@ -350,14 +434,17 @@ export function LibraryBrowser({ admin }: { admin?: AdminActions }) {
               <div className="mb-1.5 text-xs font-bold uppercase tracking-wider text-muted-foreground">Files</div>
               <div className="grid grid-cols-[minmax(0,1fr)] gap-1.5">
                 {result.files.map((f) => (
-                  <a key={f.rootId + f.id} href={driveFileUrl(f.id)} target="_blank" rel="noopener" className="flex items-center gap-2 rounded-xl border border-border bg-card px-3 py-2 text-sm hover:border-primary/40">
-                    <FileText className="h-4 w-4 shrink-0 text-muted-foreground" />
-                    <div className="min-w-0 flex-1">
-                      <div className="truncate font-semibold">{f.name}</div>
-                      <div className="truncate text-xs text-muted-foreground">{[f.rootName, f.path].filter(Boolean).join(' > ')}</div>
-                    </div>
-                    {f.copies > 1 && <span className="shrink-0 text-[11px] text-muted-foreground">+{f.copies - 1} copies</span>}
-                  </a>
+                  <div key={f.rootId + f.id} className="flex items-center gap-1 rounded-xl border border-border bg-card pr-2 hover:border-primary/40">
+                    <a href={driveFileUrl(f.id)} target="_blank" rel="noopener" className="flex min-w-0 flex-1 items-center gap-2 px-3 py-2 text-sm">
+                      <FileText className="h-4 w-4 shrink-0 text-muted-foreground" />
+                      <div className="min-w-0 flex-1">
+                        <div className="truncate font-semibold">{f.name}</div>
+                        <div className="truncate text-xs text-muted-foreground">{[f.rootName, f.path].filter(Boolean).join(' > ')}</div>
+                      </div>
+                      {f.copies > 1 && <span className="shrink-0 text-[11px] text-muted-foreground">+{f.copies - 1} copies</span>}
+                    </a>
+                    <PinButton kind="file" id={f.id} name={f.name} />
+                  </div>
                 ))}
               </div>
               {result.moreFiles && <div className="mt-1.5 text-xs text-muted-foreground">Showing the first {result.files.length} files. Add a word to narrow the search.</div>}

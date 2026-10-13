@@ -4,10 +4,11 @@ import * as React from 'react'
 import { ChevronLeft, ChevronRight, Download } from 'lucide-react'
 import { useStore } from '@/lib/store'
 import { downloadMonth, monthLabel, renderMonth } from '@/lib/month-export'
+import { downloadRoomsMonth, renderRoomsMonth } from '@/lib/month-rooms'
 import { Button } from '@/components/ui/button'
 
 /* the month calendar picture shown on the page: arrows to change month, a download button for the admin */
-export function MonthCalendarImage({ clubs = true, events = true, classes = false, stepper = true }: { clubs?: boolean; events?: boolean; classes?: boolean; stepper?: boolean }) {
+export function MonthCalendarImage({ clubs = true, events = true, classes = false, stepper = true, rooms = false }: { clubs?: boolean; events?: boolean; classes?: boolean; stepper?: boolean; rooms?: boolean }) {
   const state = useStore((s) => s.state)
   const toast = useStore((s) => s.toast)
   const now = new Date()
@@ -18,7 +19,7 @@ export function MonthCalendarImage({ clubs = true, events = true, classes = fals
   React.useEffect(() => {
     let alive = true
     setBusy(true)
-    void renderMonth(state, { ...ym, clubs, events, classes, holidays: true })
+    void (rooms ? renderRoomsMonth(state, ym, null) : renderMonth(state, { ...ym, clubs, events, classes, holidays: true }))
       .then((c) => {
         if (alive) setSrc(c.toDataURL('image/jpeg', 0.88))
       })
@@ -29,7 +30,7 @@ export function MonthCalendarImage({ clubs = true, events = true, classes = fals
     return () => {
       alive = false
     }
-  }, [state, ym.year, ym.month, clubs, events, classes])
+  }, [state, ym.year, ym.month, clubs, events, classes, rooms])
 
   const step = (n: number) =>
     setYm((v) => {
@@ -56,7 +57,7 @@ export function MonthCalendarImage({ clubs = true, events = true, classes = fals
             type="button"
             variant="outline"
             size="sm"
-            onClick={() => void downloadMonth(state, { ...ym, clubs, events, classes, holidays: true }).then((ok) => toast(ok ? 'Image downloaded' : 'Nothing to export', ok))}
+            onClick={() => void (rooms ? downloadRoomsMonth(state, ym, null) : downloadMonth(state, { ...ym, clubs, events, classes, holidays: true })).then((ok) => toast(ok ? 'Image downloaded' : 'Nothing to export', ok))}
           >
             <Download className="h-4 w-4" aria-hidden /> Download calendar
           </Button>
@@ -64,7 +65,7 @@ export function MonthCalendarImage({ clubs = true, events = true, classes = fals
       </div>}
       <div className="relative overflow-hidden rounded-2xl border border-border bg-card shadow-sm">
         {src ? (
-          <img src={src} alt={`Calendar of clubs and events, ${monthLabel(ym.year, ym.month)}`} className="block h-auto w-full" />
+          <img src={src} alt={`${rooms ? "Free rooms" : "Calendar of clubs and events"}, ${monthLabel(ym.year, ym.month)}`} className="block h-auto w-full" />
         ) : (
           <div className="flex aspect-video items-center justify-center text-sm text-muted-foreground">{busy ? 'Loading the calendar...' : 'The calendar could not be drawn.'}</div>
         )}
