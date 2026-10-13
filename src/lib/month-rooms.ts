@@ -39,6 +39,42 @@ function freeWindows(slots: Slot[]): [number, number][] {
   return out.filter(([a, b]) => b - a >= 30)
 }
 
+export type RoomStatus = 'free' | 'part' | 'booked' | 'closed'
+
+/* free: nothing booked; partially booked: booked for less than half of the open day; booked: half the day or more */
+export function roomStatus(slots: Slot[], closed: boolean): RoomStatus {
+  if (closed) return 'closed'
+  if (!slots.length) return 'free'
+  const free = freeWindows(slots).reduce((a, [s, e]) => a + (e - s), 0)
+  const used = CLOSE - OPEN - free
+  return used < (CLOSE - OPEN) / 2 ? 'part' : 'booked'
+}
+
+/* a dot: whole, or half green and half amber for partially booked */
+function dot(g: CanvasRenderingContext2D, cx: number, cy: number, r: number, status: RoomStatus) {
+  if (status === 'part') {
+    g.fillStyle = GREEN
+    g.beginPath()
+    g.arc(cx, cy, r, Math.PI / 2, Math.PI * 1.5)
+    g.fill()
+    g.fillStyle = AMBER
+    g.beginPath()
+    g.arc(cx, cy, r, -Math.PI / 2, Math.PI / 2)
+    g.fill()
+    return
+  }
+  g.beginPath()
+  g.arc(cx, cy, r, 0, Math.PI * 2)
+  if (status === 'closed') {
+    g.strokeStyle = GREY
+    g.lineWidth = 3
+    g.stroke()
+  } else {
+    g.fillStyle = status === 'free' ? GREEN : AMBER
+    g.fill()
+  }
+}
+
 export async function renderRoomsMonth(state: State, o: { year: number; month: number }, room: string | null = null): Promise<HTMLCanvasElement> {
   const [logo, f] = await Promise.all([load('/aso-logo.png'), siteFonts()])
   const theme = MONTH_THEMES[o.month]
@@ -204,26 +240,18 @@ export async function renderRoomsMonth(state: State, o: { year: number; month: n
         const py = areaTop + Math.floor(n / cols) * (pillH + 8)
         const closed = !!ROOM_UNAVAILABLE[r]?.includes(dk)
         const slots = slotsOf(r)
-        const free = closed ? [] : freeWindows(slots)
-        const freeMin = free.reduce((a, [s, e]) => a + (e - s), 0)
-        const status = closed ? 'closed' : freeMin >= CLOSE - OPEN - 15 ? 'free' : 'part'
-        const col2 = status === 'free' ? GREEN : status === 'part' ? AMBER : GREY
-        g.fillStyle = col2 + (status === 'closed' ? '18' : '26')
+        const status = roomStatus(slots, closed)
+        const col2 = status === 'free' ? GREEN : status === 'closed' ? GREY : AMBER
+        g.fillStyle = col2 + (status === 'closed' ? '18' : status === 'part' ? '16' : '30')
         g.beginPath()
         g.roundRect(px, py, pillW, pillH, pillH / 2)
         g.fill()
-        g.strokeStyle = col2 + '77'
+        g.strokeStyle = status === 'part' ? AMBER + '55' : col2 + '77'
         g.lineWidth = 2.5
         if (status === 'closed') g.setLineDash([8, 6])
         g.stroke()
         g.setLineDash([])
-        g.fillStyle = col2
-        g.beginPath()
-        g.arc(px + pillH / 2, py + pillH / 2, 9, 0, Math.PI * 2)
-        if (status === 'closed') {
-          g.lineWidth = 3
-          g.stroke()
-        } else g.fill()
+        dot(g, px + pillH / 2, py + pillH / 2, 9, status)
         g.textAlign = 'left'
         g.textBaseline = 'middle'
         g.font = `800 ${Math.round(pillH * 0.5)}px ${f.body}`
@@ -272,17 +300,19 @@ export async function renderRoomsMonth(state: State, o: { year: number; month: n
   const ly = gridBottom + LEG / 2 + 6
   const items: [string, string][] = room
     ? [[GREEN, 'Free'], [INKS.class, 'Class'], [INKS.club, 'Club'], [INKS.event, 'Event']]
-    : [[GREEN, 'Free'], [AMBER, 'Booked'], [GREY, 'Not available']]
+    : [[GREEN, 'Free'], [AMBER, 'Partially booked'], [AMBER, 'Booked'], [GREY, 'Not available']]
   g.font = `700 32px ${f.body}`
   g.textBaseline = 'middle'
   g.textAlign = 'left'
   const widths = items.map(([, t]) => g.measureText(t).width + 60)
   let lx = (W - widths.reduce((a, b) => a + b, 0)) / 2
   items.forEach(([c, t], i) => {
-    g.fillStyle = c
-    g.beginPath()
-    g.arc(lx + 12, ly, 11, 0, Math.PI * 2)
-    g.fill()
+    if (room) {
+      g.fillStyle = c
+      g.beginPath()
+      g.arc(lx + 12, ly, 11, 0, Math.PI * 2)
+      g.fill()
+    } else dot(g, lx + 12, ly, 11, t === 'Free' ? 'free' : t === 'Partially booked' ? 'part' : t === 'Booked' ? 'booked' : 'closed')
     g.fillStyle = '#3a3a42'
     g.fillText(t, lx + 34, ly + 1)
     lx += widths[i]
