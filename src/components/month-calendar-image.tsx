@@ -4,10 +4,55 @@ import * as React from 'react'
 import { ChevronLeft, ChevronRight, Download } from 'lucide-react'
 import { useStore } from '@/lib/store'
 import { downloadMonth, monthLabel, renderMonth } from '@/lib/month-export'
-import { downloadRoomsMonth, renderRoomsMonth } from '@/lib/month-rooms'
+import { downloadRoomsMonth, renderRoomsMonth, roomDayDetail, roomsCells } from '@/lib/month-rooms'
+import { fmt12Min, roomOptionsFor } from '@/lib/app-utils'
 import { Button } from '@/components/ui/button'
 
-/* the month calendar picture shown on the page: arrows to change month, a download button for the admin */
+const KIND_INK = { class: '#0F6B66', club: '#6B2D8F', event: '#8A5A00' }
+
+/* what is in each room on the tapped day: bookings with their time, and the free hours */
+function RoomDayCard({ iso, onClose }: { iso: string; onClose: () => void }) {
+  const state = useStore((s) => s.state)
+  const rows = roomDayDetail(state, iso)
+  const d = new Date(iso + 'T00:00:00')
+  return (
+    <div className="aso-tab-in mt-3 rounded-2xl border border-border bg-card p-4 shadow-sm">
+      <div className="mb-3 flex items-center gap-2">
+        <div className="text-base font-extrabold">{d.toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long' })}</div>
+        <button type="button" onClick={onClose} className="ml-auto rounded-full px-3 py-1 text-xs font-bold text-muted-foreground hover:bg-secondary">Close</button>
+      </div>
+      <div className="grid gap-2 sm:grid-cols-2">
+        {rows.map((r) => (
+          <div key={r.room} className="rounded-xl border border-border p-3">
+            <div className="mb-1 flex items-center gap-2 text-sm font-bold">
+              <span className={'h-2.5 w-2.5 rounded-full ' + (r.closed ? 'bg-neutral-400' : r.slots.length ? 'bg-amber-500' : 'bg-emerald-600')} />
+              {r.room}
+              <span className="ml-auto text-xs font-semibold text-muted-foreground">{r.closed ? 'Not available' : r.slots.length ? 'Booked' : 'Free'}</span>
+            </div>
+            {r.closed ? (
+              <div className="text-sm text-muted-foreground">{r.holiday ? `Space closed: ${r.holiday}` : 'This room is not open on this day.'}</div>
+            ) : (
+              <ul className="flex flex-col gap-1 text-sm">
+                {r.slots.map((sl, i) => (
+                  <li key={i} className="flex flex-wrap items-baseline gap-x-2">
+                    <span className="font-bold" style={{ color: KIND_INK[sl.kind] }} dir="auto">{sl.name}</span>
+                    <span className="text-muted-foreground">{fmt12Min(sl.start)} - {fmt12Min(sl.end)}</span>
+                  </li>
+                ))}
+                {r.free.length === 0 && r.slots.length > 0 && <li className="font-semibold text-muted-foreground">No free time</li>}
+                {r.free.map(([a, b], i) => (
+                  <li key={'f' + i} className="font-semibold text-emerald-700 dark:text-emerald-400">Free {fmt12Min(a)} - {fmt12Min(b)}</li>
+                ))}
+              </ul>
+            )}
+          </div>
+        ))}
+      </div>
+    </div>
+  )
+}
+
+/* the month calendar picture shown on the page: arrows to change month, a download button; in the rooms version a tap on a day opens that day's detail */
 export function MonthCalendarImage({ clubs = true, events = true, classes = false, stepper = true, rooms = false }: { clubs?: boolean; events?: boolean; classes?: boolean; stepper?: boolean; rooms?: boolean }) {
   const state = useStore((s) => s.state)
   const toast = useStore((s) => s.toast)
@@ -15,6 +60,7 @@ export function MonthCalendarImage({ clubs = true, events = true, classes = fals
   const [ym, setYm] = React.useState({ year: now.getFullYear(), month: now.getMonth() })
   const [src, setSrc] = React.useState('')
   const [busy, setBusy] = React.useState(true)
+  const [pick, setPick] = React.useState<string | null>(null)
 
   React.useEffect(() => {
     let alive = true
@@ -32,44 +78,77 @@ export function MonthCalendarImage({ clubs = true, events = true, classes = fals
     }
   }, [state, ym.year, ym.month, clubs, events, classes, rooms])
 
-  const step = (n: number) =>
+  const step = (n: number) => {
+    setPick(null)
     setYm((v) => {
       const d = new Date(v.year, v.month + n, 1)
       return { year: d.getFullYear(), month: d.getMonth() }
     })
+  }
+  const done = (ok: boolean) => toast(ok ? 'Image downloaded' : 'Nothing to export', ok)
+  const roomNames = rooms ? roomOptionsFor(state).filter((r) => r !== 'Online') : []
+  const cells = rooms ? roomsCells(ym.year, ym.month) : []
 
   return (
     <div>
-      {stepper && <div className="mb-3 flex flex-wrap items-center justify-center gap-2">
-        {stepper && (
-          <>
-        <Button type="button" variant="outline" size="icon" className="h-9 w-9 rounded-full" onClick={() => step(-1)} aria-label="Previous month">
-          <ChevronLeft className="h-4 w-4" />
-        </Button>
-        <div className="min-w-40 text-center text-base font-extrabold" aria-live="polite">{monthLabel(ym.year, ym.month)}</div>
-        <Button type="button" variant="outline" size="icon" className="h-9 w-9 rounded-full" onClick={() => step(1)} aria-label="Next month">
-          <ChevronRight className="h-4 w-4" />
-        </Button>
-          </>
-        )}
-        {(
+      {stepper && (
+        <div className="mb-3 flex flex-wrap items-center justify-center gap-2">
+          <Button type="button" variant="outline" size="icon" className="h-9 w-9 rounded-full" onClick={() => step(-1)} aria-label="Previous month">
+            <ChevronLeft className="h-4 w-4" />
+          </Button>
+          <div className="min-w-40 text-center text-base font-extrabold" aria-live="polite">{monthLabel(ym.year, ym.month)}</div>
+          <Button type="button" variant="outline" size="icon" className="h-9 w-9 rounded-full" onClick={() => step(1)} aria-label="Next month">
+            <ChevronRight className="h-4 w-4" />
+          </Button>
           <Button
             type="button"
             variant="outline"
             size="sm"
-            onClick={() => void (rooms ? downloadRoomsMonth(state, ym, null) : downloadMonth(state, { ...ym, clubs, events, classes, holidays: true })).then((ok) => toast(ok ? 'Image downloaded' : 'Nothing to export', ok))}
+            onClick={() => void (rooms ? downloadRoomsMonth(state, ym, null) : downloadMonth(state, { ...ym, clubs, events, classes, holidays: true })).then(done)}
           >
             <Download className="h-4 w-4" aria-hidden /> Download calendar
           </Button>
-        )}
-      </div>}
+          {rooms && (
+            <select
+              aria-label="Download the calendar of one room"
+              value=""
+              onChange={(e) => {
+                const r = e.target.value
+                if (r) void downloadRoomsMonth(state, ym, r).then(done)
+              }}
+              className="h-8 rounded-full border border-border bg-background px-3 text-sm font-medium"
+            >
+              <option value="">Download one room...</option>
+              {roomNames.map((r) => (
+                <option key={r} value={r}>{r}</option>
+              ))}
+            </select>
+          )}
+        </div>
+      )}
       <div className="relative overflow-hidden rounded-2xl border border-border bg-card shadow-sm">
         {src ? (
-          <img src={src} alt={`${rooms ? "Free rooms" : "Calendar of clubs and events"}, ${monthLabel(ym.year, ym.month)}`} className="block h-auto w-full" />
+          <>
+            <img src={src} alt={`${rooms ? 'Free rooms' : 'Calendar of clubs and events'}, ${monthLabel(ym.year, ym.month)}`} className="block h-auto w-full" />
+            {rooms &&
+              cells.map((c) => (
+                <button
+                  key={c.iso}
+                  type="button"
+                  data-no-motion
+                  aria-label={`${c.day} ${monthLabel(ym.year, ym.month)}: show the rooms`}
+                  onClick={() => setPick(pick === c.iso ? null : c.iso)}
+                  className={'absolute rounded-sm transition hover:bg-primary/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary ' + (pick === c.iso ? 'ring-2 ring-primary bg-primary/10' : '')}
+                  style={{ left: c.x * 100 + '%', top: c.y * 100 + '%', width: c.w * 100 + '%', height: c.h * 100 + '%' }}
+                />
+              ))}
+          </>
         ) : (
           <div className="flex aspect-video items-center justify-center text-sm text-muted-foreground">{busy ? 'Loading the calendar...' : 'The calendar could not be drawn.'}</div>
         )}
       </div>
+      {rooms && !pick && src && <p className="mt-2 text-center text-xs text-muted-foreground">Tap a day to see who has each room and when it is free.</p>}
+      {rooms && pick && <RoomDayCard key={pick} iso={pick} onClose={() => setPick(null)} />}
     </div>
   )
 }

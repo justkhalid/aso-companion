@@ -200,10 +200,16 @@ export interface Absence {
   note?: string
 }
 
+export interface ChangeEntry {
+  t: string // ISO time
+  text: string // "Public Speaking Club: time changed from 2:00 PM - 4:00 PM to 3:00 PM - 5:00 PM"
+}
+
 export interface State {
   v: 1
   _rev: number
   _updated?: string // ISO time of the last change, shown to the director
+  _changes?: ChangeEntry[] // what the latest saves changed on the calendar, newest first
   settings: Settings
   levels: Level[]
   classes: ClassEntry[]

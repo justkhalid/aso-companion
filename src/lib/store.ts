@@ -4,6 +4,7 @@ import { create } from 'zustand'
 import type { State, View, Side, Theme } from './types'
 import { seedState } from './seed'
 import { LS_KEY, ROLE_KEY, ADMIN_SEEN_KEY } from './constants'
+import { addChanges } from './change-log'
 import { syncViewUrl } from './url-sync'
 import { readLocal, writeLocal } from './local-db'
 
@@ -261,10 +262,12 @@ export const useStore = create<UIStore>((set, get) => ({
   },
 
   patch: (fn) => {
-    const draft = deepClone(get().state)
+    const before = get().state
+    const draft = deepClone(before)
     fn(draft)
     draft._rev = (draft._rev || 0) + 1
     draft._updated = new Date().toISOString()
+    addChanges(draft, before)
     set({ state: draft })
     get().persist()
     if (draft.settings.ghAutoSave) scheduleAutoSave(() => get().saveToCloud({ background: true }))

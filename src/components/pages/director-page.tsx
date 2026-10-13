@@ -47,6 +47,7 @@ export function DirectorPage() {
   const updated = state._updated ? new Date(state._updated) : null
   const valid = updated && !Number.isNaN(updated.getTime())
   const now = new Date()
+  const changes = (state._changes || []).slice(0, 5)
 
   return (
     <div className="flex min-h-screen flex-col bg-background">
@@ -67,15 +68,27 @@ export function DirectorPage() {
         <h1 className="font-display text-3xl font-extrabold tracking-tight sm:text-4xl">Calendar</h1>
         <p className="mt-2 text-muted-foreground">Everything that happens at the American Space, on one page. Use the arrows to move between weeks.</p>
 
-        {/* when it was last updated: one small line */}
-        <div id="updated" className="mt-4 flex scroll-mt-20 items-center gap-2 text-sm text-muted-foreground">
-          <Clock className="h-4 w-4 shrink-0" aria-hidden />
-          {valid ? (
-            <span>
-              Last updated <span className="font-semibold text-foreground">{updated!.toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })} at {updated!.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })}</span> · {ago(updated!, now)}
-            </span>
-          ) : (
-            <span>Last updated: not recorded yet, it will show after the next change.</span>
+        {/* when it was last updated, and what changed, in plain words */}
+        <div id="updated" className="mt-4 scroll-mt-20 text-sm text-muted-foreground">
+          <div className="flex items-center gap-2">
+            <Clock className="h-4 w-4 shrink-0" aria-hidden />
+            {valid ? (
+              <span>
+                Last updated <span className="font-semibold text-foreground">{updated!.toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })} at {updated!.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })}</span> · {ago(updated!, now)}
+              </span>
+            ) : (
+              <span>Last updated: not recorded yet, it will show after the next change.</span>
+            )}
+          </div>
+          {changes.length > 0 && (
+            <ul className="mt-2 flex flex-col gap-1 border-l-2 border-primary/30 pl-3">
+              {changes.map((c, i) => (
+                <li key={i} className="leading-snug">
+                  <span className="font-semibold text-foreground">{c.text}</span>
+                  <span className="ml-2 text-xs">{new Date(c.t).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })}, {new Date(c.t).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })}</span>
+                </li>
+              ))}
+            </ul>
           )}
         </div>
 
