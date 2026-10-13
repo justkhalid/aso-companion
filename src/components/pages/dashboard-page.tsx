@@ -134,10 +134,10 @@ export function DashboardPage() {
       <section className="mt-4 rounded-2xl border border-border bg-card p-4 shadow-sm">
         <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
           <h2 className="text-[15px] font-extrabold tracking-tight">Calendar</h2>
-          <CalendarSwitch tab={calTab} onChange={setCalTab} />
+          <CalendarSwitch tab={calTab} onChange={setCalTab} rooms />
         </div>
         <div key={calTab} className="aso-tab-in">
-          {calTab === 'cluev' ? <MonthCalendarImage clubs events classes={false} /> : <MonthCalendarImage clubs={false} events={false} classes />}
+          {calTab === 'cluev' ? <MonthCalendarImage clubs events classes={false} /> : calTab === 'rooms' ? <MonthCalendarImage rooms /> : <MonthCalendarImage clubs={false} events={false} classes />}
         </div>
       </section>
 

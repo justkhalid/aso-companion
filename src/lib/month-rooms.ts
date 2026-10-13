@@ -206,7 +206,7 @@ export async function renderRoomsMonth(state: State, o: { year: number; month: n
         const slots = slotsOf(r)
         const free = closed ? [] : freeWindows(slots)
         const freeMin = free.reduce((a, [s, e]) => a + (e - s), 0)
-        const status = closed ? 'closed' : freeMin >= CLOSE - OPEN - 15 ? 'free' : freeMin > 0 ? 'part' : 'full'
+        const status = closed ? 'closed' : freeMin >= CLOSE - OPEN - 15 ? 'free' : 'part'
         const col2 = status === 'free' ? GREEN : status === 'part' ? AMBER : GREY
         g.fillStyle = col2 + (status === 'closed' ? '18' : '26')
         g.beginPath()
@@ -220,8 +220,7 @@ export async function renderRoomsMonth(state: State, o: { year: number; month: n
         g.fillStyle = col2
         g.beginPath()
         g.arc(px + pillH / 2, py + pillH / 2, 9, 0, Math.PI * 2)
-        if (status === 'full') g.fill()
-        else if (status === 'closed') {
+        if (status === 'closed') {
           g.lineWidth = 3
           g.stroke()
         } else g.fill()
@@ -260,7 +259,7 @@ export async function renderRoomsMonth(state: State, o: { year: number; month: n
       g.fillStyle = GREEN
       if (!m.free.length) {
         g.fillStyle = GREY
-        g.fillText('Fully booked', x + 18, ty)
+        g.fillText('Booked all day', x + 18, ty)
       } else if (!m.slots.length) g.fillText('Free all day', x + 18, ty)
       else m.free.slice(0, 2).forEach(([a, b2]) => {
         g.fillText(`Free ${fmt12Min(a)} - ${fmt12Min(b2)}`, x + 18, ty, colW - 30)
@@ -273,7 +272,7 @@ export async function renderRoomsMonth(state: State, o: { year: number; month: n
   const ly = gridBottom + LEG / 2 + 6
   const items: [string, string][] = room
     ? [[GREEN, 'Free'], [INKS.class, 'Class'], [INKS.club, 'Club'], [INKS.event, 'Event']]
-    : [[GREEN, 'Free all day'], [AMBER, 'Partly booked'], [GREY, 'Fully booked'], [GREY, 'Closed']]
+    : [[GREEN, 'Free'], [AMBER, 'Booked'], [GREY, 'Not available']]
   g.font = `700 32px ${f.body}`
   g.textBaseline = 'middle'
   g.textAlign = 'left'
@@ -290,4 +289,17 @@ export async function renderRoomsMonth(state: State, o: { year: number; month: n
   })
   paintFooter(g, f, logo, state.settings.institute, W, H, gridBottom + LEG)
   return canvas
+}
+
+export async function downloadRoomsMonth(state: State, o: { year: number; month: number }, room: string | null = null): Promise<boolean> {
+  const canvas = await renderRoomsMonth(state, o, room)
+  const blob: Blob | null = await new Promise((res) => canvas.toBlob(res, 'image/png'))
+  if (!blob) return false
+  const url = URL.createObjectURL(blob)
+  const a = document.createElement('a')
+  a.href = url
+  a.download = `ASO_Rooms_${o.year}-${String(o.month + 1).padStart(2, '0')}.png`
+  a.click()
+  setTimeout(() => URL.revokeObjectURL(url), 5000)
+  return true
 }

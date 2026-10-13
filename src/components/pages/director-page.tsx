@@ -81,10 +81,14 @@ export function DirectorPage() {
 
         {/* the calendar: the month picture first, a switch to the classes */}
         <h2 id="calendar" className="mt-10 scroll-mt-20 text-2xl font-extrabold tracking-tight">1. The calendar</h2>
-        <div className="mt-3"><CalendarSwitch tab={tab} onChange={setTab} large /></div>
+        <div className="mt-3"><CalendarSwitch tab={tab} onChange={setTab} large rooms /></div>
         {tab === 'cluev' ? (
           <div key="cluev" className="aso-tab-in mt-4">
             <MonthCalendarImage clubs events classes={false} />
+          </div>
+        ) : tab === 'rooms' ? (
+          <div key="rooms" className="aso-tab-in mt-4">
+            <MonthCalendarImage rooms />
           </div>
         ) : (
           <div key="classes" className="aso-tab-in">

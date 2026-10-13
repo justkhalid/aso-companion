@@ -1,15 +1,16 @@
 'use client'
 
 import * as React from 'react'
-import { CalendarDays, GraduationCap } from 'lucide-react'
+import { CalendarDays, DoorOpen, GraduationCap } from 'lucide-react'
 
 /* the switch between the clubs and events calendar and the classes: two clear buttons, the chosen one filled */
-export type CalTab = 'cluev' | 'classes'
+export type CalTab = 'cluev' | 'classes' | 'rooms'
 
-export function CalendarSwitch({ tab, onChange, large = false }: { tab: CalTab; onChange: (t: CalTab) => void; large?: boolean }) {
+export function CalendarSwitch({ tab, onChange, large = false, rooms = false }: { tab: CalTab; onChange: (t: CalTab) => void; large?: boolean; rooms?: boolean }) {
   const items: { k: CalTab; label: string; icon: React.ElementType }[] = [
     { k: 'cluev', label: 'Clubs and events', icon: CalendarDays },
     { k: 'classes', label: 'Classes', icon: GraduationCap },
+    ...(rooms ? [{ k: 'rooms' as CalTab, label: 'Rooms', icon: DoorOpen }] : []),
   ]
   const wrap = React.useRef<HTMLDivElement>(null)
   const refs = React.useRef<Record<string, HTMLButtonElement | null>>({})
