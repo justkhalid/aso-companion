@@ -49786,6 +49786,23 @@
       "cat": "courses"
     },
     {
+      "id": "speakout2",
+      "name": "Speakout 2nd Edition",
+      "desc": "A full coursebook series in 7 levels (Starter to Advanced Plus): Student's Books, Workbooks, Teacher's Books, audio, BBC video, tests and extra practice. The Teens and Adults weekly plans link to it.",
+      "url": "https://drive.google.com/drive/folders/1rvKxYYhH23wOeNDhALKYPaClGTyZjsoJ",
+      "sk": [
+        "L",
+        "S",
+        "R",
+        "W"
+      ],
+      "cat": "courses",
+      "bands": [
+        "Teens",
+        "Adults"
+      ]
+    },
+    {
       "id": "n_eb",
       "name": "English books collection",
       "desc": "General English learning books: grammar, vocabulary, coursebooks, and reference materials.",
@@ -51261,6 +51278,6 @@
   ],
   "reports": [],
   "libraryPins": [],
-  "_rev": 1791669906877,
+  "_rev": 1791669906878,
   "_updated": "2026-10-12T17:56:54.819Z"
 }
