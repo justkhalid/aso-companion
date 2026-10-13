@@ -4,7 +4,7 @@ import * as React from 'react'
 import { ChevronLeft, ChevronRight, Download } from 'lucide-react'
 import { useStore } from '@/lib/store'
 import { downloadMonth, monthLabel, renderMonth } from '@/lib/month-export'
-import { downloadRoomsMonth, renderRoomsMonth, roomDayDetail, roomsCells } from '@/lib/month-rooms'
+import { downloadRoomsMonth, renderRoomsMonth, roomDayDetail, roomStatus, roomsCells } from '@/lib/month-rooms'
 import { fmt12Min, roomOptionsFor } from '@/lib/app-utils'
 import { Button } from '@/components/ui/button'
 
@@ -13,7 +13,7 @@ const KIND_INK = { class: '#0F6B66', club: '#6B2D8F', event: '#8A5A00' }
 /* what is in each room on the tapped day: bookings with their time, and the free hours */
 function RoomDayCard({ iso, onClose }: { iso: string; onClose: () => void }) {
   const state = useStore((s) => s.state)
-  const rows = roomDayDetail(state, iso)
+  const rows = roomDayDetail(state, iso).map((r) => ({ ...r, status: roomStatus(r.slots, r.closed) }))
   const d = new Date(iso + 'T00:00:00')
   return (
     <div className="aso-tab-in mt-3 rounded-2xl border border-border bg-card p-4 shadow-sm">
@@ -25,9 +25,12 @@ function RoomDayCard({ iso, onClose }: { iso: string; onClose: () => void }) {
         {rows.map((r) => (
           <div key={r.room} className="rounded-xl border border-border p-3">
             <div className="mb-1 flex items-center gap-2 text-sm font-bold">
-              <span className={'h-2.5 w-2.5 rounded-full ' + (r.closed ? 'bg-neutral-400' : r.slots.length ? 'bg-amber-500' : 'bg-emerald-600')} />
+              <span
+                className={'h-2.5 w-2.5 rounded-full ' + (r.status === 'closed' ? 'bg-neutral-400' : r.status === 'free' ? 'bg-emerald-600' : r.status === 'booked' ? 'bg-amber-500' : '')}
+                style={r.status === 'part' ? { background: 'linear-gradient(90deg, #1E8E4A 50%, #C77700 50%)' } : undefined}
+              />
               {r.room}
-              <span className="ml-auto text-xs font-semibold text-muted-foreground">{r.closed ? 'Not available' : r.slots.length ? 'Booked' : 'Free'}</span>
+              <span className="ml-auto text-xs font-semibold text-muted-foreground">{{ closed: 'Not available', free: 'Free', part: 'Partially booked', booked: 'Booked' }[r.status]}</span>
             </div>
             {r.closed ? (
               <div className="text-sm text-muted-foreground">{r.holiday ? `Space closed: ${r.holiday}` : 'This room is not open on this day.'}</div>
