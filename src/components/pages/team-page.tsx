@@ -1,7 +1,7 @@
 'use client'
 
 import * as React from 'react'
-import { Plus, Phone, Mail, Users, Search } from 'lucide-react'
+import { Plus, Phone, Mail, Users, Search, GraduationCap, HeartHandshake } from 'lucide-react'
 import { useStore } from '@/lib/store'
 import { PageHead, EmptyState, Chip } from '@/components/ui-bits'
 import { Button } from '@/components/ui/button'
@@ -74,7 +74,7 @@ export function TeamPage() {
                 <div className="min-w-0 flex-1">
                   <div className="font-bold">{t.name}</div>
                   <div className="mt-0.5 flex flex-wrap gap-1">
-                    {rolesOf(t).length ? rolesOf(t).map((r) => <Chip key={r} tone={r === 'Teacher' ? 'primary' : r === 'Volunteer' ? 'gold' : undefined}>{r}</Chip>) : <span className="text-xs text-muted-foreground">No role yet</span>}
+                    {rolesOf(t).length ? rolesOf(t).map((r) => <Chip key={r} tone={r === 'Teacher' ? 'primary' : r === 'Volunteer' ? 'gold' : undefined} icon={r === 'Teacher' ? GraduationCap : r === 'Volunteer' ? HeartHandshake : Users}>{r}</Chip>) : <span className="text-xs text-muted-foreground">No role yet</span>}
                   </div>
                 </div>
                 <RowActions

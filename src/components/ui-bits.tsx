@@ -86,10 +86,12 @@ export function LinkButton({
 export function Chip({
   children,
   tone = 'default',
+  icon: Icon,
   className,
 }: {
   children: React.ReactNode
   tone?: 'default' | 'primary' | 'gold' | 'ok' | 'muted'
+  icon?: React.ComponentType<{ className?: string }>
   className?: string
 }) {
   const styles: Record<string, string> = {
@@ -107,6 +109,7 @@ export function Chip({
         className,
       )}
     >
+      {Icon && <Icon className="h-3 w-3 shrink-0" />}
       {children}
     </span>
   )

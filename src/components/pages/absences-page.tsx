@@ -1,7 +1,7 @@
 'use client'
 
 import * as React from 'react'
-import { Plus, UserX, UserCheck } from 'lucide-react'
+import { Plus, UserX, UserCheck, Users, Sparkles, Ban } from 'lucide-react'
 import { useStore } from '@/lib/store'
 import { fmtAbsenceRange, isOnceEvent, isoOf, parseISO } from '@/lib/app-utils'
 import { DAY_KEYS } from '@/lib/constants'
@@ -80,8 +80,8 @@ export function AbsencesPage() {
         <div className="min-w-0 flex-1">
           <div className="flex flex-wrap items-center gap-2">
             <span className="font-bold">{sub.title}</span>
-            <Chip>{a.kind === 'club' ? 'Club' : a.kind === 'event' ? 'Event' : 'Teacher away'}</Chip>
-            <Chip tone={a.cover ? 'primary' : 'gold'}>{a.cover ? (a.kind === 'club' ? `Led by ${a.cover}` : `Covered by ${a.cover}`) : 'Cancelled'}</Chip>
+            <Chip icon={a.kind === 'club' ? Users : a.kind === 'event' ? Sparkles : UserX}>{a.kind === 'club' ? 'Club' : a.kind === 'event' ? 'Event' : 'Teacher away'}</Chip>
+            <Chip tone={a.cover ? 'primary' : 'gold'} icon={a.cover ? UserCheck : Ban}>{a.cover ? (a.kind === 'club' ? `Led by ${a.cover}` : `Covered by ${a.cover}`) : 'Cancelled'}</Chip>
           </div>
           <div className="mt-0.5 text-sm text-muted-foreground">
             {fmtAbsenceRange(a)} · {a.reason}

@@ -91,7 +91,7 @@ export function InternReportPage() {
       <div className="rounded-2xl border border-border bg-card p-5">
         <div className="mb-2 flex flex-wrap items-center gap-2">
           <div className="font-bold">Public Speaking Club · a club session</div>
-          <Chip tone="muted">a club report, exactly as the form wants it</Chip>
+          <Chip tone="muted" icon={FileText}>a club report, exactly as the form wants it</Chip>
           <Button
             variant="outline"
             size="sm"

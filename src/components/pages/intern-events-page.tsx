@@ -1,7 +1,7 @@
 'use client'
 
 import * as React from 'react'
-import { Plus, CalendarDays, Clock, MapPin } from 'lucide-react'
+import { Plus, CalendarDays, Clock, MapPin, Repeat2 } from 'lucide-react'
 import { useStore } from '@/lib/store'
 import { fmtEventWhen, nextOccurrence, fmtD, isOnceEvent, fmtTime } from '@/lib/app-utils'
 import { PageHead, EmptyState, Chip } from '@/components/ui-bits'
@@ -45,7 +45,7 @@ export function InternEventsPage() {
             <div key={e.id} className="rounded-2xl border border-border bg-card p-4 shadow-sm">
               <div className="mb-1.5 flex items-center gap-2">
                 <div className="flex-1 font-bold" dir="auto">{e.title}</div>
-                <Chip tone={isOnceEvent(e) ? 'primary' : 'gold'}>{fmtEventWhen(e)}</Chip>
+                <Chip tone={isOnceEvent(e) ? 'primary' : 'gold'} icon={isOnceEvent(e) ? CalendarDays : Repeat2}>{fmtEventWhen(e)}</Chip>
               </div>
               {e.desc && <div className="text-sm text-muted-foreground" dir="auto">{e.desc}</div>}
               <div className="mt-1.5 flex flex-wrap gap-x-3 gap-y-1 text-xs font-semibold text-muted-foreground">

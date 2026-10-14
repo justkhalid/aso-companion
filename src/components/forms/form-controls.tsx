@@ -257,7 +257,7 @@ export function IconPicker({
   onChange: (icon?: string) => void
 }) {
   return (
-    <div className="grid grid-cols-8 gap-1.5 sm:grid-cols-9">
+    <div className="grid max-h-64 grid-cols-8 gap-1.5 overflow-y-auto pr-1 sm:grid-cols-9">
       {CLUB_ICONS.map(({ name, label, Icon }) => {
         const on = value === name
         return (

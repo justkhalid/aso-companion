@@ -1,7 +1,7 @@
 'use client'
 
 import * as React from 'react'
-import { GraduationCap, BookOpen, ArrowRight, ClipboardList } from 'lucide-react'
+import { GraduationCap, BookOpen, ArrowRight, ClipboardList, EyeOff } from 'lucide-react'
 import { useStore } from '@/lib/store'
 import { termStatus } from '@/lib/app-utils'
 import { BANDS, FILL_GRID } from '@/lib/constants'
@@ -17,21 +17,19 @@ export function EltasoPage() {
   const inSession = st.mode === 's1' || st.mode === 's2'
   const wi = inSession ? (st.week || 1) - 1 : -1
 
-  /* Teachers see only the levels that have a class this year and that were not switched off in Settings.
-     The admin (outside the public preview) sees every level, with a note on the ones teachers do not see. */
+  /* Teachers see every level except the ones switched off in Settings. The admin (outside the public preview) sees every level. */
   const asAdmin = admin && !pubView
   const hidden = state.settings.hiddenLevels || []
-  const hasClass = (label: string) => (state.classes || []).some((c) => c.level === label)
-  const withClasses = state.levels.filter((l) => asAdmin || (!hidden.includes(l.key) && hasClass(l.label)))
-  const whyHidden = (l: (typeof state.levels)[number]) => (hidden.includes(l.key) ? 'Hidden from teachers' : !hasClass(l.label) ? 'No class yet, teachers do not see it' : '')
+  const shownLevels = state.levels.filter((l) => asAdmin || !hidden.includes(l.key))
+  const whyHidden = (l: (typeof state.levels)[number]) => (hidden.includes(l.key) ? 'Hidden from teachers' : '')
 
   // group by band preserving canonical order
   const groups: { band: string; levels: typeof state.levels }[] = BANDS.map((band) => ({
     band,
-    levels: withClasses.filter((l) => l.band === band),
+    levels: shownLevels.filter((l) => l.band === band),
   })).filter((g) => g.levels.length > 0)
   // any level with empty band
-  const other = withClasses.filter((l) => !l.band)
+  const other = shownLevels.filter((l) => !l.band)
   if (other.length) groups.push({ band: '', levels: other })
 
   return (
@@ -44,7 +42,7 @@ export function EltasoPage() {
       <div className="mb-5 flex items-center gap-2">
         <h2 className="text-[15px] font-extrabold tracking-tight">Weekly plans</h2>
         <span className="ml-auto text-xs font-semibold text-muted-foreground">
-          {withClasses.length} levels · {withClasses.reduce((m, l) => m + l.weeks.length, 0)} weeks
+          {shownLevels.length} levels · {shownLevels.reduce((m, l) => m + l.weeks.length, 0)} weeks
         </span>
       </div>
 
@@ -71,9 +69,9 @@ export function EltasoPage() {
                       <GraduationCap className="h-5 w-5" />
                     </div>
                     <div className="flex-1 font-bold leading-tight">{l.label}</div>
-                    <Chip tone="primary">{l.cefr}</Chip>
+                    <Chip tone="primary" icon={GraduationCap}>{l.cefr}</Chip>
                   </div>
-                  {asAdmin && whyHidden(l) && <div><Chip tone="gold">{whyHidden(l)}</Chip></div>}
+                  {asAdmin && whyHidden(l) && <div><Chip tone="gold" icon={EyeOff}>{whyHidden(l)}</Chip></div>}
                   {sw && (
                     <div className="text-xs font-semibold text-primary">
                       {w ? 'This week' : 'Next up'} · W{showWi + 1} · {sw.theme}
