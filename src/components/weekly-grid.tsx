@@ -645,7 +645,7 @@ const TONE_TXT: Record<string, string> = {
   'tone-6': '#0F7A8C',
   'tone-7': '#8A6D00',
   'tone-8': '#5A5A66',
-  'tone-9': '#0F766E',
+  'tone-9': '#1D4ED8',
   'tone-10': '#6D28D9',
   'tone-11': '#C2410C',
 }

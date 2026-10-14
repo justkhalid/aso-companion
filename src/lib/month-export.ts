@@ -5,7 +5,6 @@ import { clubIcon } from './icons'
 import { BookOpen, Sparkles } from 'lucide-react'
 import { publicGroupName } from './calendar-items'
 import { MONTH_THEMES, drawMotif } from './month-themes'
-import { renderWeeklyMonth } from './month-weekly'
 import { ACTIVITY, STATUS } from './activity-colors'
 import { paintBackdrop, paintFooter, paintHeader, star } from './month-frame'
 import { holidaysOf, type Holiday } from './holidays'
@@ -126,7 +125,20 @@ interface Block {
 }
 function blocksOf(list: Occ[]): Block[] {
   const out: Block[] = []
+  /* classes that meet at the same time share one block ("Kids 3 · Teens 1"), so a busy Saturday stays readable */
+  const classes = list.filter((x) => x.kind === 'class')
+  const groups = new Map<string, Occ[]>()
+  for (const x of classes) groups.set(`${x.time}|${x.off}`, [...(groups.get(`${x.time}|${x.off}`) || []), x])
+  const doneGroups = new Set<string>()
   for (const x of list) {
+    if (x.kind === 'class') {
+      const key = `${x.time}|${x.off}`
+      if (doneGroups.has(key)) continue
+      doneGroups.add(key)
+      const g = groups.get(key)!
+      out.push({ kind: 'class', off: x.off, names: [{ title: g.map((c) => c.title).join(' · '), icon: g[0].icon }], time: x.time })
+      continue
+    }
     out.push({ kind: x.kind, off: x.off, names: [{ title: x.title, icon: x.icon }], time: x.time, where: x.off || !x.place ? undefined : x.outside ? `Outside: ${x.place}` : x.moved ? `Moved: ${x.place}` : undefined })
   }
   return out
@@ -136,8 +148,6 @@ function blocksOf(list: Occ[]): Block[] {
 const INKS = { club: ACTIVITY.club.ink, event: ACTIVITY.event.ink, class: ACTIVITY.class.ink, off: STATUS.cancelled.ink }
 
 export async function renderMonth(state: State, o: MonthOptions): Promise<HTMLCanvasElement> {
-  /* classes on their own: the normal weekly calendar set inside the month's theme */
-  if (o.classes && !o.clubs && !o.events) return renderWeeklyMonth(state, o, monthOccurrences(state, { ...o, classes: false }))
   const occ = monthOccurrences(state, o)
   const [logo, f] = await Promise.all([load('/aso-logo.webp'), siteFonts()])
   const theme = MONTH_THEMES[o.month]

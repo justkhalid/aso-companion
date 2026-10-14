@@ -16,7 +16,7 @@ export const TONE_RGB: { bg: string; line: string; txt: string }[] = [
   { bg: 'rgba(48,176,199,.16)', line: 'rgba(48,176,199,.32)', txt: '#0F7A8C' },
   { bg: 'rgba(255,204,0,.18)',  line: 'rgba(255,204,0,.34)',  txt: '#8A6D00' },
   { bg: 'rgba(120,120,128,.16)',line: 'rgba(120,120,128,.30)',txt: '#5A5A66' },
-  { bg: 'rgba(15,118,110,.13)', line: 'rgba(15,118,110,.32)', txt: '#0F766E' }, // class
+  { bg: 'rgba(37,99,235,.12)', line: 'rgba(37,99,235,.32)', txt: '#1D4ED8' }, // class
   { bg: 'rgba(109,40,217,.12)', line: 'rgba(109,40,217,.30)', txt: '#6D28D9' }, // club
   { bg: 'rgba(194,65,12,.12)',  line: 'rgba(194,65,12,.30)',  txt: '#C2410C' }, // event
 ]
