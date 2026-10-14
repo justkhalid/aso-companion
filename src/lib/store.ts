@@ -157,6 +157,15 @@ function scheduleAutoSave(run: () => Promise<unknown>) {
   }, 2500)
 }
 
+async function gzipText(text: string): Promise<Blob | null> {
+  try {
+    if (typeof CompressionStream === 'undefined') return null
+    return await new Response(new Blob([text]).stream().pipeThrough(new CompressionStream('gzip'))).blob()
+  } catch {
+    return null
+  }
+}
+
 /* saving: one save runs at a time, edits made while it runs trigger one more, and a failed save is retried */
 const DIRTY_KEY = 'aso-unsaved-rev'
 const UNSAVED_COPY_KEY = 'aso-unsaved-copy'
@@ -482,18 +491,18 @@ export const useStore = create<UIStore>((set, get) => ({
         saveState.settings.ghToken = ''
         saveState.settings.ghLastSync = ''
       }
-      const content = JSON.stringify(saveState, null, 2)
+      const content = JSON.stringify(saveState)
 
       /* v4.6: single save path through the server-side /api/sync route.
          With Vercel Blob connected this never touches GitHub; without it,
          the server falls back to the legacy GitHub commit mechanism. */
       let ok = false
       let msg = ''
-      const res = await fetch('/api/sync', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ content }),
-      })
+      /* the data is several MB: Vercel refuses requests over 4.5 MB, so it goes up compressed */
+      const zipped = await gzipText(content)
+      const res = await fetch('/api/sync', zipped
+        ? { method: 'POST', headers: { 'Content-Type': 'application/octet-stream', 'X-ASO-Encoding': 'gzip' }, body: zipped }
+        : { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ content }) })
       if (res.status === 401) {
         /* cookie expired or missing; edits stay in the local copy. Only a signed-in admin
            is sent back to the sign-in screen: a visitor's background save must never
@@ -504,7 +513,9 @@ export const useStore = create<UIStore>((set, get) => ({
         else if (get().admin) get().toast('Not saved to the cloud: sign in again from the admin menu.', false)
         return { ok: false, msg: wasAdmin ? 'Session expired. Sign in again to save.' : 'Not signed in, so this save was skipped' }
       }
-      const result = await res.json()
+      if (res.status === 413) return (set({ syncing: false }), { ok: false, msg: 'The data is too large for the server to accept.' })
+      const result = (await res.json().catch(() => null)) as { ok?: boolean; msg?: string } | null
+      if (!result) return (set({ syncing: false }), { ok: false, msg: `The server answered with an error (${res.status}).` })
       ok = !!result.ok
       msg = result.msg || ''
 
