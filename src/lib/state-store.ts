@@ -244,3 +244,78 @@ export async function writeCloudState(
   const r = await githubWrite(content, message)
   return { ...r, mode: 'github-fallback' }
 }
+
+/* ---------------- posters: files next to the data, not inside it ----------------
+   Poster images used to sit inside the state as base64 and made up most of what every visitor downloaded.
+   They are now small WebP files, named by their content, and the state only holds the address (/api/poster/<name>).
+   Same storage as the data: Vercel Blob when connected, the GitHub repo (data/posters) otherwise,
+   and a local folder when neither is set up (development). */
+
+export const POSTER_NAME = /^[a-f0-9]{16}\.webp$/
+
+function posterGithub() {
+  const repo = process.env.GITHUB_REPO || 'justkhalid/aso-companion'
+  const branch = process.env.GITHUB_BRANCH || 'main'
+  return { repo, branch, token: process.env.GITHUB_PAT }
+}
+
+export async function posterWrite(name: string, bytes: Buffer): Promise<{ ok: boolean; msg: string }> {
+  if (!POSTER_NAME.test(name)) return { ok: false, msg: 'bad poster name' }
+  try {
+    if (getStorageInfo().mode === 'vercel-blob') {
+      const { put } = await import('@vercel/blob')
+      await put(`posters/${name}`, bytes, { access: 'public', addRandomSuffix: false, allowOverwrite: true, contentType: 'image/webp' })
+      return { ok: true, msg: 'blob' }
+    }
+    const { repo, branch, token } = posterGithub()
+    if (token) {
+      const res = await fetch(`https://api.github.com/repos/${repo}/contents/data/posters/${name}`, {
+        method: 'PUT',
+        headers: { Authorization: `Bearer ${token}`, Accept: 'application/vnd.github+json', 'X-GitHub-Api-Version': '2022-11-28', 'Content-Type': 'application/json' },
+        body: JSON.stringify({ message: `aso-companion: poster ${name}`, branch, content: bytes.toString('base64') }),
+      })
+      /* 422: the file is already there (same content, same name) */
+      if (res.ok || res.status === 422) return { ok: true, msg: 'github' }
+      return { ok: false, msg: `GitHub poster save failed (${res.status})` }
+    }
+    const { mkdir, writeFile } = await import('node:fs/promises')
+    await mkdir('data/posters', { recursive: true })
+    await writeFile(`data/posters/${name}`, bytes)
+    return { ok: true, msg: 'local' }
+  } catch (e) {
+    return { ok: false, msg: e instanceof Error ? e.message : 'poster save failed' }
+  }
+}
+
+const posterMemo = new Map<string, Buffer>()
+
+export async function posterRead(name: string): Promise<Buffer | null> {
+  if (!POSTER_NAME.test(name)) return null
+  const hit = posterMemo.get(name)
+  if (hit) return hit
+  let out: Buffer | null = null
+  try {
+    if (getStorageInfo().mode === 'vercel-blob') {
+      const { list } = await import('@vercel/blob')
+      const found = (await list({ prefix: `posters/${name}`, limit: 1 })).blobs.find((b) => b.pathname === `posters/${name}`)
+      if (found) {
+        const r = await fetch(found.url, { cache: 'no-store' })
+        if (r.ok) out = Buffer.from(await r.arrayBuffer())
+      }
+    } else if (posterGithub().token) {
+      const { repo, branch } = posterGithub()
+      const r = await fetch(`https://raw.githubusercontent.com/${repo}/${branch}/data/posters/${name}?t=${Date.now()}`, { cache: 'no-store' })
+      if (r.ok) out = Buffer.from(await r.arrayBuffer())
+    } else {
+      const { readFile } = await import('node:fs/promises')
+      out = await readFile(`data/posters/${name}`).catch(() => null)
+    }
+  } catch {
+    out = null
+  }
+  if (out) {
+    if (posterMemo.size >= 24) posterMemo.delete(posterMemo.keys().next().value as string)
+    posterMemo.set(name, out)
+  }
+  return out
+}

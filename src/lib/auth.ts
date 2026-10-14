@@ -148,11 +148,11 @@ export function storedCode(state: unknown, role: Role): string {
  * clubs, events and cancellations (without the reasons). Teachers also get the weekly
  * plans, the library and the notes. The copy is marked `_filtered` so a client never saves it back.
  */
-export function filterStateFor<T>(state: T, roles: Role[]): T {
+export function filterStateFor<T>(state: T, roles: Role[], opts?: { lite?: boolean }): T {
   const s = stripSecrets(state) as unknown as Record<string, unknown> & { levels?: Record<string, unknown>[]; absences?: Record<string, unknown>[] }
   if (!s || typeof s !== 'object') return state
   /* with the teachers' login switched off in Settings, everyone gets what a teacher gets */
-  const teacher = roles.includes('teacher') || (s.settings as { teacherLoginRequired?: boolean } | undefined)?.teacherLoginRequired !== true
+  const teacher = !opts?.lite && (roles.includes('teacher') || (s.settings as { teacherLoginRequired?: boolean } | undefined)?.teacherLoginRequired !== true)
   const out: Record<string, unknown> = {
     ...s,
     _filtered: true,

@@ -38,6 +38,7 @@ interface UIStore {
   side: Side
   selectedLevelKey: string
   admin: boolean
+  lite: boolean // the data came without lesson plans and library (public pages only); teacher pages fetch the rest
   pubView: boolean
   rememberDevice: boolean
   /* teachers and interns sign in with their own access code; the server keeps the session */
@@ -78,6 +79,9 @@ interface UIStore {
 }
 
 let toastSeq = 1
+
+/* pages every visitor sees; they do not need the weekly plans or the library, which are most of the data */
+const LITE_VIEWS = new Set<View>(['landing', 'director', 'login'])
 
 function lsGet(key: string): string | null {
   try {
@@ -214,6 +218,7 @@ export const useStore = create<UIStore>((set, get) => ({
   side: 'elt',
   selectedLevelKey: '',
   admin: false,
+  lite: false,
   pubView: false,
   rememberDevice: true,
   viewer: { teacher: false, intern: false },
@@ -222,6 +227,8 @@ export const useStore = create<UIStore>((set, get) => ({
 
   setView: (v) => {
     set({ view: v })
+    /* the public pages load without lesson plans: any other page needs the full data */
+    if (get().lite && !LITE_VIEWS.has(v)) void get().loadFromCloud()
     if (typeof window !== 'undefined') {
       window.scrollTo({ top: 0 })
       /* public tabs own their path (/clubs, /eltaso, ...); admin-only views
@@ -401,7 +408,8 @@ export const useStore = create<UIStore>((set, get) => ({
     //        GitHub fetches anymore: one source of truth, one route.
     try {
       /* no-cache = revalidate with the ETag: a 304 reuses the copy already downloaded */
-      const res = await fetch('/api/state', { cache: 'no-cache' })
+      const wantLite = !adminSession && lsGet(ROLE_KEY) !== 'admin' && typeof window !== 'undefined' && /^\/(calendar)?\/?$/.test(window.location.pathname)
+      const res = await fetch(wantLite ? '/api/state?scope=public' : '/api/state', { cache: 'no-cache' })
       if (!res.ok) throw new Error('HTTP ' + res.status)
       const cloud = (await res.json()) as State
       if (!cloud || cloud.v !== 1) throw new Error('bad state version')
@@ -411,7 +419,10 @@ export const useStore = create<UIStore>((set, get) => ({
         cloud.settings.ghLastSync = get().state.settings.ghLastSync || ''
       }
       const current = get().state
-      const merged = pickNewer(current, cloud)
+      /* a device that already holds the full copy at this revision keeps it: the lite copy has less in it */
+      const keepFull = wantLite && !current._filtered && (current._rev || 0) >= (cloud._rev || 0) && (current.levels || []).some((l) => (l.weeks || []).length)
+      const merged = keepFull ? current : pickNewer(current, cloud)
+      set({ lite: wantLite && merged === cloud })
       /* this device had changes that never reached the cloud and the live copy wins: keep them aside so nothing is lost */
       if (merged !== current && lsGet(DIRTY_KEY)) {
         const at = new Date().toISOString()
@@ -461,7 +472,7 @@ export const useStore = create<UIStore>((set, get) => ({
         cloud.settings.ghToken = local.settings.ghToken || ''
         cloud.settings.ghLastSync = local.settings.ghLastSync || ''
       }
-      set({ state: cloud, lastSync: new Date().toISOString() })
+      set({ state: cloud, lastSync: new Date().toISOString(), lite: false })
       applyTheme(cloud.settings.theme)
       saveLocal(JSON.stringify(cloud))
       set({ syncing: false })
@@ -514,7 +525,7 @@ export const useStore = create<UIStore>((set, get) => ({
         return { ok: false, msg: wasAdmin ? 'Session expired. Sign in again to save.' : 'Not signed in, so this save was skipped' }
       }
       if (res.status === 413) return (set({ syncing: false }), { ok: false, msg: 'The data is too large for the server to accept.' })
-      const result = (await res.json().catch(() => null)) as { ok?: boolean; msg?: string } | null
+      const result = (await res.json().catch(() => null)) as { ok?: boolean; msg?: string; posters?: Record<string, { url: string; len: number }> } | null
       if (!result) return (set({ syncing: false }), { ok: false, msg: `The server answered with an error (${res.status}).` })
       ok = !!result.ok
       msg = result.msg || ''
@@ -524,6 +535,12 @@ export const useStore = create<UIStore>((set, get) => ({
            than the cloud on every boot, which re-saved (and re-committed) the
            same state each time the app opened */
         const draft = deepClone(get().state)
+        /* posters the server turned into files: this copy now holds their address instead of the picture (only where nothing was changed meanwhile) */
+        for (const [key, v] of Object.entries(result?.posters || {})) {
+          const [kind, id] = key.split(':')
+          const item = (kind === 'club' ? draft.clubs : draft.events).find((x) => x.id === id)
+          if (item?.poster && item.poster.startsWith('data:') && item.poster.length === v.len) item.poster = v.url
+        }
         draft.settings.ghLastSync = new Date().toISOString()
         set({ state: draft, lastSync: draft.settings.ghLastSync, syncing: false })
         saveLocal(JSON.stringify(draft))

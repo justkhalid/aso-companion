@@ -375,7 +375,9 @@ export function PosterUploader({
       ctx.fillStyle = '#ffffff'
       ctx.fillRect(0, 0, POSTER_W, POSTER_H)
       ctx.drawImage(img, (POSTER_W - w) / 2, (POSTER_H - h) / 2, w, h)
-      onChange(cv.toDataURL('image/jpeg', 0.82))
+      /* WebP is about half the size of JPEG; a browser that cannot make one answers with PNG, so JPEG is used then */
+      const webp = cv.toDataURL('image/webp', 0.8)
+      onChange(webp.startsWith('data:image/webp') ? webp : cv.toDataURL('image/jpeg', 0.82))
     } catch {
       // keep the old poster on failure
     } finally {

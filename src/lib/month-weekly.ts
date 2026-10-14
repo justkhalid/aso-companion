@@ -13,7 +13,7 @@ import type { State } from './types'
 /* The month picture is the normal weekly calendar, set inside the month's theme. Everything that happens on a weekday
    in this month is one chip of the week; holidays that close the space are listed under it. */
 export async function renderWeeklyMonth(state: State, o: MonthOptions, occ: Map<string, Occ[]>): Promise<HTMLCanvasElement> {
-  const [logo, f] = await Promise.all([load('/aso-logo.png'), siteFonts()])
+  const [logo, f] = await Promise.all([load('/aso-logo.webp'), siteFonts()])
   const theme = MONTH_THEMES[o.month]
   const W = 3200
   const H = 1800

@@ -51,7 +51,7 @@ export function roomStatus(slots: Slot[], closed: boolean): RoomStatus {
 }
 
 export async function renderRoomsMonth(state: State, o: { year: number; month: number; transparent?: boolean }, room: string | null = null): Promise<HTMLCanvasElement> {
-  const [logo, f] = await Promise.all([load('/aso-logo.png'), siteFonts()])
+  const [logo, f] = await Promise.all([load('/aso-logo.webp'), siteFonts()])
   const theme = MONTH_THEMES[o.month]
   const W = 3200
   const H = 1800

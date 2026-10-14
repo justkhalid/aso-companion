@@ -1,5 +1,4 @@
 import { DAY_FULL, DAY_KEYS } from './constants'
-import { paintPosterOverlay } from './poster-overlay'
 import { fmtTime, hourLabel12, parseSlot } from './app-utils'
 import { posterItems, type PosterItem, type PosterKind } from './poster-items'
 import { TONE_RGB } from './export-canvas'
@@ -168,7 +167,6 @@ function makeCard(f: Fonts, scratch: CanvasRenderingContext2D, c: PosterItem, im
         wrap(g, c.name, pw - 60, 4).forEach((l, n, a) => g.fillText(l, x + P + pw / 2, y + P + ph / 2 + (n - (a.length - 1) / 2) * Math.round(pw / 9)))
         g.textAlign = 'left'
       }
-      paintPosterOverlay(g, logo, x + P, y + P, pw, ph)
       g.restore()
       g.strokeStyle = 'rgba(60,60,67,.16)'
       g.lineWidth = 2
@@ -261,7 +259,7 @@ export async function renderClubsCalendar(state: State, style: ClubsCalendarStyl
   void style
   const clubs = posterItems(state, kind).filter((c) => c.days.length && c.time)
   if (!clubs.length) return null
-  const [imgs, logo, f] = await Promise.all([Promise.all(clubs.map((c) => (c.poster ? load(c.poster) : Promise.resolve(null)))), load('/aso-logo.png'), siteFonts()])
+  const [imgs, logo, f] = await Promise.all([Promise.all(clubs.map((c) => (c.poster ? load(c.poster) : Promise.resolve(null)))), load('/aso-logo.webp'), siteFonts()])
   const imgOf = (c: PosterItem) => imgs[clubs.indexOf(c)]
   const scratch = document.createElement('canvas').getContext('2d')!
   const M = 80

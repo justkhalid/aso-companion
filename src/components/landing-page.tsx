@@ -3,7 +3,7 @@
 import * as React from 'react'
 import { CalendarDays, ChevronRight, Clock, Download, GraduationCap, Sparkles } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-import { downloadClubsPng } from '@/lib/clubs-sheet'
+const downloadClubsPng = (...a: Parameters<typeof import('@/lib/clubs-sheet').downloadClubsPng>) => import('@/lib/clubs-sheet').then((m) => m.downloadClubsPng(...a))
 import { CalendarExportMenu } from '@/components/calendar-export'
 import { ClubsExportItems } from '@/components/clubs-export-items'
 import { Logo } from './logo'

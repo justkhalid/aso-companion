@@ -136,7 +136,7 @@ function loadLogo(): Promise<HTMLImageElement | null> {
     const im = new Image()
     im.onload = () => res(im)
     im.onerror = () => res(null)
-    im.src = '/aso-logo.png'
+    im.src = '/aso-logo.webp'
   })
 }
 
@@ -238,7 +238,7 @@ export async function renderTimetablePNG(o: ExportOptions): Promise<Blob | null>
       const im = new Image()
       im.onload = () => res(im)
       im.onerror = () => res(null)
-      im.src = '/aso-logo.png'
+      im.src = '/aso-logo.webp'
     })
   } catch { /* logo optional */ }
 

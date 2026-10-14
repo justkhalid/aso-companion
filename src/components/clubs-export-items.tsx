@@ -5,8 +5,8 @@ import { CalendarDays, LayoutGrid, Table2 } from 'lucide-react'
 import { DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator } from '@/components/ui/dropdown-menu'
 import { useStore } from '@/lib/store'
 import { openMonthExport } from '@/components/month-export-dialog'
-import { downloadClubsPng } from '@/lib/clubs-sheet'
-import { downloadClubsCalendar } from '@/lib/clubs-calendar-export'
+const downloadClubsPng = (...a: Parameters<typeof import('@/lib/clubs-sheet').downloadClubsPng>) => import('@/lib/clubs-sheet').then((m) => m.downloadClubsPng(...a))
+const downloadClubsCalendar = (...a: Parameters<typeof import('@/lib/clubs-calendar-export').downloadClubsCalendar>) => import('@/lib/clubs-calendar-export').then((m) => m.downloadClubsCalendar(...a))
 import type { State } from '@/lib/types'
 
 function Item({ icon: Icon, title, hint, run, done }: { icon: React.ElementType; title: string; hint: string; run: () => Promise<boolean>; done: (ok: boolean) => void }) {

@@ -7,6 +7,14 @@ import { downloadMonth, monthLabel, renderMonth } from '@/lib/month-export'
 import { downloadRoomsMonth, outsideDay, renderRoomsMonth, roomDayDetail, roomStatus, roomsCells } from '@/lib/month-rooms'
 import { fmt12Min, fmtTime as fmtSlot, roomOptionsFor } from '@/lib/app-utils'
 import { renderBackdropLayers, type MotifSprite } from '@/lib/month-frame'
+
+const layerCache = new Map<number, { bg: string; sprites: MotifSprite[] }>()
+/* the leaves of a month never change, so they are made once */
+function backdropLayers(month: number) {
+  let l = layerCache.get(month)
+  if (!l) layerCache.set(month, (l = renderBackdropLayers(month)))
+  return l
+}
 import { ACTIVITY, STATUS } from '@/lib/activity-colors'
 import { Button } from '@/components/ui/button'
 
@@ -82,15 +90,43 @@ export function MonthCalendarImage({ clubs = true, events = true, classes = fals
   const [busy, setBusy] = React.useState(true)
   const [pick, setPick] = React.useState<string | null>(null)
 
+  /* the picture only needs redrawing when something it shows changed: the poster images, which are most of the data, are left out of the key */
+  const calKey = React.useMemo(
+    () =>
+      JSON.stringify([
+        (state.clubs || []).map(({ poster: _p, ...c }) => c),
+        (state.events || []).map(({ poster: _p, ...e }) => e),
+        state.classes,
+        state.absences,
+        state.settings.s1Start,
+        state.settings.institute,
+        state.levels?.length,
+        state.team?.length,
+      ]),
+    [state.clubs, state.events, state.classes, state.absences, state.settings.s1Start, state.settings.institute, state.levels?.length, state.team?.length],
+  )
+  const stateRef = React.useRef(state)
+  stateRef.current = state
+
   React.useEffect(() => {
     let alive = true
+    let url = ''
     setBusy(true)
     /* three layers: the plain themed page, every leaf on its own, and the calendar itself on clear glass over them */
-    void (rooms ? renderRoomsMonth(state, { ...ym, transparent: true }, null) : renderMonth(state, { ...ym, clubs, events, classes, holidays: true, transparent: true }))
-      .then((c) => {
+    const st = stateRef.current
+    void (rooms ? renderRoomsMonth(st, { ...ym, transparent: true }, null) : renderMonth(st, { ...ym, clubs, events, classes, holidays: true, transparent: true }))
+      .then(async (c) => {
         if (!alive) return
-        setBack(renderBackdropLayers(ym.month))
-        setSrc(c.toDataURL('image/webp', 0.92))
+        /* shown at most about 1100 px wide (2x on a sharp screen), so 2400 px is plenty; the encoding runs off the main thread */
+        const small = document.createElement('canvas')
+        small.width = 2400
+        small.height = Math.round((2400 * c.height) / c.width)
+        small.getContext('2d')!.drawImage(c, 0, 0, small.width, small.height)
+        const blob: Blob | null = await new Promise((res) => small.toBlob(res, 'image/webp', 0.9))
+        if (!alive || !blob) return
+        url = URL.createObjectURL(blob)
+        setBack(backdropLayers(ym.month))
+        setSrc(url)
       })
       .catch(() => {
         if (alive) setSrc('')
@@ -98,8 +134,9 @@ export function MonthCalendarImage({ clubs = true, events = true, classes = fals
       .finally(() => alive && setBusy(false))
     return () => {
       alive = false
+      if (url) setTimeout(() => URL.revokeObjectURL(url), 1000)
     }
-  }, [state, ym.year, ym.month, clubs, events, classes, rooms])
+  }, [calKey, ym.year, ym.month, clubs, events, classes, rooms])
 
   const step = (n: number) => {
     setPick(null)
@@ -113,7 +150,7 @@ export function MonthCalendarImage({ clubs = true, events = true, classes = fals
   const cells = rooms ? roomsCells(ym.year, ym.month) : []
 
   return (
-    <div>
+    <div data-no-motion>
       {stepper && (
         <div className="mb-3 flex flex-wrap items-center justify-center gap-2">
           <Button type="button" variant="outline" size="icon" className="h-9 w-9 rounded-full" onClick={() => step(-1)} aria-label="Previous month">

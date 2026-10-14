@@ -307,7 +307,7 @@
   from { transform: rotate(calc(var(--turn) * -1)) translate(-3px, 2px); }
   to { transform: rotate(var(--turn)) translate(3px, -2px); }
 }
-.aso-sprite { animation: aso-sway var(--dur) ease-in-out var(--delay) infinite alternate; animation-play-state: paused; transform-origin: 50% 50%; will-change: transform; }
-.aso-alive:hover .aso-sprite, .aso-alive:focus-within .aso-sprite { animation-play-state: running; }
+.aso-sprite { animation: aso-sway var(--dur) ease-in-out var(--delay) infinite alternate; animation-play-state: paused; transform-origin: 50% 50%; }
+.aso-alive:hover .aso-sprite, .aso-alive:focus-within .aso-sprite { animation-play-state: running; will-change: transform; }
 @media (hover: none) { .aso-alive .aso-sprite { animation-duration: calc(var(--dur) * 1.8); animation-play-state: running; } }
 @media (prefers-reduced-motion: reduce) { .aso-sprite { animation: none !important; } }
