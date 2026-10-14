@@ -442,6 +442,139 @@
           ]
         },
         {
+          "theme": "Halloween special (culture)",
+          "obj": "follow a simple Halloween story and say 4 themed words",
+          "lang": "pumpkin, witch, ghost, candy; simple story frames",
+          "res": "Seasonal/Halloween pack",
+          "urls": [
+            "https://drive.google.com/drive/folders/18Pf_-BIUmxg9tSzirU82Gcn0uW-IYCJx"
+          ],
+          "act": "Pumpkin craft; costume charades; trick-or-treat dialogue circle",
+          "hw": "Teach the trick-or-treat chant to your family.",
+          "skills": {
+            "L": "Halloween story with picture prompts - listen and join in (Seasonal pack)",
+            "S": "Say 4 themed words; trick-or-treat chant roleplay",
+            "R": "Match Halloween words to pictures",
+            "W": "Trace themed words; colour the pumpkin mask"
+          },
+          "lp": {
+            "wu": "Hello + feelings; colour review round (Lucky Dip of colour cards from the bag).",
+            "wuAlt": [
+              "Simon Says with colours (\"Touch something red!\")",
+              "Colour hunt relay replay from W3"
+            ],
+            "pres": "Halloween special: present pumpkin, witch, ghost, candy with the Seasonal pack flashcards + a simple story (\"The Little Witch\" style) with picture prompts and lots of pausing.",
+            "presAlt": [
+              "Spooky sound box: play sounds (wind, laugh, door); guess the word",
+              "Costume show: teacher items (hat, cape) dress a volunteer as each word"
+            ],
+            "prac": "Trick-or-treat roleplay: knock on the door (real classroom door), chant \"Trick or treat!\", receive a (paper) candy, say thank you. Practise the 4 words in the chant.",
+            "pracAlt": [
+              "Spooky statues: witch/ghost/pumpkin poses on the drum beat",
+              "Flashcard haunted house: cards hidden around room; find and name each one"
+            ],
+            "ls": "Halloween story listen #2: children hold up the correct card each time they hear pumpkin/witch/ghost/candy · active listening to the same story.",
+            "re": "Pumpkin pass: pass the pumpkin (orange ball) to music; stop = say a Halloween word + make the face/mime.",
+            "prod": "Make pumpkin masks or paper jack-o-lantern faces (Seasonal pack craft); parade them while chanting the trick-or-treat rhyme.",
+            "rw": "Trace the 4 Halloween words; colour the pumpkin mask. Fast finishers: copy \"Happy Halloween!\"",
+            "st": "Halloween song (\"Knock knock, trick or treat\" · Music/Songs or Seasonal pack) with the parade. Goodbye routine: Goodbye Song + sticker chart + high-five line.",
+            "g": [
+              [
+                "Spooky Sound Box",
+                "Sounds guess the word; cards as backup."
+              ],
+              [
+                "Spooky Statues",
+                "Pose per word on the beat."
+              ],
+              [
+                "Haunted Flashcards",
+                "Hidden cards; find + name."
+              ],
+              [
+                "Pumpkin Pass",
+                "Music pass; stop = word + mime."
+              ],
+              [
+                "Trick or Treat Door",
+                "Real door knocking; chant + thank you."
+              ]
+            ],
+            "diff": [
+              "Fast finishers: write the 4 words; add \"bats\" and \"hat\" as bonus words.",
+              "Support: mask-making first, words second · success in craft builds courage to speak."
+            ],
+            "hw": [
+              "Teach the trick-or-treat chant to your family.",
+              "Colour the Halloween sheet and label the 4 words.",
+              "Find a Halloween image (book/internet) and bring one word to teach the class."
+            ],
+            "tip": "Culture note for the class: Halloween is \"fun scary\", not real scary. Keep lights on for sensitive children and check families are comfortable · offer an autumn-pumpkin framing as an alternative. Halloween falls this weekend (31 Oct), so this is the right week for it."
+          },
+          "kit": [
+            {
+              "l": "Colours and shapes game",
+              "s": "wu",
+              "u": "https://drive.google.com/file/d/1sa6iIJO7Nj-QER2LaJpAmDFAERsp595B/view",
+              "t": "file"
+            },
+            {
+              "l": "Halloween flashcards (lower level)",
+              "s": "pres",
+              "u": "https://drive.google.com/drive/folders/1DeO7FeVEckaBKccQpaVZeipvqgCsCAmR",
+              "t": "folder"
+            },
+            {
+              "l": "Halloween full pack",
+              "s": "pres",
+              "u": "https://drive.google.com/drive/folders/1nBE_KzmDpSTAsI7b2tzqiPk1EmXtW-jK",
+              "t": "folder"
+            },
+            {
+              "l": "Halloween vocabulary game",
+              "s": "pres",
+              "u": "https://drive.google.com/file/d/1BeAvqeOhfAJMxsrXcKRxNDPHsCuw9fX4/view",
+              "t": "file"
+            },
+            {
+              "l": "scary halloween story for kids",
+              "s": "ls",
+              "u": "https://drive.google.com/file/d/17FVH_qCDBUdBJI9dtW4BkJdKjOw1BZmy/view",
+              "t": "file"
+            },
+            {
+              "l": "Halloween physical activities",
+              "s": "re",
+              "u": "https://drive.google.com/drive/folders/1PQfdS472L14jJeTRAl_BFTvC1jkQDymU",
+              "t": "folder"
+            },
+            {
+              "l": "Halloween PowerPoint game",
+              "s": "re",
+              "u": "https://drive.google.com/file/d/1-4d-oqNaHKY6E_MpuUKejxDZCR1CbNIM/view",
+              "t": "file"
+            },
+            {
+              "l": "Halloween printable activities and masks",
+              "s": "prod",
+              "u": "https://drive.google.com/drive/folders/1sDHqagGpbgWw1IpXFGgwlf9DHSC_xJvK",
+              "t": "folder"
+            },
+            {
+              "l": "Monster masks and join-the-dots",
+              "s": "rw",
+              "u": "https://drive.google.com/drive/folders/1NjPg7Ef2Ulo3FNNp1iU25bpBnCdzFb9a",
+              "t": "folder"
+            },
+            {
+              "l": "Halloween videos and music",
+              "s": "st",
+              "u": "https://drive.google.com/drive/folders/1H7ph2fquXTFA7RpuQDITJ9wHOiiVio3Z",
+              "t": "folder"
+            }
+          ]
+        },
+        {
           "theme": "Numbers 1-10",
           "obj": "count 1-10 forwards and catch-count in a circle",
           "lang": "numbers 1-10; How many?",
@@ -509,7 +642,7 @@
               "Trace numbers 1-10 sheet and draw the right dots next to each.",
               "Play Listen & Count with a parent clapping."
             ],
-            "tip": "Halloween falls this week (Oct 26-Nov 1). Keep Numbers as the main lesson; if you celebrate, use the optional Halloween preview in the Occasion note. The full Halloween lesson is Week 7."
+            "tip": "Keep Numbers as the main lesson. Green March (6 Nov) falls this week: the optional map craft is in the Occasion note."
           },
           "kit": [
             {
@@ -555,12 +688,6 @@
               "t": "file"
             },
             {
-              "l": "Halloween flashcards (optional preview)",
-              "s": "re",
-              "u": "https://drive.google.com/drive/folders/1DeO7FeVEckaBKccQpaVZeipvqgCsCAmR",
-              "t": "folder"
-            },
-            {
               "l": "Let's Count to 20 Song For Kids",
               "s": "st",
               "u": "https://drive.google.com/file/d/0BwhmhpLZJ1FySHlVQWlxbDgzSm8/view",
@@ -568,7 +695,7 @@
             }
           ],
           "occ": {
-            "act": "Optional 10-minute Halloween preview: echo pumpkin, witch, ghost and candy with the Halloween flashcards. The full Halloween lesson is Week 7.",
+            "act": "Map craft: colour the march route and say \"the march goes to...\"; flag colours chant.",
             "hw": ""
           }
         },
@@ -698,11 +825,7 @@
               "u": "https://drive.google.com/file/d/0BwhmhpLZJ1FyeUpFQm9jM2VuSG8/view",
               "t": "file"
             }
-          ],
-          "occ": {
-            "act": "Map craft: colour the march route and say \"the march goes to...\"; flag colours chant.",
-            "hw": ""
-          }
+          ]
         },
         {
           "theme": "Classroom objects",
@@ -823,139 +946,6 @@
               "u": "https://drive.google.com/file/d/0BwhmhpLZJ1FyejRYMDNXVUM1Smc/view",
               "t": "file"
             }
-          ]
-        },
-        {
-          "theme": "Halloween special (culture)",
-          "obj": "follow a simple Halloween story and say 4 themed words",
-          "lang": "pumpkin, witch, ghost, candy; simple story frames",
-          "res": "Seasonal/Halloween pack",
-          "urls": [
-            "https://drive.google.com/drive/folders/18Pf_-BIUmxg9tSzirU82Gcn0uW-IYCJx"
-          ],
-          "act": "Pumpkin craft; costume charades; trick-or-treat dialogue circle",
-          "hw": "Teach the trick-or-treat chant to your family.",
-          "skills": {
-            "L": "Halloween story with picture prompts - listen and join in (Seasonal pack)",
-            "S": "Say 4 themed words; trick-or-treat chant roleplay",
-            "R": "Match Halloween words to pictures",
-            "W": "Trace themed words; colour the pumpkin mask"
-          },
-          "lp": {
-            "wu": "Hello + feelings; object review round (Lucky Dip from the bag).",
-            "wuAlt": [
-              "Simon Says with objects (\"Touch a chair! Grab a pen!\")",
-              "Quick shop roleplay replay from W6"
-            ],
-            "pres": "Halloween special: present pumpkin, witch, ghost, candy with the Seasonal pack flashcards + a simple story (\"The Little Witch\" style) with picture prompts and lots of pausing.",
-            "presAlt": [
-              "Spooky sound box: play sounds (wind, laugh, door); guess the word",
-              "Costume show: teacher items (hat, cape) dress a volunteer as each word"
-            ],
-            "prac": "Trick-or-treat roleplay: knock on the door (real classroom door), chant \"Trick or treat!\", receive a (paper) candy, say thank you. Practise the 4 words in the chant.",
-            "pracAlt": [
-              "Spooky statues: witch/ghost/pumpkin poses on the drum beat",
-              "Flashcard haunted house: cards hidden around room; find and name each one"
-            ],
-            "ls": "Halloween story listen #2: children hold up the correct card each time they hear pumpkin/witch/ghost/candy · active listening to the same story.",
-            "re": "Pumpkin pass: pass the pumpkin (orange ball) to music; stop = say a Halloween word + make the face/mime.",
-            "prod": "Make pumpkin masks or paper jack-o-lantern faces (Seasonal pack craft); parade them while chanting the trick-or-treat rhyme.",
-            "rw": "Trace the 4 Halloween words; colour the pumpkin mask. Fast finishers: copy \"Happy Halloween!\"",
-            "st": "Halloween song (\"Knock knock, trick or treat\" · Music/Songs or Seasonal pack) with the parade. Goodbye routine: Goodbye Song + sticker chart + high-five line.",
-            "g": [
-              [
-                "Spooky Sound Box",
-                "Sounds guess the word; cards as backup."
-              ],
-              [
-                "Spooky Statues",
-                "Pose per word on the beat."
-              ],
-              [
-                "Haunted Flashcards",
-                "Hidden cards; find + name."
-              ],
-              [
-                "Pumpkin Pass",
-                "Music pass; stop = word + mime."
-              ],
-              [
-                "Trick or Treat Door",
-                "Real door knocking; chant + thank you."
-              ]
-            ],
-            "diff": [
-              "Fast finishers: write the 4 words; add \"bats\" and \"hat\" as bonus words.",
-              "Support: mask-making first, words second · success in craft builds courage to speak."
-            ],
-            "hw": [
-              "Teach the trick-or-treat chant to your family.",
-              "Colour the Halloween sheet and label the 4 words.",
-              "Find a Halloween image (book/internet) and bring one word to teach the class."
-            ],
-            "tip": "Culture note for the class: Halloween is \"fun scary\", not real scary. Keep lights on for sensitive children and check families are comfortable · offer an autumn-pumpkin framing as an alternative. By Week 7 Halloween has already passed: present it as a pumpkin-and-autumn special."
-          },
-          "kit": [
-            {
-              "l": "Classroom objects hidden picture game",
-              "s": "wu",
-              "u": "https://drive.google.com/file/d/1nQqmx7hFkGMQhbC9GFsicXt1nBIV1LfR/view",
-              "t": "file"
-            },
-            {
-              "l": "Halloween flashcards (lower level)",
-              "s": "pres",
-              "u": "https://drive.google.com/drive/folders/1DeO7FeVEckaBKccQpaVZeipvqgCsCAmR",
-              "t": "folder"
-            },
-            {
-              "l": "Halloween full pack",
-              "s": "pres",
-              "u": "https://drive.google.com/drive/folders/1nBE_KzmDpSTAsI7b2tzqiPk1EmXtW-jK",
-              "t": "folder"
-            },
-            {
-              "l": "Halloween vocabulary game",
-              "s": "pres",
-              "u": "https://drive.google.com/file/d/1BeAvqeOhfAJMxsrXcKRxNDPHsCuw9fX4/view",
-              "t": "file"
-            },
-            {
-              "l": "scary halloween story for kids",
-              "s": "ls",
-              "u": "https://drive.google.com/file/d/17FVH_qCDBUdBJI9dtW4BkJdKjOw1BZmy/view",
-              "t": "file"
-            },
-            {
-              "l": "Halloween physical activities",
-              "s": "re",
-              "u": "https://drive.google.com/drive/folders/1PQfdS472L14jJeTRAl_BFTvC1jkQDymU",
-              "t": "folder"
-            },
-            {
-              "l": "Halloween PowerPoint game",
-              "s": "re",
-              "u": "https://drive.google.com/file/d/1-4d-oqNaHKY6E_MpuUKejxDZCR1CbNIM/view",
-              "t": "file"
-            },
-            {
-              "l": "Halloween printable activities and masks",
-              "s": "prod",
-              "u": "https://drive.google.com/drive/folders/1sDHqagGpbgWw1IpXFGgwlf9DHSC_xJvK",
-              "t": "folder"
-            },
-            {
-              "l": "Monster masks and join-the-dots",
-              "s": "rw",
-              "u": "https://drive.google.com/drive/folders/1NjPg7Ef2Ulo3FNNp1iU25bpBnCdzFb9a",
-              "t": "folder"
-            },
-            {
-              "l": "Halloween videos and music",
-              "s": "st",
-              "u": "https://drive.google.com/drive/folders/1H7ph2fquXTFA7RpuQDITJ9wHOiiVio3Z",
-              "t": "folder"
-            }
           ],
           "occ": {
             "act": "Flag craft + \"I am from Morocco\" chant; national symbols matching game.",
@@ -980,7 +970,7 @@
             "W": "Trace and write letters A-F; first-sound matching sheet"
           },
           "lp": {
-            "wu": "Hello + feelings; Halloween words echo round (say it if you remember it).",
+            "wu": "Hello + feelings; classroom object words echo round (say it if you remember it).",
             "wuAlt": [
               "Alphabet march: march and chant A B C to the song beat (pre-exposure)",
               "Quick object lucky dip"
@@ -1035,9 +1025,9 @@
           },
           "kit": [
             {
-              "l": "Halloween games (PowerPoint)",
+              "l": "Classroom objects hidden picture game",
               "s": "wu",
-              "u": "https://drive.google.com/file/d/1CUkTUIcIIoBpW_VV2hhZwkcvfyTXcGHR/view",
+              "u": "https://drive.google.com/file/d/1nQqmx7hFkGMQhbC9GFsicXt1nBIV1LfR/view",
               "t": "file"
             },
             {
@@ -1426,7 +1416,7 @@
             ],
             "ls": "Listen and match: teacher describes a toy (\"It is soft. You sleep with it.\") children point/grab the right one; extend to colour + toy combos (\"a red car\").",
             "re": "Toy survey: everyone \"has\" one toy card; mingle and ask \"Teddy?\" · find your twin with the same toy, stand together.",
-            "prod": "Toy shop roleplay: shopkeeper + buyer with polite requests (recycles W6); buyers must say \"Can I have the red ball, please?\" · colour + toy together.",
+            "prod": "Toy shop roleplay: shopkeeper + buyer with polite requests (recycles W7); buyers must say \"Can I have the red ball, please?\" · colour + toy together.",
             "rw": "Trace toy words; draw \"my favourite toy\" and label it. Fast finishers: write \"I have got a ___\" sentence.",
             "st": "Toys song or chant (Music/Songs); \"My teddy bear\" lullaby-style wind-down before goodbye. Goodbye routine: Goodbye Song + sticker chart + high-five line.",
             "g": [
@@ -1510,6 +1500,146 @@
               "s": "st",
               "u": "https://drive.google.com/file/d/0BwhmhpLZJ1FyRFFYV01RUV9nQTg/view",
               "t": "file"
+            }
+          ]
+        },
+        {
+          "theme": "Christmas special + party",
+          "obj": "follow the Christmas story frames; join 2 carols; review S1 topics",
+          "lang": "Christmas vocabulary; review weeks 1-11",
+          "res": "Seasonal/Christmas pack; Music/Songs",
+          "urls": [
+            "https://drive.google.com/drive/folders/18Pf_-BIUmxg9tSzirU82Gcn0uW-IYCJx",
+            "https://drive.google.com/drive/folders/0B2Q8XuO2ebzxd2NkOXNyUWlGVTg"
+          ],
+          "act": "Make a Christmas card; carol singing; review games carousel with stations",
+          "hw": "Give the Christmas card to a family member and say \"Merry Christmas!\".",
+          "skills": {
+            "L": "Two carols - listen and join the actions (Seasonal/Christmas)",
+            "S": "Join the story frames; party-game speaking rounds",
+            "R": "Match Christmas words to picture cards",
+            "W": "Trace Christmas words; make a greeting card"
+          },
+          "lp": {
+            "wu": "Hello + feelings; toy words grand echo; one Clue Guess round with toy cards.",
+            "wuAlt": [
+              "Christmas carol chorus sing to pre-load",
+              "Jingle-bell pass with toy words"
+            ],
+            "pres": "Christmas special: the Christmas story in picture frames (Seasonal pack) · present star, tree, present, Santa with flashcards; children join repeated lines.",
+            "presAlt": [
+              "Advent calendar reveal: open numbered \"doors\" (paper flaps) · numbers review built in!",
+              "Wrap real objects: guess the present by shape (toys review)"
+            ],
+            "prac": "Two carols with actions (Music/Songs): teach chorus only, sing twice; then S1 review stations preview (see below).",
+            "pracAlt": [
+              "Christmas card chant: \"Merry Christmas!\" pass-the-smile round",
+              "Colour the baubles: call colours for tree decorations"
+            ],
+            "ls": "Story listen #2 with hold-up cards: each time children hear star/tree/Santa they raise the card · active listening through a familiar story.",
+            "re": "S1 review carousel (part 1): 3 stations · colours sorting, numbers bingo, letters A-M speed sort. Teams rotate every 4 minutes.",
+            "prod": "Christmas party games: pass the parcel (say the word under the wrapper), pin the star on the tree (blindfold + directions \"up! down! left! right!\"), Christmas freeze dance.",
+            "rw": "Christmas card making: fold, draw, trace \"Merry Christmas\" inside; trace the 4 Christmas words. Fast finishers: copy \"Happy New Year!\"",
+            "st": "Carols sing-along finale; Christmas story retold by children with the picture frames (one line each · magic moment, film it for parents). Goodbye routine: Goodbye Song + sticker chart + high-five line.",
+            "g": [
+              [
+                "Pass the Parcel (Christmas)",
+                "Wrapper layers with words/pictures; stop = say it."
+              ],
+              [
+                "Pin the Star on the Tree",
+                "Blindfold; class calls up/down/left/right."
+              ],
+              [
+                "Christmas Freeze Dance",
+                "Carols + freeze; pose = star/tree/Santa."
+              ],
+              [
+                "Review Stations",
+                "Colours / numbers / letters rotation."
+              ],
+              [
+                "Advent Doors",
+                "Open a numbered door, read the number, reveal a word."
+              ]
+            ],
+            "diff": [
+              "Fast finishers: write a gift list \"I want a ___\" (preview of polite asking).",
+              "Support: crafts first, words in the craft; no child is left out of party games."
+            ],
+            "hw": [
+              "Give the Christmas card to a family member and say \"Merry Christmas!\".",
+              "Sing one carol chorus at home.",
+              "Count the days to Christmas in English (advent counting)."
+            ],
+            "tip": "Christmas (25 Dec) falls this week. The Semester 1 assessment is in Week 15: print the observation checklist beforehand and keep this week festive and light: card, carols, review stations."
+          },
+          "kit": [
+            {
+              "l": "The Hello Song For Children - Preschool, Kindergarten, Learn English",
+              "s": "wu",
+              "u": "https://drive.google.com/file/d/0B4wAj5OESLdnSkVNT3RBWUI5R3c/view",
+              "t": "file"
+            },
+            {
+              "l": "Christmas flashcards",
+              "s": "pres",
+              "u": "https://drive.google.com/drive/folders/1uHqu2Zun7_Ivy3QLWac50Nhw_vG1Z736",
+              "t": "folder"
+            },
+            {
+              "l": "Christmas full pack",
+              "s": "pres",
+              "u": "https://drive.google.com/drive/folders/1eIRtq2VTcY8uJRc8FzRF5YBqfPTA9_gQ",
+              "t": "folder"
+            },
+            {
+              "l": "Christmas flashcards",
+              "s": "pres",
+              "u": "https://drive.google.com/file/d/1DGFuokKaTPPbSuglqhXH249hyIsKBiZa/view",
+              "t": "file"
+            },
+            {
+              "l": "Christmas listening",
+              "s": "ls",
+              "u": "https://drive.google.com/drive/folders/101LQFSJCxFOZ7SXgfXNHX0uvXMawfcea",
+              "t": "folder"
+            },
+            {
+              "l": "Typical Christmas (audio)",
+              "s": "ls",
+              "u": "https://drive.google.com/file/d/1BZOA31EY8vw3Fxa4CS3VanpfQZkfDliT/view",
+              "t": "file"
+            },
+            {
+              "l": "Christmas games",
+              "s": "re",
+              "u": "https://drive.google.com/drive/folders/1mZAkd-uVk9iFPW3G0EkeonotKtViUOtk",
+              "t": "folder"
+            },
+            {
+              "l": "Christmas lesson plans (children)",
+              "s": "prod",
+              "u": "https://drive.google.com/drive/folders/1nh8WS6--29ZkoEwvubCNUK8w-uDByux-",
+              "t": "folder"
+            },
+            {
+              "l": "Christmas colour-by-numbers",
+              "s": "prod",
+              "u": "https://drive.google.com/drive/folders/1I_QCUZ0FcXlaWcn8bwBW4B11Zr6Px3FG",
+              "t": "folder"
+            },
+            {
+              "l": "Christmas lesson 1 (children)",
+              "s": "prod",
+              "u": "https://drive.google.com/file/d/1A1sDCBn99Dc-aQtKylWF9jqgjj4x0g67/view",
+              "t": "file"
+            },
+            {
+              "l": "Christmas alphabet sheets",
+              "s": "rw",
+              "u": "https://drive.google.com/drive/folders/1UGSDKEeJj2KhqOBWsj1w5ecwUQ6LhTzJ",
+              "t": "folder"
             }
           ]
         },
@@ -1647,8 +1777,8 @@
             }
           ],
           "occ": {
-            "act": "Party week: Christmas vocab stations, carols with actions, \"Santa Says\".",
-            "hw": ""
+            "act": "\"My wish for 2027\" craft + Happy New Year song; months-of-the-year line-up game.",
+            "hw": "Write your wish on the class poster template."
           }
         },
         {
@@ -1685,7 +1815,7 @@
               "Walk like the animal: big elephant steps vs small mouse steps (size contrast)"
             ],
             "ls": "Listen and draw: teacher describes a zoo scene (\"A big elephant. A small snake under the tree.\"); children draw it · compare drawings at the end.",
-            "re": "Mixed farm + wild animal sort: two hoops on the floor (farm / jungle); children place cards and say the name · built-in review of W12.",
+            "re": "Mixed farm + wild animal sort: two hoops on the floor (farm / jungle); children place cards and say the name · built-in review of W13.",
             "prod": "Zoo presentation: pairs choose 2 animals and present them to the class with clues; class guesses. Applause for full sentences.",
             "rw": "Trace wild animal words; big/small writing: write \"big lion\", \"small snake\" and match to pictures. Fast finishers: one full clue sentence written.",
             "st": "Animal-action song (\"We're going to the zoo\" style · Music/Songs); animal picture-book with guessing-page pauses. Goodbye routine: Goodbye Song + sticker chart + high-five line.",
@@ -1777,150 +1907,6 @@
               "u": "https://drive.google.com/file/d/0BwhmhpLZJ1FyYkJPSy13cjFGNW8/view",
               "t": "file"
             }
-          ],
-          "occ": {
-            "act": "\"My wish for 2027\" craft + Happy New Year song; months-of-the-year line-up game.",
-            "hw": "Write your wish on the class poster template."
-          }
-        },
-        {
-          "theme": "Christmas special + party",
-          "obj": "follow the Christmas story frames; join 2 carols; review S1 topics",
-          "lang": "Christmas vocabulary; review week 1-13",
-          "res": "Seasonal/Christmas pack; Music/Songs",
-          "urls": [
-            "https://drive.google.com/drive/folders/18Pf_-BIUmxg9tSzirU82Gcn0uW-IYCJx",
-            "https://drive.google.com/drive/folders/0B2Q8XuO2ebzxd2NkOXNyUWlGVTg"
-          ],
-          "act": "Make a Christmas card; carol singing; review games carousel with stations",
-          "hw": "Give the Christmas card to a family member and say \"Merry Christmas!\".",
-          "skills": {
-            "L": "Two carols - listen and join the actions (Seasonal/Christmas)",
-            "S": "Join the story frames; party-game speaking rounds",
-            "R": "Match Christmas words to picture cards",
-            "W": "Trace Christmas words; make a greeting card"
-          },
-          "lp": {
-            "wu": "Hello + feelings; animal words grand echo (farm + wild); one Clue Guess round.",
-            "wuAlt": [
-              "Christmas carol chorus sing to pre-load",
-              "Jingle-bell pass with animal words"
-            ],
-            "pres": "Christmas special: the Christmas story in picture frames (Seasonal pack) · present star, tree, present, Santa with flashcards; children join repeated lines.",
-            "presAlt": [
-              "Advent calendar reveal: open numbered \"doors\" (paper flaps) · numbers review built in!",
-              "Wrap real objects: guess the present by shape (toys review)"
-            ],
-            "prac": "Two carols with actions (Music/Songs): teach chorus only, sing twice; then S1 review stations preview (see below).",
-            "pracAlt": [
-              "Christmas card chant: \"Merry Christmas!\" pass-the-smile round",
-              "Colour the baubles: call colours for tree decorations"
-            ],
-            "ls": "Story listen #2 with hold-up cards: each time children hear star/tree/Santa they raise the card · active listening through a familiar story.",
-            "re": "S1 review carousel (part 1): 3 stations · colours sorting, numbers bingo, letters A-M speed sort. Teams rotate every 4 minutes.",
-            "prod": "Christmas party games: pass the parcel (say the word under the wrapper), pin the star on the tree (blindfold + directions \"up! down! left! right!\"), Christmas freeze dance.",
-            "rw": "Christmas card making: fold, draw, trace \"Merry Christmas\" inside; trace the 4 Christmas words. Fast finishers: copy \"Happy New Year!\"",
-            "st": "Carols sing-along finale; Christmas story retold by children with the picture frames (one line each · magic moment, film it for parents). Goodbye routine: Goodbye Song + sticker chart + high-five line.",
-            "g": [
-              [
-                "Pass the Parcel (Christmas)",
-                "Wrapper layers with words/pictures; stop = say it."
-              ],
-              [
-                "Pin the Star on the Tree",
-                "Blindfold; class calls up/down/left/right."
-              ],
-              [
-                "Christmas Freeze Dance",
-                "Carols + freeze; pose = star/tree/Santa."
-              ],
-              [
-                "Review Stations",
-                "Colours / numbers / letters rotation."
-              ],
-              [
-                "Advent Doors",
-                "Open a numbered door, read the number, reveal a word."
-              ]
-            ],
-            "diff": [
-              "Fast finishers: write a gift list \"I want a ___\" (preview of polite asking).",
-              "Support: crafts first, words in the craft; no child is left out of party games."
-            ],
-            "hw": [
-              "Give the Christmas card to a family member and say \"Merry Christmas!\".",
-              "Sing one carol chorus at home.",
-              "Count the days to Christmas in English (advent counting)."
-            ],
-            "tip": "Week 15 is the Semester 1 assessment. Print the observation checklist beforehand and keep this week festive and light: card, carols, review stations. Christmas has already passed by this date: run it as a winter-festival and New Year recap, or swap it with Week 12 (21 Dec) if you prefer."
-          },
-          "kit": [
-            {
-              "l": "The Hello Song For Children - Preschool, Kindergarten, Learn English",
-              "s": "wu",
-              "u": "https://drive.google.com/file/d/0B4wAj5OESLdnSkVNT3RBWUI5R3c/view",
-              "t": "file"
-            },
-            {
-              "l": "Christmas flashcards",
-              "s": "pres",
-              "u": "https://drive.google.com/drive/folders/1uHqu2Zun7_Ivy3QLWac50Nhw_vG1Z736",
-              "t": "folder"
-            },
-            {
-              "l": "Christmas full pack",
-              "s": "pres",
-              "u": "https://drive.google.com/drive/folders/1eIRtq2VTcY8uJRc8FzRF5YBqfPTA9_gQ",
-              "t": "folder"
-            },
-            {
-              "l": "Christmas flashcards",
-              "s": "pres",
-              "u": "https://drive.google.com/file/d/1DGFuokKaTPPbSuglqhXH249hyIsKBiZa/view",
-              "t": "file"
-            },
-            {
-              "l": "Christmas listening",
-              "s": "ls",
-              "u": "https://drive.google.com/drive/folders/101LQFSJCxFOZ7SXgfXNHX0uvXMawfcea",
-              "t": "folder"
-            },
-            {
-              "l": "Typical Christmas (audio)",
-              "s": "ls",
-              "u": "https://drive.google.com/file/d/1BZOA31EY8vw3Fxa4CS3VanpfQZkfDliT/view",
-              "t": "file"
-            },
-            {
-              "l": "Christmas games",
-              "s": "re",
-              "u": "https://drive.google.com/drive/folders/1mZAkd-uVk9iFPW3G0EkeonotKtViUOtk",
-              "t": "folder"
-            },
-            {
-              "l": "Christmas lesson plans (children)",
-              "s": "prod",
-              "u": "https://drive.google.com/drive/folders/1nh8WS6--29ZkoEwvubCNUK8w-uDByux-",
-              "t": "folder"
-            },
-            {
-              "l": "Christmas colour-by-numbers",
-              "s": "prod",
-              "u": "https://drive.google.com/drive/folders/1I_QCUZ0FcXlaWcn8bwBW4B11Zr6Px3FG",
-              "t": "folder"
-            },
-            {
-              "l": "Christmas lesson 1 (children)",
-              "s": "prod",
-              "u": "https://drive.google.com/file/d/1A1sDCBn99Dc-aQtKylWF9jqgjj4x0g67/view",
-              "t": "file"
-            },
-            {
-              "l": "Christmas alphabet sheets",
-              "s": "rw",
-              "u": "https://drive.google.com/drive/folders/1UGSDKEeJj2KhqOBWsj1w5ecwUQ6LhTzJ",
-              "t": "folder"
-            }
           ]
         },
         {
@@ -1942,7 +1928,7 @@
           "lp": {
             "wu": "Hello + feelings; gentle re-entry after the party week · carol chorus once, then \"we are going to play EVERYTHING today!\" framing.",
             "wuAlt": [
-              "Stations warm-up: one round of each W14 station",
+              "Stations warm-up: one round of each W12 station",
               "Game spinner: child spins, class plays 3-minute version of the pointed game"
             ],
             "pres": "Explain the Big Game Day: 6 stations, each a game they already know; a smiling \"game master\" (teacher) ticks the observation checklist at each station. No test feeling · pure play.",
@@ -7926,7 +7912,7 @@
             }
           ],
           "occ": {
-            "act": "Eid al-Fitr (around 9-10 March 2027): optional 10-minute Eid card in English using magic e words: 'Have a nice time. Eid Mubarak!' Draw and write the greeting.",
+            "act": "Eid al-Fitr (around 10-11 March 2027): optional 10-minute Eid card in English using magic e words: 'Have a nice time. Eid Mubarak!' Draw and write the greeting.",
             "hw": "Optional: write an Eid card to a friend with 2 sentences."
           }
         },
@@ -13072,7 +13058,7 @@
             }
           ],
           "occ": {
-            "act": "Eid al-Fitr (around 9-10 March 2027): optional 10-minute task: write a short paragraph about how my family celebrates Eid ('On Eid we visit... because...') using linking words.",
+            "act": "Eid al-Fitr (around 10-11 March 2027): optional 10-minute task: write a short paragraph about how my family celebrates Eid ('On Eid we visit... because...') using linking words.",
             "hw": "Optional: write a 3-sentence Eid message to a friend."
           }
         },
@@ -51054,15 +51040,15 @@
   "notes": [
     {
       "week": 4,
-      "text": "Halloween week"
+      "text": "Halloween week · Unity Day Sat 31 Oct (closed)"
     },
     {
       "week": 5,
-      "text": "Green March - Nov 6"
+      "text": "Green March - Fri 6 Nov (closed)"
     },
     {
       "week": 7,
-      "text": "Independence Day - Nov 18"
+      "text": "Independence Day - Wed 18 Nov (closed)"
     },
     {
       "week": 8,
@@ -51074,7 +51060,7 @@
     },
     {
       "week": 13,
-      "text": "New Year"
+      "text": "New Year - Fri 1 Jan (closed)"
     },
     {
       "week": 14,
@@ -51082,7 +51068,7 @@
     },
     {
       "week": 15,
-      "text": "SEMESTER 1 ASSESSMENT"
+      "text": "SEMESTER 1 ASSESSMENT · closed Mon 11 Jan and Thu 14 Jan"
     },
     {
       "week": 16,
@@ -51094,7 +51080,7 @@
     },
     {
       "week": 23,
-      "text": "Eid al-Fitr (expected - confirm official dates)"
+      "text": "Eid al-Fitr (expected 10-11 Mar, closed - confirm official dates)"
     },
     {
       "week": 29,
@@ -51102,7 +51088,7 @@
     },
     {
       "week": 30,
-      "text": "Labour Day - May 1 + FINAL ASSESSMENT + certificates"
+      "text": "Labour Day - Sat 1 May (closed) + FINAL ASSESSMENT + certificates"
     }
   ],
   "prep": {},
@@ -51278,6 +51264,6 @@
   ],
   "reports": [],
   "libraryPins": [],
-  "_rev": 1791669906878,
+  "_rev": 1791940811870,
   "_updated": "2026-10-12T17:56:54.819Z"
 }
