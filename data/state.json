@@ -51334,9 +51334,13 @@
   "libraryPins": [
     "lib|speakout2|Speakout 2nd Edition"
   ],
-  "_rev": 1791940811890,
-  "_updated": "2026-10-14T14:31:13.051Z",
+  "_rev": 1791940811891,
+  "_updated": "2026-10-14T14:44:57.097Z",
   "_changes": [
+    {
+      "t": "2026-10-14T14:44:57.098Z",
+      "text": "Kids 3 is cancelled on 17 October"
+    },
     {
       "t": "2026-10-14T14:27:06.109Z",
       "text": "Movie Discussion Club: days changed from Thursday to Wednesday"
@@ -51382,6 +51386,15 @@
       "from": "2026-10-11",
       "to": "2026-10-11",
       "reason": "Other"
+    },
+    {
+      "id": "xmv881gn0oodwx",
+      "kind": "teacher",
+      "teacher": "Nadia",
+      "from": "2026-10-17",
+      "to": "2026-10-17",
+      "reason": "Other",
+      "note": "Master Oral Exam"
     }
   ]
 }
