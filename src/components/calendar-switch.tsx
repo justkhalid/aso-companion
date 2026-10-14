@@ -6,7 +6,7 @@ import { CalendarDays, DoorOpen, GraduationCap } from 'lucide-react'
 /* the switch between the clubs and events calendar and the classes: two clear buttons, the chosen one filled */
 export type CalTab = 'cluev' | 'classes' | 'rooms'
 
-export function CalendarSwitch({ tab, onChange, large = false, rooms = false }: { tab: CalTab; onChange: (t: CalTab) => void; large?: boolean; rooms?: boolean }) {
+export function CalendarSwitch({ tab, onChange, large = false, rooms = false, counts }: { tab: CalTab; onChange: (t: CalTab) => void; large?: boolean; rooms?: boolean; counts?: Partial<Record<CalTab, number>> }) {
   const items: { k: CalTab; label: string; icon: React.ElementType }[] = [
     { k: 'cluev', label: 'Clubs and events', icon: CalendarDays },
     { k: 'classes', label: 'Classes', icon: GraduationCap },
@@ -69,6 +69,9 @@ export function CalendarSwitch({ tab, onChange, large = false, rooms = false }: 
           >
             <Icon className="h-4 w-4" aria-hidden />
             {label}
+            {counts?.[k] !== undefined && (
+              <span className={'rounded-full px-1.5 py-px text-[11px] font-bold tabular-nums transition-colors duration-300 ' + (on ? 'bg-white/25 text-white' : 'bg-secondary text-muted-foreground')}>{counts[k]}</span>
+            )}
           </button>
         )
       })}

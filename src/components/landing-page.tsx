@@ -111,27 +111,29 @@ export function LandingPage() {
         </div>
       )}
 
-      <header className="aso-nav-glass sticky top-0 z-40 border-b border-border">
-        <div className="mx-auto grid h-14 max-w-6xl grid-cols-[1fr_auto_1fr] items-center gap-3 px-4">
-          <div className="flex min-w-0 items-center gap-2">
-            <Logo size={30} />
-            <div className="font-display truncate text-[16px] font-extrabold tracking-tight">American Space Oujda</div>
+      <header className="sticky top-3 z-40 px-3">
+        <div className="aso-nav-glass mx-auto max-w-5xl rounded-3xl border border-border shadow-[0_8px_30px_-12px_rgba(0,0,0,.25)] md:rounded-full">
+          <div className="grid h-14 grid-cols-[1fr_auto_1fr] items-center gap-3 pl-4 pr-3 md:pl-5">
+            <div className="flex min-w-0 items-center gap-2">
+              <Logo size={30} />
+              <div className="font-display truncate text-[16px] font-extrabold tracking-tight">American Space Oujda</div>
+            </div>
+            <nav className="hidden items-center gap-1 md:flex" aria-label="Sections">
+              {SECTIONS.map((s) => (
+                <button key={s.id} onClick={() => jump(s.id)} className="rounded-full px-3.5 py-1.5 text-sm font-semibold text-foreground/80 transition hover:bg-secondary">
+                  {s.label}
+                </button>
+              ))}
+            </nav>
+            <div className="col-start-3 flex justify-end"><ThemeToggle /></div>
           </div>
-          <nav className="hidden items-center gap-1 md:flex" aria-label="Sections">
+          <div className="flex gap-1 overflow-x-auto px-3 pb-2 md:hidden [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
             {SECTIONS.map((s) => (
-              <button key={s.id} onClick={() => jump(s.id)} className="rounded-full px-3.5 py-1.5 text-sm font-semibold text-foreground/80 transition hover:bg-secondary">
+              <button key={s.id} onClick={() => jump(s.id)} className="shrink-0 rounded-full bg-secondary px-3.5 py-1.5 text-sm font-semibold text-foreground/80">
                 {s.label}
               </button>
             ))}
-          </nav>
-          <div className="col-start-3 flex justify-end"><ThemeToggle /></div>
-        </div>
-        <div className="mx-auto flex max-w-6xl gap-1 overflow-x-auto px-4 pb-2 md:hidden [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-          {SECTIONS.map((s) => (
-            <button key={s.id} onClick={() => jump(s.id)} className="shrink-0 rounded-full bg-secondary px-3.5 py-1.5 text-sm font-semibold text-foreground/80">
-              {s.label}
-            </button>
-          ))}
+          </div>
         </div>
       </header>
 
@@ -139,7 +141,7 @@ export function LandingPage() {
         {/* hero */}
         <section className="mx-auto max-w-6xl px-4 pb-4 pt-9 text-center sm:pt-12">
           <h1 className="font-display mx-auto max-w-3xl text-balance text-[32px] font-extrabold leading-[1.1] tracking-tight sm:text-5xl">
-            American Space Oujda
+            American Space <em className="font-display font-medium italic text-primary">Oujda</em>
           </h1>
           <p className="mx-auto mt-3 max-w-2xl text-balance text-base text-muted-foreground sm:text-lg">
             English for kids, teens and adults. What is on this month: the clubs, the events and the classes.
@@ -174,7 +176,7 @@ export function LandingPage() {
         {/* the calendar follows: a switch between clubs and events, and the classes */}
         <section id="calendar" className="mx-auto max-w-6xl scroll-mt-28 px-4 py-4">
           <div className="relative mb-4 flex flex-wrap items-center justify-center gap-3">
-            <CalendarSwitch tab={tab} onChange={setTab} />
+            <CalendarSwitch tab={tab} onChange={setTab} counts={{ cluev: clubs.length + events.length, classes: state.classes.length }} />
             {tab === 'cluev' && <div className="sm:absolute sm:right-0 sm:top-1/2 sm:-translate-y-1/2"><DownloadCalendarButton clubs events classes={false} /></div>}
             {tab === 'classes' && <div className="sm:absolute sm:right-0 sm:top-1/2 sm:-translate-y-1/2"><CalViewSwitcher view={calView} onChange={setCalView} /></div>}
           </div>

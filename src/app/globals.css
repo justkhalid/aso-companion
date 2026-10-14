@@ -290,3 +290,8 @@
 @media (prefers-reduced-motion: reduce) {
   .aso-tab-in { animation: none; }
 }
+
+/* footer wordmark: marbled ink that drifts slowly inside the letters */
+@keyframes aso-marble-drift { from { transform: translateX(0); } to { transform: translateX(240px); } }
+.aso-marble { animation: aso-marble-drift 40s ease-in-out infinite alternate; will-change: transform; }
+@media (prefers-reduced-motion: reduce) { .aso-marble { animation: none; } }
