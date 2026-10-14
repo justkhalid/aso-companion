@@ -38,7 +38,8 @@ import { ClassDialog } from '@/components/dialogs/class-dialog'
 import { CalendarExportMenu } from '@/components/calendar-export'
 import { SectionHeader, LinkButton, Chip, EmptyState } from '@/components/ui-bits'
 import type { ClassEntry } from '@/lib/types'
-import { PUBLIC_EVENT_TONE, groupByWhere, whereId } from '@/lib/calendar-items'
+import { classMark } from '@/lib/class-marks'
+import { PUBLIC_EVENT_TONE, groupByWhere, whereId, PUBLIC_OUTSIDE_TONE } from '@/lib/calendar-items'
 
 export function HomePage({ admin }: { admin: boolean }) {
   const state = useStore((s) => s.state)
@@ -82,7 +83,7 @@ export function HomePage({ admin }: { admin: boolean }) {
       code: c.code || c.level,
       meta: '',
       room: c.room,
-      icon: c.icon,
+      mark: classMark(state, c) || undefined,
     }
     const tone = toneClassForLevel(state, c.level)
     if (!wkMon || !(state.absences || []).length) return [{ ...base, id: c.id, days: c.days || [], lead: c.teacher, tone }]
@@ -114,9 +115,9 @@ export function HomePage({ admin }: { admin: boolean }) {
       const sp = splitDaysByStatus(c.days, wkMon, (iso) => clubStatusOn(state, c.id, iso))
       const out: GridItem[] = []
       const at = (days: string[]) => groupByWhere(days, wkMon!, (iso) => clubWhere(state, c, iso))
-      for (const g of at(sp.normal)) out.push({ ...base, id: whereId(c.id, g.w), days: g.days, slot: g.w.time, room: g.w.place, outside: g.w.outside, moved: g.w.moved, lead, tone })
+      for (const g of at(sp.normal)) out.push({ ...base, id: whereId(c.id, g.w), days: g.days, slot: g.w.time, room: g.w.place, outside: g.w.outside, moved: g.w.moved, lead, tone: g.w.outside ? PUBLIC_OUTSIDE_TONE : tone })
       if (sp.cancelled.length) out.push({ ...base, id: c.id + ':off', days: sp.cancelled, code: c.name + ' · cancelled', lead: 'cancelled', tone: 'tone-8' })
-      for (const [who, days] of Object.entries(sp.covered)) for (const g of at(days)) out.push({ ...base, id: whereId(c.id + ':cov:' + who, g.w), days: g.days, slot: g.w.time, room: g.w.place, outside: g.w.outside, moved: g.w.moved, lead: 'Led by ' + who, tone })
+      for (const [who, days] of Object.entries(sp.covered)) for (const g of at(days)) out.push({ ...base, id: whereId(c.id + ':cov:' + who, g.w), days: g.days, slot: g.w.time, room: g.w.place, outside: g.w.outside, moved: g.w.moved, lead: 'Led by ' + who, tone: g.w.outside ? PUBLIC_OUTSIDE_TONE : tone })
       return out
     })
   const clubLegend: LegendEntry[] = (state.clubs || []).map((c) => ({
@@ -141,7 +142,7 @@ export function HomePage({ admin }: { admin: boolean }) {
         ? splitDaysByStatus([day], wkMon, (iso) => eventStatusOn(state, e.id, isOnceEvent(e) && e.date ? e.date : iso))
         : null
       if (off && off.cancelled.length) return { ...base, id: e.id + ':off', days: [day], code: e.title + ' · cancelled', lead: 'cancelled', tone: 'tone-8' }
-      return { ...base, id: e.id, days: [day], code: e.title, lead: '', tone: PUBLIC_EVENT_TONE }
+      return { ...base, id: e.id, days: [day], code: e.title, lead: '', tone: w.outside ? PUBLIC_OUTSIDE_TONE : PUBLIC_EVENT_TONE }
     })
     .filter(Boolean) as GridItem[]
   const homeClubItems = [...clubItems, ...homeEventItems]

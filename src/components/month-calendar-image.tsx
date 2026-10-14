@@ -15,7 +15,7 @@ function backdropLayers(month: number) {
   if (!l) layerCache.set(month, (l = renderBackdropLayers(month)))
   return l
 }
-import { ACTIVITY, STATUS } from '@/lib/activity-colors'
+import { ACTIVITY, OUTSIDE, STATUS } from '@/lib/activity-colors'
 import { Button } from '@/components/ui/button'
 
 const KIND_INK = { class: ACTIVITY.class.ink, club: ACTIVITY.club.ink, event: ACTIVITY.event.ink }
@@ -63,11 +63,11 @@ function RoomDayCard({ iso, onClose }: { iso: string; onClose: () => void }) {
         ))}
         {away.length > 0 && (
           <div className="rounded-xl border border-dashed border-border p-3 sm:col-span-2">
-            <div className="mb-1 flex items-center gap-2 text-sm font-bold"><MapPin className="h-3.5 w-3.5" aria-hidden /> Outside the space</div>
+            <div className="mb-1 flex items-center gap-2 text-sm font-bold" style={{ color: OUTSIDE.ink }}><MapPin className="h-3.5 w-3.5" aria-hidden /> Outside the space</div>
             <ul className="flex flex-col gap-1 text-sm">
               {away.map((a, i) => (
                 <li key={i} className="flex flex-wrap items-baseline gap-x-2">
-                  <span className="font-bold" style={{ color: KIND_INK[a.kind] }} dir="auto">{a.title}</span>
+                  <span className="font-bold" style={{ color: OUTSIDE.ink }} dir="auto">{a.title}</span>
                   <span className="text-muted-foreground">{fmtSlot(a.time)} · {a.place}</span>
                 </li>
               ))}
@@ -80,7 +80,8 @@ function RoomDayCard({ iso, onClose }: { iso: string; onClose: () => void }) {
 }
 
 /* the month calendar picture shown on the page: arrows to change month, a download button; in the rooms version a tap on a day opens that day's detail */
-export function MonthCalendarImage({ clubs = true, events = true, classes = false, stepper = true, rooms = false }: { clubs?: boolean; events?: boolean; classes?: boolean; stepper?: boolean; rooms?: boolean }) {
+/* animated: only the main page and /calendar show the picture alive (leaves that sway on hover); everywhere else it is the flat picture */
+export function MonthCalendarImage({ clubs = true, events = true, classes = false, stepper = true, rooms = false, animated = false }: { clubs?: boolean; events?: boolean; classes?: boolean; stepper?: boolean; rooms?: boolean; animated?: boolean }) {
   const state = useStore((s) => s.state)
   const toast = useStore((s) => s.toast)
   const now = new Date()
@@ -114,7 +115,7 @@ export function MonthCalendarImage({ clubs = true, events = true, classes = fals
     setBusy(true)
     /* three layers: the plain themed page, every leaf on its own, and the calendar itself on clear glass over them */
     const st = stateRef.current
-    void (rooms ? renderRoomsMonth(st, { ...ym, transparent: true }, null) : renderMonth(st, { ...ym, clubs, events, classes, holidays: true, transparent: true }))
+    void (rooms ? renderRoomsMonth(st, { ...ym, transparent: animated }, null) : renderMonth(st, { ...ym, clubs, events, classes, holidays: true, transparent: animated }))
       .then(async (c) => {
         if (!alive) return
         /* shown at most about 1100 px wide (2x on a sharp screen), so 2400 px is plenty; the encoding runs off the main thread */
@@ -125,7 +126,7 @@ export function MonthCalendarImage({ clubs = true, events = true, classes = fals
         const blob: Blob | null = await new Promise((res) => small.toBlob(res, 'image/webp', 0.9))
         if (!alive || !blob) return
         url = URL.createObjectURL(blob)
-        setBack(backdropLayers(ym.month))
+        setBack(animated ? backdropLayers(ym.month) : null)
         setSrc(url)
       })
       .catch(() => {
@@ -136,7 +137,7 @@ export function MonthCalendarImage({ clubs = true, events = true, classes = fals
       alive = false
       if (url) setTimeout(() => URL.revokeObjectURL(url), 1000)
     }
-  }, [calKey, ym.year, ym.month, clubs, events, classes, rooms])
+  }, [calKey, ym.year, ym.month, clubs, events, classes, rooms, animated])
 
   const step = (n: number) => {
     setPick(null)
@@ -186,7 +187,7 @@ export function MonthCalendarImage({ clubs = true, events = true, classes = fals
           )}
         </div>
       )}
-      <div className="aso-alive relative overflow-hidden rounded-2xl border border-border bg-card shadow-sm">
+      <div className={(animated ? "aso-alive " : "") + "relative overflow-hidden rounded-2xl border border-border bg-card shadow-sm"}>
         {src ? (
           <>
             {back && (

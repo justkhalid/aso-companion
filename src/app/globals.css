@@ -202,9 +202,10 @@
 .tone-6 { --tone-bg: rgba(48,176,199,.16); --tone-txt: #0F7A8C; --tone-line: rgba(48,176,199,.32); }
 .tone-7 { --tone-bg: rgba(255,204,0,.18);  --tone-txt: #8A6D00; --tone-line: rgba(255,204,0,.34); }
 .tone-8 { --tone-bg: rgba(120,120,128,.16);--tone-txt: #5A5A66; --tone-line: rgba(120,120,128,.30); }
-.tone-9  { --tone-bg: rgba(15,118,110,.13);  --tone-txt: #0F766E; --tone-line: rgba(15,118,110,.32); }
+.tone-9  { --tone-bg: rgba(37,99,235,.12);  --tone-txt: #1D4ED8; --tone-line: rgba(37,99,235,.32); }
 .tone-10 { --tone-bg: rgba(109,40,217,.12);  --tone-txt: #6D28D9; --tone-line: rgba(109,40,217,.30); }
 .tone-11 { --tone-bg: rgba(194,65,12,.12);   --tone-txt: #C2410C; --tone-line: rgba(194,65,12,.30); }
+.tone-12 { --tone-bg: rgba(219,39,119,.11); --tone-txt: #BE185D; --tone-line: rgba(219,39,119,.30); }
 .dark .tone-0 { --tone-bg: rgba(78,143,255,.20);  --tone-txt: #9DBEFF; --tone-line: rgba(78,143,255,.40); }
 .dark .tone-1 { --tone-bg: rgba(255,159,10,.22);  --tone-txt: #FFB340; --tone-line: rgba(255,159,10,.40); }
 .dark .tone-2 { --tone-bg: rgba(48,209,88,.20);   --tone-txt: #5BE084; --tone-line: rgba(48,209,88,.40); }
@@ -213,9 +214,10 @@
 .dark .tone-5 { --tone-bg: rgba(255,100,130,.22); --tone-txt: #FF8AA6; --tone-line: rgba(255,100,130,.40); }
 .dark .tone-6 { --tone-bg: rgba(64,200,224,.22);  --tone-txt: #6AD9EC; --tone-line: rgba(64,200,224,.40); }
 .dark .tone-7 { --tone-bg: rgba(255,214,10,.22);  --tone-txt: #FFE060; --tone-line: rgba(255,214,10,.40); }
-.dark .tone-9  { --tone-bg: rgba(45,212,191,.18); --tone-txt: #5EEAD4; --tone-line: rgba(45,212,191,.38); }
+.dark .tone-9  { --tone-bg: rgba(96,165,250,.20); --tone-txt: #93C5FD; --tone-line: rgba(96,165,250,.40); }
 .dark .tone-10 { --tone-bg: rgba(167,139,250,.20); --tone-txt: #C4B5FD; --tone-line: rgba(167,139,250,.40); }
 .dark .tone-11 { --tone-bg: rgba(251,146,60,.20); --tone-txt: #FDBA74; --tone-line: rgba(251,146,60,.40); }
+.dark .tone-12 { --tone-bg: rgba(244,114,182,.20); --tone-txt: #F9A8D4; --tone-line: rgba(244,114,182,.40); }
 .dark .tone-8 { --tone-bg: rgba(152,152,159,.24); --tone-txt: #C7C7CC; --tone-line: rgba(152,152,159,.40); }
 
 /* skill dot colors (L/S/R/W) */

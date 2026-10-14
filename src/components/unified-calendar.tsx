@@ -4,7 +4,7 @@ import * as React from 'react'
 import { CalendarDays, CalendarRange, ChevronLeft, ChevronRight } from 'lucide-react'
 import { useStore } from '@/lib/store'
 import { mondayOfWeek } from '@/lib/app-utils'
-import { PUBLIC_CLASS_TONE, PUBLIC_CLUB_TONE, PUBLIC_EVENT_TONE, publicClassItems, publicClubItems, publicEventItems } from '@/lib/calendar-items'
+import { PUBLIC_CLASS_TONE, PUBLIC_CLUB_TONE, PUBLIC_EVENT_TONE, PUBLIC_OUTSIDE_TONE, publicClassItems, publicClubItems, publicEventItems } from '@/lib/calendar-items'
 import { CalendarSwitch, type CalTab } from './calendar-switch'
 import { MonthCalendarImage } from './month-calendar-image'
 import { RoomsPage } from './pages/rooms-page'
@@ -14,7 +14,7 @@ import { cn } from '@/lib/utils'
 type Span = 'month' | 'week'
 
 /* The one calendar for the whole site: what to show (clubs and events, classes, rooms) and how far (a month picture or a week). */
-export function UnifiedCalendar({ tab, onTab, counts }: { tab: CalTab; onTab: (t: CalTab) => void; counts?: Partial<Record<CalTab, number>> }) {
+export function UnifiedCalendar({ tab, onTab, counts, animated = false }: { tab: CalTab; onTab: (t: CalTab) => void; counts?: Partial<Record<CalTab, number>>; animated?: boolean }) {
   const state = useStore((s) => s.state)
   const [span, setSpan] = React.useState<Span>('month')
   const [offset, setOffset] = React.useState(0)
@@ -33,6 +33,7 @@ export function UnifiedCalendar({ tab, onTab, counts }: { tab: CalTab; onTab: (t
     ...(items.some((i) => i.tone === PUBLIC_CLASS_TONE) ? [{ label: 'English classes', tone: PUBLIC_CLASS_TONE }] : []),
     ...(items.some((i) => i.tone === PUBLIC_CLUB_TONE) ? [{ label: 'Clubs', tone: PUBLIC_CLUB_TONE }] : []),
     ...(items.some((i) => i.tone === PUBLIC_EVENT_TONE) ? [{ label: 'Events', tone: PUBLIC_EVENT_TONE }] : []),
+    ...(items.some((i) => i.tone === PUBLIC_OUTSIDE_TONE) ? [{ label: 'Outside', tone: PUBLIC_OUTSIDE_TONE }] : []),
     ...(items.some((i) => i.tone === 'tone-8') ? [{ label: 'Cancelled', tone: 'tone-8' }] : []),
   ]
 
@@ -59,7 +60,7 @@ export function UnifiedCalendar({ tab, onTab, counts }: { tab: CalTab; onTab: (t
 
       {span === 'month' ? (
         <div key={tab + 'm'} className="aso-tab-in">
-          {tab === 'rooms' ? <MonthCalendarImage rooms /> : <MonthCalendarImage clubs={tab === 'cluev'} events={tab === 'cluev'} classes={tab === 'classes'} />}
+          {tab === 'rooms' ? <MonthCalendarImage rooms animated={animated} /> : <MonthCalendarImage animated={animated} clubs={tab === 'cluev'} events={tab === 'cluev'} classes={tab === 'classes'} />}
         </div>
       ) : tab === 'rooms' ? (
         <div key="rw" className="aso-tab-in"><RoomsPage embedded /></div>

@@ -176,7 +176,7 @@ export function LandingPage() {
 
         {/* the calendar follows: a switch between clubs and events, and the classes */}
         <section id="calendar" className="mx-auto max-w-6xl scroll-mt-28 px-4 py-4">
-          <UnifiedCalendar tab={tab} onTab={setTab} counts={{ cluev: clubs.length + events.length, classes: state.classes.length }} />
+          <UnifiedCalendar animated tab={tab} onTab={setTab} counts={{ cluev: clubs.length + events.length, classes: state.classes.length }} />
         </section>
 
         {tab === 'cluev' && (

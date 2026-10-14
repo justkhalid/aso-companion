@@ -5,6 +5,8 @@ import { CalendarRange, LayoutGrid, List, MapPin } from 'lucide-react'
 import { DAY_KEYS } from '@/lib/constants'
 import { fmtRange12, hourLabel12, addDays, fmtD, todayKey } from '@/lib/app-utils'
 import { clubIcon } from '@/lib/icons'
+import type { ClassMark } from '@/lib/class-marks'
+import { ClassMarkIcons } from '@/components/class-mark'
 import { cn } from '@/lib/utils'
 
 export interface GridItem {
@@ -19,6 +21,14 @@ export interface GridItem {
   outside?: boolean // the room field is a place outside the space
   moved?: boolean // held somewhere else (or at another time) just this week
   icon?: string // CLUB_ICONS key; renders on the chip instead of a dot
+  mark?: ClassMark // a class: who it is for and its level, shown as two small icons
+}
+
+/* the chip's icon: a class shows its audience and level, a club or event the icon chosen for it */
+function ItemIcon({ item, className, style }: { item: GridItem; className?: string; style?: React.CSSProperties }) {
+  if (item.mark) return <ClassMarkIcons mark={item.mark} className={className} style={style} />
+  const I = clubIcon(item.icon)?.Icon
+  return I ? <I className={className} style={style} /> : null
 }
 
 export interface LegendEntry {
@@ -225,7 +235,7 @@ export function WeeklyGrid({
                     const chipWidth = `calc(${(duration / 60 / span) * 100}% - 4px)`
                     const chipTop = ROW_PAD + p.lane * (CHIP_H + CHIP_GAP)
 
-                    const Icon = clubIcon(e.item.icon)?.Icon
+                    const Icon = !!e.item.mark || !!clubIcon(e.item.icon)
                     const Comp: React.ElementType = onCellClick ? 'button' : 'div'
                     return (
                       <div
@@ -255,7 +265,7 @@ export function WeeklyGrid({
                             style={{ color: 'var(--tone-txt)' }}
                           >
                             {Icon ? (
-                              <Icon className="h-3 w-3 shrink-0" />
+                              <ItemIcon item={e.item} className="h-3 w-3 shrink-0" />
                             ) : (
                               <i className="inline-block h-1.5 w-1.5 shrink-0 rounded-full" style={{ background: 'var(--tone-txt)' }} />
                             )}
@@ -450,7 +460,7 @@ export function CalendarListView({
               </div>
               <div className="flex flex-col gap-1.5">
                 {evs.map((e) => {
-                  const Icon = clubIcon(e.item.icon)?.Icon
+                  const Icon = !!e.item.mark || !!clubIcon(e.item.icon)
                   const Comp: React.ElementType = onCellClick ? 'button' : 'div'
                   return (
                     <Comp
@@ -471,7 +481,7 @@ export function CalendarListView({
                       <span className="min-w-0 flex-1">
                         <span className="flex items-center gap-1.5 text-[13px] font-bold leading-tight">
                           {Icon ? (
-                            <Icon className="h-3.5 w-3.5 shrink-0" />
+                            <ItemIcon item={e.item} className="h-3.5 w-3.5 shrink-0" />
                           ) : (
                             <i className="inline-block h-1.5 w-1.5 shrink-0 rounded-full" style={{ background: 'var(--tone-txt)' }} />
                           )}
@@ -583,7 +593,7 @@ export function CalendarCardsView({
                 <div className="flex flex-col">
                   {evs.map((e, i2) => {
                     const tone = TONE_TXT[e.item.tone]
-                    const Icon = clubIcon(e.item.icon)?.Icon
+                    const Icon = !!e.item.mark || !!clubIcon(e.item.icon)
                     const Comp: React.ElementType = onCellClick ? 'button' : 'div'
                     return (
                       <Comp
@@ -612,7 +622,7 @@ export function CalendarCardsView({
                         {/* name + bold lead */}
                         <span className="min-w-0 flex-1">
                           <span className="flex items-center gap-1 text-[12px] font-bold leading-tight text-foreground">
-                            {Icon ? <Icon className="h-3 w-3 shrink-0" style={{ color: tone }} /> : null}
+                            {Icon ? <ItemIcon item={e.item} className="h-3 w-3 shrink-0" style={{ color: tone }} /> : null}
                             <span className="min-w-0 break-words" dir="auto" title={e.item.code}>{e.item.code}</span>
                           </span>
                           {e.item.lead && (
@@ -645,7 +655,8 @@ const TONE_TXT: Record<string, string> = {
   'tone-6': '#0F7A8C',
   'tone-7': '#8A6D00',
   'tone-8': '#5A5A66',
-  'tone-9': '#0F766E',
+  'tone-9': '#1D4ED8',
   'tone-10': '#6D28D9',
   'tone-11': '#C2410C',
+  'tone-12': '#BE185D',
 }

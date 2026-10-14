@@ -15,12 +15,14 @@ import {
 } from './app-utils'
 import { DAY_KEYS } from './constants'
 import { closedHoliday } from './holidays'
+import { classMark } from './class-marks'
 import type { State } from './types'
 
 /* classes as "English class ASO-K1" with teacher and room, all in one color; cancelled days in gray */
 export const PUBLIC_CLASS_TONE = 'tone-9' // classes: teal (see activity-colors.ts)
 export const PUBLIC_CLUB_TONE = 'tone-10' // clubs: violet
 export const PUBLIC_EVENT_TONE = 'tone-11' // events: orange
+export const PUBLIC_OUTSIDE_TONE = 'tone-12' // held outside the space: pink, whatever it is
 /* ASO-K1 -> "Kids 1", ASO-T2 -> "Teens 2", ASO-A3 -> "Adults 3": the public sees the group, not the internal code */
 export function publicGroupName(code: string, fallback: string): string {
   const m = /^ASO-([KTA])\s*(\d+)/i.exec(String(code || '').trim())
@@ -61,7 +63,7 @@ function rawClassItems(state: State, monday: Date): GridItem[] {
   return (state.classes || [])
     .filter((c) => (c.days || []).length && c.time)
     .flatMap((c) => {
-      const base = { slot: c.time, code: 'English class ' + publicGroupName(c.code, c.level), room: c.room, icon: c.icon }
+      const base = { slot: c.time, code: 'English class ' + publicGroupName(c.code, c.level), room: c.room, mark: classMark(state, c) || undefined }
       const tone = PUBLIC_CLASS_TONE
       const sp = splitDaysByStatus(c.days, monday, (iso) => classStatusOn(state, c, iso))
       const out: GridItem[] = []
@@ -96,9 +98,9 @@ function rawClubItems(state: State, monday: Date): GridItem[] {
       const sp = splitDaysByStatus(c.days, monday, (iso) => clubStatusOn(state, c.id, iso))
       const out: GridItem[] = []
       const at = (days: string[]) => groupByWhere(days, monday, (iso) => clubWhere(state, c, iso))
-      for (const g of at(sp.normal)) out.push({ ...base, id: whereId(c.id, g.w), days: g.days, slot: g.w.time, room: g.w.place, outside: g.w.outside, moved: g.w.moved, lead, tone })
+      for (const g of at(sp.normal)) out.push({ ...base, id: whereId(c.id, g.w), days: g.days, slot: g.w.time, room: g.w.place, outside: g.w.outside, moved: g.w.moved, lead, tone: g.w.outside ? PUBLIC_OUTSIDE_TONE : tone })
       if (sp.cancelled.length) out.push({ ...base, id: c.id + ':off', days: sp.cancelled, code: c.name + ' · cancelled', tone: 'tone-8' })
-      for (const [who, days] of Object.entries(sp.covered)) for (const g of at(days)) out.push({ ...base, id: whereId(c.id + ':cov:' + who, g.w), days: g.days, slot: g.w.time, room: g.w.place, outside: g.w.outside, moved: g.w.moved, lead: who, tone })
+      for (const [who, days] of Object.entries(sp.covered)) for (const g of at(days)) out.push({ ...base, id: whereId(c.id + ':cov:' + who, g.w), days: g.days, slot: g.w.time, room: g.w.place, outside: g.w.outside, moved: g.w.moved, lead: who, tone: g.w.outside ? PUBLIC_OUTSIDE_TONE : tone })
       return out
     })
 }
@@ -124,7 +126,7 @@ function rawEventItems(state: State, monday: Date): GridItem[] {
       outside: off ? !!e.outside : w.outside,
       moved: !off && w.moved,
       icon: e.icon || 'calendar',
-      tone: off ? 'tone-8' : PUBLIC_EVENT_TONE,
+      tone: off ? 'tone-8' : w.outside ? PUBLIC_OUTSIDE_TONE : PUBLIC_EVENT_TONE,
     })
   }
   return out
