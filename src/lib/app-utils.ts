@@ -1,7 +1,7 @@
 /* ASO Companion - pure helper functions (no React) */
 import { DAY_KEYS, DAY_FULL, ROOM_OPTIONS } from './constants'
 import { closedHoliday } from './holidays'
-import type { State, Level, EventEntry, ClassEntry, Absence, TeamMember } from './types'
+import type { State, Level, EventEntry, ClassEntry, Club, Absence, TeamMember } from './types'
 
 export function parseISO(iso: string): Date {
   const p = String(iso || '').split('-')
@@ -354,11 +354,21 @@ export function suggestClassCode(classes: { code?: string }[], levelLabel: strin
  * Room dropdown options: the canonical rooms first, then every room / place
  * already in use anywhere in the state (so nothing ever disappears).
  */
-export function roomOptionsFor(state: Pick<State, 'classes' | 'clubs' | 'events'>): string[] {
+export function roomOptionsFor(state: Pick<State, 'classes' | 'clubs' | 'events'> & { absences?: Absence[] }): string[] {
   const set = new Set<string>(ROOM_OPTIONS as readonly string[])
   ;(state.classes || []).forEach((c) => c.room && set.add(c.room))
-  ;(state.clubs || []).forEach((c) => c.room && set.add(c.room))
-  ;(state.events || []).forEach((e) => e.place && set.add(e.place))
+  ;(state.clubs || []).forEach((c) => c.room && !c.outside && set.add(c.room))
+  ;(state.events || []).forEach((e) => e.place && !e.outside && set.add(e.place))
+  ;(state.absences || []).forEach((x) => x.moved?.place && !x.moved.outside && set.add(x.moved.place))
+  return Array.from(set)
+}
+
+/* places outside the space already used, offered again when picking one */
+export function outsidePlacesOf(state: Pick<State, 'clubs' | 'events'> & { absences?: Absence[] }): string[] {
+  const set = new Set<string>()
+  ;(state.clubs || []).forEach((c) => c.outside && c.room && set.add(c.room))
+  ;(state.events || []).forEach((e) => e.outside && e.place && set.add(e.place))
+  ;(state.absences || []).forEach((x) => x.moved?.outside && x.moved.place && set.add(x.moved.place))
   return Array.from(set)
 }
 
@@ -411,12 +421,27 @@ export function classStatusOn(state: Pick<State, 'absences'>, c: ClassEntry, iso
 }
 
 export function clubStatusOn(state: Pick<State, 'absences'>, clubId: string, iso: string): ClassStatus {
-  return statusFrom(holidayAbsence(iso) || (state.absences || []).find((a) => a.kind === 'club' && a.clubId === clubId && within(a, iso)))
+  return statusFrom(holidayAbsence(iso) || (state.absences || []).find((a) => a.kind === 'club' && !a.moved && a.clubId === clubId && within(a, iso)))
 }
 
 export function eventStatusOn(state: Pick<State, 'absences'>, eventId: string, iso: string): ClassStatus {
-  return statusFrom(holidayAbsence(iso) || (state.absences || []).find((a) => a.kind === 'event' && a.eventId === eventId && within(a, iso)))
+  return statusFrom(holidayAbsence(iso) || (state.absences || []).find((a) => a.kind === 'event' && !a.moved && a.eventId === eventId && within(a, iso)))
 }
+
+/* where and when a club or event really is on one date: its usual place and time, unless a one-off move covers that date */
+export interface Where {
+  place: string
+  outside: boolean
+  time: string
+  moved: boolean
+}
+function whereOn(state: Pick<State, 'absences'>, kind: 'club' | 'event', id: string, iso: string, place: string, outside: boolean, time: string): Where {
+  const mv = (state.absences || []).find((a) => a.kind === kind && a.moved && (kind === 'club' ? a.clubId : a.eventId) === id && within(a, iso))
+  if (!mv?.moved) return { place: place || '', outside, time, moved: false }
+  return { place: mv.moved.place || place || '', outside: !!mv.moved.outside, time: mv.moved.time || time, moved: true }
+}
+export const clubWhere = (state: Pick<State, 'absences'>, c: Club, iso: string): Where => whereOn(state, 'club', c.id, iso, c.room, !!c.outside, c.time)
+export const eventWhere = (state: Pick<State, 'absences'>, e: EventEntry, iso: string): Where => whereOn(state, 'event', e.id, iso, e.place, !!e.outside, e.time)
 
 /* split a weekly pattern's days into normal days, cancelled days and covered days for one week */
 export function splitDaysByStatus(

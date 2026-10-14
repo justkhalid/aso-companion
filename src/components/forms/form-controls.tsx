@@ -8,6 +8,7 @@ import { CLUB_ICONS, clubIcon } from '@/lib/icons'
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
 import {
   Select,
   SelectContent,
@@ -245,6 +246,56 @@ export function PickOrType({
         </SelectItem>
       </SelectContent>
     </Select>
+  )
+}
+
+/* ---------- where it happens: a room of the space, or somewhere outside ---------- */
+export function WhereField({
+  id,
+  label,
+  outside,
+  place,
+  onChange,
+  rooms,
+  outsidePlaces,
+}: {
+  id: string
+  label: string
+  outside: boolean
+  place: string
+  onChange: (place: string, outside: boolean) => void
+  rooms: string[]
+  outsidePlaces: string[]
+}) {
+  const seg = (on: boolean, text: string, out: boolean) => (
+    <button
+      type="button"
+      aria-pressed={on}
+      onClick={() => !on && onChange('', out)}
+      className={cn('rounded-[8px] py-1.5 text-sm transition', on ? 'bg-card font-semibold shadow-sm' : 'text-foreground/70')}
+    >
+      {text}
+    </button>
+  )
+  return (
+    <div className="flex flex-col gap-1.5">
+      <Label htmlFor={id}>{label}</Label>
+      <div className="grid grid-cols-2 gap-1 rounded-[10px] bg-secondary p-0.5">
+        {seg(!outside, 'At the space', false)}
+        {seg(outside, 'Outside', true)}
+      </div>
+      {outside ? (
+        <>
+          <Input id={id} list={id + '-places'} value={place} onChange={(e) => onChange(e.target.value, true)} placeholder="City Park, a school, another venue..." />
+          <datalist id={id + '-places'}>
+            {outsidePlaces.map((p) => <option key={p} value={p} />)}
+          </datalist>
+          <span className="text-[11px] leading-tight text-muted-foreground">No room is used. It shows on the calendars with a pin and this place.</span>
+        </>
+      ) : (
+        <PickOrType id={id} value={place} onChange={(v) => onChange(v, false)} options={rooms} placeholder="Pick a room" emptyLabel="No room yet" />
+      )}
+    </div>
   )
 }
 

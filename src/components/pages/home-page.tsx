@@ -30,7 +30,7 @@ import {
   eventStatusOn,
   splitDaysByStatus,
   isoOf,
-  addDays, fmtTime } from '@/lib/app-utils'
+  addDays, clubWhere, eventWhere, fmtTime } from '@/lib/app-utils'
 import { DAY_FULL, DAY_KEYS, FILL_GRID, ROOM_LEGEND } from '@/lib/constants'
 import { buildCalendarLinks } from '@/lib/export-word'
 import { WeeklyGrid, CalendarListView, CalendarCardsView, CalViewSwitcher, readCalView, writeCalView, type GridItem, type LegendEntry, type CalendarView } from '@/components/weekly-grid'
@@ -38,7 +38,7 @@ import { ClassDialog } from '@/components/dialogs/class-dialog'
 import { CalendarExportMenu } from '@/components/calendar-export'
 import { SectionHeader, LinkButton, Chip, EmptyState } from '@/components/ui-bits'
 import type { ClassEntry } from '@/lib/types'
-import { PUBLIC_EVENT_TONE } from '@/lib/calendar-items'
+import { PUBLIC_EVENT_TONE, groupByWhere, whereId } from '@/lib/calendar-items'
 
 export function HomePage({ admin }: { admin: boolean }) {
   const state = useStore((s) => s.state)
@@ -107,15 +107,16 @@ export function HomePage({ admin }: { admin: boolean }) {
   const clubItems: GridItem[] = (state.clubs || [])
     .filter((c) => (c.days || []).length && c.time)
     .flatMap((c) => {
-      const base = { slot: c.time, code: c.name, meta: '', room: c.room, icon: c.icon }
+      const base = { slot: c.time, code: c.name, meta: '', room: c.room, outside: c.outside, icon: c.icon }
       const tone = toneClassForClub(state, c.id)
       const lead = c.lead || 'no lead yet'
       if (!wkMon || !(state.absences || []).length) return [{ ...base, id: c.id, days: c.days, lead, tone }]
       const sp = splitDaysByStatus(c.days, wkMon, (iso) => clubStatusOn(state, c.id, iso))
       const out: GridItem[] = []
-      if (sp.normal.length) out.push({ ...base, id: c.id, days: sp.normal, lead, tone })
+      const at = (days: string[]) => groupByWhere(days, wkMon!, (iso) => clubWhere(state, c, iso))
+      for (const g of at(sp.normal)) out.push({ ...base, id: whereId(c.id, g.w), days: g.days, slot: g.w.time, room: g.w.place, outside: g.w.outside, moved: g.w.moved, lead, tone })
       if (sp.cancelled.length) out.push({ ...base, id: c.id + ':off', days: sp.cancelled, code: c.name + ' · cancelled', lead: 'cancelled', tone: 'tone-8' })
-      for (const [who, days] of Object.entries(sp.covered)) out.push({ ...base, id: c.id + ':cov:' + who, days, lead: 'Led by ' + who, tone })
+      for (const [who, days] of Object.entries(sp.covered)) for (const g of at(days)) out.push({ ...base, id: whereId(c.id + ':cov:' + who, g.w), days: g.days, slot: g.w.time, room: g.w.place, outside: g.w.outside, moved: g.w.moved, lead: 'Led by ' + who, tone })
       return out
     })
   const clubLegend: LegendEntry[] = (state.clubs || []).map((c) => ({
@@ -134,7 +135,8 @@ export function HomePage({ admin }: { admin: boolean }) {
         day = DAY_KEYS[d.getDay() === 0 ? 6 : d.getDay() - 1] || ''
       }
       if (!day || !e.time) return null
-      const base = { slot: e.time, meta: '', room: e.place || '', icon: e.icon || 'calendar' }
+      const w = eventWhere(state, e, isOnceEvent(e) && e.date ? e.date : isoOf(addDays(wkMon || new Date(), Math.max(0, DAY_KEYS.indexOf(day as (typeof DAY_KEYS)[number])))))
+      const base = { slot: w.time, meta: '', room: w.place, outside: w.outside, moved: w.moved, icon: e.icon || 'calendar' }
       const off = wkMon
         ? splitDaysByStatus([day], wkMon, (iso) => eventStatusOn(state, e.id, isOnceEvent(e) && e.date ? e.date : iso))
         : null

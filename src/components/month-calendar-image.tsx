@@ -1,11 +1,11 @@
 'use client'
 
 import * as React from 'react'
-import { ChevronLeft, ChevronRight, Download } from 'lucide-react'
+import { ChevronLeft, ChevronRight, Download, MapPin } from 'lucide-react'
 import { useStore } from '@/lib/store'
 import { downloadMonth, monthLabel, renderMonth } from '@/lib/month-export'
-import { downloadRoomsMonth, renderRoomsMonth, roomDayDetail, roomStatus, roomsCells } from '@/lib/month-rooms'
-import { fmt12Min, roomOptionsFor } from '@/lib/app-utils'
+import { downloadRoomsMonth, outsideDay, renderRoomsMonth, roomDayDetail, roomStatus, roomsCells } from '@/lib/month-rooms'
+import { fmt12Min, fmtTime as fmtSlot, roomOptionsFor } from '@/lib/app-utils'
 import { renderBackdropLayers, type MotifSprite } from '@/lib/month-frame'
 import { ACTIVITY, STATUS } from '@/lib/activity-colors'
 import { Button } from '@/components/ui/button'
@@ -16,6 +16,7 @@ const KIND_INK = { class: ACTIVITY.class.ink, club: ACTIVITY.club.ink, event: AC
 function RoomDayCard({ iso, onClose }: { iso: string; onClose: () => void }) {
   const state = useStore((s) => s.state)
   const rows = roomDayDetail(state, iso).map((r) => ({ ...r, status: roomStatus(r.slots, r.closed) }))
+  const away = outsideDay(state, iso)
   const d = new Date(iso + 'T00:00:00')
   return (
     <div className="aso-tab-in mt-3 rounded-2xl border border-border bg-card p-4 shadow-sm">
@@ -52,6 +53,19 @@ function RoomDayCard({ iso, onClose }: { iso: string; onClose: () => void }) {
             )}
           </div>
         ))}
+        {away.length > 0 && (
+          <div className="rounded-xl border border-dashed border-border p-3 sm:col-span-2">
+            <div className="mb-1 flex items-center gap-2 text-sm font-bold"><MapPin className="h-3.5 w-3.5" aria-hidden /> Outside the space</div>
+            <ul className="flex flex-col gap-1 text-sm">
+              {away.map((a, i) => (
+                <li key={i} className="flex flex-wrap items-baseline gap-x-2">
+                  <span className="font-bold" style={{ color: KIND_INK[a.kind] }} dir="auto">{a.title}</span>
+                  <span className="text-muted-foreground">{fmtSlot(a.time)} · {a.place}</span>
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
       </div>
     </div>
   )

@@ -5,7 +5,7 @@ import { AlertTriangle, CalendarDays, DoorOpen, GraduationCap, HeartHandshake, S
 import { useStore } from '@/lib/store'
 import { DAY_KEYS } from '@/lib/constants'
 import { PageHead, Chip } from '@/components/ui-bits'
-import { peopleOf, rolesOf, fmtAbsenceRange, isoOf, nextOccurrence, termStatus, classStatusOn, clubStatusOn, eventStatusOn, isOnceEvent, fmtTime, parseSlot } from '@/lib/app-utils'
+import { peopleOf, rolesOf, fmtAbsenceRange, isoOf, nextOccurrence, termStatus, classStatusOn, clubStatusOn, clubWhere, eventStatusOn, eventWhere, isOnceEvent, fmtTime, parseSlot } from '@/lib/app-utils'
 import { Button } from '@/components/ui/button'
 import { openQuickAdd } from '@/components/admin/quick-add'
 import { CalendarSwitch, type CalTab } from '@/components/calendar-switch'
@@ -23,15 +23,15 @@ export function DashboardPage() {
   const dayKey = DAY_KEYS[(now.getDay() + 6) % 7]
   const st = termStatus(state)
 
-  const away = (state.absences || []).filter((a) => a.from <= today && a.to >= today)
+  const away = (state.absences || []).filter((a) => !a.moved && a.from <= today && a.to >= today)
   const awayName = (a: (typeof away)[number]) =>
     a.kind === 'club' ? state.clubs.find((c) => c.id === a.clubId)?.name || 'Club' : a.kind === 'event' ? state.events.find((e) => e.id === a.eventId)?.title || 'Event' : a.teacher
 
   /* everything on today, with its status */
   const sessions = [
     ...state.classes.filter((c) => (c.days || []).includes(dayKey)).map((c) => ({ key: c.id, title: c.code, sub: `${c.level} · ${c.teacher || 'no teacher'}`, time: c.time, room: c.room, status: classStatusOn(state, c, today) })),
-    ...state.clubs.filter((c) => (c.days || []).includes(dayKey)).map((c) => ({ key: c.id, title: c.name, sub: `Club · ${c.lead || 'no lead'}`, time: c.time, room: c.room, status: clubStatusOn(state, c.id, today) })),
-    ...state.events.filter((e) => (isOnceEvent(e) ? e.date === today : e.day === dayKey && !!nextOccurrence(e) && isoOf(nextOccurrence(e)!) === today)).map((e) => ({ key: e.id, title: e.title, sub: 'Event', time: e.time, room: e.place, status: eventStatusOn(state, e.id, today) })),
+    ...state.clubs.filter((c) => (c.days || []).includes(dayKey)).map((c) => ({ key: c.id, title: c.name, sub: `Club · ${c.lead || 'no lead'}`, time: clubWhere(state, c, today).time, room: clubWhere(state, c, today).place, status: clubStatusOn(state, c.id, today) })),
+    ...state.events.filter((e) => (isOnceEvent(e) ? e.date === today : e.day === dayKey && !!nextOccurrence(e) && isoOf(nextOccurrence(e)!) === today)).map((e) => ({ key: e.id, title: e.title, sub: e.lead ? `Event · ${e.lead}` : 'Event', time: eventWhere(state, e, today).time, room: eventWhere(state, e, today).place, status: eventStatusOn(state, e.id, today) })),
   ].sort((a, b) => parseSlot(a.time || '').mins - parseSlot(b.time || '').mins)
 
   /* things that are missing */

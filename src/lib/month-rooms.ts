@@ -85,7 +85,7 @@ export async function renderRoomsMonth(state: State, o: { year: number; month: n
     const dk = DAY_KEYS[(lead + day - 1) % 7]
     const list = (occ.get(iso) || []).filter((x) => !x.off)
     const slots: Slot[] = room
-      ? list.filter((x) => x.place === room).map((x) => ({ start: parseSlot(x.time).mins, end: endOf(x.time, parseSlot(x.time).mins), name: x.title, kind: x.kind })).sort((a, b) => a.start - b.start)
+      ? list.filter((x) => !x.outside && x.place === room).map((x) => ({ start: parseSlot(x.time).mins, end: endOf(x.time, parseSlot(x.time).mins), name: x.title, kind: x.kind })).sort((a, b) => a.start - b.start)
       : []
     const closedRoom = !!(room && ROOM_UNAVAILABLE[room]?.includes(dk))
     const free = freeWindows(slots)
@@ -175,7 +175,7 @@ export async function renderRoomsMonth(state: State, o: { year: number; month: n
     const list = (occ.get(iso) || []).filter((s) => !s.off)
     const slotsOf = (r: string): Slot[] =>
       list
-        .filter((s) => s.place === r)
+        .filter((s) => !s.outside && s.place === r)
         .map((s) => ({ start: parseSlot(s.time).mins, end: endOf(s.time, parseSlot(s.time).mins), name: s.title, kind: s.kind }))
     if (hol) {
       /* the whole day is closed */
@@ -357,6 +357,13 @@ export interface RoomDay {
   free: [number, number][]
 }
 
+/* what happens outside the space on one date (a park, another venue) */
+export function outsideDay(state: State, iso: string): { title: string; kind: 'club' | 'event' | 'class'; place: string; time: string }[] {
+  const d = new Date(iso + 'T00:00:00')
+  const occ = monthOccurrences(state, { year: d.getFullYear(), month: d.getMonth(), clubs: true, events: true, classes: true })
+  return (occ.get(iso) || []).filter((x) => x.outside && !x.off).map((x) => ({ title: x.title, kind: x.kind, place: x.place, time: x.time }))
+}
+
 /* what is in each room on one date: bookings and the free hours between them */
 export function roomDayDetail(state: State, iso: string): RoomDay[] {
   const d = new Date(iso + 'T00:00:00')
@@ -368,7 +375,7 @@ export function roomDayDetail(state: State, iso: string): RoomDay[] {
     .filter((r) => r !== 'Online')
     .map((room) => {
       const slots: Slot[] = list
-        .filter((x) => x.place === room)
+        .filter((x) => !x.outside && x.place === room)
         .map((x) => ({ start: parseSlot(x.time).mins, end: endOf(x.time, parseSlot(x.time).mins), name: x.title, kind: x.kind }))
         .sort((a, b) => a.start - b.start)
       const closed = !!hol || !!ROOM_UNAVAILABLE[room]?.includes(dk)

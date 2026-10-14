@@ -1,7 +1,7 @@
 'use client'
 
 import * as React from 'react'
-import { CalendarRange, LayoutGrid, List } from 'lucide-react'
+import { CalendarRange, LayoutGrid, List, MapPin } from 'lucide-react'
 import { DAY_KEYS } from '@/lib/constants'
 import { fmtRange12, hourLabel12, addDays, fmtD, todayKey } from '@/lib/app-utils'
 import { clubIcon } from '@/lib/icons'
@@ -16,6 +16,8 @@ export interface GridItem {
   tone: string
   lead?: string
   room?: string
+  outside?: boolean // the room field is a place outside the space
+  moved?: boolean // held somewhere else (or at another time) just this week
   icon?: string // CLUB_ICONS key; renders on the chip instead of a dot
 }
 
@@ -265,7 +267,7 @@ export function WeeklyGrid({
                             style={{ color: 'var(--tone-txt)', opacity: 0.92 }}
                           >
                             {e.label}
-                            {e.item.room ? ` · ${e.item.room}` : ''}
+                            {e.item.room ? <> · {e.item.outside && <MapPin className="-mt-px inline h-2.5 w-2.5" aria-label="Outside the space" />}{e.item.room}</> : ''}
                           </span>
                           {e.item.lead && (
                             <span
@@ -477,7 +479,9 @@ export function CalendarListView({
                         </span>
                         {(e.item.room || e.item.lead) && (
                           <span className="mt-0.5 block break-words text-[11px] font-semibold leading-tight opacity-80">
-                            {[e.item.room, e.item.lead].filter(Boolean).join(' · ')}
+                            {e.item.room && <>{e.item.outside && <MapPin className="-mt-px mr-0.5 inline h-3 w-3" aria-label="Outside the space" />}{e.item.room}</>}
+                            {e.item.room && e.item.lead ? ' · ' : ''}
+                            {e.item.lead}
                           </span>
                         )}
                       </span>
@@ -601,7 +605,7 @@ export function CalendarCardsView({
                           </span>
                           {e.item.room && (
                             <span className="mt-0.5 block truncate pl-2.5 text-[10px] font-semibold text-muted-foreground">
-                              {e.item.room}
+                              {e.item.outside && <MapPin className="-mt-px mr-0.5 inline h-2.5 w-2.5" aria-label="Outside the space" />}{e.item.room}
                             </span>
                           )}
                         </span>

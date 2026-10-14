@@ -20,6 +20,7 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { DayPills, TimeRangeSelect, PickOrType, IconPicker, IconPreview } from '@/components/forms/form-controls'
+import { NotInPeople } from '@/components/forms/not-in-people'
 import { useStore } from '@/lib/store'
 import { uid, peopleOf, rolesOf, suggestClassCode, roomOptionsFor } from '@/lib/app-utils'
 import type { ClassEntry } from '@/lib/types'
@@ -194,6 +195,7 @@ export function ClassDialog({
               placeholder="Pick a teacher"
               emptyLabel="No teacher yet"
             />
+            <NotInPeople name={teacher} role="Teacher" />
           </div>
 
           <div className="flex flex-col gap-2">

@@ -116,7 +116,8 @@ export interface Club {
   desc: string
   days: string[]
   time: string
-  room: string
+  room: string // a room of the space, or the place when `outside` is on
+  outside?: boolean // takes place outside the space (a park, another venue): no room is used
   lead: string
   vol: string[]
   url: string
@@ -140,6 +141,8 @@ export interface EventEntry {
   date?: string // ISO date for one-off events
   time: string
   place: string
+  outside?: boolean // takes place outside the space: no room is used
+  lead?: string // who looks after it (a name from the people list)
   from?: string // ISO date the series starts (repeating events)
   until?: string // ISO date the series ends (repeating events)
   poster?: string
@@ -199,6 +202,8 @@ export interface Absence {
   reason: string // Sick, Away, ...
   cover?: string // substitute teacher; empty = the class is cancelled
   note?: string
+  /* kind club or event: not cancelled, only held somewhere else (or at another time) on these dates */
+  moved?: { place: string; outside?: boolean; time?: string }
 }
 
 export interface ChangeEntry {

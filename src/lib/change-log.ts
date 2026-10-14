@@ -44,6 +44,10 @@ function absenceText(state: State, a: Absence): string {
         ? state.events.find((e) => e.id === a.eventId)?.title || 'An event'
         : (state.classes || []).filter((c) => c.teacher === a.teacher && (!a.classId || c.id === a.classId)).map((c) => publicGroupName(c.code, c.level)).join(', ') || 'A class'
   const range = a.from === a.to ? dateText(a.from) : `${dateText(a.from)} to ${dateText(a.to)}`
+  if (a.moved) {
+    const where = a.moved.place ? `${a.moved.outside ? 'outside, at' : 'in'} ${a.moved.place}` : 'at another time'
+    return `${who} is held ${where}${a.moved.time ? ' at ' + fmtTime(a.moved.time) : ''} on ${range}`
+  }
   return `${who}${a.cover ? ' has a cover teacher' : ' is cancelled'} on ${range}`
 }
 
@@ -73,7 +77,7 @@ export function describeChanges(prev: State, next: State): string[] {
         { label: 'name', get: (c: { name: string }) => c.name, show: (v) => String(v) },
         { label: 'days', get: (c: { days: string[] }) => c.days, show: (v) => dayText(v as string[]) },
         { label: 'time', get: (c: { time: string }) => c.time, show: when },
-        { label: 'room', get: (c: { room: string }) => c.room, show: (v) => String(v || 'no room') },
+        { label: 'room', get: (c: { room: string; outside?: boolean }) => (c.outside ? 'outside: ' : '') + c.room, show: (v) => String(v || 'no room') },
         { label: 'how often', get: (c: { freq?: string }) => c.freq || 'weekly', show: (v) => String(v) },
         { label: 'poster', get: (c: { poster?: string }) => (c.poster ? 'set' : ''), show: (v) => (v ? 'a poster' : 'no poster') },
       ],
@@ -90,7 +94,8 @@ export function describeChanges(prev: State, next: State): string[] {
         { label: 'title', get: (e: { title: string }) => e.title, show: (v) => String(v) },
         { label: 'day', get: (e: { day?: string; date?: string; recur: EventEntry['recur'] }) => (isOnceEvent(e) ? e.date : e.day), show: (v) => (/^\d{4}-/.test(String(v)) ? dateText(String(v)) : dayText(String(v || ''))) },
         { label: 'time', get: (e: { time: string }) => e.time, show: when },
-        { label: 'place', get: (e: { place: string }) => e.place, show: (v) => String(v || 'no place') },
+        { label: 'place', get: (e: { place: string; outside?: boolean }) => (e.outside ? 'outside: ' : '') + e.place, show: (v) => String(v || 'no place') },
+        { label: 'lead', get: (e: { lead?: string }) => e.lead || '', show: (v) => String(v || 'nobody') },
         { label: 'poster', get: (e: { poster?: string }) => (e.poster ? 'set' : ''), show: (v) => (v ? 'a poster' : 'no poster') },
       ],
       (e) => `${isOnceEvent(e) ? dateText(e.date) : dayText(e.day)}, ${when(e.time)}`,
@@ -99,7 +104,7 @@ export function describeChanges(prev: State, next: State): string[] {
   const pa = new Set((prev.absences || []).map((a) => a.id))
   const na = new Set((next.absences || []).map((a) => a.id))
   for (const a of next.absences || []) if (!pa.has(a.id)) out.push(absenceText(next, a))
-  for (const a of prev.absences || []) if (!na.has(a.id)) out.push(`Back on: ${absenceText(prev, a).replace(' is cancelled', '').replace(' has a cover teacher', '')}`)
+  for (const a of prev.absences || []) if (!na.has(a.id)) out.push(`Back on: ${absenceText(prev, a).replace(' is cancelled', '').replace(' has a cover teacher', '').replace(' is held', ' was held elsewhere')}`)
   return out
 }
 

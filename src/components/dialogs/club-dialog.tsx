@@ -17,12 +17,14 @@ import {
   DayPills,
   TimeRangeSelect,
   IconPicker,
+  WhereField,
   PosterUploader,
   IconPreview,
   PickOrType,
 } from '@/components/forms/form-controls'
 import { useStore } from '@/lib/store'
-import { uid, peopleOf, roomOptionsFor } from '@/lib/app-utils'
+import { NotInPeople } from '@/components/forms/not-in-people'
+import { uid, peopleOf, roomOptionsFor, outsidePlacesOf } from '@/lib/app-utils'
 import type { Club } from '@/lib/types'
 
 export function ClubDialog({
@@ -44,6 +46,7 @@ export function ClubDialog({
   const [days, setDays] = React.useState<string[]>([])
   const [time, setTime] = React.useState('')
   const [room, setRoom] = React.useState('')
+  const [outside, setOutside] = React.useState(false)
   const [lead, setLead] = React.useState('')
   const [vol, setVol] = React.useState('')
   const [url, setUrl] = React.useState('')
@@ -60,6 +63,7 @@ export function ClubDialog({
     setDays(club?.days || [])
     setTime(club?.time || '')
     setRoom(club?.room || '')
+    setOutside(!!club?.outside)
     setLead(club?.lead || '')
     setVol((club?.vol || []).join(', '))
     setUrl(club?.url || '')
@@ -93,6 +97,7 @@ export function ClubDialog({
       days,
       time: time || '14:00-16:00', // fall back to the shown picker defaults
       room: room.trim(),
+      ...(outside ? { outside: true } : {}),
       lead: lead.trim(),
       vol: vol.split(',').map((s) => s.trim()).filter(Boolean),
       url: url.trim(),
@@ -169,17 +174,7 @@ export function ClubDialog({
             <TimeRangeSelect value={time} onChange={setTime} />
           </div>
 
-          <div className="flex flex-col gap-1.5">
-            <Label htmlFor="cl-room">Room</Label>
-            <PickOrType
-              id="cl-room"
-              value={room}
-              onChange={setRoom}
-              options={roomOptions}
-              placeholder="Pick a room"
-              emptyLabel="No room yet"
-            />
-          </div>
+          <WhereField id="cl-room" label="Where" outside={outside} place={room} onChange={(p, o) => { setRoom(p); setOutside(o) }} rooms={roomOptions} outsidePlaces={outsidePlacesOf(state)} />
 
           <div className="flex flex-col gap-1.5">
             <Label htmlFor="cl-lead">Lead</Label>
@@ -191,6 +186,7 @@ export function ClubDialog({
               placeholder="Pick a lead"
               emptyLabel="No lead yet"
             />
+            <NotInPeople name={lead} role="Volunteer" />
           </div>
 
           <div className="flex flex-col gap-1.5">

@@ -3,6 +3,7 @@
 import * as React from 'react'
 import { Plus, ExternalLink, Sparkles, Clock, MapPin, User, AlertTriangle, CircleDashed } from 'lucide-react'
 import { useStore } from '@/lib/store'
+import { PosterThumb } from '@/components/poster-thumb'
 import { PageHead, EmptyState, Chip } from '@/components/ui-bits'
 import { Button } from '@/components/ui/button'
 import { ClubDialog } from '@/components/dialogs/club-dialog'
@@ -37,7 +38,9 @@ export function InternClubsPage() {
       ) : (
         <div className="grid gap-3 sm:grid-cols-2">
           {state.clubs.map((c) => (
-            <div key={c.id} className="rounded-2xl border border-border bg-card p-4 shadow-sm">
+            <div key={c.id} className="flex gap-3 rounded-2xl border border-border bg-card p-4 shadow-sm">
+              <PosterThumb poster={c.poster} alt={`${c.name} poster`} icon={c.icon} kind="club" />
+              <div className="min-w-0 flex-1">
               <div className="mb-2 flex items-center gap-2">
                 <div className="flex-1 font-bold">{c.name}</div>
                 {c.placeholder && <Chip tone="gold" icon={CircleDashed}>placeholder</Chip>}
@@ -45,7 +48,7 @@ export function InternClubsPage() {
               <div className="flex flex-wrap gap-x-3 gap-y-1 text-xs font-semibold text-muted-foreground">
                 <span className="inline-flex items-center gap-1"><Sparkles className="h-3.5 w-3.5" /> {(c.days || []).join(' / ') || 'no day set'}</span>
                 <span className="inline-flex items-center gap-1"><Clock className="h-3.5 w-3.5" /> {fmtTime(c.time) || '-'}</span>
-                {c.room && <span className="inline-flex items-center gap-1"><MapPin className="h-3.5 w-3.5" /> {c.room}</span>}
+                {c.room && <span className="inline-flex items-center gap-1"><MapPin className="h-3.5 w-3.5" /> {c.outside ? 'Outside: ' : ''}{c.room}</span>}
               </div>
               <div className="mt-1.5 text-xs">
                 {c.lead ? (
@@ -71,6 +74,7 @@ export function InternClubsPage() {
                     remove={(d) => { d.clubs = d.clubs.filter((x) => x.id !== c.id) }}
                   />
                 </div>
+              </div>
               </div>
             </div>
           ))}

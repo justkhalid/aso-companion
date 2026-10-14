@@ -61,7 +61,7 @@ function TodayCard({ now }: { now: Date }) {
                 </span>
                 <div className="min-w-0 flex-1">
                   <div className={'truncate font-bold ' + (x.off ? 'line-through opacity-70' : '')} dir="auto">{x.kind === 'class' ? 'English class ' + x.title : x.title}</div>
-                  <div className="text-sm text-muted-foreground">{x.time ? x.time.replace(/(\d{1,2}):(\d{2})-(\d{1,2}):(\d{2})/, (_m, a, b, c, d) => `${fmt12Min(+a * 60 + +b)} - ${fmt12Min(+c * 60 + +d)}`) : ''}{x.place ? ' · ' + x.place : ''}{x.off ? ' · cancelled' : ''}</div>
+                  <div className="text-sm text-muted-foreground">{x.time ? x.time.replace(/(\d{1,2}):(\d{2})-(\d{1,2}):(\d{2})/, (_m, a, b, c, d) => `${fmt12Min(+a * 60 + +b)} - ${fmt12Min(+c * 60 + +d)}`) : ''}{x.place ? ' · ' + (x.outside ? 'Outside: ' : x.moved ? 'Moved to ' : '') + x.place : ''}{x.off ? ' · cancelled' : ''}</div>
                 </div>
                 {!x.off && x.startMin <= mins && mins < x.startMin + 120 && <span className="rounded-full px-2.5 py-0.5 text-xs font-extrabold" style={{ background: ink, color: '#fff' }}>Now</span>}
               </li>
