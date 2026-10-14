@@ -51,11 +51,29 @@ export function SiteFooter({ current }: { current: Side }) {
           )}
         </nav>
       </div>
-      {/* big faint wordmark */}
-      <div aria-hidden className="pointer-events-none select-none overflow-hidden px-4 pb-2 text-center">
-        <div className="font-display mx-auto whitespace-nowrap font-extrabold leading-[1.1] tracking-tight text-foreground/[.06]" style={{ fontSize: 'min(8.4vw, 104px)' }}>
-          American Space <em className="font-medium italic">Oujda</em>
-        </div>
+      {/* the name across the full width, with a slow marbled texture inside the letters */}
+      <div className="mx-auto max-w-6xl select-none overflow-hidden px-4 pb-3 pt-2">
+        <svg viewBox="0 0 1000 132" className="block h-auto w-full text-[#1e3a8a] dark:text-[#9db8ff]" role="img" aria-label="American Space Oujda">
+          <defs>
+            <filter id="aso-marble" x="0" y="0" width="100%" height="100%" colorInterpolationFilters="sRGB">
+              <feTurbulence type="fractalNoise" baseFrequency="0.007 0.02" numOctaves="3" seed="11" result="n" />
+              <feColorMatrix in="n" type="matrix" values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 11 -5.3" result="blot" />
+              <feFlood floodColor="currentColor" result="ink" />
+              <feComposite in="ink" in2="blot" operator="in" />
+            </filter>
+            <mask id="aso-wordmark">
+              <text x="0" y="96" textLength="1000" lengthAdjust="spacingAndGlyphs" fill="#fff" style={{ fontFamily: 'var(--font-playfair), serif', fontWeight: 800, fontSize: 112 }}>
+                American Space Oujda
+              </text>
+            </mask>
+          </defs>
+          <g mask="url(#aso-wordmark)">
+            <rect x="-260" y="0" width="1520" height="132" className="fill-foreground/[.13]" />
+            <g className="aso-marble">
+              <rect x="-260" y="0" width="1520" height="132" filter="url(#aso-marble)" />
+            </g>
+          </g>
+        </svg>
       </div>
     </footer>
   )
