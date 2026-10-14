@@ -334,7 +334,7 @@ export function SettingsPage() {
             />
           ))}
           <div className="text-xs text-muted-foreground">
-            Switched off, a level disappears from the ELTASO tab for teachers. You still see every level.
+            Every level shows on the ELTASO tab unless you switch it off here. A switched-off level disappears for teachers. You still see every level.
           </div>
         </div>
       </Section>
