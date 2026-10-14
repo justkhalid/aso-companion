@@ -18,8 +18,8 @@ export function UnifiedCalendar({ tab, onTab, counts, animated = false }: { tab:
   const state = useStore((s) => s.state)
   /* classes and rooms open on the week, clubs and events on the month; a choice made on one tab stays on that tab */
   const [spans, setSpans] = React.useState<Partial<Record<CalTab, Span>>>({})
-  /* on a phone the month picture is too small to read and the slowest thing to draw: the week opens first there */
-  const phone = typeof window !== 'undefined' && window.innerWidth < 640
+  /* on a phone the month picture is too small to read and the slowest thing to draw: the week opens first there, and the picture is the plain one (nothing moves) */
+  const phone = typeof window !== 'undefined' && (window.innerWidth < 640 || window.matchMedia('(hover: none)').matches)
   const span: Span = spans[tab] ?? (tab === 'cluev' && !phone ? 'month' : 'week')
   const setSpan = (v: Span) => setSpans((s) => ({ ...s, [tab]: v }))
   const [offset, setOffset] = React.useState(0)
@@ -76,7 +76,7 @@ export function UnifiedCalendar({ tab, onTab, counts, animated = false }: { tab:
 
       {span === 'month' ? (
         <div key={tab + 'm'} className="aso-tab-in">
-          {tab === 'rooms' ? <MonthCalendarImage rooms animated={animated} /> : <MonthCalendarImage animated={animated} clubs={tab === 'cluev'} events={tab === 'cluev'} classes={tab === 'classes'} />}
+          {tab === 'rooms' ? <MonthCalendarImage rooms animated={animated && !phone} /> : <MonthCalendarImage animated={animated && !phone} clubs={tab === 'cluev'} events={tab === 'cluev'} classes={tab === 'classes'} />}
         </div>
       ) : tab === 'rooms' ? (
         <div key="rw" className="aso-tab-in"><RoomsPage embedded /></div>
