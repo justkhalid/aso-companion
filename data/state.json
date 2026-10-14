@@ -51263,7 +51263,8 @@
       "vol": [],
       "url": "",
       "icon": "cinema",
-      "freq": "weekly"
+      "freq": "weekly",
+      "from": "2026-10-21"
     },
     {
       "id": "xmv80ziz8nwpyk",
@@ -51333,8 +51334,8 @@
   "libraryPins": [
     "lib|speakout2|Speakout 2nd Edition"
   ],
-  "_rev": 1791940811889,
-  "_updated": "2026-10-14T14:28:17.158Z",
+  "_rev": 1791940811890,
+  "_updated": "2026-10-14T14:31:13.051Z",
   "_changes": [
     {
       "t": "2026-10-14T14:27:06.109Z",
