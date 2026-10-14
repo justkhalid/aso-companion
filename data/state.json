@@ -49678,16 +49678,6 @@
       ],
       "phone": "",
       "email": ""
-    },
-    {
-      "id": "xmv7xosur47rx6",
-      "name": "Ahlam",
-      "roles": [
-        "Volunteer"
-      ],
-      "role": "Volunteer",
-      "phone": "",
-      "email": ""
     }
   ],
   "library": [
@@ -51226,7 +51216,6 @@
       "name": "Read, Create, Connect",
       "desc": "\"Read, Create, Connect\" is a three-part volunteer program built around guided reading and discussion, practical digital content creation, and open community dialogue sessions in English. It aims to build youth confidence and fluency, teach practical digital publishing skills, and foster real civic and cultural conversations.",
       "days": [
-        "Tue",
         "Sun"
       ],
       "time": "10:00-12:00",
@@ -51291,12 +51280,12 @@
   ],
   "reports": [],
   "libraryPins": [],
-  "_rev": 1791940811876,
-  "_updated": "2026-10-14T09:55:10.251Z",
+  "_rev": 1791940811875,
+  "_updated": "2026-10-14T09:56:06.644Z",
   "_changes": [
     {
-      "t": "2026-10-14T09:54:30.829Z",
-      "text": "Read, Create, Connect: days changed from Tuesday to Tuesday and Sunday"
+      "t": "2026-10-14T09:56:06.644Z",
+      "text": "Read, Create, Connect: days changed from Tuesday to Sunday"
     },
     {
       "t": "2026-10-14T02:29:34.854Z",
