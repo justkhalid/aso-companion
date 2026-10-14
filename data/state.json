@@ -51216,7 +51216,8 @@
       "name": "Read, Create, Connect",
       "desc": "\"Read, Create, Connect\" is a three-part volunteer program built around guided reading and discussion, practical digital content creation, and open community dialogue sessions in English. It aims to build youth confidence and fluency, teach practical digital publishing skills, and foster real civic and cultural conversations.",
       "days": [
-        "Tue"
+        "Tue",
+        "Sun"
       ],
       "time": "10:00-12:00",
       "room": "Main Hall",
@@ -51280,9 +51281,13 @@
   ],
   "reports": [],
   "libraryPins": [],
-  "_rev": 1791940811874,
-  "_updated": "2026-10-14T02:29:34.854Z",
+  "_rev": 1791940811875,
+  "_updated": "2026-10-14T09:54:30.828Z",
   "_changes": [
+    {
+      "t": "2026-10-14T09:54:30.829Z",
+      "text": "Read, Create, Connect: days changed from Tuesday to Tuesday and Sunday"
+    },
     {
       "t": "2026-10-14T02:29:34.854Z",
       "text": "Kids 5 is cancelled on 11 October to 14 October"
