@@ -17094,7 +17094,7 @@
             "tip": "Teach the -ed sounds by listening and sorting, not by rules alone. Keep irregular verbs for Week 21: mixing them in now overloads beginners."
           },
           "occ": {
-            "act": "Winter break recap (4 January). Optional 10-minute task: students tell a partner three things they did during the break (\"I visited my cousins. I watched football. I played games.\") and report one thing to the class.",
+            "act": "New Year recap (4 January). Optional 10-minute task: students tell a partner three things they did over Christmas and New Year (\"I visited my cousins. I watched football. I played games.\") and report one thing to the class.",
             "hw": ""
           },
           "kit": [
@@ -22736,7 +22736,7 @@
             "tip": "Do not expect perfect narrative tenses: celebrate good stories and correct only the main pattern (past simple for events, past continuous for background). Use students' stories to build the class story book and read some aloud."
           },
           "occ": {
-            "act": "Back-to-school recap (first week of January). Optional 10-minute task: students tell a partner three things they did in the holidays with first, then and finally (\"First we visited my cousins. Then I watched football. Finally...\") and report one to the class.",
+            "act": "New Year recap (first week of January). Optional 10-minute task: students tell a partner three things they did over Christmas and New Year with first, then and finally (\"First we visited my cousins. Then I watched football. Finally...\") and report one to the class.",
             "hw": ""
           },
           "kit": [
@@ -29105,7 +29105,7 @@
             "tip": "Many students write long single paragraphs; teach them to start a new paragraph for each content point. Give a clear word count (100 words for PET Writing Part 1) and have students count and mark their own words. Give feedback as two strengths and one target so that students stay motivated."
           },
           "occ": {
-            "act": "Winter break recap (first week of January). Optional 10-minute task: students tell a partner three things they did during the break using the past simple, then write two lines of an email telling a friend about it (\"Hi Rayan, I had a great break. I visited my cousins in Nador and...\").",
+            "act": "New Year recap (first week of January). Optional 10-minute task: students tell a partner three things they did over Christmas and New Year using the past simple, then write two lines of an email telling a friend about it (\"Hi Rayan, I had a great break. I visited my cousins in Nador and...\").",
             "hw": ""
           },
           "kit": [
@@ -29458,7 +29458,7 @@
             "wu": "Look back, look forward: students write on a sticky note one thing they did well in Semester 1 and one thing they want to improve. In groups of four they read their notes aloud and the group suggests how to improve (\"You could watch a series with subtitles. Why don't you read short stories?\"). Each group chooses the best tip and shares it with the class.",
             "wuAlt": [
               "New Year interview: pairs ask each other five questions (What are you going to do this semester? What are you proud of? What do you find hardest in English?) and then introduce their partner to the group.",
-              "Two truths and a lie about your winter break."
+              "Two truths and a lie about your New Year."
             ],
             "pres": "Show the four parts of the PET exam on the board: Reading (45 minutes, six parts), Writing (a short email and a story or article), Listening (about 30 minutes, four parts) and Speaking (10 minutes in pairs, four parts). Match each part with its task type using a simple card game (for example, \"gapped text\", \"multiple choice\", \"note completion\", \"describe a photo\"). Explain three strategies: read the questions before the text, underline key words, and always write an answer. Show where marks are won: content, organisation, language. Ask students to say which part they think is hardest and why, to prepare the error log.",
             "presAlt": [
@@ -34778,7 +34778,7 @@
             "tip": "Teach the -ed sounds by listening and sorting, not only by rules. Keep irregular verbs for Week 25: mixing them in now overloads beginners. Let adults talk about real days from their lives."
           },
           "occ": {
-            "act": "Winter break recap (4 January). Optional 10-minute task: students tell a partner three things they did during the break (\"I visited my family. I cooked a big meal. I watched football.\") and report one thing to the class.",
+            "act": "New Year recap (4 January). Optional 10-minute task: students tell a partner three things they did over Christmas and New Year (\"I visited my family. I cooked a big meal. I watched football.\") and report one thing to the class.",
             "hw": ""
           },
           "kit": [
@@ -39962,7 +39962,7 @@
             ]
           },
           "occ": {
-            "act": "Winter break recap (4 January). Optional 10-minute task: students tell a partner three things they did during the break using the past simple and one thing they are going to do this semester.",
+            "act": "New Year recap (4 January). Optional 10-minute task: students tell a partner three things they did over Christmas and New Year using the past simple and one thing they are going to do this semester.",
             "hw": ""
           },
           "kit": [
@@ -45923,7 +45923,7 @@
             ]
           },
           "occ": {
-            "act": "Winter break recap (4 January). Optional 10-minute task: students tell a partner three things they did during the break using narrative tenses, then one thing they are going to try this semester (\"I had been planning to visit my cousin for months, so I finally went to Nador.\").",
+            "act": "New Year recap (4 January). Optional 10-minute task: students tell a partner three things they did over Christmas and New Year using narrative tenses, then one thing they are going to try this semester (\"I had been planning to visit my cousin for months, so I finally went to Nador.\").",
             "hw": ""
           },
           "kit": [
@@ -51064,7 +51064,7 @@
     },
     {
       "week": 14,
-      "text": "Christmas party - last class before winter break"
+      "text": "Last week before the Semester 1 assessment"
     },
     {
       "week": 15,
@@ -51072,11 +51072,11 @@
     },
     {
       "week": 16,
-      "text": "First week after winter break"
+      "text": "Semester 2 starts"
     },
     {
       "week": 19,
-      "text": "Ramadan begins (expected - confirm official dates)"
+      "text": "Ramadan begins (expected - confirm official dates) · Valentine's Day Sun 14 Feb"
     },
     {
       "week": 23,
@@ -51264,6 +51264,6 @@
   ],
   "reports": [],
   "libraryPins": [],
-  "_rev": 1791940811870,
+  "_rev": 1791940811871,
   "_updated": "2026-10-12T17:56:54.819Z"
 }
