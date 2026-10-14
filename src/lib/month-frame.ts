@@ -34,7 +34,7 @@ export function paintHeader(g: CanvasRenderingContext2D, f: { display: string; b
   g.textAlign = 'center'
   g.font = `800 140px ${f.display}`
   g.fillStyle = t.title
-  const W = g.canvas.width
+  const W = g.canvas.width / g.getTransform().a /* the picture's own width, whatever scale it is drawn at */
   g.fillText(t.name, W / 2, 104)
   g.font = `700 40px ${f.body}`
   g.letterSpacing = '8px'

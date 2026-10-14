@@ -27,8 +27,8 @@ export async function GET(req: NextRequest) {
   const admin = roles.includes('admin')
   /* the body depends on who asks, so the ETag and caches are keyed by role */
   /* ?scope=public: the home and calendar pages ask for the part everyone sees, without lesson plans or library */
-  const lite = !admin && req.nextUrl.searchParams.get('scope') === 'public'
-  const roleKey = admin ? '-a' : lite ? '-l' : (roles.includes('teacher') ? '-t' : '')
+  const lite = req.nextUrl.searchParams.get('scope') === 'public'
+  const roleKey = lite ? '-l' : admin ? '-a' : (roles.includes('teacher') ? '-t' : '')
   /* ?fresh=1 is admin-only so anonymous traffic cannot bypass the memo */
   const result = await readCloudState({ fresh: admin && req.nextUrl.searchParams.get('fresh') === '1' })
 
@@ -45,9 +45,10 @@ export async function GET(req: NextRequest) {
   const rev = Number((result.state as { _rev?: number })._rev) || 0
   /* admin and public bodies differ, so they must not share an ETag or a cache entry */
   const etag = `W/"rev-${rev}${roleKey}"`
+  /* the public copy is the same for everyone (it ignores who is asking), so the CDN may keep it for a few seconds */
   const headers = {
-    'Cache-Control': roleKey ? 'private, no-cache' : 'no-cache',
-    Vary: 'Cookie',
+    'Cache-Control': lite ? 'public, max-age=0, s-maxage=15, stale-while-revalidate=60' : roleKey ? 'private, no-cache' : 'no-cache',
+    Vary: lite ? 'Accept-Encoding' : 'Cookie',
     ETag: etag,
     'X-ASO-Storage': result.source,
   }
@@ -55,7 +56,7 @@ export async function GET(req: NextRequest) {
   if (rev > 0 && req.headers.get('if-none-match') === etag) {
     return new NextResponse(null, { status: 304, headers })
   }
-  const body = admin ? result.state : filterStateFor(result.state, roles, { lite })
+  const body = lite ? filterStateFor(result.state, [], { lite: true }) : admin ? result.state : filterStateFor(result.state, roles, { lite: false })
   /* the full data is several MB and Vercel caps a function's answer at 4.5 MB: send it compressed (about half the size) */
   if ((req.headers.get('accept-encoding') || '').includes('gzip')) {
     let zipped = zipCache.get(etag)
@@ -65,7 +66,7 @@ export async function GET(req: NextRequest) {
       zipCache.set(etag, zipped)
     }
     return new NextResponse(new Uint8Array(zipped), {
-      headers: { ...headers, Vary: 'Cookie, Accept-Encoding', 'Content-Type': 'application/json', 'Content-Encoding': 'gzip' },
+      headers: { ...headers, Vary: lite ? 'Accept-Encoding' : 'Cookie, Accept-Encoding', 'Content-Type': 'application/json', 'Content-Encoding': 'gzip' },
     })
   }
   return NextResponse.json(body, { headers })

@@ -353,6 +353,9 @@ export const useStore = create<UIStore>((set, get) => ({
 
   bootApp: async () => {
     set({ boot: 'loading', bootError: '' })
+    /* the page already asked for the session and the data while this code was loading (see layout.tsx) */
+    const early = typeof window !== 'undefined' ? (window as unknown as { __aso?: { lite: boolean; session: Promise<Response>; state: Promise<Response> } }).__aso : undefined
+    if (typeof window !== 'undefined') delete (window as unknown as { __aso?: unknown }).__aso
     // 1. load local state first (IndexedDB, with localStorage fallback)
     const localRaw = await readLocal(LS_KEY)
     let localState: State | null = null
@@ -369,7 +372,7 @@ export const useStore = create<UIStore>((set, get) => ({
     /* who is this visitor? the server cookie says which pages they may open */
     let adminSession = false
     try {
-      const sres = await fetch('/api/session', { cache: 'no-store' })
+      const sres = await (early?.session ?? fetch('/api/session', { cache: 'no-store' }))
       if (sres.ok) {
         const { roles } = (await sres.json()) as { roles: string[] }
         adminSession = roles.includes('admin')
@@ -409,7 +412,7 @@ export const useStore = create<UIStore>((set, get) => ({
     try {
       /* no-cache = revalidate with the ETag: a 304 reuses the copy already downloaded */
       const wantLite = !adminSession && lsGet(ROLE_KEY) !== 'admin' && typeof window !== 'undefined' && /^\/(calendar)?\/?$/.test(window.location.pathname)
-      const res = await fetch(wantLite ? '/api/state?scope=public' : '/api/state', { cache: 'no-cache' })
+      const res = await (early && early.lite === wantLite ? early.state : fetch(wantLite ? '/api/state?scope=public' : '/api/state', { cache: 'no-cache' }))
       if (!res.ok) throw new Error('HTTP ' + res.status)
       const cloud = (await res.json()) as State
       if (!cloud || cloud.v !== 1) throw new Error('bad state version')

@@ -115,15 +115,10 @@ export function MonthCalendarImage({ clubs = true, events = true, classes = fals
     setBusy(true)
     /* three layers: the plain themed page, every leaf on its own, and the calendar itself on clear glass over them */
     const st = stateRef.current
-    void (rooms ? renderRoomsMonth(st, { ...ym, transparent: animated }, null) : renderMonth(st, { ...ym, clubs, events, classes, holidays: true, transparent: animated }))
+    void (rooms ? renderRoomsMonth(st, { ...ym, transparent: animated, scale: 0.75 }, null) : renderMonth(st, { ...ym, clubs, events, classes, holidays: true, transparent: animated, scale: 0.75 }))
       .then(async (c) => {
         if (!alive) return
-        /* shown at most about 1100 px wide (2x on a sharp screen), so 2400 px is plenty; the encoding runs off the main thread */
-        const small = document.createElement('canvas')
-        small.width = 2400
-        small.height = Math.round((2400 * c.height) / c.width)
-        small.getContext('2d')!.drawImage(c, 0, 0, small.width, small.height)
-        const blob: Blob | null = await new Promise((res) => small.toBlob(res, 'image/webp', 0.9))
+        const blob: Blob | null = await new Promise((res) => c.toBlob(res, 'image/webp', 0.9))
         if (!alive || !blob) return
         url = URL.createObjectURL(blob)
         setBack(animated ? backdropLayers(ym.month) : null)

@@ -48,6 +48,7 @@ import { buildCalendarLinks } from '@/lib/export-word'
 import { PUBLIC_CLUB_TONE, PUBLIC_EVENT_TONE, groupByWhere, whereId, PUBLIC_OUTSIDE_TONE } from '@/lib/calendar-items'
 import { clubIcon } from '@/lib/icons'
 import { eventPosterItem } from '@/lib/poster-items'
+import { posterThumb } from '@/lib/poster-url'
 import { WeeklyGrid, CalendarListView, CalendarCardsView, CalViewSwitcher, readCalView, writeCalView, type GridItem, type LegendEntry, type CalendarView } from '@/components/weekly-grid'
 import { ClubDialog } from '@/components/dialogs/club-dialog'
 import { EventDialog } from '@/components/dialogs/event-dialog'
@@ -428,7 +429,7 @@ function ClubListCard({
         {/* poster: natural A4 ratio, stretches to fill taller rows */}
         <div className="relative overflow-hidden flex w-[96px] shrink-0 bg-secondary sm:w-[144px]">
           {club.poster ? (
-            <img loading="lazy" decoding="async" src={club.poster} alt={`${club.name} poster`} className="aspect-[848/1200] min-h-full w-full object-cover" />
+            <img loading="lazy" decoding="async" src={posterThumb(club.poster, 320)} alt={`${club.name} poster`} className="aspect-[848/1200] min-h-full w-full object-cover" />
           ) : (
             <PosterFallback club={club} compact />
           )}
@@ -543,7 +544,7 @@ export function ClubGridCard({
       {/* poster at its true A4 ratio, zero crop */}
       <div className="relative overflow-hidden aspect-[848/1200] w-full bg-secondary">
         {club.poster ? (
-          <img loading="lazy" decoding="async" src={club.poster} alt={`${club.name} poster`} className="h-full w-full object-cover" />
+          <img loading="lazy" decoding="async" src={posterThumb(club.poster, 480)} alt={`${club.name} poster`} className="h-full w-full object-cover" />
         ) : (
           <PosterFallback club={club} />
         )}
@@ -602,7 +603,7 @@ export function EventGridCard({ event }: { event: EventEntry }) {
     <div className="flex h-full flex-col overflow-hidden rounded-2xl border border-border bg-card shadow-sm">
       <div className="relative overflow-hidden aspect-[848/1200] w-full bg-secondary">
         {event.poster ? (
-          <img loading="lazy" decoding="async" src={event.poster} alt={`${event.title} poster`} className="h-full w-full object-cover" />
+          <img loading="lazy" decoding="async" src={posterThumb(event.poster, 480)} alt={`${event.title} poster`} className="h-full w-full object-cover" />
         ) : (
           <div className="flex h-full w-full flex-col items-center justify-center gap-3 bg-gradient-to-br from-secondary to-background p-4 text-center">
             <div className="flex h-16 w-16 items-center justify-center rounded-full bg-primary/10 text-primary"><Icon className="h-8 w-8" /></div>
@@ -941,7 +942,7 @@ export function EventCard({
           <div className="flex w-full shrink-0 items-start justify-center bg-secondary p-3 sm:w-[210px]">
             <a href={event.poster} target="_blank" rel="noopener" className="block w-full max-w-[260px]" title="Open the full poster">
               <div className="relative overflow-hidden rounded-lg shadow-sm">
-                <img loading="lazy" decoding="async" src={event.poster} alt={`${event.title} poster`} className="block h-auto w-full object-contain" />
+                <img loading="lazy" decoding="async" src={posterThumb(event.poster, 480)} alt={`${event.title} poster`} className="block h-auto w-full object-contain" />
               </div>
             </a>
           </div>

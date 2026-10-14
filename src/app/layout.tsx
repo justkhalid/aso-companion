@@ -1,3 +1,4 @@
+import { ROLE_KEY } from "@/lib/constants";
 import type { Metadata, Viewport } from "next";
 import { Inter, JetBrains_Mono, Playfair_Display } from "next/font/google";
 import "./globals.css";
@@ -59,6 +60,14 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" suppressHydrationWarning>
+      <head>
+        {/* the two requests the app needs before it can show anything start now, while its code is still downloading */}
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `(function(){try{var p=location.pathname;var a=localStorage.getItem('${ROLE_KEY}')==='admin';var lite=!a&&(p==='/'||p==='/calendar'||p==='/calendar/');var w=window.__aso={lite:lite,session:fetch('/api/session',{cache:'no-store'}),state:fetch(lite?'/api/state?scope=public':'/api/state',{cache:'no-cache'})};w.session.catch(function(){});w.state.catch(function(){})}catch(e){}})()`,
+          }}
+        />
+      </head>
       <body
         className={`${interSans.variable} ${playfair.variable} ${mono.variable} antialiased bg-background text-foreground font-sans`}
       >
