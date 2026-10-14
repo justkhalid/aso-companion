@@ -6,9 +6,11 @@ import { useStore } from '@/lib/store'
 import { downloadMonth, monthLabel, renderMonth } from '@/lib/month-export'
 import { downloadRoomsMonth, renderRoomsMonth, roomDayDetail, roomStatus, roomsCells } from '@/lib/month-rooms'
 import { fmt12Min, roomOptionsFor } from '@/lib/app-utils'
+import { renderBackdropLayers, type MotifSprite } from '@/lib/month-frame'
+import { ACTIVITY, STATUS } from '@/lib/activity-colors'
 import { Button } from '@/components/ui/button'
 
-const KIND_INK = { class: '#0F6B66', club: '#6B2D8F', event: '#8A5A00' }
+const KIND_INK = { class: ACTIVITY.class.ink, club: ACTIVITY.club.ink, event: ACTIVITY.event.ink }
 
 /* what is in each room on the tapped day: bookings with their time, and the free hours */
 function RoomDayCard({ iso, onClose }: { iso: string; onClose: () => void }) {
@@ -26,8 +28,8 @@ function RoomDayCard({ iso, onClose }: { iso: string; onClose: () => void }) {
           <div key={r.room} className="rounded-xl border border-border p-3">
             <div className="mb-1 flex items-center gap-2 text-sm font-bold">
               <span
-                className={'h-2.5 w-2.5 rounded-full ' + (r.status === 'closed' ? 'bg-neutral-400' : r.status === 'free' ? 'bg-emerald-600' : r.status === 'booked' ? 'bg-amber-500' : '')}
-                style={r.status === 'part' ? { background: 'linear-gradient(90deg, #1E8E4A 50%, #C77700 50%)' } : undefined}
+                className="h-2.5 w-2.5 rounded-full"
+                style={{ background: r.status === 'closed' ? STATUS.closed.ink : r.status === 'free' ? STATUS.free.ink : r.status === 'booked' ? ACTIVITY.event.ink : `linear-gradient(90deg, ${STATUS.free.ink} 50%, ${ACTIVITY.event.ink} 50%)` }}
               />
               {r.room}
               <span className="ml-auto text-xs font-semibold text-muted-foreground">{{ closed: 'Not available', free: 'Free', part: 'Partially booked', booked: 'Booked' }[r.status]}</span>
@@ -44,7 +46,7 @@ function RoomDayCard({ iso, onClose }: { iso: string; onClose: () => void }) {
                 ))}
                 {r.free.length === 0 && r.slots.length > 0 && <li className="font-semibold text-muted-foreground">No free time</li>}
                 {r.free.map(([a, b], i) => (
-                  <li key={'f' + i} className="font-semibold text-emerald-700 dark:text-emerald-400">Free {fmt12Min(a)} - {fmt12Min(b)}</li>
+                  <li key={'f' + i} className="font-semibold" style={{ color: STATUS.free.ink }}>Free {fmt12Min(a)} - {fmt12Min(b)}</li>
                 ))}
               </ul>
             )}
@@ -62,15 +64,19 @@ export function MonthCalendarImage({ clubs = true, events = true, classes = fals
   const now = new Date()
   const [ym, setYm] = React.useState({ year: now.getFullYear(), month: now.getMonth() })
   const [src, setSrc] = React.useState('')
+  const [back, setBack] = React.useState<{ bg: string; sprites: MotifSprite[] } | null>(null)
   const [busy, setBusy] = React.useState(true)
   const [pick, setPick] = React.useState<string | null>(null)
 
   React.useEffect(() => {
     let alive = true
     setBusy(true)
-    void (rooms ? renderRoomsMonth(state, ym, null) : renderMonth(state, { ...ym, clubs, events, classes, holidays: true }))
+    /* three layers: the plain themed page, every leaf on its own, and the calendar itself on clear glass over them */
+    void (rooms ? renderRoomsMonth(state, { ...ym, transparent: true }, null) : renderMonth(state, { ...ym, clubs, events, classes, holidays: true, transparent: true }))
       .then((c) => {
-        if (alive) setSrc(c.toDataURL('image/jpeg', 0.88))
+        if (!alive) return
+        setBack(renderBackdropLayers(ym.month))
+        setSrc(c.toDataURL('image/webp', 0.92))
       })
       .catch(() => {
         if (alive) setSrc('')
@@ -129,10 +135,25 @@ export function MonthCalendarImage({ clubs = true, events = true, classes = fals
           )}
         </div>
       )}
-      <div className="relative overflow-hidden rounded-2xl border border-border bg-card shadow-sm">
+      <div className="aso-alive relative overflow-hidden rounded-2xl border border-border bg-card shadow-sm">
         {src ? (
           <>
-            <img src={src} alt={`${rooms ? 'Free rooms' : 'Calendar of clubs and events'}, ${monthLabel(ym.year, ym.month)}`} className="block h-auto w-full" />
+            {back && (
+              <div className="absolute inset-0" aria-hidden>
+                <img src={back.bg} alt="" className="block h-full w-full" />
+                {back.sprites.map((sp, i) => (
+                  <img
+                    key={i}
+                    src={sp.url}
+                    alt=""
+                    draggable={false}
+                    className="aso-sprite absolute"
+                    style={{ left: sp.left * 100 + '%', top: sp.top * 100 + '%', width: sp.w * 100 + '%', height: sp.h * 100 + '%', ['--turn' as string]: sp.turn + 'deg', ['--dur' as string]: sp.dur + 's', ['--delay' as string]: sp.delay + 's' }}
+                  />
+                ))}
+              </div>
+            )}
+            <img src={src} alt={`${rooms ? 'Free rooms' : 'Calendar of clubs and events'}, ${monthLabel(ym.year, ym.month)}`} className="relative block h-auto w-full" />
             {rooms &&
               cells.map((c) => (
                 <button

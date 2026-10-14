@@ -65,7 +65,7 @@ export async function renderWeeklyMonth(state: State, o: MonthOptions, occ: Map<
   canvas.width = W
   canvas.height = H
   const g = canvas.getContext('2d')!
-  paintBackdrop(g, theme, o.month, W, H)
+  paintBackdrop(g, theme, o.month, W, H, o.transparent ? 'none' : 'all')
   const names = [o.classes && 'CLASSES', o.clubs && 'CLUBS', o.events && 'EVENTS'].filter(Boolean) as string[]
   paintHeader(g, f, theme, o.year, names)
 

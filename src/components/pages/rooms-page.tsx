@@ -76,6 +76,7 @@ function bookingsForWeek(state: State, monday: Date, plain: boolean): Booking[] 
         // interns only need to know an English class is on, not which group it is
         label: plain ? 'English class' : c.code,
         tone: PUBLIC_CLASS_TONE,
+        icon: c.icon,
         lead: plain ? undefined : stt.kind === 'cover' ? 'Cover: ' + stt.cover : c.teacher,
         group: 'English classes',
         cancelled: stt.kind === 'cancelled' ? stt.absence.reason || 'Teacher away' : undefined,

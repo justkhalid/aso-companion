@@ -104,6 +104,7 @@ export interface ClassEntry {
   room: string
   days: string[] // ['Mon', 'Wed']
   time: string // '14:00-16:00'
+  icon?: string // key from CLUB_ICONS, rendered on calendar chips
 }
 
 /* how often a club or event repeats */

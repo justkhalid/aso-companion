@@ -38,6 +38,7 @@ import { ClassDialog } from '@/components/dialogs/class-dialog'
 import { CalendarExportMenu } from '@/components/calendar-export'
 import { SectionHeader, LinkButton, Chip, EmptyState } from '@/components/ui-bits'
 import type { ClassEntry } from '@/lib/types'
+import { PUBLIC_EVENT_TONE } from '@/lib/calendar-items'
 
 export function HomePage({ admin }: { admin: boolean }) {
   const state = useStore((s) => s.state)
@@ -81,6 +82,7 @@ export function HomePage({ admin }: { admin: boolean }) {
       code: c.code || c.level,
       meta: '',
       room: c.room,
+      icon: c.icon,
     }
     const tone = toneClassForLevel(state, c.level)
     if (!wkMon || !(state.absences || []).length) return [{ ...base, id: c.id, days: c.days || [], lead: c.teacher, tone }]
@@ -137,13 +139,13 @@ export function HomePage({ admin }: { admin: boolean }) {
         ? splitDaysByStatus([day], wkMon, (iso) => eventStatusOn(state, e.id, isOnceEvent(e) && e.date ? e.date : iso))
         : null
       if (off && off.cancelled.length) return { ...base, id: e.id + ':off', days: [day], code: e.title + ' · cancelled', lead: 'cancelled', tone: 'tone-8' }
-      return { ...base, id: e.id, days: [day], code: e.title, lead: '', tone: 'tone-7' }
+      return { ...base, id: e.id, days: [day], code: e.title, lead: '', tone: PUBLIC_EVENT_TONE }
     })
     .filter(Boolean) as GridItem[]
   const homeClubItems = [...clubItems, ...homeEventItems]
   const homeClubLegend = [
     ...clubLegend,
-    ...(homeEventItems.length ? [{ label: 'Special events', tone: 'tone-7' } as LegendEntry] : []),
+    ...(homeEventItems.length ? [{ label: 'Special events', tone: PUBLIC_EVENT_TONE } as LegendEntry] : []),
     ...([...clubItems, ...homeEventItems].some((i) => i.tone === 'tone-8') ? [{ label: 'Cancelled', tone: 'tone-8' } as LegendEntry] : []),
   ]
 

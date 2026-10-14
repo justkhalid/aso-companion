@@ -1,6 +1,6 @@
 import { MUTED } from './clubs-calendar-export'
 import type { MonthTheme } from './month-themes'
-import { drawMotif } from './month-themes'
+import { MONTH_THEMES, drawMotif, type MotifSink } from './month-themes'
 
 /* what every month picture shares: the themed page, the month heading, and the footer with the logo */
 
@@ -15,7 +15,9 @@ export function star(g: CanvasRenderingContext2D, cx: number, cy: number, r: num
   g.fill()
 }
 
-export function paintBackdrop(g: CanvasRenderingContext2D, t: MonthTheme, month: number, W: number, H: number) {
+/* `none` leaves the canvas clear, for the layer that sits on top of the animated backdrop */
+export function paintBackdrop(g: CanvasRenderingContext2D, t: MonthTheme, month: number, W: number, H: number, mode: 'all' | 'none' = 'all') {
+  if (mode === 'none') return
   const bg = g.createLinearGradient(0, 0, W * 0.4, H)
   bg.addColorStop(0, t.bg[0])
   bg.addColorStop(1, t.bg[1])
@@ -69,4 +71,59 @@ export function paintFooter(g: CanvasRenderingContext2D, f: { body: string }, lo
     g.drawImage(logo, fx, fy - (logo.height * k) / 2, logo.width * k, logo.height * k)
   }
   g.fillText(note, fx + (logo ? LG + 22 : 0), fy)
+}
+
+export interface MotifSprite {
+  url: string
+  left: number // all positions are fractions of the picture
+  top: number
+  w: number
+  h: number
+  alpha: number
+  turn: number // degrees to swing
+  dur: number // seconds
+  delay: number // seconds
+}
+
+/* the backdrop split into layers so the page can move it: the plain themed page, and every leaf, flake or flower on its own */
+export function renderBackdropLayers(month: number, W = 3200, H = 1800): { bg: string; sprites: MotifSprite[] } {
+  const t = MONTH_THEMES[month]
+  const bg = document.createElement('canvas')
+  bg.width = W / 2
+  bg.height = H / 2
+  const bgc = bg.getContext('2d')!
+  bgc.scale(0.5, 0.5)
+  const grad = bgc.createLinearGradient(0, 0, W * 0.4, H)
+  grad.addColorStop(0, t.bg[0])
+  grad.addColorStop(1, t.bg[1])
+  bgc.fillStyle = grad
+  bgc.fillRect(0, 0, W, H)
+  const sprites: MotifSprite[] = []
+  let n = 0
+  const sink: MotifSink = (paint, x, y, size, alpha) => {
+    const half = size * 1.5
+    const px = Math.max(8, Math.round(half)) // sprite canvas is drawn at half scale
+    const c = document.createElement('canvas')
+    c.width = px
+    c.height = px
+    const g = c.getContext('2d')!
+    g.scale(0.5, 0.5)
+    g.globalAlpha = alpha
+    paint(g, half, half)
+    n++
+    sprites.push({
+      url: c.toDataURL('image/png'),
+      left: (x - half) / W,
+      top: (y - half) / H,
+      w: (half * 2) / W,
+      h: (half * 2) / H,
+      alpha,
+      turn: 5 + ((n * 37) % 7),
+      dur: 2.2 + ((n * 13) % 9) / 5,
+      delay: -((n * 17) % 10) / 5,
+    })
+  }
+  drawMotif(bgc, t, month, W, H, 'back', 0, 0, 0, sink)
+  drawMotif(bgc, t, month, W, H, 'front', 0, 0, 0, sink)
+  return { bg: bg.toDataURL('image/jpeg', 0.9), sprites }
 }

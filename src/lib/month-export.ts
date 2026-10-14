@@ -6,6 +6,7 @@ import { BookOpen, Sparkles } from 'lucide-react'
 import { publicGroupName } from './calendar-items'
 import { MONTH_THEMES, drawMotif } from './month-themes'
 import { renderWeeklyMonth } from './month-weekly'
+import { ACTIVITY, STATUS } from './activity-colors'
 import { paintBackdrop, paintFooter, paintHeader, star } from './month-frame'
 import { holidaysOf, type Holiday } from './holidays'
 import type { State } from './types'
@@ -20,6 +21,7 @@ export interface MonthOptions {
   events: boolean
   classes?: boolean
   holidays?: boolean
+  transparent?: boolean // leave the backdrop out, for the layer shown over the animated one
 }
 
 type Kind = 'club' | 'event' | 'class'
@@ -70,7 +72,7 @@ export function monthOccurrences(state: State, o: MonthOptions): Map<string, Occ
       for (const c of state.classes || []) {
         if (!c.time || !repeatsOn(d, c.days || [], undefined, undefined, undefined, anchor)) continue
         const st = classStatusOn(state, c, iso)
-        push(iso, { kind: 'class', title: publicGroupName(c.code, c.level), time: c.time, startMin: parseSlot(c.time).mins, place: c.room, off: st.kind === 'cancelled' })
+        push(iso, { kind: 'class', title: publicGroupName(c.code, c.level), time: c.time, startMin: parseSlot(c.time).mins, place: c.room, icon: c.icon, off: st.kind === 'cancelled' })
       }
     }
     if (o.events) {
@@ -126,7 +128,7 @@ function blocksOf(list: Occ[]): Block[] {
 }
 
 /* text colours sit straight on the page: dark enough to read on every month's background */
-const INKS = { club: '#6B2D8F', event: '#8A5A00', class: '#0F6B66', off: '#8A8A93' }
+const INKS = { club: ACTIVITY.club.ink, event: ACTIVITY.event.ink, class: ACTIVITY.class.ink, off: STATUS.cancelled.ink }
 
 export async function renderMonth(state: State, o: MonthOptions): Promise<HTMLCanvasElement> {
   /* classes on their own: the normal weekly calendar set inside the month's theme */
@@ -146,7 +148,7 @@ export async function renderMonth(state: State, o: MonthOptions): Promise<HTMLCa
     for (const list of occ.values()) for (const x of list) want.set(iconKey(x.icon, x.kind, x.off), { icon: x.icon, kind: x.kind, off: x.off })
     await Promise.all(
       Array.from(want.entries()).map(async ([k, v]) => {
-        const Icon = v.kind === 'class' ? BookOpen : clubIcon(v.icon)?.Icon || Sparkles
+        const Icon = clubIcon(v.icon)?.Icon || (v.kind === 'class' ? BookOpen : Sparkles)
         iconImgs.set(k, await iconImage(Icon, v.off ? INKS.off : INKS[v.kind], 120))
       }),
     )
@@ -302,7 +304,7 @@ export async function renderMonth(state: State, o: MonthOptions): Promise<HTMLCa
   canvas.width = W
   canvas.height = H
   const g = canvas.getContext('2d')!
-  paintBackdrop(g, theme, o.month, W, H)
+  paintBackdrop(g, theme, o.month, W, H, o.transparent ? 'none' : 'all')
 
   const names = [o.classes && 'CLASSES', o.clubs && 'CLUBS', o.events && 'EVENTS'].filter(Boolean) as string[]
   paintHeader(g, f, theme, o.year, names)
