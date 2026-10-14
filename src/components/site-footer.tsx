@@ -51,6 +51,12 @@ export function SiteFooter({ current }: { current: Side }) {
           )}
         </nav>
       </div>
+      {/* big faint wordmark */}
+      <div aria-hidden className="pointer-events-none select-none overflow-hidden px-4 pb-2 text-center">
+        <div className="font-display mx-auto whitespace-nowrap font-extrabold leading-[1.1] tracking-tight text-foreground/[.06]" style={{ fontSize: 'min(8.4vw, 104px)' }}>
+          American Space <em className="font-medium italic">Oujda</em>
+        </div>
+      </div>
     </footer>
   )
 }
