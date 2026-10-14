@@ -51213,8 +51213,8 @@
     },
     {
       "id": "xmv7hf0f62z6ka",
-      "name": "Read, Create, Connect",
-      "desc": "\"Read, Create, Connect\" is a three-part volunteer program built around guided reading and discussion, practical digital content creation, and open community dialogue sessions in English. It aims to build youth confidence and fluency, teach practical digital publishing skills, and foster real civic and cultural conversations.",
+      "name": "English Reading Activity",
+      "desc": "The Club is a three-part volunteer program built around guided reading and discussion, practical digital content creation, and open community dialogue sessions in English. It aims to build youth confidence and fluency, teach practical digital publishing skills, and foster real civic and cultural conversations.",
       "days": [
         "Sun"
       ],
@@ -51280,9 +51280,13 @@
   ],
   "reports": [],
   "libraryPins": [],
-  "_rev": 1791940811875,
-  "_updated": "2026-10-14T09:56:06.644Z",
+  "_rev": 1791940811876,
+  "_updated": "2026-10-14T10:18:15.395Z",
   "_changes": [
+    {
+      "t": "2026-10-14T10:18:15.396Z",
+      "text": "English Reading Activity: name changed from Read, Create, Connect to English Reading Activity"
+    },
     {
       "t": "2026-10-14T09:56:06.644Z",
       "text": "Read, Create, Connect: days changed from Tuesday to Sunday"
