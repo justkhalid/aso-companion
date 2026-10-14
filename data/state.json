@@ -49691,6 +49691,16 @@
       ],
       "phone": "",
       "email": ""
+    },
+    {
+      "id": "xmv7zvukfl0zbj",
+      "name": "Badradine",
+      "roles": [
+        "Volunteer"
+      ],
+      "role": "Volunteer",
+      "phone": "",
+      "email": ""
     }
   ],
   "library": [
@@ -51309,8 +51319,8 @@
   ],
   "reports": [],
   "libraryPins": [],
-  "_rev": 1791940811881,
-  "_updated": "2026-10-14T10:56:18.539Z",
+  "_rev": 1791940811882,
+  "_updated": "2026-10-14T10:56:38.297Z",
   "_changes": [
     {
       "t": "2026-10-14T10:56:18.540Z",
