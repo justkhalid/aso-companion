@@ -51255,9 +51255,9 @@
       "name": "Movie Discussion Club",
       "desc": "",
       "days": [
-        "Thu"
+        "Wed"
       ],
-      "time": "15:00-17:00",
+      "time": "16:00-18:00",
       "room": "Main Hall",
       "lead": "Badradine",
       "vol": [],
@@ -51334,9 +51334,17 @@
   "libraryPins": [
     "lib|speakout2|Speakout 2nd Edition"
   ],
-  "_rev": 1791940811885,
-  "_updated": "2026-10-14T12:31:01.701Z",
+  "_rev": 1791940811886,
+  "_updated": "2026-10-14T14:27:06.108Z",
   "_changes": [
+    {
+      "t": "2026-10-14T14:27:06.109Z",
+      "text": "Movie Discussion Club: days changed from Thursday to Wednesday"
+    },
+    {
+      "t": "2026-10-14T14:27:06.109Z",
+      "text": "Movie Discussion Club: time changed from 3:00 PM - 5:00 PM to 4:00 PM - 6:00 PM"
+    },
     {
       "t": "2026-10-14T11:27:29.514Z",
       "text": "Club added: Art for Kids (no day, 2:00 PM - 4:00 PM)"
