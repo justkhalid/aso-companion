@@ -5,16 +5,16 @@ import { closedHoliday } from './holidays'
 import { MONTH_THEMES } from './month-themes'
 import { paintBackdrop, paintFooter, paintHeader } from './month-frame'
 import { monthOccurrences } from './month-export'
+import { ACTIVITY, STATUS } from './activity-colors'
 import type { State } from './types'
 
 /* Rooms in the month picture: every day box says which rooms are free.
    room = null: the overview (a coloured pill for each room); room = "Main Hall": that room's bookings and free time. */
 const OPEN = 9 * 60
 const CLOSE = 18 * 60
-const GREEN = '#1E8E4A'
-const AMBER = '#C77700'
 const GREY = '#7A7A85'
-const INKS = { class: '#0F6B66', club: '#6B2D8F', event: '#8A5A00' }
+const INKS = { class: ACTIVITY.class.ink, club: ACTIVITY.club.ink, event: ACTIVITY.event.ink }
+const ROUND_CLOSED = (r: string, dk: string) => ROOM_UNAVAILABLE[r]?.includes(dk)
 
 export interface Slot {
   start: number
@@ -50,32 +50,7 @@ export function roomStatus(slots: Slot[], closed: boolean): RoomStatus {
   return used < (CLOSE - OPEN) / 2 ? 'part' : 'booked'
 }
 
-/* a dot: whole, or half green and half amber for partially booked */
-function dot(g: CanvasRenderingContext2D, cx: number, cy: number, r: number, status: RoomStatus) {
-  if (status === 'part') {
-    g.fillStyle = GREEN
-    g.beginPath()
-    g.arc(cx, cy, r, Math.PI / 2, Math.PI * 1.5)
-    g.fill()
-    g.fillStyle = AMBER
-    g.beginPath()
-    g.arc(cx, cy, r, -Math.PI / 2, Math.PI / 2)
-    g.fill()
-    return
-  }
-  g.beginPath()
-  g.arc(cx, cy, r, 0, Math.PI * 2)
-  if (status === 'closed') {
-    g.strokeStyle = GREY
-    g.lineWidth = 3
-    g.stroke()
-  } else {
-    g.fillStyle = status === 'free' ? GREEN : AMBER
-    g.fill()
-  }
-}
-
-export async function renderRoomsMonth(state: State, o: { year: number; month: number }, room: string | null = null): Promise<HTMLCanvasElement> {
+export async function renderRoomsMonth(state: State, o: { year: number; month: number; transparent?: boolean }, room: string | null = null): Promise<HTMLCanvasElement> {
   const [logo, f] = await Promise.all([load('/aso-logo.png'), siteFonts()])
   const theme = MONTH_THEMES[o.month]
   const W = 3200
@@ -91,7 +66,7 @@ export async function renderRoomsMonth(state: State, o: { year: number; month: n
   canvas.width = W
   canvas.height = H
   const g = canvas.getContext('2d')!
-  paintBackdrop(g, theme, o.month, W, H)
+  paintBackdrop(g, theme, o.month, W, H, o.transparent ? 'none' : 'all')
   paintHeader(g, f, theme, o.year, [room ? room.toUpperCase() : 'ROOMS'])
 
   const first = new Date(o.year, o.month, 1)
@@ -110,7 +85,7 @@ export async function renderRoomsMonth(state: State, o: { year: number; month: n
     const dk = DAY_KEYS[(lead + day - 1) % 7]
     const list = (occ.get(iso) || []).filter((x) => !x.off)
     const slots: Slot[] = room
-      ? list.filter((x) => x.place === room).map((x) => ({ start: parseSlot(x.time).mins, end: endOf(x.time, parseSlot(x.time).mins), name: x.title, kind: x.kind })).sort((a, b) => a.start - b.start)
+      ? list.filter((x) => !x.outside && x.place === room).map((x) => ({ start: parseSlot(x.time).mins, end: endOf(x.time, parseSlot(x.time).mins), name: x.title, kind: x.kind })).sort((a, b) => a.start - b.start)
       : []
     const closedRoom = !!(room && ROOM_UNAVAILABLE[room]?.includes(dk))
     const free = freeWindows(slots)
@@ -200,7 +175,7 @@ export async function renderRoomsMonth(state: State, o: { year: number; month: n
     const list = (occ.get(iso) || []).filter((s) => !s.off)
     const slotsOf = (r: string): Slot[] =>
       list
-        .filter((s) => s.place === r)
+        .filter((s) => !s.outside && s.place === r)
         .map((s) => ({ start: parseSlot(s.time).mins, end: endOf(s.time, parseSlot(s.time).mins), name: s.title, kind: s.kind }))
     if (hol) {
       /* the whole day is closed */
@@ -229,34 +204,54 @@ export async function renderRoomsMonth(state: State, o: { year: number; month: n
       continue
     }
     if (!room) {
-      /* overview: a pill for each room, coloured by how free it is */
-      const cols = 2
-      const rowsN = Math.ceil(shownRooms.length / cols)
-      const areaTop = y + 58
-      const pillH = Math.min(58, (rowH - 70) / rowsN - 8)
-      const pillW = (colW - 36 - 12) / cols
+      /* overview: one thin timeline for each room, 9 AM to 6 PM. Green is free time, a coloured block is an activity. */
+      const rowsN = shownRooms.length
+      const areaTop = y + 60
+      const gap = 8
+      const rh = Math.min(46, (rowH - 60 - 14 - gap * (rowsN - 1)) / rowsN)
+      const lx = x + 16
+      const tx = x + 92
+      const tw = colW - 92 - 18
+      const SHORT: Record<string, string> = { 'Main Hall': 'Hall', Library: 'Library' }
       shownRooms.forEach((r, n) => {
-        const px = x + 18 + (n % cols) * (pillW + 12)
-        const py = areaTop + Math.floor(n / cols) * (pillH + 8)
-        const closed = !!ROOM_UNAVAILABLE[r]?.includes(dk)
-        const slots = slotsOf(r)
-        const status = roomStatus(slots, closed)
-        const col2 = status === 'free' ? GREEN : status === 'closed' ? GREY : AMBER
-        g.fillStyle = col2 + (status === 'closed' ? '18' : status === 'part' ? '16' : '30')
-        g.beginPath()
-        g.roundRect(px, py, pillW, pillH, pillH / 2)
-        g.fill()
-        g.strokeStyle = status === 'part' ? AMBER + '55' : col2 + '77'
-        g.lineWidth = 2.5
-        if (status === 'closed') g.setLineDash([8, 6])
-        g.stroke()
-        g.setLineDash([])
-        dot(g, px + pillH / 2, py + pillH / 2, 9, status)
+        const ry = areaTop + n * (rh + gap)
+        const closed = !!ROUND_CLOSED(r, dk)
         g.textAlign = 'left'
         g.textBaseline = 'middle'
-        g.font = `800 ${Math.round(pillH * 0.5)}px ${f.body}`
-        g.fillStyle = status === 'closed' ? MUTED : '#25252B'
-        g.fillText(r, px + pillH / 2 + 18, py + pillH / 2 + 2, pillW - pillH / 2 - 28)
+        g.font = `800 ${Math.round(rh * 0.5)}px ${f.body}`
+        g.fillStyle = closed ? STATUS.closed.ink : '#2a2a31'
+        g.fillText(SHORT[r] || r.replace('Room ', 'Room '), lx, ry + rh / 2 + 1, 74)
+        g.beginPath()
+        g.roundRect(tx, ry, tw, rh, rh / 2)
+        if (closed) {
+          g.fillStyle = STATUS.closed.tint
+          g.fill()
+          g.save()
+          g.clip()
+          g.strokeStyle = STATUS.closed.ink + '88'
+          g.lineWidth = 3
+          for (let k = -rh; k < tw + rh; k += 14) {
+            g.beginPath()
+            g.moveTo(tx + k, ry + rh)
+            g.lineTo(tx + k + rh, ry)
+            g.stroke()
+          }
+          g.restore()
+          return
+        }
+        g.fillStyle = STATUS.free.tint
+        g.fill()
+        g.save()
+        g.beginPath()
+        g.roundRect(tx, ry, tw, rh, rh / 2)
+        g.clip()
+        for (const sl of slotsOf(r)) {
+          const a0 = Math.max(OPEN, sl.start)
+          const a1 = Math.min(CLOSE, Math.max(sl.end, sl.start + 30))
+          g.fillStyle = ACTIVITY[sl.kind].ink
+          g.fillRect(tx + ((a0 - OPEN) / (CLOSE - OPEN)) * tw, ry, Math.max(6, ((a1 - a0) / (CLOSE - OPEN)) * tw), rh)
+        }
+        g.restore()
       })
     } else {
       /* one room: what is in it, then the free time */
@@ -284,7 +279,7 @@ export async function renderRoomsMonth(state: State, o: { year: number; month: n
         ty += 40 * sc + 6
       })
       g.font = `800 ${Math.round(30 * sc)}px ${f.body}`
-      g.fillStyle = GREEN
+      g.fillStyle = STATUS.free.ink
       if (!m.free.length) {
         g.fillStyle = GREY
         g.fillText('Booked all day', x + 18, ty)
@@ -299,22 +294,20 @@ export async function renderRoomsMonth(state: State, o: { year: number; month: n
   /* legend */
   const ly = gridBottom + LEG / 2 + 6
   const items: [string, string][] = room
-    ? [[GREEN, 'Free'], [INKS.class, 'Class'], [INKS.club, 'Club'], [INKS.event, 'Event']]
-    : [[GREEN, 'Free'], [AMBER, 'Partially booked'], [AMBER, 'Booked'], [GREY, 'Not available']]
+    ? [[STATUS.free.ink, 'Free'], [INKS.class, 'Class'], [INKS.club, 'Club'], [INKS.event, 'Event']]
+    : [[STATUS.free.tint, 'Free'], [ACTIVITY.class.ink, 'Class'], [ACTIVITY.club.ink, 'Club'], [ACTIVITY.event.ink, 'Event'], [STATUS.closed.ink, 'Closed']]
   g.font = `700 32px ${f.body}`
   g.textBaseline = 'middle'
   g.textAlign = 'left'
-  const widths = items.map(([, t]) => g.measureText(t).width + 60)
+  const widths = items.map(([, t]) => g.measureText(t).width + 78)
   let lx = (W - widths.reduce((a, b) => a + b, 0)) / 2
   items.forEach(([c, t], i) => {
-    if (room) {
-      g.fillStyle = c
-      g.beginPath()
-      g.arc(lx + 12, ly, 11, 0, Math.PI * 2)
-      g.fill()
-    } else dot(g, lx + 12, ly, 11, t === 'Free' ? 'free' : t === 'Partially booked' ? 'part' : t === 'Booked' ? 'booked' : 'closed')
+    g.fillStyle = c
+    g.beginPath()
+    g.roundRect(lx, ly - 12, 34, 24, 12)
+    g.fill()
     g.fillStyle = '#3a3a42'
-    g.fillText(t, lx + 34, ly + 1)
+    g.fillText(t, lx + 46, ly + 1)
     lx += widths[i]
   })
   paintFooter(g, f, logo, state.settings.institute, W, H, gridBottom + LEG)
@@ -364,6 +357,13 @@ export interface RoomDay {
   free: [number, number][]
 }
 
+/* what happens outside the space on one date (a park, another venue) */
+export function outsideDay(state: State, iso: string): { title: string; kind: 'club' | 'event' | 'class'; place: string; time: string }[] {
+  const d = new Date(iso + 'T00:00:00')
+  const occ = monthOccurrences(state, { year: d.getFullYear(), month: d.getMonth(), clubs: true, events: true, classes: true })
+  return (occ.get(iso) || []).filter((x) => x.outside && !x.off).map((x) => ({ title: x.title, kind: x.kind, place: x.place, time: x.time }))
+}
+
 /* what is in each room on one date: bookings and the free hours between them */
 export function roomDayDetail(state: State, iso: string): RoomDay[] {
   const d = new Date(iso + 'T00:00:00')
@@ -375,7 +375,7 @@ export function roomDayDetail(state: State, iso: string): RoomDay[] {
     .filter((r) => r !== 'Online')
     .map((room) => {
       const slots: Slot[] = list
-        .filter((x) => x.place === room)
+        .filter((x) => !x.outside && x.place === room)
         .map((x) => ({ start: parseSlot(x.time).mins, end: endOf(x.time, parseSlot(x.time).mins), name: x.title, kind: x.kind }))
         .sort((a, b) => a.start - b.start)
       const closed = !!hol || !!ROOM_UNAVAILABLE[room]?.includes(dk)

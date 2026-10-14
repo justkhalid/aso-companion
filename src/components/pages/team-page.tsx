@@ -3,6 +3,7 @@
 import * as React from 'react'
 import { Plus, Phone, Mail, Users, Search, GraduationCap, HeartHandshake } from 'lucide-react'
 import { useStore } from '@/lib/store'
+import { heldBy, legacyLooks } from '@/lib/leads'
 import { PageHead, EmptyState, Chip } from '@/components/ui-bits'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -86,9 +87,10 @@ export function TeamPage() {
                   }}
                 />
               </div>
-              {[...(t.looksAfter || []), t.duty].filter(Boolean).length > 0 && (
-                <div className="mb-1.5 text-sm text-foreground/80"><span className="font-semibold">Looks after:</span> {[...(t.looksAfter || []), t.duty].filter(Boolean).join(', ')}</div>
-              )}
+              {(() => {
+                const items = [...heldBy(state, t.name).map((h) => (h.role === 'helps' ? `${h.label} (helps)` : h.label)), ...legacyLooks(state, t.name, t.looksAfter), t.duty].filter(Boolean)
+                return items.length > 0 ? <div className="mb-1.5 text-sm text-foreground/80"><span className="font-semibold">Looks after:</span> {items.join(', ')}</div> : null
+              })()}
               <div className="flex flex-col gap-1.5 text-sm">
                 <span className="flex items-center gap-1.5"><Phone className="h-3.5 w-3.5 text-muted-foreground" aria-hidden /> {t.phone || 'No phone yet'}</span>
                 <span className="flex items-center gap-1.5"><Mail className="h-3.5 w-3.5 text-muted-foreground" aria-hidden /> {t.email || 'No email yet'}</span>

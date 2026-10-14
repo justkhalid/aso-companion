@@ -1,7 +1,8 @@
 'use client'
 
 import * as React from 'react'
-import { Plus, CalendarDays, Clock, MapPin, Repeat2 } from 'lucide-react'
+import { Plus, CalendarDays, Clock, MapPin, Repeat2, User } from 'lucide-react'
+import { PosterThumb } from '@/components/poster-thumb'
 import { useStore } from '@/lib/store'
 import { fmtEventWhen, nextOccurrence, fmtD, isOnceEvent, fmtTime } from '@/lib/app-utils'
 import { PageHead, EmptyState, Chip } from '@/components/ui-bits'
@@ -42,7 +43,9 @@ export function InternEventsPage() {
       ) : (
         <div className="flex flex-col gap-2">
           {list.map(({ e, d }) => (
-            <div key={e.id} className="rounded-2xl border border-border bg-card p-4 shadow-sm">
+            <div key={e.id} className="flex gap-3 rounded-2xl border border-border bg-card p-4 shadow-sm">
+              <PosterThumb poster={e.poster} alt={`${e.title} poster`} icon={e.icon} kind="event" />
+              <div className="min-w-0 flex-1">
               <div className="mb-1.5 flex items-center gap-2">
                 <div className="flex-1 font-bold" dir="auto">{e.title}</div>
                 <Chip tone={isOnceEvent(e) ? 'primary' : 'gold'} icon={isOnceEvent(e) ? CalendarDays : Repeat2}>{fmtEventWhen(e)}</Chip>
@@ -51,8 +54,9 @@ export function InternEventsPage() {
               <div className="mt-1.5 flex flex-wrap gap-x-3 gap-y-1 text-xs font-semibold text-muted-foreground">
                 {d && <span className="inline-flex items-center gap-1"><CalendarDays className="h-3.5 w-3.5" /> {fmtD(d, { weekday: 'long', day: 'numeric', month: 'long' })}</span>}
                 {e.time && <span className="inline-flex items-center gap-1"><Clock className="h-3.5 w-3.5" /> {fmtTime(e.time)}</span>}
-                {e.place && <span className="inline-flex items-center gap-1"><MapPin className="h-3.5 w-3.5" /> {e.place}</span>}
+                {e.place && <span className="inline-flex items-center gap-1"><MapPin className="h-3.5 w-3.5" /> {e.outside ? 'Outside: ' : ''}{e.place}</span>}
               </div>
+              {e.lead && <div className="mt-1.5 inline-flex items-center gap-1 text-xs font-semibold"><User className="h-3.5 w-3.5" /> Lead: {e.lead}</div>}
               <div className="mt-2 flex justify-end">
                 <RowActions
                   name={e.title}
@@ -60,6 +64,7 @@ export function InternEventsPage() {
                   onDuplicate={() => duplicate(e)}
                   remove={(d) => { d.events = d.events.filter((x) => x.id !== e.id) }}
                 />
+              </div>
               </div>
             </div>
           ))}

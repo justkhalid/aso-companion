@@ -5,7 +5,7 @@ import { ChevronLeft, ChevronRight } from 'lucide-react'
 import { useStore } from '@/lib/store'
 import { DAY_KEYS, ROOM_UNAVAILABLE } from '@/lib/constants'
 import { PUBLIC_CLASS_TONE, PUBLIC_CLUB_TONE, PUBLIC_EVENT_TONE } from '@/lib/calendar-items'
-import { classStatusOn, clubStatusOn, eventStatusOn, isOnceEvent, isoOf, roomOptionsFor, fmt12Min, hourLabel12 } from '@/lib/app-utils'
+import { classStatusOn, clubStatusOn, clubWhere, eventStatusOn, eventWhere, isOnceEvent, isoOf, roomOptionsFor, fmt12Min, hourLabel12 } from '@/lib/app-utils'
 import { clubIcon } from '@/lib/icons'
 import { closedHoliday } from '@/lib/holidays'
 import { cn } from '@/lib/utils'
@@ -76,6 +76,7 @@ function bookingsForWeek(state: State, monday: Date, plain: boolean): Booking[] 
         // interns only need to know an English class is on, not which group it is
         label: plain ? 'English class' : c.code,
         tone: PUBLIC_CLASS_TONE,
+        icon: c.icon,
         lead: plain ? undefined : stt.kind === 'cover' ? 'Cover: ' + stt.cover : c.teacher,
         group: 'English classes',
         cancelled: stt.kind === 'cancelled' ? stt.absence.reason || 'Teacher away' : undefined,
@@ -83,16 +84,19 @@ function bookingsForWeek(state: State, monday: Date, plain: boolean): Booking[] 
     }
   }
   for (const c of state.clubs || []) {
-    const slot = parseSlot(c.time)
-    if (!slot || !c.room || !inSeries(c.from, c.until)) continue
+    if (!inSeries(c.from, c.until)) continue
     const note = c.freq === 'biweekly' ? 'every 2 weeks' : c.freq === 'monthly' ? 'monthly' : undefined
     for (const day of c.days || []) {
       const di = DAY_KEYS.indexOf(day as (typeof DAY_KEYS)[number])
       const date = new Date(monday)
       date.setDate(date.getDate() + Math.max(di, 0))
       const stt = clubStatusOn(state, c.id, isoOf(date))
+      /* held outside the space, on this date or always: no room is used */
+      const w = clubWhere(state, c, isoOf(date))
+      const slot = parseSlot(w.time)
+      if (w.outside || !slot || !w.place) continue
       out.push({
-        room: c.room.trim(), day, start: slot[0], end: slot[1], label: c.name, kind: 'club', note,
+        room: w.place.trim(), day, start: slot[0], end: slot[1], label: c.name, kind: 'club', note,
         tone: PUBLIC_CLUB_TONE, icon: c.icon,
         lead: stt.kind === 'cover' ? 'Led by ' + stt.cover : c.lead,
         group: 'Clubs',
@@ -101,20 +105,24 @@ function bookingsForWeek(state: State, monday: Date, plain: boolean): Booking[] 
     }
   }
   for (const e of state.events || []) {
-    const slot = parseSlot(e.time)
-    if (!slot || !e.place) continue
     if (isOnceEvent(e)) {
       if (!e.date || e.date < weekStart || e.date > weekEnd) continue
       const [y, m, d] = e.date.split('-').map(Number)
       const stt = eventStatusOn(state, e.id, e.date)
-      out.push({ room: e.place.trim(), day: dayKeyOf(new Date(y, m - 1, d)), start: slot[0], end: slot[1], label: e.title, kind: 'event', note: 'one-off', tone: PUBLIC_EVENT_TONE, icon: e.icon || 'calendar', group: 'Events', cancelled: stt.kind === 'cancelled' ? stt.absence.reason || 'Cancelled' : undefined })
+      const w = eventWhere(state, e, e.date)
+      const slot = parseSlot(w.time)
+      if (w.outside || !slot || !w.place) continue
+      out.push({ room: w.place.trim(), day: dayKeyOf(new Date(y, m - 1, d)), start: slot[0], end: slot[1], label: e.title, kind: 'event', note: 'one-off', tone: PUBLIC_EVENT_TONE, icon: e.icon || 'calendar', group: 'Events', cancelled: stt.kind === 'cancelled' ? stt.absence.reason || 'Cancelled' : undefined })
     } else if (e.day && inSeries(e.from, e.until)) {
       const note = e.recur === 'biweekly' ? 'every 2 weeks' : e.recur === 'monthly' ? 'monthly' : undefined
       const di = DAY_KEYS.indexOf(e.day as (typeof DAY_KEYS)[number])
       const date = new Date(monday)
       date.setDate(date.getDate() + Math.max(di, 0))
       const stt = eventStatusOn(state, e.id, isoOf(date))
-      out.push({ room: e.place.trim(), day: e.day, start: slot[0], end: slot[1], label: e.title, kind: 'event', note, tone: PUBLIC_EVENT_TONE, icon: e.icon || 'calendar', group: 'Events', cancelled: stt.kind === 'cancelled' ? stt.absence.reason || 'Cancelled' : undefined })
+      const w = eventWhere(state, e, isoOf(date))
+      const slot = parseSlot(w.time)
+      if (w.outside || !slot || !w.place) continue
+      out.push({ room: w.place.trim(), day: e.day, start: slot[0], end: slot[1], label: e.title, kind: 'event', note, tone: PUBLIC_EVENT_TONE, icon: e.icon || 'calendar', group: 'Events', cancelled: stt.kind === 'cancelled' ? stt.absence.reason || 'Cancelled' : undefined })
     }
   }
   return out

@@ -18,11 +18,13 @@ import {
   TimeRangeSelect,
   PickOrType,
   IconPicker,
+  WhereField,
   IconPreview,
   PosterUploader,
 } from '@/components/forms/form-controls'
 import { useStore } from '@/lib/store'
-import { uid, roomOptionsFor } from '@/lib/app-utils'
+import { NotInPeople } from '@/components/forms/not-in-people'
+import { uid, peopleOf, roomOptionsFor, outsidePlacesOf } from '@/lib/app-utils'
 import type { EventEntry, EventRecur } from '@/lib/types'
 
 const RECUR_OPTIONS: { v: EventRecur; label: string }[] = [
@@ -55,6 +57,8 @@ export function EventDialog({
   const [until, setUntil] = React.useState('')
   const [time, setTime] = React.useState('')
   const [place, setPlace] = React.useState('')
+  const [outside, setOutside] = React.useState(false)
+  const [lead, setLead] = React.useState('')
   const [poster, setPoster] = React.useState<string | undefined>(undefined)
   const [icon, setIcon] = React.useState<string | undefined>(undefined)
 
@@ -70,11 +74,14 @@ export function EventDialog({
     setUntil(event?.until || '')
     setTime(event?.time || '')
     setPlace(event?.place || '')
+    setOutside(!!event?.outside)
+    setLead(event?.lead || '')
     setPoster(event?.poster)
     setIcon(event?.icon)
   }, [open, event?.id])
 
   const roomOptions = React.useMemo(() => roomOptionsFor(state), [state])
+  const leadNames = React.useMemo(() => Array.from(new Set(peopleOf(state).map((t) => t.name).filter(Boolean))), [state])
   const repeating = recur !== 'none' && recur !== 'once'
 
   const save = () => {
@@ -101,6 +108,8 @@ export function EventDialog({
       until: repeating && until ? until : undefined,
       time: time.trim() || '16:00-18:00', // fall back to the shown picker defaults
       place: place.trim(),
+      ...(outside ? { outside: true } : {}),
+      ...(lead.trim() ? { lead: lead.trim() } : {}),
       poster,
       icon,
     }
@@ -177,16 +186,12 @@ export function EventDialog({
             <TimeRangeSelect value={time} onChange={setTime} defaultStart="16:00" defaultEnd="18:00" />
           </div>
 
+          <WhereField id="ev-place" label="Where" outside={outside} place={place} onChange={(p, o) => { setPlace(p); setOutside(o) }} rooms={roomOptions} outsidePlaces={outsidePlacesOf(state)} />
+
           <div className="flex flex-col gap-1.5">
-            <Label htmlFor="ev-place">Place</Label>
-            <PickOrType
-              id="ev-place"
-              value={place}
-              onChange={setPlace}
-              options={roomOptions}
-              placeholder="Pick a place"
-              emptyLabel="No place set"
-            />
+            <Label htmlFor="ev-lead">Lead</Label>
+            <PickOrType id="ev-lead" value={lead} onChange={setLead} options={leadNames} placeholder="Pick a lead" emptyLabel="No lead yet" />
+            <NotInPeople name={lead} role="Volunteer" />
           </div>
 
           <div className="flex flex-col gap-2">

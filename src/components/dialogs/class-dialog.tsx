@@ -19,7 +19,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import { DayPills, TimeRangeSelect, PickOrType } from '@/components/forms/form-controls'
+import { DayPills, TimeRangeSelect, PickOrType, IconPicker, IconPreview } from '@/components/forms/form-controls'
+import { NotInPeople } from '@/components/forms/not-in-people'
 import { useStore } from '@/lib/store'
 import { uid, peopleOf, rolesOf, suggestClassCode, roomOptionsFor } from '@/lib/app-utils'
 import type { ClassEntry } from '@/lib/types'
@@ -45,6 +46,7 @@ export function ClassDialog({
   const [room, setRoom] = React.useState('')
   const [days, setDays] = React.useState<string[]>([])
   const [time, setTime] = React.useState('')
+  const [icon, setIcon] = React.useState<string | undefined>('')
 
   /* remembers the level the code was loaded with, so the code only
      re-generates when the user actually switches level */
@@ -72,6 +74,7 @@ export function ClassDialog({
     setRoom(cls?.room || '')
     setDays(cls?.days || [])
     setTime(cls?.time || '')
+    setIcon(cls?.icon)
     setCode(cls?.code || suggestClassCode(st.classes, lvl))
   }, [open, cls?.id])
 
@@ -104,6 +107,7 @@ export function ClassDialog({
       room: room.trim(),
       days,
       time: timeValue,
+      ...(icon ? { icon } : {}),
     }
     patch((draft) => {
       if (isNew) draft.classes.push(entry)
@@ -191,6 +195,17 @@ export function ClassDialog({
               placeholder="Pick a teacher"
               emptyLabel="No teacher yet"
             />
+            <NotInPeople name={teacher} role="Teacher" />
+          </div>
+
+          <div className="flex flex-col gap-2">
+            <Label>Chip icon</Label>
+            <IconPicker value={icon} onChange={setIcon} />
+            {icon && (
+              <span className="flex items-center gap-1.5 text-xs font-semibold text-muted-foreground">
+                Shows on the calendar chip: <IconPreview icon={icon} className="text-primary" />
+              </span>
+            )}
           </div>
         </div>
         <DialogFooter className="gap-2">

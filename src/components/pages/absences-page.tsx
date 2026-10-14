@@ -1,9 +1,9 @@
 'use client'
 
 import * as React from 'react'
-import { Plus, UserX, UserCheck, Users, Sparkles, Ban } from 'lucide-react'
+import { Plus, UserX, UserCheck, Users, Sparkles, Ban, MapPin } from 'lucide-react'
 import { useStore } from '@/lib/store'
-import { fmtAbsenceRange, isOnceEvent, isoOf, parseISO } from '@/lib/app-utils'
+import { fmtAbsenceRange, fmtTime, isOnceEvent, isoOf, parseISO } from '@/lib/app-utils'
 import { DAY_KEYS } from '@/lib/constants'
 import { PageHead, EmptyState, Chip } from '@/components/ui-bits'
 import { Button } from '@/components/ui/button'
@@ -72,7 +72,7 @@ export function AbsencesPage() {
   const card = (a: Absence, dim = false) => {
     const sub = subject(a)
     const n = sessionsIn(a)
-    const verb = a.cover ? 'covered' : 'cancelled'
+    const verb = a.moved ? 'moved' : a.cover ? 'covered' : 'cancelled'
     return (
       <div key={a.id} className={`flex flex-col gap-3 rounded-2xl border border-border bg-card p-4 shadow-sm sm:flex-row sm:items-start ${dim ? 'opacity-60' : ''}`}>
         <div className="flex min-w-0 flex-1 items-start gap-3">
@@ -81,7 +81,7 @@ export function AbsencesPage() {
           <div className="flex flex-wrap items-center gap-2">
             <span className="font-bold">{sub.title}</span>
             <Chip icon={a.kind === 'club' ? Users : a.kind === 'event' ? Sparkles : UserX}>{a.kind === 'club' ? 'Club' : a.kind === 'event' ? 'Event' : 'Teacher away'}</Chip>
-            <Chip tone={a.cover ? 'primary' : 'gold'} icon={a.cover ? UserCheck : Ban}>{a.cover ? (a.kind === 'club' ? `Led by ${a.cover}` : `Covered by ${a.cover}`) : 'Cancelled'}</Chip>
+            <Chip tone={a.cover || a.moved ? 'primary' : 'gold'} icon={a.moved ? MapPin : a.cover ? UserCheck : Ban}>{a.moved ? `Held ${a.moved.outside ? 'at' : 'in'} ${a.moved.place || 'the usual place'}${a.moved.time ? ' · ' + fmtTime(a.moved.time) : ''}` : a.cover ? (a.kind === 'club' ? `Led by ${a.cover}` : `Covered by ${a.cover}`) : 'Cancelled'}</Chip>
           </div>
           <div className="mt-0.5 text-sm text-muted-foreground">
             {fmtAbsenceRange(a)} · {a.reason}

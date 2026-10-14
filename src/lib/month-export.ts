@@ -1,11 +1,12 @@
 import { DAY_FULL, DAY_KEYS } from './constants'
-import { addDays, classStatusOn, clubStatusOn, eventStatusOn, fmtTime, isOnceEvent, isoOf, parseISO, parseSlot } from './app-utils'
+import { addDays, classStatusOn, clubStatusOn, clubWhere, eventStatusOn, eventWhere, fmtTime, isOnceEvent, isoOf, parseISO, parseSlot } from './app-utils'
 import { MUTED, footer, iconImage, load, siteFonts, wrap } from './clubs-calendar-export'
 import { clubIcon } from './icons'
 import { BookOpen, Sparkles } from 'lucide-react'
 import { publicGroupName } from './calendar-items'
 import { MONTH_THEMES, drawMotif } from './month-themes'
 import { renderWeeklyMonth } from './month-weekly'
+import { ACTIVITY, STATUS } from './activity-colors'
 import { paintBackdrop, paintFooter, paintHeader, star } from './month-frame'
 import { holidaysOf, type Holiday } from './holidays'
 import type { State } from './types'
@@ -20,6 +21,7 @@ export interface MonthOptions {
   events: boolean
   classes?: boolean
   holidays?: boolean
+  transparent?: boolean // leave the backdrop out, for the layer shown over the animated one
 }
 
 type Kind = 'club' | 'event' | 'class'
@@ -29,6 +31,8 @@ export interface Occ {
   time: string
   startMin: number
   place: string
+  outside?: boolean // the place is outside the space (no room is used)
+  moved?: boolean // moved for these dates only
   icon?: string
   off: boolean
   cover?: string
@@ -63,14 +67,15 @@ export function monthOccurrences(state: State, o: MonthOptions): Map<string, Occ
       for (const c of state.clubs || []) {
         if (c.placeholder || !c.time || !repeatsOn(d, c.days || [], c.freq, c.from, c.until, anchor)) continue
         const st = clubStatusOn(state, c.id, iso)
-        push(iso, { kind: 'club', title: c.name, time: c.time, startMin: parseSlot(c.time).mins, place: c.room, icon: c.icon, off: st.kind === 'cancelled', cover: st.kind === 'cover' ? st.cover : undefined })
+        const w = clubWhere(state, c, iso)
+        push(iso, { kind: 'club', title: c.name, time: w.time, startMin: parseSlot(w.time).mins, place: w.place, outside: w.outside, moved: w.moved, icon: c.icon, off: st.kind === 'cancelled', cover: st.kind === 'cover' ? st.cover : undefined })
       }
     }
     if (o.classes) {
       for (const c of state.classes || []) {
         if (!c.time || !repeatsOn(d, c.days || [], undefined, undefined, undefined, anchor)) continue
         const st = classStatusOn(state, c, iso)
-        push(iso, { kind: 'class', title: publicGroupName(c.code, c.level), time: c.time, startMin: parseSlot(c.time).mins, place: c.room, off: st.kind === 'cancelled' })
+        push(iso, { kind: 'class', title: publicGroupName(c.code, c.level), time: c.time, startMin: parseSlot(c.time).mins, place: c.room, icon: c.icon, off: st.kind === 'cancelled' })
       }
     }
     if (o.events) {
@@ -78,7 +83,8 @@ export function monthOccurrences(state: State, o: MonthOptions): Map<string, Occ
         const hit = isOnceEvent(e) ? e.date === iso : !!e.day && repeatsOn(d, [e.day], e.recur, e.from, e.until, anchor)
         if (!hit) continue
         const st = eventStatusOn(state, e.id, iso)
-        push(iso, { kind: 'event', title: e.title, time: e.time, startMin: e.time ? parseSlot(e.time).mins : 0, place: e.place || '', icon: e.icon || 'calendar', off: st.kind === 'cancelled' })
+        const w = eventWhere(state, e, iso)
+        push(iso, { kind: 'event', title: e.title, time: w.time, startMin: w.time ? parseSlot(w.time).mins : 0, place: w.place, outside: w.outside, moved: w.moved, icon: e.icon || 'calendar', off: st.kind === 'cancelled' })
       }
     }
   }
@@ -116,17 +122,18 @@ interface Block {
   off: boolean
   names: { title: string; icon?: string }[]
   time: string
+  where?: string // only when it is not the usual room: "Outside: City Park" or "Moved: Room 2"
 }
 function blocksOf(list: Occ[]): Block[] {
   const out: Block[] = []
   for (const x of list) {
-    out.push({ kind: x.kind, off: x.off, names: [{ title: x.title, icon: x.icon }], time: x.time })
+    out.push({ kind: x.kind, off: x.off, names: [{ title: x.title, icon: x.icon }], time: x.time, where: x.off || !x.place ? undefined : x.outside ? `Outside: ${x.place}` : x.moved ? `Moved: ${x.place}` : undefined })
   }
   return out
 }
 
 /* text colours sit straight on the page: dark enough to read on every month's background */
-const INKS = { club: '#6B2D8F', event: '#8A5A00', class: '#0F6B66', off: '#8A8A93' }
+const INKS = { club: ACTIVITY.club.ink, event: ACTIVITY.event.ink, class: ACTIVITY.class.ink, off: STATUS.cancelled.ink }
 
 export async function renderMonth(state: State, o: MonthOptions): Promise<HTMLCanvasElement> {
   /* classes on their own: the normal weekly calendar set inside the month's theme */
@@ -146,7 +153,7 @@ export async function renderMonth(state: State, o: MonthOptions): Promise<HTMLCa
     for (const list of occ.values()) for (const x of list) want.set(iconKey(x.icon, x.kind, x.off), { icon: x.icon, kind: x.kind, off: x.off })
     await Promise.all(
       Array.from(want.entries()).map(async ([k, v]) => {
-        const Icon = v.kind === 'class' ? BookOpen : clubIcon(v.icon)?.Icon || Sparkles
+        const Icon = clubIcon(v.icon)?.Icon || (v.kind === 'class' ? BookOpen : Sparkles)
         iconImgs.set(k, await iconImage(Icon, v.off ? INKS.off : INKS[v.kind], 120))
       }),
     )
@@ -220,7 +227,7 @@ export async function renderMonth(state: State, o: MonthOptions): Promise<HTMLCa
       const lines = wrap(scratch, n.title, textW, 99)
       const lineW = Math.max(...lines.map((l) => scratch.measureText(l).width))
       const hasTime = bl.off || !!bl.time
-      return { lines, lineW, h: Math.max(lines.length * (NAME + 2 * s) + (hasTime ? TIME + 4 * s : 0), isz) }
+      return { lines, lineW, h: Math.max(lines.length * (NAME + 2 * s) + (hasTime ? TIME + 4 * s : 0) + (bl.where ? TIME + 2 * s : 0), isz) }
     })
     const h = Math.round(rows.reduce((n, r) => n + r.h, 0))
     return { rows, isz, textW, h }
@@ -302,7 +309,7 @@ export async function renderMonth(state: State, o: MonthOptions): Promise<HTMLCa
   canvas.width = W
   canvas.height = H
   const g = canvas.getContext('2d')!
-  paintBackdrop(g, theme, o.month, W, H)
+  paintBackdrop(g, theme, o.month, W, H, o.transparent ? 'none' : 'all')
 
   const names = [o.classes && 'CLASSES', o.clubs && 'CLUBS', o.events && 'EVENTS'].filter(Boolean) as string[]
   paintHeader(g, f, theme, o.year, names)
@@ -465,7 +472,7 @@ export async function renderMonth(state: State, o: MonthOptions): Promise<HTMLCa
         if (img) g.drawImage(img, gx0, ty + (row.h - it.lay.isz) / 2, it.lay.isz, it.lay.isz)
         const tx0 = gx0 + it.lay.isz + 18
         const hasTime = it.bl.off || !!it.bl.time
-        const textH = row.lines.length * (L.NAME + 2 * s) + (hasTime ? L.TIME + 4 * s : 0)
+        const textH = row.lines.length * (L.NAME + 2 * s) + (hasTime ? L.TIME + 4 * s : 0) + (it.bl.where ? L.TIME + 2 * s : 0)
         let ly = ty + (row.h - textH) / 2
         g.textAlign = 'left'
         g.direction = 'ltr'
@@ -478,6 +485,7 @@ export async function renderMonth(state: State, o: MonthOptions): Promise<HTMLCa
         g.font = `700 ${L.TIME}px ${f.body}`
         if (it.bl.off) g.fillText('Cancelled', tx0, ly + 4 * s)
         else if (it.bl.time) g.fillText(fmtTime(it.bl.time), tx0, ly + 4 * s)
+        if (it.bl.where) g.fillText(it.bl.where, tx0, ly + 4 * s + L.TIME + 2 * s, it.lay.textW)
       }
     })
     y += rows[w]

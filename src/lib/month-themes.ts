@@ -152,23 +152,39 @@ function shade(hex: string, amt: number): string {
 
 /* scatter the motif: dense in the top corners and bottom corners, a few along the edges; `front` pieces are
    drawn over the corners of the calendar card, `back` ones behind it */
-export function drawMotif(g: CanvasRenderingContext2D, t: MonthTheme, month: number, W: number, H: number, layer: 'back' | 'front' | 'cell', cx = 0, cy = 0, cell = 0) {
+export type MotifSink = (paint: (g: CanvasRenderingContext2D, x: number, y: number) => void, x: number, y: number, size: number, alpha: number) => void
+
+export function drawMotif(g: CanvasRenderingContext2D, t: MonthTheme, month: number, W: number, H: number, layer: 'back' | 'front' | 'cell', cx = 0, cy = 0, cell = 0, sink?: MotifSink) {
   const r = rng(month + 3 + (layer === 'front' ? 50 : 0))
   const col = () => t.colors[Math.floor(r() * t.colors.length)]
+  const alpha = layer === 'front' ? 0.95 : 0.9
   const place = (x: number, y: number, size: number) => {
     const rot = r() * Math.PI * 2
-    if (t.motif === 'leaves') leaf(g, x, y, size, rot, col())
-    else if (t.motif === 'snow') flake(g, x, y, size * 0.9, rot, col())
-    else if (t.motif === 'blossom') flower(g, x, y, size * 0.8, rot, col(), '#FFF176', 5)
-    else if (t.motif === 'flowers') flower(g, x, y, size * 0.8, rot, col(), '#FFC107', 6)
-    else if (t.motif === 'rain') {
-      if (r() < 0.65) drop(g, x, y, size * 0.45, col())
-      else flower(g, x, y, size * 0.6, rot, t.colors[2], '#FFC107', 5)
+    let paint: (gg: CanvasRenderingContext2D, xx: number, yy: number) => void
+    if (t.motif === 'leaves') {
+      const c = col()
+      paint = (gg, xx, yy) => leaf(gg, xx, yy, size, rot, c)
+    } else if (t.motif === 'snow') {
+      const c = col()
+      paint = (gg, xx, yy) => flake(gg, xx, yy, size * 0.9, rot, c)
+    } else if (t.motif === 'blossom') {
+      const c = col()
+      paint = (gg, xx, yy) => flower(gg, xx, yy, size * 0.8, rot, c, '#FFF176', 5)
+    } else if (t.motif === 'flowers') {
+      const c = col()
+      paint = (gg, xx, yy) => flower(gg, xx, yy, size * 0.8, rot, c, '#FFC107', 6)
+    } else if (t.motif === 'rain') {
+      if (r() < 0.65) {
+        const c = col()
+        paint = (gg, xx, yy) => drop(gg, xx, yy, size * 0.45, c)
+      } else paint = (gg, xx, yy) => flower(gg, xx, yy, size * 0.6, rot, t.colors[2], '#FFC107', 5)
     } else if (t.motif === 'sun') {
-      flower(g, x, y, size * 0.5, rot, t.colors[2], t.colors[0], 8)
-    } else if (t.motif === 'waves') {
-      drop(g, x, y, size * 0.35, t.colors[0])
+      paint = (gg, xx, yy) => flower(gg, xx, yy, size * 0.5, rot, t.colors[2], t.colors[0], 8)
+    } else {
+      paint = (gg, xx, yy) => drop(gg, xx, yy, size * 0.35, t.colors[0])
     }
+    if (sink) sink(paint, x, y, size, alpha)
+    else paint(g, x, y)
   }
   if (layer === 'cell') {
     /* one big faint drawing in an empty day, like a printed wall calendar */
@@ -181,7 +197,7 @@ export function drawMotif(g: CanvasRenderingContext2D, t: MonthTheme, month: num
     for (let i = 0; i < n; i++) place(px + (r() - 0.5) * spread, py + (r() - 0.5) * spread * 0.8, size * (0.55 + r() * 0.8))
   }
   g.save()
-  g.globalAlpha = layer === 'front' ? 0.95 : 0.9
+  g.globalAlpha = alpha
   if (layer === 'back') {
     cluster(120, 90, 420, 11, 120) // top left
     cluster(W - 150, 70, 300, 6, 100) // top right

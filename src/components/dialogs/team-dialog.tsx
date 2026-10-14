@@ -17,6 +17,7 @@ import { DropdownMenu, DropdownMenuCheckboxItem, DropdownMenuContent, DropdownMe
 import { useStore } from '@/lib/store'
 import { PEOPLE_ROLES, rolesOf, uid } from '@/lib/app-utils'
 import { cn } from '@/lib/utils'
+import { holderOf, ownedKeys, renamePerson, setHolder } from '@/lib/leads'
 import type { TeamMember } from '@/lib/types'
 
 /* one form for everybody at ASO: pick every role the person holds */
@@ -38,7 +39,11 @@ export function TeamDialog({
   const [other, setOther] = React.useState('')
   const state = useStore((s) => s.state)
   const [duty, setDuty] = React.useState('')
-  const [looks, setLooks] = React.useState<string[]>([])
+  const [looks, setLooks] = React.useState<string[]>([]) // class:, club: and event: keys
+  const stateRef = React.useRef(state)
+  React.useEffect(() => {
+    stateRef.current = state
+  })
   const [phone, setPhone] = React.useState('')
   const [email, setEmail] = React.useState('')
   const [aso, setAso] = React.useState('')
@@ -50,17 +55,18 @@ export function TeamDialog({
     setRoles(all.filter((r) => (PEOPLE_ROLES as readonly string[]).includes(r)))
     setOther(all.filter((r) => !(PEOPLE_ROLES as readonly string[]).includes(r)).join(', '))
     setDuty(member?.duty || '')
-    setLooks(member?.looksAfter ?? [])
+    setLooks(member ? ownedKeys(stateRef.current, member.name) : [])
     setPhone(member?.phone || '')
     setEmail(member?.email || '')
     setAso(member?.aso || '')
   }, [open, member?.id])
 
   const looksGroups = [
-    { label: 'Classes', items: (state.classes || []).map((c) => c.code).filter(Boolean) },
-    { label: 'Clubs', items: (state.clubs || []).filter((c) => !c.placeholder).map((c) => c.name) },
-    { label: 'Events', items: (state.events || []).map((e) => e.title).filter(Boolean) },
+    { label: 'Classes (teacher)', items: (state.classes || []).filter((c) => c.code).map((c) => ({ key: 'class:' + c.id, label: c.code })) },
+    { label: 'Clubs (lead)', items: (state.clubs || []).filter((c) => !c.placeholder).map((c) => ({ key: 'club:' + c.id, label: c.name })) },
+    { label: 'Events (lead)', items: (state.events || []).filter((e) => e.title).map((e) => ({ key: 'event:' + e.id, label: e.title })) },
   ]
+  const labelOf = (key: string) => looksGroups.flatMap((g) => g.items).find((i) => i.key === key)?.label || ''
   const toggle = (r: string) => setRoles((cur) => (cur.includes(r) ? cur.filter((x) => x !== r) : [...cur, r]))
 
   const save = () => {
@@ -74,13 +80,17 @@ export function TeamDialog({
       name: name.trim(),
       roles: all,
       role: all.join(' + '),
-      looksAfter: looks.length ? looks : undefined,
+      looksAfter: undefined, // read from the classes, clubs and events from now on
       duty: duty.trim() || undefined,
       phone: phone.trim(),
       email: email.trim(),
       aso: aso.trim() || undefined,
     }
+    const before = member ? ownedKeys(state, member.name) : []
     patch((draft) => {
+      if (member) renamePerson(draft, member.name, entry.name)
+      for (const k of looks) if (!before.includes(k)) setHolder(draft, k, entry.name)
+      for (const k of before) if (!looks.includes(k)) setHolder(draft, k, '')
       if (isNew) draft.team.push(entry)
       else {
         const i = draft.team.findIndex((t) => t.id === entry.id)
@@ -135,7 +145,7 @@ export function TeamDialog({
               <DropdownMenuTrigger asChild>
                 <Button type="button" variant="outline" aria-labelledby="t-looks-label" className="h-auto min-h-9 justify-between gap-2 py-2 text-left font-normal">
                   <span className="min-w-0 flex-1 whitespace-normal">
-                    {looks.length ? looks.join(', ') : <span className="text-muted-foreground">Choose classes, clubs or events</span>}
+                    {looks.length ? looks.map(labelOf).filter(Boolean).join(', ') : <span className="text-muted-foreground">Choose classes, clubs or events</span>}
                   </span>
                   <ChevronDown className="h-4 w-4 shrink-0 opacity-60" aria-hidden />
                 </Button>
@@ -147,21 +157,27 @@ export function TeamDialog({
                     <React.Fragment key={g.label}>
                       {gi > 0 && <DropdownMenuSeparator />}
                       <DropdownMenuLabel className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground">{g.label}</DropdownMenuLabel>
-                      {g.items.map((it) => (
-                        <DropdownMenuCheckboxItem
-                          key={it}
-                          checked={looks.includes(it)}
-                          onSelect={(e) => e.preventDefault()}
-                          onCheckedChange={(v) => setLooks((cur) => (v ? [...cur, it] : cur.filter((x) => x !== it)))}
-                        >
-                          {it}
-                        </DropdownMenuCheckboxItem>
-                      ))}
+                      {g.items.map((it) => {
+                        const now = holderOf(state, it.key)
+                        const other = now && now.trim().toLowerCase() !== name.trim().toLowerCase() && !looks.includes(it.key)
+                        return (
+                          <DropdownMenuCheckboxItem
+                            key={it.key}
+                            checked={looks.includes(it.key)}
+                            onSelect={(e) => e.preventDefault()}
+                            onCheckedChange={(v) => setLooks((cur) => (v ? [...cur, it.key] : cur.filter((x) => x !== it.key)))}
+                          >
+                            {it.label}
+                            {other && <span className="ml-1.5 text-xs text-muted-foreground">now: {now}</span>}
+                          </DropdownMenuCheckboxItem>
+                        )
+                      })}
                     </React.Fragment>
                   ) : null,
                 )}
               </DropdownMenuContent>
             </DropdownMenu>
+            <span className="text-[11px] leading-tight text-muted-foreground">Ticking one makes this person the teacher or lead there, and the class, club or event shows their name. Helping in a club is set on the club.</span>
             <Input aria-label="Other responsibilities" value={duty} onChange={(e) => setDuty(e.target.value)} placeholder="Anything else, for example: program decisions" />
           </div>
           <div className="grid gap-4 sm:grid-cols-2">

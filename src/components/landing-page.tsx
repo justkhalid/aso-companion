@@ -11,7 +11,8 @@ import { SiteFooter } from './site-footer'
 import { ThemeToggle } from './theme-toggle'
 import { ClubExpandOverlay, ClubGridCard, EventGridCard } from './pages/clubs-page'
 import { DownloadCalendarButton, MonthCalendarImage } from './month-calendar-image'
-import { CalendarSwitch, type CalTab } from './calendar-switch'
+import { type CalTab } from './calendar-switch'
+import { UnifiedCalendar } from './unified-calendar'
 import { useStore } from '@/lib/store'
 import { BANDS, DAY_FULL, DAY_KEYS, FILL_GRID } from '@/lib/constants'
 import { mondayOfWeek, nextOccurrence, toneClassForClub, fmtTime } from '@/lib/app-utils'
@@ -175,26 +176,7 @@ export function LandingPage() {
 
         {/* the calendar follows: a switch between clubs and events, and the classes */}
         <section id="calendar" className="mx-auto max-w-6xl scroll-mt-28 px-4 py-4">
-          <div className="relative mb-4 flex flex-wrap items-center justify-center gap-3">
-            <CalendarSwitch tab={tab} onChange={setTab} counts={{ cluev: clubs.length + events.length, classes: state.classes.length }} />
-            {tab === 'cluev' && <div className="sm:absolute sm:right-0 sm:top-1/2 sm:-translate-y-1/2"><DownloadCalendarButton clubs events classes={false} /></div>}
-            {tab === 'classes' && <div className="sm:absolute sm:right-0 sm:top-1/2 sm:-translate-y-1/2"><CalViewSwitcher view={calView} onChange={setCalView} /></div>}
-          </div>
-          {tab === 'cluev' ? (
-            <div key="cluev" className="aso-tab-in"><MonthCalendarImage clubs events classes={false} stepper={false} /></div>
-          ) : (
-            <div key="classes" className="aso-tab-in">
-              <div className="rounded-2xl bg-card">
-                {calView === 'grid' ? (
-                  <WeeklyGrid items={calItems} legend={calLegend} weekMonday={monday} emptyMessage="Nothing scheduled yet" />
-                ) : calView === 'cards' ? (
-                  <CalendarCardsView items={calItems} legend={calLegend} weekMonday={monday} emptyMessage="Nothing scheduled yet" />
-                ) : (
-                  <CalendarListView items={calItems} legend={calLegend} weekMonday={monday} emptyMessage="Nothing scheduled yet" />
-                )}
-              </div>
-            </div>
-          )}
+          <UnifiedCalendar tab={tab} onTab={setTab} counts={{ cluev: clubs.length + events.length, classes: state.classes.length }} />
         </section>
 
         {tab === 'cluev' && (

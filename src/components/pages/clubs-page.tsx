@@ -42,10 +42,10 @@ import {
   eventStatusOn,
   splitDaysByStatus,
   mondayOfWeek,
-  isoOf, fmtTime, fmtRange12, fmt12Min } from '@/lib/app-utils'
+  clubWhere, eventWhere, addDays, isoOf, fmtTime, fmtRange12, fmt12Min } from '@/lib/app-utils'
 import { ROOM_LEGEND, DAY_KEYS } from '@/lib/constants'
 import { buildCalendarLinks } from '@/lib/export-word'
-import { PUBLIC_CLUB_TONE, PUBLIC_EVENT_TONE } from '@/lib/calendar-items'
+import { PUBLIC_CLUB_TONE, PUBLIC_EVENT_TONE, groupByWhere, whereId } from '@/lib/calendar-items'
 import { clubIcon } from '@/lib/icons'
 import { eventPosterItem } from '@/lib/poster-items'
 import { WeeklyGrid, CalendarListView, CalendarCardsView, CalViewSwitcher, readCalView, writeCalView, type GridItem, type LegendEntry, type CalendarView } from '@/components/weekly-grid'
@@ -56,6 +56,7 @@ import { ClubsExportItems } from '@/components/clubs-export-items'
 import { PageHead, SectionHeader, LinkButton, Chip, EmptyState } from '@/components/ui-bits'
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
+import { PosterFrame, PosterOverlay } from '@/components/poster-overlay'
 import type { Club, EventEntry } from '@/lib/types'
 
 type ClubView = 'list' | 'grid'
@@ -99,15 +100,16 @@ export function ClubsPage({ admin, internMode = false, section }: { admin: boole
   const clubItems: GridItem[] = (state.clubs || [])
     .filter((c) => (c.days || []).length && c.time)
     .flatMap((c) => {
-      const base = { slot: c.time, code: c.name, meta: '', room: c.room, icon: c.icon }
+      const base = { slot: c.time, code: c.name, meta: '', room: c.room, outside: c.outside, icon: c.icon }
       const tone = PUBLIC_CLUB_TONE
       const lead = c.lead || 'no lead yet'
       if (!hasAbsences) return [{ ...base, id: c.id, days: c.days, lead, tone }]
       const sp = splitDaysByStatus(c.days, thisMonday, (iso) => clubStatusOn(state, c.id, iso))
       const out: GridItem[] = []
-      if (sp.normal.length) out.push({ ...base, id: c.id, days: sp.normal, lead, tone })
+      const at = (days: string[]) => groupByWhere(days, thisMonday!, (iso) => clubWhere(state, c, iso))
+      for (const g of at(sp.normal)) out.push({ ...base, id: whereId(c.id, g.w), days: g.days, slot: g.w.time, room: g.w.place, outside: g.w.outside, moved: g.w.moved, lead, tone })
       if (sp.cancelled.length) out.push({ ...base, id: c.id + ':off', days: sp.cancelled, code: c.name + ' · cancelled', lead: 'cancelled', tone: 'tone-8' })
-      for (const [who, days] of Object.entries(sp.covered)) out.push({ ...base, id: c.id + ':cov:' + who, days, lead: 'Led by ' + who, tone })
+      for (const [who, days] of Object.entries(sp.covered)) for (const g of at(days)) out.push({ ...base, id: whereId(c.id + ':cov:' + who, g.w), days: g.days, slot: g.w.time, room: g.w.place, outside: g.w.outside, moved: g.w.moved, lead: 'Led by ' + who, tone })
       return out
     })
 
@@ -125,14 +127,17 @@ export function ClubsPage({ admin, internMode = false, section }: { admin: boole
       const off = hasAbsences
         ? splitDaysByStatus([day], thisMonday, (iso) => eventStatusOn(state, e.id, isOnceEvent(e) && e.date ? e.date : iso)).cancelled.length > 0
         : false
+      const w = eventWhere(state, e, isOnceEvent(e) && e.date ? e.date : isoOf(addDays(thisMonday, Math.max(0, DAY_KEYS.indexOf(day as (typeof DAY_KEYS)[number])))))
       return {
-        id: off ? e.id + ':off' : e.id,
+        id: off ? e.id + ':off' : whereId(e.id, w),
         days: [day],
-        slot: e.time,
+        slot: off ? e.time : w.time,
         code: off ? e.title + ' · cancelled' : e.title,
         meta: '',
-        lead: off ? 'cancelled' : '',
-        room: e.place || '',
+        lead: off ? 'cancelled' : e.lead || '',
+        room: off ? e.place || '' : w.place,
+        outside: off ? !!e.outside : w.outside,
+        moved: !off && w.moved,
         icon: e.icon || 'calendar',
         tone: off ? 'tone-8' : PUBLIC_EVENT_TONE,
       }
@@ -363,7 +368,7 @@ function ClubMeta({ club }: { club: Club }) {
     <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs font-semibold text-muted-foreground">
       <span className="inline-flex items-center gap-1"><CalendarDays className="h-3.5 w-3.5" /> {days}</span>
       <span className="inline-flex items-center gap-1"><Clock className="h-3.5 w-3.5" /> {time}</span>
-      {club.room && <span className="inline-flex items-center gap-1"><MapPin className="h-3.5 w-3.5" /> {club.room}</span>}
+      {club.room && <span className="inline-flex items-center gap-1"><MapPin className="h-3.5 w-3.5" /> {club.outside ? 'Outside: ' : ''}{club.room}</span>}
     </div>
   )
 }
@@ -422,13 +427,13 @@ function ClubListCard({
     >
       <div className="flex">
         {/* poster: natural A4 ratio, stretches to fill taller rows */}
-        <div className="flex w-[96px] shrink-0 bg-secondary sm:w-[144px]">
+        <PosterFrame className="flex w-[96px] shrink-0 bg-secondary sm:w-[144px]">
           {club.poster ? (
             <img src={club.poster} alt={`${club.name} poster`} className="aspect-[848/1200] min-h-full w-full object-cover" />
           ) : (
             <PosterFallback club={club} compact />
           )}
-        </div>
+        </PosterFrame>
 
         {/* content on the right */}
         <div className="flex min-w-0 flex-1 flex-col justify-center gap-2 p-4">
@@ -537,13 +542,13 @@ export function ClubGridCard({
       onClick={onExpand}
     >
       {/* poster at its true A4 ratio, zero crop */}
-      <div className="aspect-[848/1200] w-full bg-secondary">
+      <PosterFrame className="aspect-[848/1200] w-full bg-secondary">
         {club.poster ? (
           <img src={club.poster} alt={`${club.name} poster`} className="h-full w-full object-cover" />
         ) : (
           <PosterFallback club={club} />
         )}
-      </div>
+      </PosterFrame>
 
       <div className="flex flex-1 flex-col gap-2 p-4">
         <div className="flex flex-wrap items-center gap-2">
@@ -596,7 +601,7 @@ export function EventGridCard({ event }: { event: EventEntry }) {
   const Icon = clubIcon(event.icon)?.Icon || Sparkles
   return (
     <div className="flex h-full flex-col overflow-hidden rounded-2xl border border-border bg-card shadow-sm">
-      <div className="aspect-[848/1200] w-full bg-secondary">
+      <PosterFrame className="aspect-[848/1200] w-full bg-secondary">
         {event.poster ? (
           <img src={event.poster} alt={`${event.title} poster`} className="h-full w-full object-cover" />
         ) : (
@@ -605,7 +610,7 @@ export function EventGridCard({ event }: { event: EventEntry }) {
             <div className="px-2 text-sm font-extrabold leading-tight text-foreground/80" dir="auto">{event.title}</div>
           </div>
         )}
-      </div>
+      </PosterFrame>
       <div className="flex flex-1 flex-col gap-2 p-4">
         <h3 className="font-bold leading-tight" dir="auto">{event.title}</h3>
         <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs font-semibold text-muted-foreground">
@@ -665,7 +670,7 @@ export function ClubExpandOverlay({
         onClick={(e) => e.stopPropagation()}
       >
         {/* LEFT — the poster, full height, the visual anchor of the card */}
-        <div className="relative aspect-[848/1200] w-full shrink-0 overflow-hidden md:aspect-auto md:w-[300px] md:min-h-[424px]">
+        <div className="relative aspect-[848/1200] w-full shrink-0 overflow-hidden md:aspect-auto md:w-[300px] md:min-h-[424px]" style={{ containerType: 'inline-size' }}>
           {club.poster ? (
             <img src={club.poster} alt={`${club.name} poster`} className="absolute inset-0 h-full w-full object-cover" />
           ) : (
@@ -676,6 +681,7 @@ export function ClubExpandOverlay({
               <div className="text-[13px] font-extrabold leading-tight text-foreground/80" dir="auto">{club.name}</div>
             </div>
           )}
+          <PosterOverlay />
         </div>
 
         {/* RIGHT — the details, one calm balanced column */}
@@ -702,7 +708,7 @@ export function ClubExpandOverlay({
               <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
                 <MetaCell icon={CalendarDays} label="Day" value={(club.days || []).length ? club.days.join(' / ') : 'Not set'} />
                 <MetaCell icon={Clock} label="Time" value={club.time ? fmtTime(club.time) : 'Not set'} />
-                <MetaCell icon={MapPin} label="Room" value={club.room || 'Not set'} />
+                <MetaCell icon={MapPin} label="Room" value={club.room ? (club.outside ? 'Outside: ' : '') + club.room : 'Not set'} />
                 <MetaCell icon={User} label="Lead" value={club.lead || 'Not set'} />
               </div>
 
@@ -915,18 +921,19 @@ export function EventCard({
     ? [
         { icon: CalendarDays, label: 'Date', value: event.date ? longDate(parseISO(event.date)) : 'Date to be confirmed' },
         { icon: Clock, label: 'Time', value: timeText },
-        { icon: MapPin, label: 'Place', value: event.place || 'To be confirmed' },
+        { icon: MapPin, label: 'Place', value: event.place ? (event.outside ? 'Outside: ' : '') + event.place : 'To be confirmed' },
         { icon: Clock, label: 'Ends', value: event.date && t ? `${fmtD(parseISO(event.date), { day: 'numeric', month: 'short' })} at ${t.end}` : 'Same day' },
       ]
     : [
         { icon: CalendarDays, label: 'Repeats', value: fmtRepeat({ ...event, until: undefined }) || fmtFreq(event.recur) },
         { icon: CalendarDays, label: 'Next session', value: longDate(nextDate) },
         { icon: Clock, label: 'Time', value: timeText },
-        { icon: MapPin, label: 'Place', value: event.place || 'To be confirmed' },
+        { icon: MapPin, label: 'Place', value: event.place ? (event.outside ? 'Outside: ' : '') + event.place : 'To be confirmed' },
         { icon: CalendarDays, label: 'Starts', value: event.from ? shortDate(event.from) : 'Already running' },
         { icon: CalendarDays, label: 'Ends', value: event.until ? shortDate(event.until) : 'No end date' },
       ]
 
+  if (event.lead) cells.push({ icon: User, label: 'Lead', value: event.lead })
   return (
     <div className="overflow-hidden rounded-2xl border border-[var(--aso-gold-tint)] bg-card shadow-sm">
       <div className="flex flex-col sm:flex-row">
@@ -935,7 +942,9 @@ export function EventCard({
           /* the poster is shown whole, at its own proportions: never cropped, tap to open the original */
           <div className="flex w-full shrink-0 items-start justify-center bg-secondary p-3 sm:w-[210px]">
             <a href={event.poster} target="_blank" rel="noopener" className="block w-full max-w-[260px]" title="Open the full poster">
-              <img src={event.poster} alt={`${event.title} poster`} className="block h-auto w-full rounded-lg object-contain shadow-sm" />
+              <PosterFrame className="rounded-lg shadow-sm">
+                <img src={event.poster} alt={`${event.title} poster`} className="block h-auto w-full object-contain" />
+              </PosterFrame>
             </a>
           </div>
         ) : (

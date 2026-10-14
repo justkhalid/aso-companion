@@ -3,7 +3,10 @@ import type { GridItem } from '@/components/weekly-grid'
 import {
   classStatusOn,
   clubStatusOn,
+  clubWhere,
   eventStatusOn,
+  eventWhere,
+  type Where,
   isOnceEvent,
   isoOf,
   parseISO,
@@ -15,9 +18,9 @@ import { closedHoliday } from './holidays'
 import type { State } from './types'
 
 /* classes as "English class ASO-K1" with teacher and room, all in one color; cancelled days in gray */
-export const PUBLIC_CLASS_TONE = 'tone-6' // classes: teal
-export const PUBLIC_CLUB_TONE = 'tone-3' // clubs: purple
-export const PUBLIC_EVENT_TONE = 'tone-7' // events: gold
+export const PUBLIC_CLASS_TONE = 'tone-9' // classes: teal (see activity-colors.ts)
+export const PUBLIC_CLUB_TONE = 'tone-10' // clubs: violet
+export const PUBLIC_EVENT_TONE = 'tone-11' // events: orange
 /* ASO-K1 -> "Kids 1", ASO-T2 -> "Teens 2", ASO-A3 -> "Adults 3": the public sees the group, not the internal code */
 export function publicGroupName(code: string, fallback: string): string {
   const m = /^ASO-([KTA])\s*(\d+)/i.exec(String(code || '').trim())
@@ -58,7 +61,7 @@ function rawClassItems(state: State, monday: Date): GridItem[] {
   return (state.classes || [])
     .filter((c) => (c.days || []).length && c.time)
     .flatMap((c) => {
-      const base = { slot: c.time, code: 'English class ' + publicGroupName(c.code, c.level), room: c.room }
+      const base = { slot: c.time, code: 'English class ' + publicGroupName(c.code, c.level), room: c.room, icon: c.icon }
       const tone = PUBLIC_CLASS_TONE
       const sp = splitDaysByStatus(c.days, monday, (iso) => classStatusOn(state, c, iso))
       const out: GridItem[] = []
@@ -69,6 +72,20 @@ function rawClassItems(state: State, monday: Date): GridItem[] {
     })
 }
 
+/* days of one week grouped by where and when they happen, so a club moved for a single week gets its own chip that week */
+export function groupByWhere(days: string[], monday: Date, whereOn: (iso: string) => Where): { w: Where; days: string[] }[] {
+  const out: { w: Where; days: string[] }[] = []
+  for (const d of days) {
+    const di = DAY_KEYS.indexOf(d as (typeof DAY_KEYS)[number])
+    const w = whereOn(isoOf(addDays(monday, di < 0 ? 0 : di)))
+    const hit = out.find((g) => g.w.place === w.place && g.w.outside === w.outside && g.w.time === w.time && g.w.moved === w.moved)
+    if (hit) hit.days.push(d)
+    else out.push({ w, days: [d] })
+  }
+  return out
+}
+export const whereId = (id: string, w: Where) => (w.moved ? `${id}:mv:${w.place}|${w.time}` : id)
+
 function rawClubItems(state: State, monday: Date): GridItem[] {
   return (state.clubs || [])
     .filter((c) => (c.days || []).length && c.time)
@@ -78,9 +95,10 @@ function rawClubItems(state: State, monday: Date): GridItem[] {
       const lead = c.lead || undefined
       const sp = splitDaysByStatus(c.days, monday, (iso) => clubStatusOn(state, c.id, iso))
       const out: GridItem[] = []
-      if (sp.normal.length) out.push({ ...base, id: c.id, days: sp.normal, lead, tone })
+      const at = (days: string[]) => groupByWhere(days, monday, (iso) => clubWhere(state, c, iso))
+      for (const g of at(sp.normal)) out.push({ ...base, id: whereId(c.id, g.w), days: g.days, slot: g.w.time, room: g.w.place, outside: g.w.outside, moved: g.w.moved, lead, tone })
       if (sp.cancelled.length) out.push({ ...base, id: c.id + ':off', days: sp.cancelled, code: c.name + ' · cancelled', tone: 'tone-8' })
-      for (const [who, days] of Object.entries(sp.covered)) out.push({ ...base, id: c.id + ':cov:' + who, days, lead: who, tone })
+      for (const [who, days] of Object.entries(sp.covered)) for (const g of at(days)) out.push({ ...base, id: whereId(c.id + ':cov:' + who, g.w), days: g.days, slot: g.w.time, room: g.w.place, outside: g.w.outside, moved: g.w.moved, lead: who, tone })
       return out
     })
 }
@@ -96,12 +114,15 @@ function rawEventItems(state: State, monday: Date): GridItem[] {
     }
     if (!day || !e.time) continue
     const off = splitDaysByStatus([day], monday, (iso) => eventStatusOn(state, e.id, isOnceEvent(e) && e.date ? e.date : iso)).cancelled.length > 0
+    const w = eventWhere(state, e, isOnceEvent(e) && e.date ? e.date : isoOf(addDays(monday, Math.max(0, DAY_KEYS.indexOf(day as (typeof DAY_KEYS)[number])))))
     out.push({
-      id: off ? e.id + ':off' : e.id,
+      id: off ? e.id + ':off' : whereId(e.id, w),
       days: [day],
-      slot: e.time,
+      slot: off ? e.time : w.time,
       code: off ? e.title + ' · cancelled' : e.title,
-      room: e.place || '',
+      room: off ? e.place || '' : w.place,
+      outside: off ? !!e.outside : w.outside,
+      moved: !off && w.moved,
       icon: e.icon || 'calendar',
       tone: off ? 'tone-8' : PUBLIC_EVENT_TONE,
     })
