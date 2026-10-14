@@ -16,7 +16,10 @@ type Span = 'month' | 'week'
 /* The one calendar for the whole site: what to show (clubs and events, classes, rooms) and how far (a month picture or a week). */
 export function UnifiedCalendar({ tab, onTab, counts, animated = false }: { tab: CalTab; onTab: (t: CalTab) => void; counts?: Partial<Record<CalTab, number>>; animated?: boolean }) {
   const state = useStore((s) => s.state)
-  const [span, setSpan] = React.useState<Span>('month')
+  /* classes and rooms open on the week, clubs and events on the month; a choice made on one tab stays on that tab */
+  const [spans, setSpans] = React.useState<Partial<Record<CalTab, Span>>>({})
+  const span: Span = spans[tab] ?? (tab === 'cluev' ? 'month' : 'week')
+  const setSpan = (v: Span) => setSpans((s) => ({ ...s, [tab]: v }))
   const [offset, setOffset] = React.useState(0)
   const monday = React.useMemo(() => {
     const m = mondayOfWeek(new Date())
