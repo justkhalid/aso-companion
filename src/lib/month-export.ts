@@ -23,6 +23,7 @@ export interface MonthOptions {
   classes?: boolean
   holidays?: boolean
   transparent?: boolean // leave the backdrop out, for the layer shown over the animated one
+  scale?: number // draw smaller than 3200 px wide (the page shows it about 1100 px wide); downloads stay full size
 }
 
 type Kind = 'club' | 'event' | 'class'
@@ -349,9 +350,11 @@ export async function renderMonth(state: State, o: MonthOptions): Promise<HTMLCa
   const gridH = WD + rows.reduce((a, b) => a + b, 0) + 24
 
   const canvas = document.createElement('canvas')
-  canvas.width = W
-  canvas.height = H
+  const sc = o.scale || 1
+  canvas.width = Math.round(W * sc)
+  canvas.height = Math.round(H * sc)
   const g = canvas.getContext('2d')!
+  g.scale(sc, sc)
   paintBackdrop(g, theme, o.month, W, H, o.transparent ? 'none' : 'all')
 
   const names = [o.classes && 'CLASSES', o.clubs && 'CLUBS', o.events && 'EVENTS'].filter(Boolean) as string[]

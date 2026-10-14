@@ -50,7 +50,7 @@ export function roomStatus(slots: Slot[], closed: boolean): RoomStatus {
   return used < (CLOSE - OPEN) / 2 ? 'part' : 'booked'
 }
 
-export async function renderRoomsMonth(state: State, o: { year: number; month: number; transparent?: boolean }, room: string | null = null): Promise<HTMLCanvasElement> {
+export async function renderRoomsMonth(state: State, o: { year: number; month: number; transparent?: boolean; scale?: number }, room: string | null = null): Promise<HTMLCanvasElement> {
   const [logo, f] = await Promise.all([load('/aso-logo.webp'), siteFonts()])
   const theme = MONTH_THEMES[o.month]
   const W = 3200
@@ -63,9 +63,11 @@ export async function renderRoomsMonth(state: State, o: { year: number; month: n
   const shownRooms = room ? [room] : rooms
 
   const canvas = document.createElement('canvas')
-  canvas.width = W
-  canvas.height = H
+  const dpr = o.scale || 1
+  canvas.width = Math.round(W * dpr)
+  canvas.height = Math.round(H * dpr)
   const g = canvas.getContext('2d')!
+  g.scale(dpr, dpr)
   paintBackdrop(g, theme, o.month, W, H, o.transparent ? 'none' : 'all')
   paintHeader(g, f, theme, o.year, [room ? room.toUpperCase() : 'ROOMS'])
 

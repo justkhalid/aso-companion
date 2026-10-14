@@ -18,7 +18,9 @@ export function UnifiedCalendar({ tab, onTab, counts, animated = false }: { tab:
   const state = useStore((s) => s.state)
   /* classes and rooms open on the week, clubs and events on the month; a choice made on one tab stays on that tab */
   const [spans, setSpans] = React.useState<Partial<Record<CalTab, Span>>>({})
-  const span: Span = spans[tab] ?? (tab === 'cluev' ? 'month' : 'week')
+  /* on a phone the month picture is too small to read and the slowest thing to draw: the week opens first there */
+  const phone = typeof window !== 'undefined' && window.innerWidth < 640
+  const span: Span = spans[tab] ?? (tab === 'cluev' && !phone ? 'month' : 'week')
   const setSpan = (v: Span) => setSpans((s) => ({ ...s, [tab]: v }))
   const [offset, setOffset] = React.useState(0)
   const monday = React.useMemo(() => {
