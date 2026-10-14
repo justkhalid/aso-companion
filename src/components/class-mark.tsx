@@ -1,19 +1,23 @@
-import { Blocks, Briefcase, Headphones, SignalHigh, SignalLow, SignalMedium } from 'lucide-react'
+import { Briefcase, GraduationCap, Shapes } from 'lucide-react'
 import type { ClassMark } from '@/lib/class-marks'
 import type { ElementType } from 'react'
 
-/* kids: building blocks, teens: headphones, adults: briefcase; level: one, two or three bars of signal */
-export const AUDIENCE_ICON: Record<ClassMark['audience'], ElementType> = { Kids: Blocks, Teens: Headphones, Adults: Briefcase }
-export const LEVEL_ICON: Record<1 | 2 | 3, ElementType> = { 1: SignalLow, 2: SignalMedium, 3: SignalHigh }
+/* kids: shapes, teens: graduation cap, adults: briefcase; level: three dots, one, two or three of them filled */
+export const AUDIENCE_ICON: Record<ClassMark['audience'], ElementType> = { Kids: Shapes, Teens: GraduationCap, Adults: Briefcase }
 
-/* the pair shown on a class chip */
+/* the pair shown on a class chip; the dots take the size of the icon next to them */
 export function ClassMarkIcons({ mark, className, style }: { mark: ClassMark; className?: string; style?: React.CSSProperties }) {
   const A = AUDIENCE_ICON[mark.audience]
-  const L = mark.step ? LEVEL_ICON[mark.step] : null
   return (
-    <span className="inline-flex shrink-0 items-center gap-px" title={`${mark.audience}${mark.step ? ', ' + ['', 'beginner', 'intermediate', 'advanced'][mark.step] : ''}`}>
+    <span className="inline-flex shrink-0 items-center gap-[3px]" title={`${mark.audience}${mark.step ? ', ' + ['', 'beginner', 'intermediate', 'advanced'][mark.step] : ''}`}>
       <A className={className} style={style} aria-hidden />
-      {L && <L className={className} style={style} aria-hidden />}
+      {mark.step > 0 && (
+        <span className="inline-flex items-center gap-[1.5px]" aria-hidden>
+          {[1, 2, 3].map((k) => (
+            <i key={k} className="inline-block h-[5px] w-[5px] rounded-full" style={{ background: 'currentColor', opacity: k <= mark.step ? 1 : 0.28, ...style }} />
+          ))}
+        </span>
+      )}
     </span>
   )
 }

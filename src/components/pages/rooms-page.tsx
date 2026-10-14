@@ -1,7 +1,7 @@
 'use client'
 
 import * as React from 'react'
-import { ChevronLeft, ChevronRight } from 'lucide-react'
+import { Download, ChevronLeft, ChevronRight } from 'lucide-react'
 import { useStore } from '@/lib/store'
 import { DAY_KEYS, ROOM_UNAVAILABLE } from '@/lib/constants'
 import { PUBLIC_CLASS_TONE, PUBLIC_CLUB_TONE, PUBLIC_EVENT_TONE } from '@/lib/calendar-items'
@@ -227,6 +227,19 @@ export function RoomsPage({ embedded = false, focus, only = false }: { embedded?
     })
     return { day, date, isToday: iso(date) === iso(now), rows: rowsForDay }
   })
+  /* the week as one picture: who has which room and when, the same chips and text size as the page */
+  const toast = useStore((s) => s.toast)
+  const downloadWeek = async () => {
+    const hhmm = (m: number) => `${String(Math.floor(m / 60)).padStart(2, '0')}:${String(m % 60).padStart(2, '0')}`
+    const items = bookings.filter((b) => !b.cancelled && (mode === ALL || mode === FOCUS || b.room === mode)).map((b, i) => ({ id: 'b' + i, days: [b.day], slot: `${hhmm(b.start)}-${hhmm(b.end)}`, code: b.label, room: b.room, lead: b.lead, tone: b.tone, mark: b.mark, icon: b.icon }))
+    const legend = [{ label: 'English classes', tone: PUBLIC_CLASS_TONE }, { label: 'Clubs', tone: PUBLIC_CLUB_TONE }, { label: 'Events', tone: PUBLIC_EVENT_TONE }]
+    const { renderTimetablePNG, downloadBlob } = await import('@/lib/export-canvas')
+    const blob = await renderTimetablePNG({ title: `ASO - Rooms, ${range}`, subtitle: mode === ALL || mode === FOCUS ? 'Who has which room' : mode, items, legend, zoom: 1 })
+    if (!blob) return toast('Nothing to export', false)
+    downloadBlob(blob, `ASO_Rooms_week_${iso(monday)}.png`)
+    toast('Image downloaded')
+  }
+
   const clash = visible.some((a, i) => visible.some((b, j) => j > i && a.room === b.room && a.day === b.day && overlaps(a, b)))
 
   return (
@@ -249,6 +262,9 @@ export function RoomsPage({ embedded = false, focus, only = false }: { embedded?
             <button onClick={() => setMonday(mondayOf(new Date()))} className="px-1 text-sm font-semibold text-primary">Today</button>
           )}
           <button onClick={() => shift(1)} className={circle} aria-label="Next week"><ChevronRight className="h-4 w-4" /></button>
+          {embedded && (
+            <button onClick={() => void downloadWeek()} className="ml-1 inline-flex h-9 items-center gap-1.5 rounded-full border border-border px-3.5 text-sm font-semibold hover:bg-secondary"><Download className="h-4 w-4" aria-hidden /> Download week</button>
+          )}
         </div>
       </div>
 

@@ -7,7 +7,7 @@ import { publicGroupName } from './calendar-items'
 import { MONTH_THEMES, drawMotif } from './month-themes'
 import { ACTIVITY, OUTSIDE, STATUS } from './activity-colors'
 import { classMark, markKey, type ClassMark } from './class-marks'
-import { AUDIENCE_ICON, LEVEL_ICON } from '@/components/class-mark'
+import { AUDIENCE_ICON } from '@/components/class-mark'
 import { paintBackdrop, paintFooter, paintHeader, star } from './month-frame'
 import { holidaysOf, type Holiday } from './holidays'
 import type { State } from './types'
@@ -118,25 +118,24 @@ function hatch(g: CanvasRenderingContext2D, color: string): CanvasPattern | stri
   return g.createPattern(c, 'repeat') || 'rgba(0,0,0,.05)'
 }
 
-/* a class's icon: who it is for, with its level as a small badge in the corner */
+/* a class's icon: who it is for, with its level as three dots under it (one, two or three filled) */
 async function markImage(mark: ClassMark, ink: string, size: number): Promise<CanvasImageSource | null> {
-  const a = await iconImage(AUDIENCE_ICON[mark.audience], ink, Math.round(size * 0.82))
+  const a = await iconImage(AUDIENCE_ICON[mark.audience], ink, Math.round(size * 0.74))
   if (!a) return null
   const c = document.createElement('canvas')
   c.width = size
   c.height = size
   const g = c.getContext('2d')!
-  g.drawImage(a, 0, 0, size * 0.82, size * 0.82)
+  g.drawImage(a, size * 0.13, 0, size * 0.74, size * 0.74)
   if (mark.step) {
-    const b = await iconImage(LEVEL_ICON[mark.step], '#ffffff', Math.round(size * 0.5))
-    if (b) {
-      const r = size * 0.27
+    for (let k = 1; k <= 3; k++) {
+      g.globalAlpha = k <= mark.step ? 1 : 0.28
       g.fillStyle = ink
       g.beginPath()
-      g.arc(size - r, size - r, r, 0, Math.PI * 2)
+      g.arc(size * (0.5 + (k - 2) * 0.24), size * 0.9, size * 0.075, 0, Math.PI * 2)
       g.fill()
-      g.drawImage(b, size - r - size * 0.22, size - r - size * 0.22, size * 0.44, size * 0.44)
     }
+    g.globalAlpha = 1
   }
   return c
 }
