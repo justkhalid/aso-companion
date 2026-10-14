@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { gzipSync } from 'node:zlib'
 import { readCloudState, getStorageInfo } from '@/lib/state-store'
 import { filterStateFor, rolesOf } from '@/lib/auth'
 
@@ -52,5 +53,21 @@ export async function GET(req: NextRequest) {
   if (rev > 0 && req.headers.get('if-none-match') === etag) {
     return new NextResponse(null, { status: 304, headers })
   }
-  return NextResponse.json(admin ? result.state : filterStateFor(result.state, roles), { headers })
+  const body = admin ? result.state : filterStateFor(result.state, roles)
+  /* the full data is several MB and Vercel caps a function's answer at 4.5 MB: send it compressed (about half the size) */
+  if ((req.headers.get('accept-encoding') || '').includes('gzip')) {
+    let zipped = zipCache.get(etag)
+    if (!zipped) {
+      zipped = gzipSync(Buffer.from(JSON.stringify(body)), { level: 6 })
+      if (zipCache.size >= 6) zipCache.delete(zipCache.keys().next().value as string)
+      zipCache.set(etag, zipped)
+    }
+    return new NextResponse(new Uint8Array(zipped), {
+      headers: { ...headers, Vary: 'Cookie, Accept-Encoding', 'Content-Type': 'application/json', 'Content-Encoding': 'gzip' },
+    })
+  }
+  return NextResponse.json(body, { headers })
 }
+
+/* compressed copies by revision and role, so a burst of visitors compresses once */
+const zipCache = new Map<string, Buffer>()
