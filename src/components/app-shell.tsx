@@ -1,34 +1,38 @@
 'use client'
 
 import * as React from 'react'
+import dynamic from 'next/dynamic'
 import { useStore } from '@/lib/store'
-import { PublicNav } from './public-nav'
-import { AdminSidebar, AdminTopbar } from './admin-sidebar'
 import { AppToaster } from './app-toaster'
 import { Logo } from './logo'
-import { LoginPage } from './pages/login-page'
-import { HomePage } from './pages/home-page'
-import { EltasoPage } from './pages/eltaso-page'
-import { LevelDetailPage } from './pages/level-detail-page'
-import { ClubsPage } from './pages/clubs-page'
-import { InternShell } from './intern-shell'
 import { LandingPage } from './landing-page'
 import { DirectorPage } from './pages/director-page'
 import { SiteFooter } from './site-footer'
-import { AccessGate } from './access-gate'
-import { ResourcesPage } from './pages/resources-page'
-import { SettingsPage } from './pages/settings-page'
-import { ClassesPage } from './pages/classes-page'
-import { TeamPage } from './pages/team-page'
-import { RoomsPage } from './pages/rooms-page'
-import { AbsencesPage } from './pages/absences-page'
-import { LibraryPage } from './pages/library-page'
-import { ReportsPage } from './pages/reports-page'
-import { DashboardPage } from './pages/dashboard-page'
-import { InternClubsPage } from './pages/intern-clubs-page'
-import { InternEventsPage } from './pages/intern-events-page'
 import { viewFromPath, adminViewFromPath, isAdminPath } from '@/lib/url-sync'
 import type { View } from '@/lib/types'
+
+/* only what every visitor sees loads at first; teacher, intern and admin screens arrive when they are opened */
+const AdminSidebar = dynamic(() => import('./admin-sidebar').then((m) => m.AdminSidebar), { ssr: false })
+const AdminTopbar = dynamic(() => import('./admin-sidebar').then((m) => m.AdminTopbar), { ssr: false })
+const LoginPage = dynamic(() => import('./pages/login-page').then((m) => m.LoginPage), { ssr: false })
+const HomePage = dynamic(() => import('./pages/home-page').then((m) => m.HomePage), { ssr: false })
+const EltasoPage = dynamic(() => import('./pages/eltaso-page').then((m) => m.EltasoPage), { ssr: false })
+const LevelDetailPage = dynamic(() => import('./pages/level-detail-page').then((m) => m.LevelDetailPage), { ssr: false })
+const ClubsPage = dynamic(() => import('./pages/clubs-page').then((m) => m.ClubsPage), { ssr: false })
+const InternShell = dynamic(() => import('./intern-shell').then((m) => m.InternShell), { ssr: false })
+const AccessGate = dynamic(() => import('./access-gate').then((m) => m.AccessGate), { ssr: false })
+const ResourcesPage = dynamic(() => import('./pages/resources-page').then((m) => m.ResourcesPage), { ssr: false })
+const SettingsPage = dynamic(() => import('./pages/settings-page').then((m) => m.SettingsPage), { ssr: false })
+const ClassesPage = dynamic(() => import('./pages/classes-page').then((m) => m.ClassesPage), { ssr: false })
+const TeamPage = dynamic(() => import('./pages/team-page').then((m) => m.TeamPage), { ssr: false })
+const RoomsPage = dynamic(() => import('./pages/rooms-page').then((m) => m.RoomsPage), { ssr: false })
+const AbsencesPage = dynamic(() => import('./pages/absences-page').then((m) => m.AbsencesPage), { ssr: false })
+const LibraryPage = dynamic(() => import('./pages/library-page').then((m) => m.LibraryPage), { ssr: false })
+const ReportsPage = dynamic(() => import('./pages/reports-page').then((m) => m.ReportsPage), { ssr: false })
+const DashboardPage = dynamic(() => import('./pages/dashboard-page').then((m) => m.DashboardPage), { ssr: false })
+const InternClubsPage = dynamic(() => import('./pages/intern-clubs-page').then((m) => m.InternClubsPage), { ssr: false })
+const InternEventsPage = dynamic(() => import('./pages/intern-events-page').then((m) => m.InternEventsPage), { ssr: false })
+const PublicNav = dynamic(() => import('./public-nav').then((m) => m.PublicNav), { ssr: false })
 
 export function AppShell({ initialView }: { initialView?: View }) {
   const bootApp = useStore((s) => s.bootApp)

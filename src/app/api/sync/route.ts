@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { gunzipSync } from 'node:zlib'
 import { writeCloudState, readCloudState } from '@/lib/state-store'
 import { isAdmin, keepSecrets } from '@/lib/auth'
+import { externalizePosters } from '@/lib/posters'
 
 /**
  * POST /api/sync
@@ -60,10 +61,12 @@ export async function POST(req: NextRequest) {
 
     /* a client that loaded the public (code-less) state must not wipe the stored codes */
     const stored = await readCloudState({ fresh: true })
-    const toSave = JSON.stringify(keepSecrets(parsed, stored.state), null, 2)
+    /* posters leave the data and become files; the data keeps only their address */
+    const posters = await externalizePosters(parsed as unknown as Parameters<typeof externalizePosters>[0])
+    const toSave = JSON.stringify(keepSecrets(parsed, stored.state))
 
     const result = await writeCloudState(toSave, message)
-    return NextResponse.json(result, { status: result.ok ? 200 : 500 })
+    return NextResponse.json({ ...result, posters }, { status: result.ok ? 200 : 500 })
   } catch (e) {
     return NextResponse.json(
       { ok: false, msg: e instanceof Error ? e.message : 'Unknown error' },

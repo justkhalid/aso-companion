@@ -261,7 +261,7 @@ export async function renderClubsCalendar(state: State, style: ClubsCalendarStyl
   void style
   const clubs = posterItems(state, kind).filter((c) => c.days.length && c.time)
   if (!clubs.length) return null
-  const [imgs, logo, f] = await Promise.all([Promise.all(clubs.map((c) => (c.poster ? load(c.poster) : Promise.resolve(null)))), load('/aso-logo.png'), siteFonts()])
+  const [imgs, logo, f] = await Promise.all([Promise.all(clubs.map((c) => (c.poster ? load(c.poster) : Promise.resolve(null)))), load('/aso-logo.webp'), siteFonts()])
   const imgOf = (c: PosterItem) => imgs[clubs.indexOf(c)]
   const scratch = document.createElement('canvas').getContext('2d')!
   const M = 80

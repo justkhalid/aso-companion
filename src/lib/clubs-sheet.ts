@@ -53,7 +53,7 @@ export async function downloadClubsPng(state: State, kind: PosterKind = 'clubs')
     })
   const [imgs, logo] = await Promise.all([
     Promise.all(clubs.map((c) => (c.poster ? load(c.poster) : Promise.resolve(null)))),
-    load('/aso-logo.png'),
+    load('/aso-logo.webp'),
   ])
 
   /* header: the logo to the left of the title, the pair centred on the page */

@@ -139,7 +139,7 @@ export async function renderMonth(state: State, o: MonthOptions): Promise<HTMLCa
   /* classes on their own: the normal weekly calendar set inside the month's theme */
   if (o.classes && !o.clubs && !o.events) return renderWeeklyMonth(state, o, monthOccurrences(state, { ...o, classes: false }))
   const occ = monthOccurrences(state, o)
-  const [logo, f] = await Promise.all([load('/aso-logo.png'), siteFonts()])
+  const [logo, f] = await Promise.all([load('/aso-logo.webp'), siteFonts()])
   const theme = MONTH_THEMES[o.month]
   const hol = o.holidays ? holidaysOf(o.year) : new Map<string, Holiday[]>()
   /* on a public holiday the space is closed: nothing is held, the day says so */

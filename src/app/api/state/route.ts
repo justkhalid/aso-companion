@@ -26,7 +26,9 @@ export async function GET(req: NextRequest) {
   const roles = rolesOf(req)
   const admin = roles.includes('admin')
   /* the body depends on who asks, so the ETag and caches are keyed by role */
-  const roleKey = admin ? '-a' : (roles.includes('teacher') ? '-t' : '')
+  /* ?scope=public: the home and calendar pages ask for the part everyone sees, without lesson plans or library */
+  const lite = !admin && req.nextUrl.searchParams.get('scope') === 'public'
+  const roleKey = admin ? '-a' : lite ? '-l' : (roles.includes('teacher') ? '-t' : '')
   /* ?fresh=1 is admin-only so anonymous traffic cannot bypass the memo */
   const result = await readCloudState({ fresh: admin && req.nextUrl.searchParams.get('fresh') === '1' })
 
@@ -53,7 +55,7 @@ export async function GET(req: NextRequest) {
   if (rev > 0 && req.headers.get('if-none-match') === etag) {
     return new NextResponse(null, { status: 304, headers })
   }
-  const body = admin ? result.state : filterStateFor(result.state, roles)
+  const body = admin ? result.state : filterStateFor(result.state, roles, { lite })
   /* the full data is several MB and Vercel caps a function's answer at 4.5 MB: send it compressed (about half the size) */
   if ((req.headers.get('accept-encoding') || '').includes('gzip')) {
     let zipped = zipCache.get(etag)

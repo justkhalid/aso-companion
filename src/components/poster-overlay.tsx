@@ -22,7 +22,7 @@ export function PosterOverlay() {
         className="pointer-events-none absolute flex items-center justify-center rounded-full bg-white shadow-[0_2px_8px_rgba(0,0,0,.3)]"
         style={{ width: '15cqw', height: '15cqw', top: '4cqw', right: '4cqw' }}
       >
-        <img src="/aso-logo.png" alt="" draggable={false} className="h-[68%] w-[68%] object-contain" />
+        <img src="/aso-logo.webp" alt="" draggable={false} className="h-[68%] w-[68%] object-contain" />
       </span>
     </>
   )
