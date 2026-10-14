@@ -1,9 +1,9 @@
 'use client'
 
 import * as React from 'react'
-import { CalendarDays, CalendarRange, ChevronLeft, ChevronRight } from 'lucide-react'
+import { CalendarDays, CalendarRange, ChevronLeft, ChevronRight, Download } from 'lucide-react'
 import { useStore } from '@/lib/store'
-import { mondayOfWeek } from '@/lib/app-utils'
+import { isoOf, mondayOfWeek } from '@/lib/app-utils'
 import { PUBLIC_CLASS_TONE, PUBLIC_CLUB_TONE, PUBLIC_EVENT_TONE, PUBLIC_OUTSIDE_TONE, publicClassItems, publicClubItems, publicEventItems } from '@/lib/calendar-items'
 import { CalendarSwitch, type CalTab } from './calendar-switch'
 import { MonthCalendarImage } from './month-calendar-image'
@@ -40,6 +40,17 @@ export function UnifiedCalendar({ tab, onTab, counts, animated = false }: { tab:
     ...(items.some((i) => i.tone === 'tone-8') ? [{ label: 'Cancelled', tone: 'tone-8' }] : []),
   ]
 
+  /* the week as one picture: the same grid as on the page, in the same text size */
+  const toast = useStore((s) => s.toast)
+  const downloadWeek = async () => {
+    const what = tab === 'classes' ? 'Classes' : 'Clubs and events'
+    const { renderTimetablePNG, downloadBlob } = await import('@/lib/export-canvas')
+    const blob = await renderTimetablePNG({ title: `ASO - ${what}, ${weekLabel}`, subtitle: state.settings.institute || '', items, legend, zoom: 1 })
+    if (!blob) return toast('Nothing to export', false)
+    downloadBlob(blob, `ASO_${what.replace(/ /g, '_')}_week_${isoOf(monday)}.png`)
+    toast('Image downloaded')
+  }
+
   const seg = (value: Span, label: string, Icon: React.ElementType) => (
     <button
       type="button"
@@ -73,6 +84,7 @@ export function UnifiedCalendar({ tab, onTab, counts, animated = false }: { tab:
             <button type="button" onClick={() => setOffset((o) => o - 1)} aria-label="Previous week" className="flex h-9 w-9 items-center justify-center rounded-full border border-border hover:bg-secondary"><ChevronLeft className="h-4 w-4" /></button>
             <div className="min-w-44 text-center text-base font-extrabold" aria-live="polite">{weekLabel}</div>
             <button type="button" onClick={() => setOffset((o) => o + 1)} aria-label="Next week" className="flex h-9 w-9 items-center justify-center rounded-full border border-border hover:bg-secondary"><ChevronRight className="h-4 w-4" /></button>
+            <button type="button" onClick={() => void downloadWeek()} className="ml-1 inline-flex h-9 items-center gap-1.5 rounded-full border border-border px-3.5 text-sm font-semibold hover:bg-secondary"><Download className="h-4 w-4" aria-hidden /> Download week</button>
           </div>
           <div className="rounded-2xl bg-card">
             <WeeklyGrid items={items} legend={legend} weekMonday={monday} emptyMessage="Nothing scheduled this week" />
