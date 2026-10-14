@@ -150,7 +150,7 @@ export function MonthCalendarImage({ clubs = true, events = true, classes = fals
   const cells = rooms ? roomsCells(ym.year, ym.month) : []
 
   return (
-    <div>
+    <div data-no-motion>
       {stepper && (
         <div className="mb-3 flex flex-wrap items-center justify-center gap-2">
           <Button type="button" variant="outline" size="icon" className="h-9 w-9 rounded-full" onClick={() => step(-1)} aria-label="Previous month">

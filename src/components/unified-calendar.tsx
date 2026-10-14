@@ -48,7 +48,7 @@ export function UnifiedCalendar({ tab, onTab, counts }: { tab: CalTab; onTab: (t
   )
 
   return (
-    <div>
+    <div data-no-motion>
       <div className="mb-3 flex flex-wrap items-center justify-center gap-3">
         <CalendarSwitch tab={tab} onChange={onTab} rooms counts={counts} />
         <div className="flex items-center gap-0.5 rounded-full border border-border bg-secondary/70 p-0.5" role="group" aria-label="Month or week">
