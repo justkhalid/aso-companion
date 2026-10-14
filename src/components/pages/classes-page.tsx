@@ -1,7 +1,7 @@
 'use client'
 
 import * as React from 'react'
-import { Plus, Clock, CalendarDays, Home, Users } from 'lucide-react'
+import { Plus, Clock, CalendarDays, Home, Users, GraduationCap } from 'lucide-react'
 import { useStore } from '@/lib/store'
 import { PageHead, EmptyState, Chip } from '@/components/ui-bits'
 import { Button } from '@/components/ui/button'
@@ -43,7 +43,7 @@ export function ClassesPage() {
             <div key={c.id} className="rounded-2xl border border-border bg-card p-4 shadow-sm">
               <div className="mb-2 flex items-center gap-2">
                 <div className="flex-1 font-bold">{c.code}</div>
-                <Chip tone="primary">{c.level}</Chip>
+                <Chip tone="primary" icon={GraduationCap}>{c.level}</Chip>
               </div>
               <div className="flex items-center gap-1.5 text-xs font-semibold text-muted-foreground">
                 <Clock className="h-3.5 w-3.5" /> {fmtTime(c.time) || '-'}

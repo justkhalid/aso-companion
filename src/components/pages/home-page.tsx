@@ -8,6 +8,8 @@ import {
   Sparkles,
   Coffee,
   ArrowRight,
+  Users,
+  GraduationCap,
 } from 'lucide-react'
 import { useStore } from '@/lib/store'
 import {
@@ -373,7 +375,7 @@ export function HomePage({ admin }: { admin: boolean }) {
                     {e.place ? ` · ${e.place}` : ''}
                   </div>
                 </div>
-                <Chip tone="gold">{fmtEventWhen(e)}</Chip>
+                <Chip tone="gold" icon={CalendarDays}>{fmtEventWhen(e)}</Chip>
               </div>
             ))}
           </div>
@@ -416,7 +418,7 @@ export function HomePage({ admin }: { admin: boolean }) {
                   <div className="font-semibold" dir="auto">{it.title}</div>
                   <div className="text-sm text-muted-foreground">{it.sub}</div>
                 </div>
-                <Chip tone={it.kind === 'event' ? 'gold' : it.kind === 'club' ? 'primary' : 'default'}>
+                <Chip tone={it.kind === 'event' ? 'gold' : it.kind === 'club' ? 'primary' : 'default'} icon={it.kind === 'event' ? Sparkles : it.kind === 'club' ? Users : GraduationCap}>
                   {it.kind}
                 </Chip>
               </div>
@@ -479,7 +481,7 @@ function AdminHomeExtra() {
                 >
                   <div className="flex items-center gap-2">
                     <div className="flex-1 font-bold">{l.label}</div>
-                    <Chip tone="primary">{l.cefr}</Chip>
+                    <Chip tone="primary" icon={GraduationCap}>{l.cefr}</Chip>
                   </div>
                   {sw && (
                     <div className="text-xs font-semibold text-primary">

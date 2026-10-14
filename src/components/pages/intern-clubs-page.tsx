@@ -1,7 +1,7 @@
 'use client'
 
 import * as React from 'react'
-import { Plus, ExternalLink, Sparkles, Clock, MapPin, User, AlertTriangle } from 'lucide-react'
+import { Plus, ExternalLink, Sparkles, Clock, MapPin, User, AlertTriangle, CircleDashed } from 'lucide-react'
 import { useStore } from '@/lib/store'
 import { PageHead, EmptyState, Chip } from '@/components/ui-bits'
 import { Button } from '@/components/ui/button'
@@ -40,7 +40,7 @@ export function InternClubsPage() {
             <div key={c.id} className="rounded-2xl border border-border bg-card p-4 shadow-sm">
               <div className="mb-2 flex items-center gap-2">
                 <div className="flex-1 font-bold">{c.name}</div>
-                {c.placeholder && <Chip tone="gold">placeholder</Chip>}
+                {c.placeholder && <Chip tone="gold" icon={CircleDashed}>placeholder</Chip>}
               </div>
               <div className="flex flex-wrap gap-x-3 gap-y-1 text-xs font-semibold text-muted-foreground">
                 <span className="inline-flex items-center gap-1"><Sparkles className="h-3.5 w-3.5" /> {(c.days || []).join(' / ') || 'no day set'}</span>

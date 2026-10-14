@@ -1,7 +1,7 @@
 'use client'
 
 import * as React from 'react'
-import { AlertTriangle, CalendarDays, DoorOpen, GraduationCap, HeartHandshake, Sparkles, UserX, Users, ArrowRight } from 'lucide-react'
+import { AlertTriangle, CalendarDays, DoorOpen, GraduationCap, HeartHandshake, Sparkles, UserX, Users, ArrowRight, Ban, UserCheck } from 'lucide-react'
 import { useStore } from '@/lib/store'
 import { DAY_KEYS } from '@/lib/constants'
 import { PageHead, Chip } from '@/components/ui-bits'
@@ -77,7 +77,7 @@ export function DashboardPage() {
               {away.map((a) => (
                 <li key={a.id} className="flex flex-wrap items-center gap-2 text-sm">
                   <span className="font-bold">{awayName(a)}</span>
-                  <Chip tone={a.cover ? 'primary' : 'gold'}>{a.cover ? `Covered by ${a.cover}` : 'Cancelled'}</Chip>
+                  <Chip tone={a.cover ? 'primary' : 'gold'} icon={a.cover ? UserCheck : Ban}>{a.cover ? `Covered by ${a.cover}` : 'Cancelled'}</Chip>
                   <span className="text-muted-foreground">{fmtAbsenceRange(a)} · {a.reason}</span>
                 </li>
               ))}
@@ -122,8 +122,8 @@ export function DashboardPage() {
                   <span className="font-bold">{x.title}</span> <span className="text-muted-foreground">{x.sub}</span>
                 </span>
                 <span className="text-xs font-semibold text-muted-foreground">{x.room}</span>
-                {x.status.kind === 'cancelled' && <Chip tone="gold">Cancelled</Chip>}
-                {x.status.kind === 'cover' && <Chip tone="primary">Cover: {x.status.cover}</Chip>}
+                {x.status.kind === 'cancelled' && <Chip tone="gold" icon={Ban}>Cancelled</Chip>}
+                {x.status.kind === 'cover' && <Chip tone="primary" icon={UserCheck}>Cover: {x.status.cover}</Chip>}
               </li>
             ))}
           </ul>

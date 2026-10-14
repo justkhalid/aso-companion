@@ -1,7 +1,7 @@
 'use client'
 
 import * as React from 'react'
-import { GraduationCap, BookOpen, ArrowRight, ClipboardList } from 'lucide-react'
+import { GraduationCap, BookOpen, ArrowRight, ClipboardList, EyeOff } from 'lucide-react'
 import { useStore } from '@/lib/store'
 import { termStatus } from '@/lib/app-utils'
 import { BANDS, FILL_GRID } from '@/lib/constants'
@@ -69,9 +69,9 @@ export function EltasoPage() {
                       <GraduationCap className="h-5 w-5" />
                     </div>
                     <div className="flex-1 font-bold leading-tight">{l.label}</div>
-                    <Chip tone="primary">{l.cefr}</Chip>
+                    <Chip tone="primary" icon={GraduationCap}>{l.cefr}</Chip>
                   </div>
-                  {asAdmin && whyHidden(l) && <div><Chip tone="gold">{whyHidden(l)}</Chip></div>}
+                  {asAdmin && whyHidden(l) && <div><Chip tone="gold" icon={EyeOff}>{whyHidden(l)}</Chip></div>}
                   {sw && (
                     <div className="text-xs font-semibold text-primary">
                       {w ? 'This week' : 'Next up'} · W{showWi + 1} · {sw.theme}

@@ -10,6 +10,8 @@ import {
   Star,
   Trash2,
   FileDown,
+  GraduationCap,
+  CalendarCheck,
 } from 'lucide-react'
 import { useStore } from '@/lib/store'
 import {
@@ -135,7 +137,7 @@ export function LevelDetailPage({ admin }: { admin: boolean }) {
           </button>
           <h1 className="flex flex-wrap items-center gap-2 text-2xl font-extrabold tracking-tight">
             {level.label}
-            <Chip tone="primary">{level.cefr}</Chip>
+            <Chip tone="primary" icon={GraduationCap}>{level.cefr}</Chip>
           </h1>
           {level.desc && (
             <p className="mt-2 max-w-2xl text-[14.5px] leading-relaxed text-foreground/90">
@@ -266,7 +268,7 @@ export function LevelDetailPage({ admin }: { admin: boolean }) {
                           {s.k}
                         </span>
                       ))}
-                      {isCur && <Chip tone="primary">This week</Chip>}
+                      {isCur && <Chip tone="primary" icon={CalendarCheck}>This week</Chip>}
                       {note && (
                         <Chip tone="gold">
                           <Star className="h-2.5 w-2.5" /> {note}
@@ -292,7 +294,7 @@ export function LevelDetailPage({ admin }: { admin: boolean }) {
                                   {s.k}
                                 </span>
                                 <span className="text-xs font-bold">{s.name}</span>
-                                {s.k === sp && <Chip tone="primary">spotlight</Chip>}
+                                {s.k === sp && <Chip tone="primary" icon={Star}>spotlight</Chip>}
                               </div>
                               <div className="text-[13px] leading-relaxed text-foreground/90">
                                 {sk[s.k] || '-'}

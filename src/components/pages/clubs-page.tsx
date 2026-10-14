@@ -23,6 +23,8 @@ import {
   ArrowRight,
   Repeat2,
   X,
+  CircleDashed,
+  CalendarCheck,
 } from 'lucide-react'
 import { useStore } from '@/lib/store'
 import {
@@ -432,7 +434,7 @@ function ClubListCard({
         <div className="flex min-w-0 flex-1 flex-col justify-center gap-2 p-4">
           <div className="flex flex-wrap items-center gap-2">
             <h3 className="font-bold" dir="auto">{club.name}</h3>
-            {club.placeholder && <Chip tone="gold">placeholder</Chip>}
+            {club.placeholder && <Chip tone="gold" icon={CircleDashed}>placeholder</Chip>}
           </div>
           <ClubMeta club={club} />
           <ClubFreqLine club={club} />
@@ -546,7 +548,7 @@ export function ClubGridCard({
       <div className="flex flex-1 flex-col gap-2 p-4">
         <div className="flex flex-wrap items-center gap-2">
           <h3 className="font-bold leading-tight" dir="auto">{club.name}</h3>
-          {club.placeholder && <Chip tone="gold">placeholder</Chip>}
+          {club.placeholder && <Chip tone="gold" icon={CircleDashed}>placeholder</Chip>}
         </div>
         <ClubMeta club={club} />
         <ClubFreqLine club={club} />
@@ -685,13 +687,13 @@ export function ClubExpandOverlay({
                 <h3 className="text-[22px] font-extrabold leading-tight" dir="auto">{club.name}</h3>
                 {showChips && (
                   <div className="flex flex-wrap items-center gap-1.5">
-                    {club.placeholder && <Chip tone="gold">placeholder</Chip>}
+                    {club.placeholder && <Chip tone="gold" icon={CircleDashed}>placeholder</Chip>}
                     {showFreq && (
                       <Chip tone="gold">
                         <Repeat2 className="h-3 w-3" /> {fmtFreq(club.freq)}
                       </Chip>
                     )}
-                    {range && <Chip tone="gold">{range}</Chip>}
+                    {range && <Chip tone="gold" icon={CalendarDays}>{range}</Chip>}
                   </div>
                 )}
               </div>
@@ -947,7 +949,7 @@ export function EventCard({
         <div className="flex min-w-0 flex-1 flex-col gap-3 p-4">
           <div className="flex flex-wrap items-center gap-2">
             <h3 className="min-w-0 text-[15px] font-bold leading-snug" dir="auto">{event.title}</h3>
-            <Chip tone={isOnce ? 'primary' : 'gold'}>{isOnce ? 'One time' : 'Repeating'}</Chip>
+            <Chip tone={isOnce ? 'primary' : 'gold'} icon={isOnce ? CalendarCheck : Repeat2}>{isOnce ? 'One time' : 'Repeating'}</Chip>
           </div>
           {nextStatus.kind === 'cancelled' && (
             <div className="rounded-xl bg-[#FF3B30]/10 px-3 py-2 text-[13px] font-semibold text-[#D70015] dark:text-[#FF6961]">

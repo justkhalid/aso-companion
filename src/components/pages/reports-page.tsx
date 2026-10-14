@@ -84,7 +84,7 @@ export function ReportsPage({ embedded = false }: { embedded?: boolean }) {
       <div className="rounded-2xl border border-border bg-card p-5">
         <div className="mb-2 flex items-center gap-2">
           <div className="font-bold">Kids · Beginners · W3 Colors · filed on the reporting site</div>
-          <Chip tone="muted">a class report, exactly as the form wants it</Chip>
+          <Chip tone="muted" icon={FileText}>a class report, exactly as the form wants it</Chip>
           <Button
             variant="outline"
             size="sm"
