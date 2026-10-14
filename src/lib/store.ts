@@ -7,6 +7,7 @@ import { LS_KEY, ROLE_KEY, ADMIN_SEEN_KEY } from './constants'
 import { addChanges } from './change-log'
 import { syncViewUrl } from './url-sync'
 import { readLocal, writeLocal } from './local-db'
+import { mergeUnsaved } from './restore-merge'
 
 export type BootStatus = 'idle' | 'loading' | 'loaded' | 'error'
 
@@ -24,6 +25,13 @@ interface UIStore {
   bootError: string
   lastSync: string | null
   syncing: boolean
+  /* is what the admin changed safely in the cloud? */
+  saveStatus: 'saved' | 'saving' | 'unsaved' | 'error'
+  saveError: string
+  /* a copy of unsaved changes that a newer live copy replaced on this device */
+  unsavedCopy: { at: string } | null
+  restoreUnsaved: () => Promise<{ ok: boolean; msg: string }>
+  dismissUnsaved: () => void
 
   /* routing / auth */
   view: View
@@ -58,6 +66,8 @@ interface UIStore {
   loadFromCloud: () => Promise<{ ok: boolean; msg: string }>
   /* background = a save the admin did not ask for (boot catch-up, autosave): it never opens the sign-in screen */
   saveToCloud: (opts?: { background?: boolean }) => Promise<{ ok: boolean; msg: string }>
+  markUnsaved: () => void
+  saveOnce: (opts?: { background?: boolean }) => Promise<{ ok: boolean; msg: string; rev?: number }>
 
   exportBackup: () => string
   importBackup: (json: string) => { ok: boolean; msg: string }
@@ -147,7 +157,44 @@ function scheduleAutoSave(run: () => Promise<unknown>) {
   }, 2500)
 }
 
+/* saving: one save runs at a time, edits made while it runs trigger one more, and a failed save is retried */
+const DIRTY_KEY = 'aso-unsaved-rev'
+const UNSAVED_COPY_KEY = 'aso-unsaved-copy'
+const RETRY_MS = [5_000, 15_000, 45_000, 120_000]
+let saveRun: Promise<{ ok: boolean; msg: string }> | null = null
+let retryTimer: ReturnType<typeof setTimeout> | null = null
+let retryCount = 0
+let failedToasted = false
+
 export const useStore = create<UIStore>((set, get) => ({
+  saveStatus: 'saved',
+  saveError: '',
+  unsavedCopy: null,
+  restoreUnsaved: async () => {
+    try {
+      const raw = await readLocal(UNSAVED_COPY_KEY)
+      if (!raw) return { ok: false, msg: 'No unsaved copy found on this device' }
+      const { state: old } = JSON.parse(raw) as { at: string; state: State }
+      const live = get().state
+      const { state, added, changed } = mergeUnsaved(live, old)
+      set({ state, unsavedCopy: null })
+      saveLocal(JSON.stringify(state))
+      void writeLocal(UNSAVED_COPY_KEY, '').catch(() => {})
+      get().markUnsaved()
+      return { ok: true, msg: `Restored ${added} new and ${changed} changed items. Saving them now.` }
+    } catch {
+      return { ok: false, msg: 'Could not read the unsaved copy' }
+    }
+  },
+  dismissUnsaved: () => {
+    void writeLocal(UNSAVED_COPY_KEY, '').catch(() => {})
+    set({ unsavedCopy: null })
+  },
+  markUnsaved: () => {
+    if (get().admin) lsSet(DIRTY_KEY, String(get().state._rev || 0))
+    set({ saveStatus: get().saveStatus === 'saving' ? 'saving' : 'unsaved' })
+    if (get().admin && get().state.settings.ghAutoSave) scheduleAutoSave(() => get().saveToCloud({ background: true }))
+  },
   state: seedState(),
   boot: 'idle',
   bootError: '',
@@ -270,7 +317,7 @@ export const useStore = create<UIStore>((set, get) => ({
     addChanges(draft, before)
     set({ state: draft })
     get().persist()
-    if (draft.settings.ghAutoSave) scheduleAutoSave(() => get().saveToCloud({ background: true }))
+    get().markUnsaved()
   },
 
   setSettings: (fn) => {
@@ -281,6 +328,7 @@ export const useStore = create<UIStore>((set, get) => ({
     set({ state: draft })
     get().persist()
     applyTheme(draft.settings.theme)
+    get().markUnsaved()
   },
 
   persist: () => {
@@ -330,7 +378,15 @@ export const useStore = create<UIStore>((set, get) => ({
     // never flashes on the screen.
     if (localState && localState.v === 1) set({ boot: 'loaded' })
 
-    // 2. fetch cloud state and compare _rev
+    try {
+      const kept = await readLocal(UNSAVED_COPY_KEY)
+      if (kept) set({ unsavedCopy: { at: (JSON.parse(kept) as { at: string }).at } })
+    } catch {
+      /* no kept copy */
+    }
+    if (lsGet(DIRTY_KEY)) set({ saveStatus: 'unsaved' })
+
+        // 2. fetch cloud state and compare _rev
     // v4.6: single data path through /api/state (Vercel Blob primary,
     //        GitHub only as server-side fallback). No direct client-side
     //        GitHub fetches anymore: one source of truth, one route.
@@ -347,6 +403,17 @@ export const useStore = create<UIStore>((set, get) => ({
       }
       const current = get().state
       const merged = pickNewer(current, cloud)
+      /* this device had changes that never reached the cloud and the live copy wins: keep them aside so nothing is lost */
+      if (merged !== current && lsGet(DIRTY_KEY)) {
+        const at = new Date().toISOString()
+        try {
+          await writeLocal(UNSAVED_COPY_KEY, JSON.stringify({ at, state: current }))
+          set({ unsavedCopy: { at }, saveStatus: 'saved' })
+          lsDel(DIRTY_KEY)
+        } catch {
+          /* could not keep a copy: leave the marker so the next load tries again */
+        }
+      }
       set({ state: merged, lastSync: new Date().toISOString() })
       applyTheme(merged.settings.theme)
       // keep the newer one in the local copy too
@@ -396,8 +463,9 @@ export const useStore = create<UIStore>((set, get) => ({
     }
   },
 
-  saveToCloud: async (opts) => {
+  saveOnce: async (opts) => {
     const s = get().state
+    const sentRev = s._rev || 0
     /* v4.6: single save path through the server-side /api/sync route.
        The PAT lives in Vercel environment variables, NOT in the browser.
        With Vercel Blob connected this never touches GitHub; without it,
@@ -448,7 +516,7 @@ export const useStore = create<UIStore>((set, get) => ({
         draft.settings.ghLastSync = new Date().toISOString()
         set({ state: draft, lastSync: draft.settings.ghLastSync, syncing: false })
         saveLocal(JSON.stringify(draft))
-        return { ok: true, msg: msg || 'Saved to cloud' }
+        return { ok: true, msg: msg || 'Saved to cloud', rev: sentRev }
       } else {
         set({ syncing: false })
         return { ok: false, msg: msg || 'save failed' }
@@ -457,6 +525,47 @@ export const useStore = create<UIStore>((set, get) => ({
       set({ syncing: false })
       return { ok: false, msg: e instanceof Error ? e.message : 'save failed' }
     }
+  },
+
+  saveToCloud: (opts) => {
+    /* a save is already running: ask for one more after it, with whatever changed meanwhile */
+    if (saveRun) return saveRun
+    if (retryTimer) {
+      clearTimeout(retryTimer)
+      retryTimer = null
+    }
+    const run = (async () => {
+      set({ saveStatus: 'saving' })
+      let res = await get().saveOnce(opts)
+      /* edits made while the save ran go up in a second save */
+      while (res.ok && (get().state._rev || 0) !== (res.rev || 0)) res = await get().saveOnce(opts)
+      if (res.ok) {
+        retryCount = 0
+        failedToasted = false
+        lsDel(DIRTY_KEY)
+        set({ saveStatus: 'saved', saveError: '' })
+      } else if (get().admin) {
+        set({ saveStatus: 'error', saveError: res.msg })
+        const signedOut = /sign in/i.test(res.msg)
+        if (!failedToasted) {
+          failedToasted = true
+          get().toast(signedOut ? 'Not saved: ' + res.msg : 'Not saved yet: ' + res.msg + ' The app will keep trying.', false)
+        }
+        if (!signedOut && retryCount < RETRY_MS.length) {
+          retryTimer = setTimeout(() => {
+            retryTimer = null
+            void get().saveToCloud({ background: true })
+          }, RETRY_MS[retryCount++])
+        }
+      } else {
+        set({ saveStatus: 'saved' })
+      }
+      return res
+    })()
+    saveRun = run.finally(() => {
+      saveRun = null
+    })
+    return saveRun
   },
 
   exportBackup: () => {
@@ -473,6 +582,7 @@ export const useStore = create<UIStore>((set, get) => ({
       set({ state: draft })
       applyTheme(draft.settings.theme)
       saveLocal(JSON.stringify(draft))
+      get().markUnsaved()
       return { ok: true, msg: 'Backup imported' }
     } catch {
       return { ok: false, msg: 'Could not parse the JSON file' }
@@ -495,6 +605,21 @@ export const useStore = create<UIStore>((set, get) => ({
   dismissToast: (id) =>
     set((st) => ({ toasts: st.toasts.filter((t) => t.id !== id) })),
 }))
+
+/* leaving with unsaved changes: ask first, and try to save the moment the page is hidden */
+if (typeof window !== 'undefined') {
+  window.addEventListener('beforeunload', (e) => {
+    const st = useStore.getState()
+    if (st.admin && st.saveStatus !== 'saved') {
+      e.preventDefault()
+      e.returnValue = ''
+    }
+  })
+  document.addEventListener('visibilitychange', () => {
+    const st = useStore.getState()
+    if (document.visibilityState === 'hidden' && st.admin && st.saveStatus === 'unsaved') void st.saveToCloud({ background: true })
+  })
+}
 
 /* helper hook: the current "effective" view considering pubView */
 export function effectiveView(store: UIStore): View {

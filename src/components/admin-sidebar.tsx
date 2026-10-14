@@ -17,6 +17,10 @@ import {
   FolderOpen,
   DoorOpen,
   UserX,
+  Check,
+  Loader2,
+  CloudOff,
+  RotateCcw,
 } from 'lucide-react'
 import { Logo } from './logo'
 import { ThemeToggle } from './theme-toggle'
@@ -256,9 +260,57 @@ export function AdminTopbar({ setMobileNavOpen }: { setMobileNavOpen: (v: boolea
         </span>
       </div>
       <div className="ml-auto flex items-center gap-2">
+        <SaveStatus />
         <QuickAdd />
         <ThemeToggle />
       </div>
     </header>
+  )
+}
+
+/* is everything the admin changed saved? green tick, spinner, amber "unsaved", or a red retry button */
+function SaveStatus() {
+  const status = useStore((s) => s.saveStatus)
+  const error = useStore((s) => s.saveError)
+  const unsavedCopy = useStore((s) => s.unsavedCopy)
+  const saveToCloud = useStore((s) => s.saveToCloud)
+  const restoreUnsaved = useStore((s) => s.restoreUnsaved)
+  const dismissUnsaved = useStore((s) => s.dismissUnsaved)
+  const toast = useStore((s) => s.toast)
+  return (
+    <div className="flex items-center gap-2" role="status" aria-live="polite">
+      {unsavedCopy && (
+        <span className="hidden items-center gap-1 rounded-full border border-amber-500/40 bg-amber-500/10 py-0.5 pl-3 pr-1 text-xs font-bold text-amber-700 dark:text-amber-300 sm:inline-flex">
+          Unsaved changes from {new Date(unsavedCopy.at).toLocaleString('en-GB', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })} were found
+          <button
+            type="button"
+            onClick={async () => {
+              const r = await restoreUnsaved()
+              toast(r.msg, r.ok)
+            }}
+            className="ml-1 inline-flex items-center gap-1 rounded-full bg-amber-500 px-2.5 py-1 text-white hover:bg-amber-600"
+          >
+            <RotateCcw className="h-3 w-3" /> Restore
+          </button>
+          <button type="button" onClick={dismissUnsaved} className="rounded-full px-2 py-1 hover:bg-amber-500/20">Dismiss</button>
+        </span>
+      )}
+      {status === 'saved' && (
+        <span className="inline-flex items-center gap-1 text-xs font-semibold text-muted-foreground"><Check className="h-3.5 w-3.5 text-emerald-600" /> Saved</span>
+      )}
+      {status === 'saving' && (
+        <span className="inline-flex items-center gap-1 text-xs font-semibold text-muted-foreground"><Loader2 className="h-3.5 w-3.5 animate-spin" /> Saving</span>
+      )}
+      {status === 'unsaved' && (
+        <button type="button" onClick={() => void saveToCloud()} className="inline-flex items-center gap-1.5 rounded-full bg-amber-500/15 px-2.5 py-1 text-xs font-bold text-amber-700 dark:text-amber-300">
+          <span className="h-2 w-2 rounded-full bg-amber-500" /> Unsaved · Save now
+        </button>
+      )}
+      {status === 'error' && (
+        <button type="button" title={error} onClick={() => void saveToCloud()} className="inline-flex items-center gap-1.5 rounded-full bg-red-500/15 px-2.5 py-1 text-xs font-bold text-red-700 dark:text-red-300">
+          <CloudOff className="h-3.5 w-3.5" /> Not saved · Retry
+        </button>
+      )}
+    </div>
   )
 }

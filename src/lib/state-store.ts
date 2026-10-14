@@ -118,44 +118,39 @@ async function githubWrite(
   const [owner, name] = repo.split('/')
   if (!owner || !name) return { ok: false, msg: 'Invalid GITHUB_REPO format (expected owner/name)' }
 
-  /* get current file SHA (if any) so the PUT can update it */
-  const metaUrl = `https://api.github.com/repos/${owner}/${name}/contents/${path}?ref=${encodeURIComponent(branch)}`
-  const metaRes = await fetch(metaUrl, {
-    headers: {
-      Authorization: `Bearer ${token}`,
-      Accept: 'application/vnd.github+json',
-      'X-GitHub-Api-Version': '2022-11-28',
-    },
-  })
-  let sha: string | undefined
-  if (metaRes.ok) sha = (await metaRes.json()).sha
-
+  const headers = {
+    Authorization: `Bearer ${token}`,
+    Accept: 'application/vnd.github+json',
+    'X-GitHub-Api-Version': '2022-11-28',
+  }
+  const fileUrl = `https://api.github.com/repos/${owner}/${name}/contents/${path}`
   const encoded = Buffer.from(content, 'utf-8').toString('base64')
-  const putRes = await fetch(
-    `https://api.github.com/repos/${owner}/${name}/contents/${path}`,
-    {
+  let lastError = ''
+  /* the file's SHA changes with every commit: if someone else saved between our read and our write, read it again and retry */
+  for (let attempt = 0; attempt < 3; attempt++) {
+    const metaRes = await fetch(`${fileUrl}?ref=${encodeURIComponent(branch)}`, { headers, cache: 'no-store' })
+    let sha: string | undefined
+    if (metaRes.ok) sha = (await metaRes.json()).sha
+    else if (metaRes.status !== 404) {
+      lastError = `GitHub could not be read (${metaRes.status})`
+      continue
+    }
+    const putRes = await fetch(fileUrl, {
       method: 'PUT',
-      headers: {
-        Authorization: `Bearer ${token}`,
-        Accept: 'application/vnd.github+json',
-        'X-GitHub-Api-Version': '2022-11-28',
-        'Content-Type': 'application/json',
-      },
+      headers: { ...headers, 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        message:
-          message ||
-          `aso-companion: save state ${new Date().toISOString().slice(0, 19)}`,
+        message: message || `aso-companion: save state ${new Date().toISOString().slice(0, 19)}`,
         branch,
         content: encoded,
         ...(sha ? { sha } : {}),
       }),
-    },
-  )
-  if (!putRes.ok) {
+    })
+    if (putRes.ok) return { ok: true, msg: 'Saved to GitHub (fallback mode)' }
     const txt = await putRes.text()
-    return { ok: false, msg: `GitHub API error: ${txt.slice(0, 200)}` }
+    lastError = `GitHub API error (${putRes.status}): ${txt.slice(0, 200)}`
+    if (putRes.status !== 409 && putRes.status !== 422) break
   }
-  return { ok: true, msg: 'Saved to GitHub (fallback mode)' }
+  return { ok: false, msg: lastError || 'GitHub save failed' }
 }
 
 /* ---------------- public API ---------------- */
