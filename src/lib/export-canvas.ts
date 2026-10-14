@@ -19,6 +19,7 @@ export const TONE_RGB: { bg: string; line: string; txt: string }[] = [
   { bg: 'rgba(37,99,235,.12)', line: 'rgba(37,99,235,.32)', txt: '#1D4ED8' }, // class
   { bg: 'rgba(109,40,217,.12)', line: 'rgba(109,40,217,.30)', txt: '#6D28D9' }, // club
   { bg: 'rgba(194,65,12,.12)',  line: 'rgba(194,65,12,.30)',  txt: '#C2410C' }, // event
+  { bg: 'rgba(219,39,119,.11)', line: 'rgba(219,39,119,.30)', txt: '#BE185D' }, // outside the space
 ]
 
 export function toneIdx(tone: string): number {

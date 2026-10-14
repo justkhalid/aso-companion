@@ -5,7 +5,9 @@ import { clubIcon } from './icons'
 import { BookOpen, Sparkles } from 'lucide-react'
 import { publicGroupName } from './calendar-items'
 import { MONTH_THEMES, drawMotif } from './month-themes'
-import { ACTIVITY, STATUS } from './activity-colors'
+import { ACTIVITY, OUTSIDE, STATUS } from './activity-colors'
+import { classMark, markKey, type ClassMark } from './class-marks'
+import { AUDIENCE_ICON, LEVEL_ICON } from '@/components/class-mark'
 import { paintBackdrop, paintFooter, paintHeader, star } from './month-frame'
 import { holidaysOf, type Holiday } from './holidays'
 import type { State } from './types'
@@ -31,6 +33,7 @@ export interface Occ {
   startMin: number
   place: string
   outside?: boolean // the place is outside the space (no room is used)
+  mark?: ClassMark // classes: who it is for and its level
   moved?: boolean // moved for these dates only
   icon?: string
   off: boolean
@@ -74,7 +77,7 @@ export function monthOccurrences(state: State, o: MonthOptions): Map<string, Occ
       for (const c of state.classes || []) {
         if (!c.time || !repeatsOn(d, c.days || [], undefined, undefined, undefined, anchor)) continue
         const st = classStatusOn(state, c, iso)
-        push(iso, { kind: 'class', title: publicGroupName(c.code, c.level), time: c.time, startMin: parseSlot(c.time).mins, place: c.room, icon: c.icon, off: st.kind === 'cancelled' })
+        push(iso, { kind: 'class', title: publicGroupName(c.code, c.level), time: c.time, startMin: parseSlot(c.time).mins, place: c.room, mark: classMark(state, c) || undefined, off: st.kind === 'cancelled' })
       }
     }
     if (o.events) {
@@ -115,12 +118,37 @@ function hatch(g: CanvasRenderingContext2D, color: string): CanvasPattern | stri
   return g.createPattern(c, 'repeat') || 'rgba(0,0,0,.05)'
 }
 
+/* a class's icon: who it is for, with its level as a small badge in the corner */
+async function markImage(mark: ClassMark, ink: string, size: number): Promise<CanvasImageSource | null> {
+  const a = await iconImage(AUDIENCE_ICON[mark.audience], ink, Math.round(size * 0.82))
+  if (!a) return null
+  const c = document.createElement('canvas')
+  c.width = size
+  c.height = size
+  const g = c.getContext('2d')!
+  g.drawImage(a, 0, 0, size * 0.82, size * 0.82)
+  if (mark.step) {
+    const b = await iconImage(LEVEL_ICON[mark.step], '#ffffff', Math.round(size * 0.5))
+    if (b) {
+      const r = size * 0.27
+      g.fillStyle = ink
+      g.beginPath()
+      g.arc(size - r, size - r, r, 0, Math.PI * 2)
+      g.fill()
+      g.drawImage(b, size - r - size * 0.22, size - r - size * 0.22, size * 0.44, size * 0.44)
+    }
+  }
+  return c
+}
+
 /* every club and event keeps its own time line */
 interface Block {
   kind: Kind
   off: boolean
   names: { title: string; icon?: string }[]
   time: string
+  mark?: ClassMark
+  outside?: boolean
   where?: string // only when it is not the usual room: "Outside: City Park" or "Moved: Room 2"
 }
 function blocksOf(list: Occ[]): Block[] {
@@ -128,18 +156,19 @@ function blocksOf(list: Occ[]): Block[] {
   /* classes that meet at the same time share one block ("Kids 3 · Teens 1"), so a busy Saturday stays readable */
   const classes = list.filter((x) => x.kind === 'class')
   const groups = new Map<string, Occ[]>()
-  for (const x of classes) groups.set(`${x.time}|${x.off}`, [...(groups.get(`${x.time}|${x.off}`) || []), x])
+  const gk = (x: Occ) => `${x.time}|${x.off}|${x.mark ? markKey(x.mark) : ''}`
+  for (const x of classes) groups.set(gk(x), [...(groups.get(gk(x)) || []), x])
   const doneGroups = new Set<string>()
   for (const x of list) {
     if (x.kind === 'class') {
-      const key = `${x.time}|${x.off}`
+      const key = gk(x)
       if (doneGroups.has(key)) continue
       doneGroups.add(key)
       const g = groups.get(key)!
-      out.push({ kind: 'class', off: x.off, names: [{ title: g.map((c) => c.title).join(' · '), icon: g[0].icon }], time: x.time })
+      out.push({ kind: 'class', off: x.off, names: [{ title: g.map((c) => c.title).join(' · '), icon: g[0].icon }], time: x.time, mark: x.mark })
       continue
     }
-    out.push({ kind: x.kind, off: x.off, names: [{ title: x.title, icon: x.icon }], time: x.time, where: x.off || !x.place ? undefined : x.outside ? `Outside: ${x.place}` : x.moved ? `Moved: ${x.place}` : undefined })
+    out.push({ kind: x.kind, off: x.off, names: [{ title: x.title, icon: x.icon }], time: x.time, outside: x.outside, where: x.off || !x.place ? undefined : x.outside ? `Outside: ${x.place}` : x.moved ? `Moved: ${x.place}` : undefined })
   }
   return out
 }
@@ -156,15 +185,20 @@ export async function renderMonth(state: State, o: MonthOptions): Promise<HTMLCa
   const closedOn = (iso: string) => (hol.get(iso) || []).some((h) => h.closed)
   for (const iso of Array.from(occ.keys())) if (closedOn(iso)) occ.delete(iso)
   /* each club and event keeps its own icon, drawn big in front of its name, in the same colour as the text */
-  const iconKey = (icon: string | undefined, kind: Kind, off: boolean) => `${icon || ''}|${off ? 'off' : kind}`
-  const iconImgs = new Map<string, HTMLImageElement | null>()
+  const iconKey = (icon: string | undefined, kind: Kind, off: boolean, mark?: ClassMark, outside?: boolean) => `${icon || ''}|${off ? 'off' : outside ? 'out' : kind}|${mark ? markKey(mark) : ''}`
+  const iconImgs = new Map<string, CanvasImageSource | null>()
   {
-    const want = new Map<string, { icon?: string; kind: Kind; off: boolean }>()
-    for (const list of occ.values()) for (const x of list) want.set(iconKey(x.icon, x.kind, x.off), { icon: x.icon, kind: x.kind, off: x.off })
+    const want = new Map<string, { icon?: string; kind: Kind; off: boolean; mark?: ClassMark; outside?: boolean }>()
+    for (const list of occ.values()) for (const x of list) want.set(iconKey(x.icon, x.kind, x.off, x.mark, x.outside), { icon: x.icon, kind: x.kind, off: x.off, mark: x.mark, outside: x.outside })
     await Promise.all(
       Array.from(want.entries()).map(async ([k, v]) => {
+        const ink = v.off ? INKS.off : v.outside ? OUTSIDE.ink : INKS[v.kind]
+        if (v.mark) {
+          iconImgs.set(k, await markImage(v.mark, ink, 120))
+          return
+        }
         const Icon = clubIcon(v.icon)?.Icon || (v.kind === 'class' ? BookOpen : Sparkles)
-        iconImgs.set(k, await iconImage(Icon, v.off ? INKS.off : INKS[v.kind], 120))
+        iconImgs.set(k, await iconImage(Icon, ink, 120))
       }),
     )
   }
@@ -469,14 +503,14 @@ export async function renderMonth(state: State, o: MonthOptions): Promise<HTMLCa
       if (pc.items.length && !hasHol(d)) cy = y + Math.max(cy - y, (rows[w] - (pc.h - 18 * s)) / 2)
       for (const it of pc.items) {
         const lx = x + it.lane * pc.laneW
-        const ink = it.bl.off ? INKS.off : INKS[it.bl.kind]
+        const ink = it.bl.off ? INKS.off : it.bl.outside ? OUTSIDE.ink : INKS[it.bl.kind]
         g.fillStyle = ink
         g.textBaseline = 'top'
         g.font = `800 ${L.NAME}px ${f.body}`
         const ty = cy + it.y
         const row = it.lay.rows[0]
         const nm = it.bl.names[0]
-        const img = iconImgs.get(iconKey(nm.icon, it.bl.kind, it.bl.off))
+        const img = iconImgs.get(iconKey(nm.icon, it.bl.kind, it.bl.off, it.bl.mark, it.bl.outside))
         /* the icon spans the name and the time; both texts start on one left edge shared by every entry */
         const gx0 = lx + colOff[i]
         if (img) g.drawImage(img, gx0, ty + (row.h - it.lay.isz) / 2, it.lay.isz, it.lay.isz)

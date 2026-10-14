@@ -45,7 +45,7 @@ import {
   clubWhere, eventWhere, addDays, isoOf, fmtTime, fmtRange12, fmt12Min } from '@/lib/app-utils'
 import { ROOM_LEGEND, DAY_KEYS } from '@/lib/constants'
 import { buildCalendarLinks } from '@/lib/export-word'
-import { PUBLIC_CLUB_TONE, PUBLIC_EVENT_TONE, groupByWhere, whereId } from '@/lib/calendar-items'
+import { PUBLIC_CLUB_TONE, PUBLIC_EVENT_TONE, groupByWhere, whereId, PUBLIC_OUTSIDE_TONE } from '@/lib/calendar-items'
 import { clubIcon } from '@/lib/icons'
 import { eventPosterItem } from '@/lib/poster-items'
 import { WeeklyGrid, CalendarListView, CalendarCardsView, CalViewSwitcher, readCalView, writeCalView, type GridItem, type LegendEntry, type CalendarView } from '@/components/weekly-grid'
@@ -106,9 +106,9 @@ export function ClubsPage({ admin, internMode = false, section }: { admin: boole
       const sp = splitDaysByStatus(c.days, thisMonday, (iso) => clubStatusOn(state, c.id, iso))
       const out: GridItem[] = []
       const at = (days: string[]) => groupByWhere(days, thisMonday!, (iso) => clubWhere(state, c, iso))
-      for (const g of at(sp.normal)) out.push({ ...base, id: whereId(c.id, g.w), days: g.days, slot: g.w.time, room: g.w.place, outside: g.w.outside, moved: g.w.moved, lead, tone })
+      for (const g of at(sp.normal)) out.push({ ...base, id: whereId(c.id, g.w), days: g.days, slot: g.w.time, room: g.w.place, outside: g.w.outside, moved: g.w.moved, lead, tone: g.w.outside ? PUBLIC_OUTSIDE_TONE : tone })
       if (sp.cancelled.length) out.push({ ...base, id: c.id + ':off', days: sp.cancelled, code: c.name + ' · cancelled', lead: 'cancelled', tone: 'tone-8' })
-      for (const [who, days] of Object.entries(sp.covered)) for (const g of at(days)) out.push({ ...base, id: whereId(c.id + ':cov:' + who, g.w), days: g.days, slot: g.w.time, room: g.w.place, outside: g.w.outside, moved: g.w.moved, lead: 'Led by ' + who, tone })
+      for (const [who, days] of Object.entries(sp.covered)) for (const g of at(days)) out.push({ ...base, id: whereId(c.id + ':cov:' + who, g.w), days: g.days, slot: g.w.time, room: g.w.place, outside: g.w.outside, moved: g.w.moved, lead: 'Led by ' + who, tone: g.w.outside ? PUBLIC_OUTSIDE_TONE : tone })
       return out
     })
 
@@ -138,7 +138,7 @@ export function ClubsPage({ admin, internMode = false, section }: { admin: boole
         outside: off ? !!e.outside : w.outside,
         moved: !off && w.moved,
         icon: e.icon || 'calendar',
-        tone: off ? 'tone-8' : PUBLIC_EVENT_TONE,
+        tone: off ? 'tone-8' : w.outside ? PUBLIC_OUTSIDE_TONE : PUBLIC_EVENT_TONE,
       }
     })
     .filter(Boolean) as GridItem[]

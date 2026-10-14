@@ -8,7 +8,8 @@ import { ThemeToggle } from '@/components/theme-toggle'
 import { SiteFooter } from '@/components/site-footer'
 import { UnifiedCalendar } from '@/components/unified-calendar'
 import type { CalTab } from '@/components/calendar-switch'
-import { ACTIVITY, STATUS } from '@/lib/activity-colors'
+import { ACTIVITY, OUTSIDE, STATUS } from '@/lib/activity-colors'
+import { ClassMarkIcons } from '@/components/class-mark'
 import { clubIcon } from '@/lib/icons'
 import { fmt12Min, isoOf } from '@/lib/app-utils'
 import { monthOccurrences } from '@/lib/month-export'
@@ -48,8 +49,8 @@ function TodayCard({ now }: { now: Date }) {
         <ul className="mt-3 flex flex-col gap-2">
           {rows.map((x, i) => {
             const Icon = clubIcon(x.icon)?.Icon || KIND_DEFAULT[x.kind]
-            const ink = ACTIVITY[x.kind].ink
-            const tint = ACTIVITY[x.kind].tint
+            const ink = x.outside ? OUTSIDE.ink : ACTIVITY[x.kind].ink
+            const tint = x.outside ? OUTSIDE.tint : ACTIVITY[x.kind].tint
             return (
               <li
                 key={i}
@@ -57,7 +58,7 @@ function TodayCard({ now }: { now: Date }) {
                 style={{ background: x.off ? STATUS.cancelled.tint : `color-mix(in oklab, ${tint} 55%, transparent)` }}
               >
                 <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full" style={{ background: x.off ? STATUS.cancelled.ink : ink, color: '#fff' }}>
-                  <Icon className="h-4.5 w-4.5" aria-hidden />
+                  {x.mark ? <ClassMarkIcons mark={x.mark} className="h-3.5 w-3.5" /> : <Icon className="h-4.5 w-4.5" aria-hidden />}
                 </span>
                 <div className="min-w-0 flex-1">
                   <div className={'truncate font-bold ' + (x.off ? 'line-through opacity-70' : '')} dir="auto">{x.kind === 'class' ? 'English class ' + x.title : x.title}</div>
@@ -114,6 +115,7 @@ function Legend() {
     [ACTIVITY.class.label, ACTIVITY.class.ink],
     [ACTIVITY.club.label, ACTIVITY.club.ink],
     [ACTIVITY.event.label, ACTIVITY.event.ink],
+    [OUTSIDE.label, OUTSIDE.ink],
     [STATUS.free.label, STATUS.free.ink],
     [STATUS.cancelled.label, STATUS.cancelled.ink],
     [STATUS.closed.label, STATUS.closed.ink],
@@ -185,9 +187,9 @@ export function DirectorPage() {
         </div>
 
         <h2 id="calendar" className="mt-12 scroll-mt-24 text-2xl font-extrabold tracking-tight">The calendar</h2>
-        <p className="mt-1 text-muted-foreground">Pick what to look at, then a month or a week. Hover the picture and it moves.</p>
+        <p className="mt-1 text-muted-foreground">Pick what to look at, then a month or a week. Hover the picture and the leaves move.</p>
         <div className="mt-4">
-          <UnifiedCalendar tab={tab} onTab={setTab} />
+          <UnifiedCalendar tab={tab} onTab={setTab} animated />
         </div>
         <Legend />
 

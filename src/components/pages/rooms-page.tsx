@@ -7,6 +7,8 @@ import { DAY_KEYS, ROOM_UNAVAILABLE } from '@/lib/constants'
 import { PUBLIC_CLASS_TONE, PUBLIC_CLUB_TONE, PUBLIC_EVENT_TONE } from '@/lib/calendar-items'
 import { classStatusOn, clubStatusOn, clubWhere, eventStatusOn, eventWhere, isOnceEvent, isoOf, roomOptionsFor, fmt12Min, hourLabel12 } from '@/lib/app-utils'
 import { clubIcon } from '@/lib/icons'
+import { classMark, type ClassMark } from '@/lib/class-marks'
+import { ClassMarkIcons } from '@/components/class-mark'
 import { closedHoliday } from '@/lib/holidays'
 import { cn } from '@/lib/utils'
 import type { State } from '@/lib/types'
@@ -27,6 +29,7 @@ interface Booking {
   kind: Kind
   tone: string // same tone classes as the other calendars
   icon?: string
+  mark?: ClassMark
   lead?: string
   group: string // legend label
   cancelled?: string // teacher away: the class does not run (value = reason)
@@ -76,7 +79,7 @@ function bookingsForWeek(state: State, monday: Date, plain: boolean): Booking[] 
         // interns only need to know an English class is on, not which group it is
         label: plain ? 'English class' : c.code,
         tone: PUBLIC_CLASS_TONE,
-        icon: c.icon,
+        mark: classMark(state, c) || undefined,
         lead: plain ? undefined : stt.kind === 'cover' ? 'Cover: ' + stt.cover : c.teacher,
         group: 'English classes',
         cancelled: stt.kind === 'cancelled' ? stt.absence.reason || 'Teacher away' : undefined,
@@ -371,7 +374,7 @@ export function RoomsPage({ embedded = false, focus, only = false }: { embedded?
                               >
                                 <span aria-hidden className="absolute left-[3px] top-1 bottom-1 w-[3px] rounded-full" style={{ background: 'var(--tone-txt)', opacity: 0.45 }} />
                                 <span className="flex w-full items-center gap-1 text-[11px] font-bold leading-[13px]">
-                                  {Icon ? <Icon className="h-3 w-3 shrink-0" /> : <i className="inline-block h-1.5 w-1.5 shrink-0 rounded-full" style={{ background: 'var(--tone-txt)' }} />}
+                                  {b.mark ? <ClassMarkIcons mark={b.mark} className="h-3 w-3 shrink-0" /> : Icon ? <Icon className="h-3 w-3 shrink-0" /> : <i className="inline-block h-1.5 w-1.5 shrink-0 rounded-full" style={{ background: 'var(--tone-txt)' }} />}
                                   <span className={all ? 'truncate' : 'line-clamp-3 break-words leading-[12px]'} dir="auto">
                                     {b.label}
                                     {b.lead && <span className="font-medium opacity-80"> · {b.lead}</span>}

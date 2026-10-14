@@ -5,6 +5,9 @@ export const ACTIVITY = {
   event: { label: 'Events', ink: '#C2410C', tint: '#FBE3D5' },
 } as const
 
+/* anything held outside the space, whatever it is: its own colour so it is never mistaken for something in a room */
+export const OUTSIDE = { label: 'Outside', ink: '#DB2777', tint: '#FCE7F3' } as const
+
 /* states that are not an activity */
 export const STATUS = {
   free: { label: 'Free', ink: '#15803D', tint: '#DCF3E4' },
