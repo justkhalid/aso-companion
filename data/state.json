@@ -51265,6 +51265,19 @@
       "icon": "cinema",
       "freq": "weekly",
       "from": "2026-10-29"
+    },
+    {
+      "id": "xmv80ziz8nwpyk",
+      "name": "Art for Kids",
+      "desc": "",
+      "days": [],
+      "time": "14:00-16:00",
+      "room": "Main Hall",
+      "lead": "Siham",
+      "vol": [],
+      "url": "",
+      "icon": "art",
+      "freq": "weekly"
     }
   ],
   "events": [
@@ -51319,9 +51332,13 @@
   ],
   "reports": [],
   "libraryPins": [],
-  "_rev": 1791940811883,
-  "_updated": "2026-10-14T10:56:52.262Z",
+  "_rev": 1791940811884,
+  "_updated": "2026-10-14T11:27:29.513Z",
   "_changes": [
+    {
+      "t": "2026-10-14T11:27:29.514Z",
+      "text": "Club added: Art for Kids (no day, 2:00 PM - 4:00 PM)"
+    },
     {
       "t": "2026-10-14T10:56:18.540Z",
       "text": "Club added: Movie Discussion Club (Thursday, 3:00 PM - 5:00 PM)"
