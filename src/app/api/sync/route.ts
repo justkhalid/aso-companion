@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { gunzipSync } from 'node:zlib'
 import { writeCloudState, readCloudState } from '@/lib/state-store'
 import { isAdmin, keepSecrets } from '@/lib/auth'
 
@@ -12,7 +13,7 @@ import { isAdmin, keepSecrets } from '@/lib/auth'
  *
  * Requires the admin session cookie from POST /api/login (401 otherwise).
  *
- * Request body: { content: string (JSON string of the state) }
+ * Request body: the state as JSON, gzipped (header X-ASO-Encoding: gzip), or { content: string } as plain JSON
  * Response: { ok: boolean, msg: string, mode: StorageMode }
  */
 export async function POST(req: NextRequest) {
@@ -20,8 +21,16 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ ok: false, msg: 'Sign in as admin to save' }, { status: 401 })
   }
   try {
-    const body = await req.json()
-    const { content, message } = body as { content: string; message?: string }
+    /* the app sends the data gzipped (a few MB is over Vercel's request limit); a plain JSON body still works */
+    let content: string
+    let message: string | undefined
+    if (req.headers.get('x-aso-encoding') === 'gzip') {
+      content = gunzipSync(Buffer.from(await req.arrayBuffer())).toString('utf8')
+    } else {
+      const body = (await req.json()) as { content: string; message?: string }
+      content = body.content
+      message = body.message
+    }
 
     if (!content) {
       return NextResponse.json({ ok: false, msg: 'Missing content' }, { status: 400 })
