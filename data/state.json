@@ -49694,7 +49694,7 @@
     },
     {
       "id": "xmv7zvukfl0zbj",
-      "name": "Badradine",
+      "name": "Badr-eddine",
       "roles": [
         "Volunteer"
       ],
@@ -51255,16 +51255,16 @@
       "name": "Movie Discussion Club",
       "desc": "",
       "days": [
-        "Thu"
+        "Wed"
       ],
-      "time": "15:00-17:00",
+      "time": "16:00-18:00",
       "room": "Main Hall",
-      "lead": "Badradine",
+      "lead": "Badr-eddine",
       "vol": [],
       "url": "",
       "icon": "cinema",
       "freq": "weekly",
-      "from": "2026-10-29"
+      "from": "2026-10-21"
     },
     {
       "id": "xmv80ziz8nwpyk",
@@ -51331,10 +51331,24 @@
     }
   ],
   "reports": [],
-  "libraryPins": [],
-  "_rev": 1791940811884,
-  "_updated": "2026-10-14T11:27:29.513Z",
+  "libraryPins": [
+    "lib|speakout2|Speakout 2nd Edition"
+  ],
+  "_rev": 1791940811891,
+  "_updated": "2026-10-14T14:44:57.097Z",
   "_changes": [
+    {
+      "t": "2026-10-14T14:44:57.098Z",
+      "text": "Kids 3 is cancelled on 17 October"
+    },
+    {
+      "t": "2026-10-14T14:27:06.109Z",
+      "text": "Movie Discussion Club: days changed from Thursday to Wednesday"
+    },
+    {
+      "t": "2026-10-14T14:27:06.109Z",
+      "text": "Movie Discussion Club: time changed from 3:00 PM - 5:00 PM to 4:00 PM - 6:00 PM"
+    },
     {
       "t": "2026-10-14T11:27:29.514Z",
       "text": "Club added: Art for Kids (no day, 2:00 PM - 4:00 PM)"
@@ -51372,6 +51386,15 @@
       "from": "2026-10-11",
       "to": "2026-10-11",
       "reason": "Other"
+    },
+    {
+      "id": "xmv881gn0oodwx",
+      "kind": "teacher",
+      "teacher": "Nadia",
+      "from": "2026-10-17",
+      "to": "2026-10-17",
+      "reason": "Other",
+      "note": "Master Oral Exam"
     }
   ]
 }
