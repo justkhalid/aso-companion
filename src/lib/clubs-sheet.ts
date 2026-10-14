@@ -1,4 +1,5 @@
 import { posterItems, type PosterKind } from './poster-items'
+import { paintPosterOverlay } from './poster-overlay'
 import type { State } from './types'
 
 /* Clubs export: one PNG with every club on a single page. */
@@ -109,6 +110,7 @@ export async function downloadClubsPng(state: State, kind: PosterKind = 'clubs')
       g.roundRect(px, py, w, h, 18)
       g.clip()
       g.drawImage(im, px, py, w, h)
+      paintPosterOverlay(g, logo, px, py, w, h)
       g.restore()
       g.strokeStyle = '#d8d8de'
       g.lineWidth = 2
@@ -125,6 +127,12 @@ export async function downloadClubsPng(state: State, kind: PosterKind = 'clubs')
       g.textAlign = 'center'
       wrap(c.name, CW - 80, 4).forEach((l, n) => g.fillText(l, x + CW / 2, y + PH / 2 - 60 + n * 60))
       g.textAlign = 'left'
+      g.save()
+      g.beginPath()
+      g.roundRect(x, y, CW, PH, 18)
+      g.clip()
+      paintPosterOverlay(g, logo, x, y, CW, PH)
+      g.restore()
     }
     g.textAlign = 'center'
     g.fillStyle = '#1c1c1e'

@@ -1,4 +1,5 @@
 import { DAY_FULL, DAY_KEYS } from './constants'
+import { paintPosterOverlay } from './poster-overlay'
 import { fmtTime, hourLabel12, parseSlot } from './app-utils'
 import { posterItems, type PosterItem, type PosterKind } from './poster-items'
 import { TONE_RGB } from './export-canvas'
@@ -128,7 +129,7 @@ export const pill = (g: CanvasRenderingContext2D, text: string, cx: number, y: n
 type Card = { h: number; draw: (g: CanvasRenderingContext2D, x: number, y: number) => void }
 
 /* one club: white card, the poster in full, the name, then time and place as pills */
-function makeCard(f: Fonts, scratch: CanvasRenderingContext2D, c: PosterItem, im: HTMLImageElement | null, w: number, withDay = false): Card {
+function makeCard(f: Fonts, scratch: CanvasRenderingContext2D, c: PosterItem, im: HTMLImageElement | null, w: number, withDay = false, logo: HTMLImageElement | null = null): Card {
   const P = Math.round(w * 0.045)
   const pw = w - P * 2
   const ph = im ? Math.round((pw * im.height) / im.width) : Math.round(pw * RATIO)
@@ -167,6 +168,7 @@ function makeCard(f: Fonts, scratch: CanvasRenderingContext2D, c: PosterItem, im
         wrap(g, c.name, pw - 60, 4).forEach((l, n, a) => g.fillText(l, x + P + pw / 2, y + P + ph / 2 + (n - (a.length - 1) / 2) * Math.round(pw / 9)))
         g.textAlign = 'left'
       }
+      paintPosterOverlay(g, logo, x + P, y + P, pw, ph)
       g.restore()
       g.strokeStyle = 'rgba(60,60,67,.16)'
       g.lineWidth = 2
@@ -287,7 +289,7 @@ export async function renderClubsCalendar(state: State, style: ClubsCalendarStyl
   const CW = 560
   const GAP = 44
   const W = M * 2 + COLS * CW + (COLS - 1) * GAP
-  const cards = clubs.map((c) => makeCard(f, scratch, c, imgOf(c), CW, true))
+  const cards = clubs.map((c) => makeCard(f, scratch, c, imgOf(c), CW, true, logo))
   const icons = await Promise.all(clubs.map((c) => iconImage(clubIcon(c.icon)?.Icon || Sparkles, '#ffffff', 48)))
   const ends_ = clubs.map((c) => {
     const m = /-(\d{1,2}):(\d{2})/.exec(c.time || '')
