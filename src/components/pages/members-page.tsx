@@ -61,6 +61,15 @@ export function MembersPage() {
   const [msg, setMsg] = React.useState<{ ok: boolean; text: string } | null>(null)
   const [confirmOff, setConfirmOff] = React.useState(false)
   const [open, setOpen] = React.useState<Member | null>(null)
+  const [full, setFull] = React.useState<{ nr: number; data?: Record<string, unknown> | null; error?: string } | null>(null)
+  const openMember = (m: Member) => {
+    setOpen(m)
+    setFull(null)
+    fetch('/api/members?nr=' + m.nr, { cache: 'no-store' })
+      .then((r) => r.json())
+      .then((j: { member?: Record<string, unknown> | null; error?: string }) => setFull({ nr: m.nr, data: j.member, error: j.error }))
+      .catch(() => setFull({ nr: m.nr, error: 'The details could not be loaded.' }))
+  }
 
   const load = React.useCallback(async (fresh = false) => {
     setBusy(true)
@@ -250,7 +259,7 @@ export function MembersPage() {
                   {rows.slice(page * PAGE, page * PAGE + PAGE).map((m) => (
                     <tr key={m.nr} className={cn('border-b border-border/60 last:border-0', m.banned && 'bg-destructive/5')}>
                       <td className="py-2 pr-3 tabular-nums text-muted-foreground">{m.nr}</td>
-                      <td className="py-2 pr-3 font-semibold"><button type="button" onClick={() => setOpen(m)} className="text-left hover:text-primary hover:underline">{m.name || '(no name)'}</button></td>
+                      <td className="py-2 pr-3 font-semibold"><button type="button" onClick={() => openMember(m)} className="text-left hover:text-primary hover:underline">{m.name || '(no name)'}</button></td>
                       <td className="py-2 pr-3 capitalize text-muted-foreground">{m.occupation}</td>
                       <td className="py-2 pr-3 whitespace-nowrap text-muted-foreground">{day(m)}</td>
                       <td className="py-2 pr-3">{m.cardPrinted ? <span className="text-[var(--aso-ok)]">Printed</span> : <span className="text-[var(--aso-gold)]">To print</span>}</td>
@@ -290,13 +299,15 @@ export function MembersPage() {
                 <DialogDescription>Member number {open.nr}{open.banned ? ' · Banned' : ''}</DialogDescription>
               </DialogHeader>
               <dl className="grid grid-cols-[8rem_1fr] gap-x-3 gap-y-2 text-sm">
-                {Object.entries(open.all).map(([k, v]) => (
+                {Object.entries(full?.nr === open.nr && full.data ? full.data : open.all).map(([k, v]) => (
                   <React.Fragment key={k}>
                     <dt className="text-xs font-bold text-muted-foreground">{label(k)}</dt>
                     <dd><Value v={v} /></dd>
                   </React.Fragment>
                 ))}
               </dl>
+              {full?.nr !== open.nr && <p className="text-xs text-muted-foreground">Loading the full details...</p>}
+              {full?.nr === open.nr && full.error && <p className="text-xs text-destructive">{full.error}</p>}
             </>
           )}
         </DialogContent>
