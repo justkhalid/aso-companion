@@ -33,14 +33,15 @@ async function renderBoth(R: KitRec) {
   await loadKitFonts()
   const p = await kitParams(R)
   const t = kitTheme(R)
-  return { story: await makeStory(p, t), cover: await makeCover(p, t) }
+  /* events have no WhatsApp group, so only clubs get the group picture */
+  return { story: await makeStory(p, t), cover: R.type === 'club' ? await makeCover(p, t) : null }
 }
 
 async function downloadBoth(R: KitRec) {
   const { story, cover } = await renderBoth(R)
   const sl = kitSlug(R)
   saveBlob(await toBlob(story), `${sl}-story.png`)
-  setTimeout(() => void toBlob(cover).then((b) => saveBlob(b, `${sl}-whatsapp.png`)), 600)
+  if (cover) setTimeout(() => void toBlob(cover).then((b) => saveBlob(b, `${sl}-whatsapp.png`)), 600)
 }
 
 function CanvasHost({ canvas, className }: { canvas: HTMLCanvasElement | null; className?: string }) {
@@ -228,7 +229,7 @@ function KitEditor({ kind, id, onBack, onEditSchedule }: { kind: Kind; id: strin
   }, [savedPoster])
 
   /* the pictures */
-  const [out, setOut] = React.useState<{ story: HTMLCanvasElement; cover: HTMLCanvasElement } | null>(null)
+  const [out, setOut] = React.useState<{ story: HTMLCanvasElement; cover: HTMLCanvasElement | null } | null>(null)
   const [updating, setUpdating] = React.useState(true)
   const visual = R ? [R.kicker, R.top, R.word, R.look, R.palette, R.decor, R.icon, R.bg, R.day, R.time, R.venue, R.poster ?? ''].join('|') : ''
   React.useEffect(() => {
@@ -265,8 +266,8 @@ function KitEditor({ kind, id, onBack, onEditSchedule }: { kind: Kind; id: strin
   const title = [R.top, R.word].filter(Boolean).join(' ') || R.name
   const sl = kitSlug(R)
   const dlStory = () => out && void toBlob(out.story).then((b) => saveBlob(b, `${sl}-story.png`))
-  const dlCover = () => out && void toBlob(out.cover).then((b) => saveBlob(b, `${sl}-whatsapp.png`))
-  const dlBoth = () => { dlStory(); setTimeout(dlCover, 600) }
+  const dlCover = () => out?.cover && void toBlob(out.cover).then((b) => saveBlob(b, `${sl}-whatsapp.png`))
+  const dlBoth = () => { dlStory(); if (out?.cover) setTimeout(dlCover, 600) }
 
   return (
     <div className="mx-auto max-w-[1240px] px-4 py-6 sm:py-8">
@@ -276,7 +277,7 @@ function KitEditor({ kind, id, onBack, onEditSchedule }: { kind: Kind; id: strin
           <h1 className="truncate text-xl font-extrabold tracking-tight">{title}</h1>
           <p className="text-xs text-muted-foreground">{updating ? 'Updating the pictures...' : 'Changes are saved with the ' + kind + '.'}</p>
         </div>
-        <Button size="sm" disabled={!out} onClick={dlBoth}><Download className="h-4 w-4" /> Download both pictures</Button>
+        <Button size="sm" disabled={!out} onClick={dlBoth}><Download className="h-4 w-4" /> {kind === 'club' ? 'Download both pictures' : 'Download story'}</Button>
       </div>
 
       <div className="grid gap-6 lg:grid-cols-2 lg:items-start">
@@ -409,6 +410,7 @@ function KitEditor({ kind, id, onBack, onEditSchedule }: { kind: Kind; id: strin
                       ))}
                     </div>
                   </div>
+                  {kind === 'club' && (
                   <div>
                     <Lab hint="Only the WhatsApp group picture uses it.">WhatsApp picture background</Lab>
                     <div className="grid grid-cols-4 gap-2">
@@ -419,6 +421,7 @@ function KitEditor({ kind, id, onBack, onEditSchedule }: { kind: Kind; id: strin
                       ))}
                     </div>
                   </div>
+                  )}
                 </Block>
               </>
             )}
@@ -431,12 +434,14 @@ function KitEditor({ kind, id, onBack, onEditSchedule }: { kind: Kind; id: strin
                     <Copy className="h-4 w-4" /> Copy caption
                   </Button>
                 </Block>
-                <Block title="WhatsApp group link">
-                  <div>
-                    <Lab hint="For the link sticker on the story.">Link</Lab>
-                    <input className={inputCls} value={R.wa} placeholder="https://chat.whatsapp.com/..." onChange={(e) => set('wa', e.target.value.trim())} />
-                  </div>
-                </Block>
+                {kind === 'club' && (
+                  <Block title="WhatsApp group link">
+                    <div>
+                      <Lab hint="For the link sticker on the story.">Link</Lab>
+                      <input className={inputCls} value={R.wa} placeholder="https://chat.whatsapp.com/..." onChange={(e) => set('wa', e.target.value.trim())} />
+                    </div>
+                  </Block>
+                )}
                 <Block title="Publish">
                   <div className="flex items-start gap-3 rounded-xl border border-dashed border-border bg-secondary/40 p-3 text-xs text-muted-foreground">
                     <Share2 className="mt-0.5 h-4 w-4 shrink-0" />
@@ -450,9 +455,9 @@ function KitEditor({ kind, id, onBack, onEditSchedule }: { kind: Kind; id: strin
 
         {/* the pictures, always in view while settings change */}
         <div className="flex min-w-0 flex-col gap-3 lg:sticky lg:top-20">
-          <div className="grid grid-cols-2 items-stretch gap-3">
+          <div className={cn('grid items-stretch gap-3', kind === 'club' ? 'grid-cols-2' : 'mx-auto w-full max-w-[420px] grid-cols-1')}>
             <PreviewCard title="Instagram story" canvas={out?.story ?? null} onDownload={dlStory} />
-            <PreviewCard title="WhatsApp picture" note="shown round" canvas={out?.cover ?? null} round onDownload={dlCover} />
+            {kind === 'club' && <PreviewCard title="WhatsApp picture" note="shown round" canvas={out?.cover ?? null} round onDownload={dlCover} />}
           </div>
         </div>
       </div>

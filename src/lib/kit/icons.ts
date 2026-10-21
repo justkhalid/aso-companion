@@ -1,4 +1,4 @@
-/* The 34 line icons of the club kit (24 grid, stroke 0.9; the accent paths are filled). Ported unchanged from the generator. */
+/* The line icons of the club kit (24 grid, stroke 0.9; the accent paths are filled). The first 34 come from the generator, the rest were added for the Social kit. */
 export const KIT_ICONS: Record<string, { label: string; stroke: string; accent: string }> = {
  "i-movie": {
   "label": "Movie night",
@@ -169,5 +169,135 @@ export const KIT_ICONS: Record<string, { label: string; stroke: string; accent: 
   "label": "Astronomy",
   "stroke": "<circle cx=\"12\" cy=\"12\" r=\"5.2\" fill=\"none\"/><ellipse cx=\"12\" cy=\"12\" rx=\"10\" ry=\"3.2\" transform=\"rotate(-24 12 12)\" fill=\"none\"/>",
   "accent": "<circle cx=\"19.600\" cy=\"5\" r=\"1.100\" fill=\"#000\" stroke=\"none\"/><circle cx=\"4.600\" cy=\"18.600\" r=\".8\" fill=\"#000\" stroke=\"none\"/>"
+ },
+ "trophy": {
+  "label": "Trophy",
+  "stroke": "<path d=\"M7.4 3.8h9.2v5.6a4.6 4.6 0 0 1-9.2 0z\" fill=\"none\"/><path d=\"M7.4 5.8H4.6a3 3 0 0 0 3.2 4.4M16.6 5.8h2.8a3 3 0 0 1-3.2 4.4\" fill=\"none\"/><path d=\"M12 14v3.6M8.6 20.4h6.8M9.6 17.6h4.8v2.8H9.6z\" fill=\"none\"/>",
+  "accent": "<path d=\"M12 6.2l.8 1.7 1.8.2-1.3 1.2.4 1.8-1.7-.9-1.7.9.4-1.8-1.3-1.2 1.8-.2z\" fill=\"#000\" stroke=\"none\"/>"
+ },
+ "microphone": {
+  "label": "Microphone",
+  "stroke": "<rect x=\"8.8\" y=\"2.8\" width=\"6.4\" height=\"11.4\" rx=\"3.2\" fill=\"none\"/><path d=\"M5.2 11.2a6.8 6.8 0 0 0 13.6 0M12 18v3.2M8.4 21.2h7.2\" fill=\"none\"/>",
+  "accent": "<path d=\"M8.8 7.4h6.4M8.8 10.2h6.4\" fill=\"none\"/>"
+ },
+ "ideas": {
+  "label": "Ideas",
+  "stroke": "<path d=\"M9 17.4c-2-1.4-3.4-3.6-3.4-6.2a6.4 6.4 0 0 1 12.8 0c0 2.6-1.4 4.8-3.4 6.2z\" fill=\"none\"/><path d=\"M9.4 20.2h5.2M10.4 22.2h3.2\" fill=\"none\"/>",
+  "accent": "<path d=\"M9.8 11.4l2.2 2.4 2.2-2.4M12 13.8v3.4\" fill=\"none\"/>"
+ },
+ "rocket": {
+  "label": "Rocket",
+  "stroke": "<path d=\"M12 2.6c3 2.2 4.6 5.6 4.6 9.2l-2 3.2H9.4l-2-3.2c0-3.6 1.6-7 4.6-9.2z\" fill=\"none\"/><path d=\"M7.6 11.4L4.8 15l2.8.6M16.4 11.4l2.8 3.6-2.8.6\" fill=\"none\"/><circle cx=\"12\" cy=\"9.2\" r=\"1.7\" fill=\"none\"/>",
+  "accent": "<path d=\"M10.4 18c.2 1.6.8 2.8 1.6 3.6.8-.8 1.4-2 1.6-3.6\" fill=\"none\"/>"
+ },
+ "hiking": {
+  "label": "Hiking",
+  "stroke": "<path d=\"M2.4 19.6l6.4-11 3.6 5.8 2.4-3.4 6.8 8.6z\" fill=\"none\"/>",
+  "accent": "<circle cx=\"17.4\" cy=\"5.6\" r=\"1.9\" fill=\"#000\" stroke=\"none\"/><path d=\"M6.4 12.4l2.4-3.8 1.8 2.8\" fill=\"none\"/>"
+ },
+ "nature": {
+  "label": "Trees",
+  "stroke": "<path d=\"M12 3a5.2 5.2 0 0 0-4.6 7.6A4.4 4.4 0 0 0 9 18.2h6a4.4 4.4 0 0 0 1.6-7.6A5.2 5.2 0 0 0 12 3z\" fill=\"none\"/><path d=\"M9.4 21h5.2\" fill=\"none\"/>",
+  "accent": "<path d=\"M12 18.2V13M12 14.6l2.2-2.2M12 12.6l-2-1.8\" fill=\"none\"/>"
+ },
+ "energy": {
+  "label": "Energy",
+  "stroke": "<circle cx=\"12\" cy=\"12\" r=\"3.6\" fill=\"none\"/>",
+  "accent": "<path d=\"M12 2.8v2.6M12 18.6v2.6M2.8 12h2.6M18.6 12h2.6M5.5 5.5l1.8 1.8M16.7 16.7l1.8 1.8M5.5 18.5l1.8-1.8M16.7 7.3l1.8-1.8\" fill=\"none\"/>"
+ },
+ "community": {
+  "label": "Community",
+  "stroke": "<circle cx=\"12\" cy=\"7.4\" r=\"2.6\" fill=\"none\"/><path d=\"M7.2 19.6v-1.4a4.8 4.8 0 0 1 9.6 0v1.4z\" fill=\"none\"/><circle cx=\"5\" cy=\"10\" r=\"2\" fill=\"none\"/><circle cx=\"19\" cy=\"10\" r=\"2\" fill=\"none\"/>",
+  "accent": "<path d=\"M2.2 18.4v-.8a3.2 3.2 0 0 1 3.2-3.2M21.8 18.4v-.8a3.2 3.2 0 0 0-3.2-3.2\" fill=\"none\"/>"
+ },
+ "graduation": {
+  "label": "Graduation",
+  "stroke": "<path d=\"M12 4.2L2.6 9 12 13.8 21.4 9z\" fill=\"none\"/><path d=\"M6.4 11.6v4.4c0 1.4 2.6 3 5.6 3s5.6-1.6 5.6-3v-4.4\" fill=\"none\"/>",
+  "accent": "<path d=\"M21.4 9v6\" fill=\"none\"/><circle cx=\"21.4\" cy=\"16.2\" r=\".9\" fill=\"#000\" stroke=\"none\"/>"
+ },
+ "news": {
+  "label": "News",
+  "stroke": "<path d=\"M4 4.4h12.4v15.2H6.4A2.4 2.4 0 0 1 4 17.2z\" fill=\"none\"/><path d=\"M16.4 8.4H20v8.8a2.4 2.4 0 0 1-2.4 2.4H6.4\" fill=\"none\"/>",
+  "accent": "<path d=\"M7 8.4h6M7 11.6h6M7 14.8h4\" fill=\"none\"/>"
+ },
+ "clapper": {
+  "label": "Film",
+  "stroke": "<path d=\"M4.8 9.8V20h14.4V9.8\" fill=\"none\"/><path d=\"M3.6 6.4h16.8v3.4H3.6z\" fill=\"none\"/>",
+  "accent": "<path d=\"M8.6 6.4L7 9.8M13.4 6.4l-1.6 3.4M18.2 6.4l-1.6 3.4M3.6 3.4l16.8 0\" fill=\"none\"/>"
+ },
+ "piano": {
+  "label": "Piano",
+  "stroke": "<rect x=\"3\" y=\"5.4\" width=\"18\" height=\"13.2\" rx=\"2.4\" fill=\"none\"/><path d=\"M7.5 13v5.6M12 13v5.6M16.5 13v5.6\" fill=\"none\"/>",
+  "accent": "<path d=\"M6.4 5.4h2.2V13H6.4zM10.9 5.4h2.2V13h-2.2zM15.4 5.4h2.2V13h-2.2z\" fill=\"#000\" stroke=\"none\"/>"
+ },
+ "dice": {
+  "label": "Board games",
+  "stroke": "<rect x=\"3.6\" y=\"3.6\" width=\"16.8\" height=\"16.8\" rx=\"4.4\" fill=\"none\"/>",
+  "accent": "<circle cx=\"8.4\" cy=\"8.4\" r=\"1.2\" fill=\"#000\" stroke=\"none\"/><circle cx=\"15.6\" cy=\"8.4\" r=\"1.2\" fill=\"#000\" stroke=\"none\"/><circle cx=\"12\" cy=\"12\" r=\"1.2\" fill=\"#000\" stroke=\"none\"/><circle cx=\"8.4\" cy=\"15.6\" r=\"1.2\" fill=\"#000\" stroke=\"none\"/><circle cx=\"15.6\" cy=\"15.6\" r=\"1.2\" fill=\"#000\" stroke=\"none\"/>"
+ },
+ "calendar": {
+  "label": "Workshop",
+  "stroke": "<rect x=\"3.6\" y=\"5.4\" width=\"16.8\" height=\"15\" rx=\"2.8\" fill=\"none\"/><path d=\"M3.6 10h16.8M8 3.2v4M16 3.2v4\" fill=\"none\"/>",
+  "accent": "<path d=\"M8.6 15l2.4 2.4 4.6-4.6\" fill=\"none\"/>"
+ },
+ "coffee": {
+  "label": "Cafe",
+  "stroke": "<path d=\"M4.8 9.6h11.2v5.4a4.4 4.4 0 0 1-4.4 4.4H9.2a4.4 4.4 0 0 1-4.4-4.4z\" fill=\"none\"/><path d=\"M16 11h1.4a2.6 2.6 0 0 1 0 5.2H16\" fill=\"none\"/>",
+  "accent": "<path d=\"M8.2 3.6c-.9 1.1.9 1.7 0 3M12.2 3.6c-.9 1.1.9 1.7 0 3\" fill=\"none\"/>"
+ },
+ "cycling": {
+  "label": "Cycling",
+  "stroke": "<circle cx=\"6\" cy=\"16.4\" r=\"3.6\" fill=\"none\"/><circle cx=\"18\" cy=\"16.4\" r=\"3.6\" fill=\"none\"/><path d=\"M6 16.4l3.6-7.2h5.8l2.6 7.2M6 16.4h6M12 16.4L9.6 9.2M12 16.4l3.4-7.2\" fill=\"none\"/>",
+  "accent": "<path d=\"M8.2 7.4h2.8M14.2 7h2.8\" fill=\"none\"/>"
+ },
+ "swimming": {
+  "label": "Swimming",
+  "stroke": "<path d=\"M2.4 17.2c1.5 1.6 3 1.6 4.5 0s3-1.6 4.5 0 3 1.6 4.5 0 3-1.6 4.5 0M2.4 21c1.5 1.6 3 1.6 4.5 0s3-1.6 4.5 0 3 1.6 4.5 0 3-1.6 4.5 0\" fill=\"none\"/>",
+  "accent": "<circle cx=\"15.6\" cy=\"6.8\" r=\"1.9\" fill=\"#000\" stroke=\"none\"/><path d=\"M5.6 13.2l5-3.6 3.2 2.8M10.6 9.6l3.2-.8\" fill=\"none\"/>"
+ },
+ "yoga": {
+  "label": "Yoga",
+  "stroke": "<circle cx=\"12\" cy=\"5.2\" r=\"2.1\" fill=\"none\"/><path d=\"M12 8.6c-2.2 0-3.6 1.8-3.6 4.2v1.4h7.2v-1.4c0-2.4-1.4-4.2-3.6-4.2z\" fill=\"none\"/>",
+  "accent": "<path d=\"M8.4 12L5 15.2M15.6 12L19 15.2M4.4 19c2.6-2.2 5.2-2.6 7.6-.8 2.4-1.8 5-1.4 7.6.8\" fill=\"none\"/>"
+ },
+ "basketball": {
+  "label": "Basketball",
+  "stroke": "<circle cx=\"12\" cy=\"12\" r=\"9\" fill=\"none\"/>",
+  "accent": "<path d=\"M3 12h18M12 3v18M5.4 5.6c3.6 2.8 3.6 10 0 12.8M18.6 5.6c-3.6 2.8-3.6 10 0 12.8\" fill=\"none\"/>"
+ },
+ "pingpong": {
+  "label": "Ping-pong",
+  "stroke": "<circle cx=\"10\" cy=\"10\" r=\"6.4\" fill=\"none\"/><path d=\"M14.6 14.6l5.2 5.2\" fill=\"none\"/>",
+  "accent": "<circle cx=\"18.6\" cy=\"5.4\" r=\"1.8\" fill=\"#000\" stroke=\"none\"/>"
+ },
+ "talent": {
+  "label": "Talent show",
+  "stroke": "<path d=\"M12 3l2.8 5.7 6.2.9-4.5 4.4 1.1 6.2-5.6-3-5.6 3 1.1-6.2L3 9.6l6.2-.9z\" fill=\"none\"/>",
+  "accent": "<path d=\"M12 8.4l.9 1.9 2 .3-1.5 1.4.4 2-1.8-1-1.8 1 .4-2-1.5-1.4 2-.3z\" fill=\"#000\" stroke=\"none\"/>"
+ },
+ "conversation": {
+  "label": "Conversation",
+  "stroke": "<path d=\"M3.4 5h11.4v7.4H9l-3.4 3v-3H3.4z\" fill=\"none\"/><path d=\"M9.4 14.6v2.2h5.2l3 3v-3h3v-7h-4.6\" fill=\"none\"/>",
+  "accent": "<path d=\"M6.2 8.2h6\" fill=\"none\"/>"
+ },
+ "library": {
+  "label": "Library",
+  "stroke": "<path d=\"M3.8 4.8h4.6v14.8H3.8zM8.4 4.8H13v14.8H8.4z\" fill=\"none\"/><path d=\"M13.8 6.6l4.4-1.4 3 14-4.4 1.4z\" fill=\"none\"/>",
+  "accent": "<path d=\"M3.8 9h4.6M3.8 15.6h4.6\" fill=\"none\"/>"
+ },
+ "video": {
+  "label": "Video",
+  "stroke": "<rect x=\"2.8\" y=\"6.4\" width=\"12.8\" height=\"11.2\" rx=\"2.6\" fill=\"none\"/><path d=\"M15.6 10.4l5.6-3v9.2l-5.6-3\" fill=\"none\"/>",
+  "accent": "<circle cx=\"6.4\" cy=\"10\" r=\"0.9\" fill=\"#000\" stroke=\"none\"/>"
+ },
+ "quiz": {
+  "label": "Quiz",
+  "stroke": "<circle cx=\"12\" cy=\"12\" r=\"9.2\" fill=\"none\"/>",
+  "accent": "<path d=\"M9.4 9.6a2.7 2.7 0 1 1 3.9 2.4c-.9.5-1.3 1-1.3 2.1M12 17h.01\" fill=\"none\"/>"
+ },
+ "dance": {
+  "label": "Dance",
+  "stroke": "<circle cx=\"13\" cy=\"4.6\" r=\"2\" fill=\"none\"/><path d=\"M13 7.6c-.4 3-1.6 5-3.6 6.2l1.8 6.4M13 7.6c2 1 3.8 1 5.4.2M9.4 13.8c1.6.5 3 .6 4.6.1l2 5.6\" fill=\"none\"/>",
+  "accent": "<path d=\"M9.4 9.6L5.6 7M4.2 4.4h.01M6.2 3.2h.01\" fill=\"none\"/>"
  }
 }
