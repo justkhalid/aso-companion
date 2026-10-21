@@ -87,7 +87,7 @@ export function AbsenceDialog({
     if (!from || !to) return toast('Pick the dates', false)
     if (to < from) return toast('The last day cannot be before the first day', false)
     if (mode === 'move' && !mvPlace.trim() && !mvTime) return toast('Say where it moves to, or the new time', false)
-    if (mode === 'cover' && !cover.trim()) return toast('Pick who is covering, or choose cancelled', false)
+    if (mode === 'cover' && !cover.trim()) return toast('Pick who is covering, or choose canceled', false)
     const entry: Absence = {
       id: absence?.id || uid(),
       kind,
@@ -122,7 +122,7 @@ export function AbsenceDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle>{isNew ? 'Away, cancelled or moved' : 'Edit'}</DialogTitle>
+          <DialogTitle>{isNew ? 'Away, canceled or moved' : 'Edit'}</DialogTitle>
           <DialogDescription>
             The calendars, today&apos;s list and the room calendar update on their own for these dates.
           </DialogDescription>
@@ -221,7 +221,7 @@ export function AbsenceDialog({
           <div className="flex flex-col gap-1.5">
             <Label>{kind === 'teacher' ? 'What happens to the classes' : kind === 'club' ? 'What happens to the club' : 'What happens to the event'}</Label>
             <div className="flex gap-2">
-              <button type="button" onClick={() => setMode('cancel')} className={choice(mode === 'cancel')}>Cancelled<span className="block text-[11px] font-normal opacity-75">the room becomes free</span></button>
+              <button type="button" onClick={() => setMode('cancel')} className={choice(mode === 'cancel')}>Canceled<span className="block text-[11px] font-normal opacity-75">the room becomes free</span></button>
               {kind !== 'teacher' && (
                 <button type="button" onClick={() => setMode('move')} className={choice(mode === 'move')}>Held elsewhere<span className="block text-[11px] font-normal opacity-75">only on these dates</span></button>
               )}
@@ -246,7 +246,7 @@ export function AbsenceDialog({
 
           <div className="flex flex-col gap-1.5">
             <Label htmlFor="abs-note">Note (optional)</Label>
-            <span className="-mt-1 text-[11px] leading-tight text-muted-foreground">The calendars only say &quot;cancelled&quot; or who covers. The reason and this note stay on the Absences page and the admin room calendar, but they are saved with the rest of the app data, so keep them short and avoid private details.</span>
+            <span className="-mt-1 text-[11px] leading-tight text-muted-foreground">The calendars only say &quot;canceled&quot; or who covers. The reason and this note stay on the Absences page and the admin room calendar, but they are saved with the rest of the app data, so keep them short and avoid private details.</span>
             <Input id="abs-note" value={note} onChange={(e) => setNote(e.target.value)} placeholder="For you only, not shown on the calendars" />
           </div>
         </div>

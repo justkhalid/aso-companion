@@ -46,7 +46,7 @@ function clipTo(ctx: CanvasRenderingContext2D, t: string, w: number): string {
  * Shrink-to-fit: reduces the font size just enough for the FULL text to fit
  * maxW (down to minRatio of the requested size), then draws it whole.
  * Titles never turn into "Begin..." anymore; only pathologically long
- * strings fall back to an ellipsis rather than overlapping neighbours.
+ * strings fall back to an ellipsis rather than overlapping neighbors.
  */
 function drawFit(
   ctx: CanvasRenderingContext2D,

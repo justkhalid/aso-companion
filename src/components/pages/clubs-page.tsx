@@ -108,7 +108,7 @@ export function ClubsPage({ admin, internMode = false, section }: { admin: boole
       const out: GridItem[] = []
       const at = (days: string[]) => groupByWhere(days, thisMonday!, (iso) => clubWhere(state, c, iso))
       for (const g of at(sp.normal)) out.push({ ...base, id: whereId(c.id, g.w), days: g.days, slot: g.w.time, room: g.w.place, outside: g.w.outside, moved: g.w.moved, lead, tone: g.w.outside ? PUBLIC_OUTSIDE_TONE : tone })
-      if (sp.cancelled.length) out.push({ ...base, id: c.id + ':off', days: sp.cancelled, code: c.name + ' · cancelled', lead: 'cancelled', tone: 'tone-8' })
+      if (sp.canceled.length) out.push({ ...base, id: c.id + ':off', days: sp.canceled, code: c.name + ' · canceled', lead: 'canceled', tone: 'tone-8' })
       for (const [who, days] of Object.entries(sp.covered)) for (const g of at(days)) out.push({ ...base, id: whereId(c.id + ':cov:' + who, g.w), days: g.days, slot: g.w.time, room: g.w.place, outside: g.w.outside, moved: g.w.moved, lead: 'Led by ' + who, tone: g.w.outside ? PUBLIC_OUTSIDE_TONE : tone })
       return out
     })
@@ -125,16 +125,16 @@ export function ClubsPage({ admin, internMode = false, section }: { admin: boole
       }
       if (!day || !e.time) return null
       const off = hasAbsences
-        ? splitDaysByStatus([day], thisMonday, (iso) => eventStatusOn(state, e.id, isOnceEvent(e) && e.date ? e.date : iso)).cancelled.length > 0
+        ? splitDaysByStatus([day], thisMonday, (iso) => eventStatusOn(state, e.id, isOnceEvent(e) && e.date ? e.date : iso)).canceled.length > 0
         : false
       const w = eventWhere(state, e, isOnceEvent(e) && e.date ? e.date : isoOf(addDays(thisMonday, Math.max(0, DAY_KEYS.indexOf(day as (typeof DAY_KEYS)[number])))))
       return {
         id: off ? e.id + ':off' : whereId(e.id, w),
         days: [day],
         slot: off ? e.time : w.time,
-        code: off ? e.title + ' · cancelled' : e.title,
+        code: off ? e.title + ' · canceled' : e.title,
         meta: '',
-        lead: off ? 'cancelled' : e.lead || '',
+        lead: off ? 'canceled' : e.lead || '',
         room: off ? e.place || '' : w.place,
         outside: off ? !!e.outside : w.outside,
         moved: !off && w.moved,
@@ -148,7 +148,7 @@ export function ClubsPage({ admin, internMode = false, section }: { admin: boole
   const calLegend: LegendEntry[] = [
     ...(clubItems.length ? [{ label: 'Clubs', tone: PUBLIC_CLUB_TONE }] : []),
     ...(eventItems.length ? [{ label: 'Events', tone: PUBLIC_EVENT_TONE }] : []),
-    ...([...clubItems, ...eventItems].some((i) => i.tone === 'tone-8') ? [{ label: 'Cancelled', tone: 'tone-8' }] : []),
+    ...([...clubItems, ...eventItems].some((i) => i.tone === 'tone-8') ? [{ label: 'Canceled', tone: 'tone-8' }] : []),
   ]
 
   const exportYear = (state.settings.year || 'export').replace(/\//g, '-')
@@ -959,9 +959,9 @@ export function EventCard({
             <h3 className="min-w-0 text-[15px] font-bold leading-snug" dir="auto">{event.title}</h3>
             <Chip tone={isOnce ? 'primary' : 'gold'} icon={isOnce ? CalendarCheck : Repeat2}>{isOnce ? 'One time' : 'Repeating'}</Chip>
           </div>
-          {nextStatus.kind === 'cancelled' && (
+          {nextStatus.kind === 'canceled' && (
             <div className="rounded-xl bg-[#FF3B30]/10 px-3 py-2 text-[13px] font-semibold text-[#D70015] dark:text-[#FF6961]">
-              {isOnce ? 'Cancelled' : `The session on ${longDate(nextDate)} is cancelled`}
+              {isOnce ? 'Canceled' : `The session on ${longDate(nextDate)} is canceled`}
             </div>
           )}
 

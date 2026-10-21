@@ -1,4 +1,4 @@
-/* Calendar chips for the public main page: classes, clubs and events, with cancelled days for the given week. */
+/* Calendar chips for the public main page: classes, clubs and events, with canceled days for the given week. */
 import type { GridItem } from '@/components/weekly-grid'
 import {
   classStatusOn,
@@ -18,7 +18,7 @@ import { closedHoliday } from './holidays'
 import { classMark } from './class-marks'
 import type { State } from './types'
 
-/* classes as "English class ASO-K1" with teacher and room, all in one color; cancelled days in gray */
+/* classes as "English class ASO-K1" with teacher and room, all in one color; canceled days in gray */
 export const PUBLIC_CLASS_TONE = 'tone-9' // classes: teal (see activity-colors.ts)
 export const PUBLIC_CLUB_TONE = 'tone-10' // clubs: violet
 export const PUBLIC_EVENT_TONE = 'tone-11' // events: orange
@@ -31,7 +31,7 @@ export function publicGroupName(code: string, fallback: string): string {
 }
 
 
-/* a public holiday closes the space: those days show as "closed" rather than "cancelled" */
+/* a public holiday closes the space: those days show as "closed" rather than "canceled" */
 function withHolidays(items: GridItem[], monday: Date): GridItem[] {
   const closedName = (day: string): string | null => {
     const di = DAY_KEYS.indexOf(day as (typeof DAY_KEYS)[number])
@@ -46,7 +46,7 @@ function withHolidays(items: GridItem[], monday: Date): GridItem[] {
     }
     const open = it.days.filter((d) => !closedName(d))
     if (open.length) out.push({ ...it, days: open })
-    out.push({ ...it, id: it.id + ':closed', days: closed, code: it.code.replace(/ · cancelled$/, '') + ' · closed', lead: closedName(closed[0]) || undefined, tone: 'tone-8' })
+    out.push({ ...it, id: it.id + ':closed', days: closed, code: it.code.replace(/ · canceled$/, '') + ' · closed', lead: closedName(closed[0]) || undefined, tone: 'tone-8' })
   }
   /* the same session closed by a holiday and by an absence shows once */
   const seen = new Set<string>()
@@ -68,7 +68,7 @@ function rawClassItems(state: State, monday: Date): GridItem[] {
       const sp = splitDaysByStatus(c.days, monday, (iso) => classStatusOn(state, c, iso))
       const out: GridItem[] = []
       if (sp.normal.length) out.push({ ...base, id: c.id, days: sp.normal, lead: c.teacher, tone })
-      if (sp.cancelled.length) out.push({ ...base, id: c.id + ':off', days: sp.cancelled, code: base.code + ' · cancelled', lead: c.teacher, tone: 'tone-8' })
+      if (sp.canceled.length) out.push({ ...base, id: c.id + ':off', days: sp.canceled, code: base.code + ' · canceled', lead: c.teacher, tone: 'tone-8' })
       for (const [who, days] of Object.entries(sp.covered)) out.push({ ...base, id: c.id + ':cov:' + who, days, lead: 'Cover: ' + who, tone })
       return out
     })
@@ -99,7 +99,7 @@ function rawClubItems(state: State, monday: Date): GridItem[] {
       const out: GridItem[] = []
       const at = (days: string[]) => groupByWhere(days, monday, (iso) => clubWhere(state, c, iso))
       for (const g of at(sp.normal)) out.push({ ...base, id: whereId(c.id, g.w), days: g.days, slot: g.w.time, room: g.w.place, outside: g.w.outside, moved: g.w.moved, lead, tone: g.w.outside ? PUBLIC_OUTSIDE_TONE : tone })
-      if (sp.cancelled.length) out.push({ ...base, id: c.id + ':off', days: sp.cancelled, code: c.name + ' · cancelled', tone: 'tone-8' })
+      if (sp.canceled.length) out.push({ ...base, id: c.id + ':off', days: sp.canceled, code: c.name + ' · canceled', tone: 'tone-8' })
       for (const [who, days] of Object.entries(sp.covered)) for (const g of at(days)) out.push({ ...base, id: whereId(c.id + ':cov:' + who, g.w), days: g.days, slot: g.w.time, room: g.w.place, outside: g.w.outside, moved: g.w.moved, lead: who, tone: g.w.outside ? PUBLIC_OUTSIDE_TONE : tone })
       return out
     })
@@ -115,13 +115,13 @@ function rawEventItems(state: State, monday: Date): GridItem[] {
       day = DAY_KEYS[d.getDay() === 0 ? 6 : d.getDay() - 1] || ''
     }
     if (!day || !e.time) continue
-    const off = splitDaysByStatus([day], monday, (iso) => eventStatusOn(state, e.id, isOnceEvent(e) && e.date ? e.date : iso)).cancelled.length > 0
+    const off = splitDaysByStatus([day], monday, (iso) => eventStatusOn(state, e.id, isOnceEvent(e) && e.date ? e.date : iso)).canceled.length > 0
     const w = eventWhere(state, e, isOnceEvent(e) && e.date ? e.date : isoOf(addDays(monday, Math.max(0, DAY_KEYS.indexOf(day as (typeof DAY_KEYS)[number])))))
     out.push({
       id: off ? e.id + ':off' : whereId(e.id, w),
       days: [day],
       slot: off ? e.time : w.time,
-      code: off ? e.title + ' · cancelled' : e.title,
+      code: off ? e.title + ' · canceled' : e.title,
       room: off ? e.place || '' : w.place,
       outside: off ? !!e.outside : w.outside,
       moved: !off && w.moved,

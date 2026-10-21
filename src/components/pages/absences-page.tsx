@@ -72,7 +72,7 @@ export function AbsencesPage() {
   const card = (a: Absence, dim = false) => {
     const sub = subject(a)
     const n = sessionsIn(a)
-    const verb = a.moved ? 'moved' : a.cover ? 'covered' : 'cancelled'
+    const verb = a.moved ? 'moved' : a.cover ? 'covered' : 'canceled'
     return (
       <div key={a.id} className={`flex flex-col gap-3 rounded-2xl border border-border bg-card p-4 shadow-sm sm:flex-row sm:items-start ${dim ? 'opacity-60' : ''}`}>
         <div className="flex min-w-0 flex-1 items-start gap-3">
@@ -81,7 +81,7 @@ export function AbsencesPage() {
           <div className="flex flex-wrap items-center gap-2">
             <span className="font-bold">{sub.title}</span>
             <Chip icon={a.kind === 'club' ? Users : a.kind === 'event' ? Sparkles : UserX}>{a.kind === 'club' ? 'Club' : a.kind === 'event' ? 'Event' : 'Teacher away'}</Chip>
-            <Chip tone={a.cover || a.moved ? 'primary' : 'gold'} icon={a.moved ? MapPin : a.cover ? UserCheck : Ban}>{a.moved ? `Held ${a.moved.outside ? 'at' : 'in'} ${a.moved.place || 'the usual place'}${a.moved.time ? ' · ' + fmtTime(a.moved.time) : ''}` : a.cover ? (a.kind === 'club' ? `Led by ${a.cover}` : `Covered by ${a.cover}`) : 'Cancelled'}</Chip>
+            <Chip tone={a.cover || a.moved ? 'primary' : 'gold'} icon={a.moved ? MapPin : a.cover ? UserCheck : Ban}>{a.moved ? `Held ${a.moved.outside ? 'at' : 'in'} ${a.moved.place || 'the usual place'}${a.moved.time ? ' · ' + fmtTime(a.moved.time) : ''}` : a.cover ? (a.kind === 'club' ? `Led by ${a.cover}` : `Covered by ${a.cover}`) : 'Canceled'}</Chip>
           </div>
           <div className="mt-0.5 text-sm text-muted-foreground">
             {fmtAbsenceRange(a)} · {a.reason}
@@ -126,7 +126,7 @@ export function AbsencesPage() {
         right={<Button size="sm" onClick={() => setDialog({ open: true, abs: null })}><Plus className="h-4 w-4" /> Report absence</Button>}
       />
       {all.length === 0 ? (
-        <EmptyState icon={<UserX className="h-5 w-5" />} title="Nothing is cancelled" hint="Use Report absence when a teacher is sick or travelling, or a club or event does not happen. It is cancelled or covered, and the room shows as free." />
+        <EmptyState icon={<UserX className="h-5 w-5" />} title="Nothing is canceled" hint="Use Report absence when a teacher is sick or traveling, or a club or event does not happen. It is canceled or covered, and the room shows as free." />
       ) : (
         <>
           {section('Away now', now)}

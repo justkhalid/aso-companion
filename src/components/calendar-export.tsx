@@ -52,7 +52,7 @@ function writePngZoom(z: PngZoom): void {
 
 /**
  * One menu, five versions of the calendar:
- *  - Weekly grid PNG  (the classic timetable, days as rows)
+ *  - Weekly grid PNG  (the classic schedule, days as rows)
  *  - Poster PNG       (bold A4 wall poster)
  *  - Week cards PNG  (symmetric day cards, one per day)
  *  - Word table .doc  (A4 portrait, editable, sessions span hour cells)
@@ -161,7 +161,7 @@ export function CalendarExportMenu({
           <MenuRow
             icon={<LayoutGrid className="h-4 w-4" />}
             title="Weekly grid"
-            hint="The full timetable, hours across"
+            hint="The full schedule, hours across"
             onClick={() => void run('grid')}
             busy={busyKind === 'grid'}
           />

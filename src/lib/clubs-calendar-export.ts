@@ -10,8 +10,8 @@ import { Sparkles } from 'lucide-react'
 import type { State } from './types'
 
 /* Clubs as a calendar, every poster shown in full (never cropped), dressed like the website:
-   iOS grey page, white cards with a faint blue gradient, Playfair headings, the blue pill.
-   grid     a week timetable on top, the cards below it */
+   iOS gray page, white cards with a faint blue gradient, Playfair headings, the blue pill.
+   grid     a week schedule on top, the cards below it */
 export type ClubsCalendarStyle = 'grid'
 
 export type Fonts = { body: string; display: string }
@@ -282,7 +282,7 @@ export async function renderClubsCalendar(state: State, style: ClubsCalendarStyl
     return { canvas, g }
   }
 
-  /* grid: week timetable in one card (each club with its own icon), the club cards under it */
+  /* grid: week schedule in one card (each club with its own icon), the club cards under it */
   const COLS = 4
   const CW = 560
   const GAP = 44
@@ -294,7 +294,7 @@ export async function renderClubsCalendar(state: State, style: ClubsCalendarStyl
     return m ? +m[1] * 60 + +m[2] : parseSlot(c.time).mins + 120
   })
   const starts = clubs.map((c) => parseSlot(c.time).mins)
-  /* the timetable covers the hours the clubs actually use, so every block is wide enough to read */
+  /* the schedule covers the hours the clubs actually use, so every block is wide enough to read */
   const h0 = Math.floor(Math.min(...starts) / 60)
   const h1 = Math.max(h0 + 4, Math.ceil(Math.max(...ends_) / 60))
   const LABEL = 210

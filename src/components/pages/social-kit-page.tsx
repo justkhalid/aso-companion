@@ -202,7 +202,7 @@ function KitCard({ kind, item, onOpen }: { kind: Kind; item: Club | EventEntry; 
 /* ---------------------------------------------------------------- new post */
 
 /* any picture, posted as it is: for an updated poster, a photo, a notice. It becomes a feed post (kept whole, with soft side bars when its shape is not allowed)
-   and a story (the picture centred on a soft copy of itself). */
+   and a story (the picture centered on a soft copy of itself). */
 async function newPostCanvases(src: string) {
   const im = await loadImage(src)
   const ratio = im.width / im.height
@@ -775,7 +775,7 @@ function KitEditor({ kind, id, onBack, onManage, onEditSchedule }: { kind: Kind;
 
             {section === 'look' && (
               <>
-                <Block title="Colours and decoration">
+                <Block title="Colors and decoration">
                   <div className="grid grid-cols-3 gap-2 sm:grid-cols-4">
                     {Object.entries(LOOKS).map(([k, v]) => (
                       <button
@@ -799,7 +799,7 @@ function KitEditor({ kind, id, onBack, onManage, onEditSchedule }: { kind: Kind;
 
                 <Block title="Fine tuning">
                   <div>
-                    <Lab hint="Use the colours of another look, keeping this decoration.">Colours only</Lab>
+                    <Lab hint="Use the colors of another look, keeping this decoration.">Colors only</Lab>
                     <div className="flex flex-wrap gap-1.5">
                       <button type="button" className={chipCls(R.palette === 'same')} onClick={() => set('palette', 'same')}>Same as look</button>
                       {Object.entries(LOOKS).map(([k, v]) => (
@@ -808,7 +808,7 @@ function KitEditor({ kind, id, onBack, onManage, onEditSchedule }: { kind: Kind;
                     </div>
                   </div>
                   <div>
-                    <Lab hint="Use the decoration of another look, keeping these colours.">Edge decoration only</Lab>
+                    <Lab hint="Use the decoration of another look, keeping these colors.">Edge decoration only</Lab>
                     <div className="flex flex-wrap gap-1.5">
                       <button type="button" className={chipCls(R.decor === 'same')} onClick={() => set('decor', 'same')}>Same as look</button>
                       {Object.entries(DECOR_NAMES).map(([k, n]) => (
@@ -1230,7 +1230,7 @@ function SignInAgain() {
   const logout = useStore((s) => s.logout)
   return (
     <div className="flex flex-col gap-2 rounded-xl border border-dashed border-border bg-secondary/40 p-3 text-xs text-muted-foreground">
-      <p className="font-bold text-foreground">The server does not recognise this sign-in any more.</p>
+      <p className="font-bold text-foreground">The server does not recognize this sign-in any more.</p>
       <p>This happens when the sign-in has ended. Sign out and sign in again with the admin code, then come back here.</p>
       <Button type="button" size="sm" className="self-start" onClick={() => void logout()}>Sign in again</Button>
     </div>

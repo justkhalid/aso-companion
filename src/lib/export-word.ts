@@ -582,7 +582,7 @@ export async function exportLessonPlanDoc(
 }
 
 /* ==========================================================================
-   3 & 4. Calendar exports (Word) - two editable versions of the timetable
+   3 & 4. Calendar exports (Word) - two editable versions of the schedule
    ========================================================================== */
 
 const GRID_START = 9 // 09:00
@@ -590,7 +590,7 @@ const GRID_END = 18 // 18:00 boundary
 const GRID_COLS = GRID_END - GRID_START
 
 /**
- * Word table version of the weekly timetable: landscape A4, one row per day,
+ * Word table version of the weekly schedule: landscape A4, one row per day,
  * hour columns; each session is a colored cell spanning its time slot.
  * Fully editable in Word / Google Docs.
  */
@@ -665,7 +665,7 @@ export async function exportCalendarGridDoc(o: ExportOptions, filename: string) 
     return dayLabel
   }).join('')
 
-  const guide = docGuideBox('How to read this timetable', [
+  const guide = docGuideBox('How to read this schedule', [
     'Times are in <b>AM/PM</b>. One color per level, club or event type, matching the legend above.',
     '<b>Rooms:</b> ' + esc(ROOM_LEGEND) + '.',
     'This Word table is fully editable: move, rename or recolor sessions freely; the hour grid stays aligned.',

@@ -216,7 +216,7 @@ export async function buildMonthStory(state: State, year: number, month: number)
   const DK = stops[0]
   const OR = oct ? ([232, 110, 32] as RGB) : stops[stops.length - 1]
 
-  /* background: the kit's pearl washed with the month colours */
+  /* background: the kit's pearl washed with the month colors */
   const back = cv(W, H)
   const bg = back.getContext('2d')!
   bg.drawImage(await get(KIT_BG_BASE), 0, 0)

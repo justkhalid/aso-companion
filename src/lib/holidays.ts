@@ -45,7 +45,7 @@ function buildHolidays(year: number): Map<string, Holiday[]> {
   add(iso(year, 1, 14), 'Amazigh New Year', true)
   add(iso(year, 2, 14), "Valentine's Day")
   add(iso(year, 4, 22), 'Earth Day')
-  add(iso(year, 5, 1), 'Labour Day', true)
+  add(iso(year, 5, 1), 'Labor Day', true)
   add(iso(year, 7, 30), 'Throne Day', true)
   add(iso(year, 8, 14), 'Oued Ed-Dahab Day', true)
   add(iso(year, 8, 20), 'Revolution of the King and the People', true)

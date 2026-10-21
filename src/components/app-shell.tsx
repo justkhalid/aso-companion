@@ -88,7 +88,7 @@ export function AppShell({ initialView }: { initialView?: View }) {
 
   // v4.7 boot splash: until the app state is ready, show a branded splash
   // instead of rendering anything. This kills the split-second flash of the
-  // sample seed timetable on refresh (server HTML + first client paint are
+  // sample seed schedule on refresh (server HTML + first client paint are
   // both the splash; real content appears once localStorage/cloud is in).
   if (boot !== 'loaded') {
     return <BootSplash />
@@ -203,7 +203,7 @@ export function AppShell({ initialView }: { initialView?: View }) {
 }
 
 /* Minimal branded boot splash shown while the cloud state loads.
-   Prevents the sample seed timetable from flashing on first paint. */
+   Prevents the sample seed schedule from flashing on first paint. */
 function BootSplash() {
   return (
     <div className="flex min-h-screen flex-col items-center justify-center gap-5 bg-background">

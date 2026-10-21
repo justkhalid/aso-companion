@@ -55,14 +55,14 @@ function TodayCard({ now }: { now: Date }) {
               <li
                 key={i}
                 className="flex items-center gap-3 rounded-2xl px-3 py-2.5"
-                style={{ background: x.off ? STATUS.cancelled.tint : `color-mix(in oklab, ${tint} 55%, transparent)` }}
+                style={{ background: x.off ? STATUS.canceled.tint : `color-mix(in oklab, ${tint} 55%, transparent)` }}
               >
-                <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full" style={{ background: x.off ? STATUS.cancelled.ink : ink, color: '#fff' }}>
+                <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full" style={{ background: x.off ? STATUS.canceled.ink : ink, color: '#fff' }}>
                   {x.mark ? <ClassMarkIcons mark={x.mark} className="h-3.5 w-3.5" /> : <Icon className="h-4.5 w-4.5" aria-hidden />}
                 </span>
                 <div className="min-w-0 flex-1">
                   <div className={'truncate font-bold ' + (x.off ? 'line-through opacity-70' : '')} dir="auto">{x.kind === 'class' ? 'English class ' + x.title : x.title}</div>
-                  <div className="text-sm text-muted-foreground">{x.time ? x.time.replace(/(\d{1,2}):(\d{2})-(\d{1,2}):(\d{2})/, (_m, a, b, c, d) => `${fmt12Min(+a * 60 + +b)} - ${fmt12Min(+c * 60 + +d)}`) : ''}{x.place ? ' · ' + (x.outside ? 'Outside: ' : x.moved ? 'Moved to ' : '') + x.place : ''}{x.off ? ' · cancelled' : ''}</div>
+                  <div className="text-sm text-muted-foreground">{x.time ? x.time.replace(/(\d{1,2}):(\d{2})-(\d{1,2}):(\d{2})/, (_m, a, b, c, d) => `${fmt12Min(+a * 60 + +b)} - ${fmt12Min(+c * 60 + +d)}`) : ''}{x.place ? ' · ' + (x.outside ? 'Outside: ' : x.moved ? 'Moved to ' : '') + x.place : ''}{x.off ? ' · canceled' : ''}</div>
                 </div>
                 {!x.off && x.startMin <= mins && mins < x.startMin + 120 && <span className="rounded-full px-2.5 py-0.5 text-xs font-extrabold" style={{ background: ink, color: '#fff' }}>Now</span>}
               </li>
@@ -117,11 +117,11 @@ function Legend() {
     [ACTIVITY.event.label, ACTIVITY.event.ink],
     [OUTSIDE.label, OUTSIDE.ink],
     [STATUS.free.label, STATUS.free.ink],
-    [STATUS.cancelled.label, STATUS.cancelled.ink],
+    [STATUS.canceled.label, STATUS.canceled.ink],
     [STATUS.closed.label, STATUS.closed.ink],
   ]
   return (
-    <ul className="mt-4 flex flex-wrap items-center justify-center gap-2" aria-label="Colour key">
+    <ul className="mt-4 flex flex-wrap items-center justify-center gap-2" aria-label="Color key">
       {chips.map(([label, ink]) => (
         <li key={label} className="inline-flex items-center gap-2 rounded-full border border-border bg-card px-3 py-1 text-sm font-semibold">
           <span className="h-2.5 w-2.5 rounded-full" style={{ background: ink }} aria-hidden /> {label}

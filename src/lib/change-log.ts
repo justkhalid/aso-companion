@@ -48,7 +48,7 @@ function absenceText(state: State, a: Absence): string {
     const where = a.moved.place ? `${a.moved.outside ? 'outside, at' : 'in'} ${a.moved.place}` : 'at another time'
     return `${who} is held ${where}${a.moved.time ? ' at ' + fmtTime(a.moved.time) : ''} on ${range}`
   }
-  return `${who}${a.cover ? ' has a cover teacher' : ' is cancelled'} on ${range}`
+  return `${who}${a.cover ? ' has a cover teacher' : ' is canceled'} on ${range}`
 }
 
 export function describeChanges(prev: State, next: State): string[] {
@@ -104,7 +104,7 @@ export function describeChanges(prev: State, next: State): string[] {
   const pa = new Set((prev.absences || []).map((a) => a.id))
   const na = new Set((next.absences || []).map((a) => a.id))
   for (const a of next.absences || []) if (!pa.has(a.id)) out.push(absenceText(next, a))
-  for (const a of prev.absences || []) if (!na.has(a.id)) out.push(`Back on: ${absenceText(prev, a).replace(' is cancelled', '').replace(' has a cover teacher', '').replace(' is held', ' was held elsewhere')}`)
+  for (const a of prev.absences || []) if (!na.has(a.id)) out.push(`Back on: ${absenceText(prev, a).replace(' is canceled', '').replace(' has a cover teacher', '').replace(' is held', ' was held elsewhere')}`)
   return out
 }
 

@@ -9,10 +9,10 @@ import { ACTIVITY, STATUS } from './activity-colors'
 import type { State } from './types'
 
 /* Rooms in the month picture: every day box says which rooms are free.
-   room = null: the overview (a coloured pill for each room); room = "Main Hall": that room's bookings and free time. */
+   room = null: the overview (a colored pill for each room); room = "Main Hall": that room's bookings and free time. */
 const OPEN = 9 * 60
 const CLOSE = 18 * 60
-const GREY = '#7A7A85'
+const GRAY = '#7A7A85'
 const INKS = { class: ACTIVITY.class.ink, club: ACTIVITY.club.ink, event: ACTIVITY.event.ink }
 const ROUND_CLOSED = (r: string, dk: string) => ROOM_UNAVAILABLE[r]?.includes(dk)
 
@@ -206,7 +206,7 @@ export async function renderRoomsMonth(state: State, o: { year: number; month: n
       continue
     }
     if (!room) {
-      /* overview: one thin timeline for each room, 9 AM to 6 PM. Green is free time, a coloured block is an activity. */
+      /* overview: one thin timeline for each room, 9 AM to 6 PM. Green is free time, a colored block is an activity. */
       const rowsN = shownRooms.length
       const areaTop = y + 60
       const gap = 8
@@ -283,7 +283,7 @@ export async function renderRoomsMonth(state: State, o: { year: number; month: n
       g.font = `800 ${Math.round(30 * sc)}px ${f.body}`
       g.fillStyle = STATUS.free.ink
       if (!m.free.length) {
-        g.fillStyle = GREY
+        g.fillStyle = GRAY
         g.fillText('Booked all day', x + 18, ty)
       } else if (!m.slots.length) g.fillText('Free all day', x + 18, ty)
       else m.free.slice(0, 2).forEach(([a, b2]) => {

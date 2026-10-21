@@ -39,7 +39,7 @@ export function UnifiedCalendar({ tab, onTab, counts, animated = false }: { tab:
     ...(items.some((i) => i.tone === PUBLIC_CLUB_TONE) ? [{ label: 'Clubs', tone: PUBLIC_CLUB_TONE }] : []),
     ...(items.some((i) => i.tone === PUBLIC_EVENT_TONE) ? [{ label: 'Events', tone: PUBLIC_EVENT_TONE }] : []),
     ...(items.some((i) => i.tone === PUBLIC_OUTSIDE_TONE) ? [{ label: 'Outside', tone: PUBLIC_OUTSIDE_TONE }] : []),
-    ...(items.some((i) => i.tone === 'tone-8') ? [{ label: 'Cancelled', tone: 'tone-8' }] : []),
+    ...(items.some((i) => i.tone === 'tone-8') ? [{ label: 'Canceled', tone: 'tone-8' }] : []),
   ]
 
   /* the week as one picture: the same grid as on the page, in the same text size */

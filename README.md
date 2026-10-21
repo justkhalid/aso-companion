@@ -95,7 +95,7 @@ of visitors does not hit GitHub or Blob each time. Public images are cached for 
   immediately. Click **Download** to save it, or **Open in new tab** to view it
   full-size. On iPhone/iPad the Download button opens the iOS share sheet
   (Save Image / Save to Files); if the share sheet is dismissed you'll see
-  "Share cancelled - tap Export PNG again to retry".
+  "Share canceled - tap Export PNG again to retry".
 
 ## Club cards (v2.10)
 
@@ -104,7 +104,7 @@ of visitors does not hit GitHub or Blob each time. Public images are cached for 
   responsive grid - full poster on top, name + description + days/time/room +
   lead + volunteers below. Admin/intern cards also show Edit and Delete buttons.
 - On the public `/calendar` page, the cards appear **below** the weekly
-  timetable grid, so visitors can see the full poster and details for every
+  schedule grid, so visitors can see the full poster and details for every
   club in one scroll.
 
 ## Structure

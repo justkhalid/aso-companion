@@ -1,5 +1,5 @@
-/* One look per month for the monthly calendar picture: background, title colour and a drawn motif
-   (leaves in autumn, snow in winter, blossom and flowers in spring, sun and waves in summer). Everything is
+/* One look per month for the monthly calendar picture: background, title color and a drawn motif
+   (leaves in fall, snow in winter, blossom and flowers in spring, sun and waves in summer). Everything is
    drawn with the canvas, no image files. */
 
 export interface MonthTheme {
@@ -8,7 +8,7 @@ export interface MonthTheme {
   title: string
   accent: string // weekday names and today
   motif: 'snow' | 'blossom' | 'flowers' | 'rain' | 'sun' | 'waves' | 'leaves'
-  colors: string[] // colours used by the motif
+  colors: string[] // colors used by the motif
 }
 
 export const MONTH_THEMES: MonthTheme[] = [
@@ -84,7 +84,7 @@ function flake(g: CanvasRenderingContext2D, x: number, y: number, size: number, 
   g.restore()
 }
 
-function flower(g: CanvasRenderingContext2D, x: number, y: number, size: number, rot: number, petal: string, centre: string, n = 6) {
+function flower(g: CanvasRenderingContext2D, x: number, y: number, size: number, rot: number, petal: string, center: string, n = 6) {
   g.save()
   g.translate(x, y)
   g.rotate(rot)
@@ -95,7 +95,7 @@ function flower(g: CanvasRenderingContext2D, x: number, y: number, size: number,
     g.ellipse(0, -size * 0.58, size * 0.3, size * 0.5, 0, 0, Math.PI * 2)
     g.fill()
   }
-  g.fillStyle = centre
+  g.fillStyle = center
   g.beginPath()
   g.arc(0, 0, size * 0.28, 0, Math.PI * 2)
   g.fill()

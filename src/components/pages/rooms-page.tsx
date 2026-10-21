@@ -32,7 +32,7 @@ interface Booking {
   mark?: ClassMark
   lead?: string
   group: string // legend label
-  cancelled?: string // teacher away: the class does not run (value = reason)
+  canceled?: string // teacher away: the class does not run (value = reason)
   note?: string
 }
 
@@ -82,7 +82,7 @@ function bookingsForWeek(state: State, monday: Date, plain: boolean): Booking[] 
         mark: classMark(state, c) || undefined,
         lead: plain ? undefined : stt.kind === 'cover' ? 'Cover: ' + stt.cover : c.teacher,
         group: 'English classes',
-        cancelled: stt.kind === 'cancelled' ? stt.absence.reason || 'Teacher away' : undefined,
+        canceled: stt.kind === 'canceled' ? stt.absence.reason || 'Teacher away' : undefined,
       })
     }
   }
@@ -103,7 +103,7 @@ function bookingsForWeek(state: State, monday: Date, plain: boolean): Booking[] 
         tone: PUBLIC_CLUB_TONE, icon: c.icon,
         lead: stt.kind === 'cover' ? 'Led by ' + stt.cover : c.lead,
         group: 'Clubs',
-        cancelled: stt.kind === 'cancelled' ? stt.absence.reason || 'Cancelled' : undefined,
+        canceled: stt.kind === 'canceled' ? stt.absence.reason || 'Canceled' : undefined,
       })
     }
   }
@@ -115,7 +115,7 @@ function bookingsForWeek(state: State, monday: Date, plain: boolean): Booking[] 
       const w = eventWhere(state, e, e.date)
       const slot = parseSlot(w.time)
       if (w.outside || !slot || !w.place) continue
-      out.push({ room: w.place.trim(), day: dayKeyOf(new Date(y, m - 1, d)), start: slot[0], end: slot[1], label: e.title, kind: 'event', note: 'one-off', tone: PUBLIC_EVENT_TONE, icon: e.icon || 'calendar', group: 'Events', cancelled: stt.kind === 'cancelled' ? stt.absence.reason || 'Cancelled' : undefined })
+      out.push({ room: w.place.trim(), day: dayKeyOf(new Date(y, m - 1, d)), start: slot[0], end: slot[1], label: e.title, kind: 'event', note: 'one-off', tone: PUBLIC_EVENT_TONE, icon: e.icon || 'calendar', group: 'Events', canceled: stt.kind === 'canceled' ? stt.absence.reason || 'Canceled' : undefined })
     } else if (e.day && inSeries(e.from, e.until)) {
       const note = e.recur === 'biweekly' ? 'every 2 weeks' : e.recur === 'monthly' ? 'monthly' : undefined
       const di = DAY_KEYS.indexOf(e.day as (typeof DAY_KEYS)[number])
@@ -125,7 +125,7 @@ function bookingsForWeek(state: State, monday: Date, plain: boolean): Booking[] 
       const w = eventWhere(state, e, isoOf(date))
       const slot = parseSlot(w.time)
       if (w.outside || !slot || !w.place) continue
-      out.push({ room: w.place.trim(), day: e.day, start: slot[0], end: slot[1], label: e.title, kind: 'event', note, tone: PUBLIC_EVENT_TONE, icon: e.icon || 'calendar', group: 'Events', cancelled: stt.kind === 'cancelled' ? stt.absence.reason || 'Cancelled' : undefined })
+      out.push({ room: w.place.trim(), day: e.day, start: slot[0], end: slot[1], label: e.title, kind: 'event', note, tone: PUBLIC_EVENT_TONE, icon: e.icon || 'calendar', group: 'Events', canceled: stt.kind === 'canceled' ? stt.absence.reason || 'Canceled' : undefined })
     }
   }
   return out
@@ -197,9 +197,9 @@ export function RoomsPage({ embedded = false, focus, only = false }: { embedded?
   const nowMin = now.getHours() * 60 + now.getMinutes()
 
   const inShown = bookings.filter((b) => shown.includes(b.room))
-  const visible = inShown.filter((b) => !b.cancelled)
-  /* admin only: a cancelled class stays on the calendar as a dashed note, the room is free */
-  const cancelledAll = embedded ? [] : inShown.filter((b) => b.cancelled)
+  const visible = inShown.filter((b) => !b.canceled)
+  /* admin only: a canceled class stays on the calendar as a dashed note, the room is free */
+  const cancelledAll = embedded ? [] : inShown.filter((b) => b.canceled)
 
   /* the time axis stretches to fit anything outside opening hours (an evening event), measured over
      every room so the axis does not jump when you switch tabs */
@@ -231,7 +231,7 @@ export function RoomsPage({ embedded = false, focus, only = false }: { embedded?
   const toast = useStore((s) => s.toast)
   const downloadWeek = async () => {
     const hhmm = (m: number) => `${String(Math.floor(m / 60)).padStart(2, '0')}:${String(m % 60).padStart(2, '0')}`
-    const items = bookings.filter((b) => !b.cancelled && (mode === ALL || mode === FOCUS || b.room === mode)).map((b, i) => ({ id: 'b' + i, days: [b.day], slot: `${hhmm(b.start)}-${hhmm(b.end)}`, code: b.label, room: b.room, lead: b.lead, tone: b.tone, mark: b.mark, icon: b.icon }))
+    const items = bookings.filter((b) => !b.canceled && (mode === ALL || mode === FOCUS || b.room === mode)).map((b, i) => ({ id: 'b' + i, days: [b.day], slot: `${hhmm(b.start)}-${hhmm(b.end)}`, code: b.label, room: b.room, lead: b.lead, tone: b.tone, mark: b.mark, icon: b.icon }))
     const legend = [{ label: 'English classes', tone: PUBLIC_CLASS_TONE }, { label: 'Clubs', tone: PUBLIC_CLUB_TONE }, { label: 'Events', tone: PUBLIC_EVENT_TONE }]
     const { renderTimetablePNG, downloadBlob } = await import('@/lib/export-canvas')
     const blob = await renderTimetablePNG({ title: `ASO - Rooms, ${range}`, subtitle: mode === ALL || mode === FOCUS ? 'Who has which room' : mode, items, legend, zoom: 1 })
@@ -362,15 +362,15 @@ export function RoomsPage({ embedded = false, focus, only = false }: { embedded?
                           )
                         })}
 
-                        {/* cancelled classes (admin only): the room is free, the note says why */}
+                        {/* canceled classes (admin only): the room is free, the note says why */}
                         {r.cancelledHere.map((b, k) => (
                           <div
                             key={'c' + k}
                             className="absolute flex flex-col justify-center overflow-hidden rounded-lg border border-dashed border-foreground/35 px-2 text-[10px] leading-[12px] text-foreground/70"
                             style={{ left: `calc(${pct(b.start)}% + 2px)`, width: `calc(${pct(b.end) - pct(b.start)}% - 4px)`, bottom: 4, height: all ? 15 : 20 }}
-                            title={`${b.label} cancelled (${b.cancelled}) ${fmt(b.start)}-${fmt(b.end)}`}
+                            title={`${b.label} canceled (${b.canceled}) ${fmt(b.start)}-${fmt(b.end)}`}
                           >
-                            <span className="truncate font-semibold"><span className="line-through">{b.label}</span> · {(b.cancelled || '').toLowerCase()}</span>
+                            <span className="truncate font-semibold"><span className="line-through">{b.label}</span> · {(b.canceled || '').toLowerCase()}</span>
                           </div>
                         ))}
 
@@ -433,7 +433,7 @@ export function RoomsPage({ embedded = false, focus, only = false }: { embedded?
         ))}
         {cancelledAll.length > 0 && (
           <span className="flex items-center gap-1.5 text-[11.5px] font-semibold text-muted-foreground">
-            <i className="inline-block h-2 w-2 rounded-sm border border-dashed border-foreground/50" /> Cancelled
+            <i className="inline-block h-2 w-2 rounded-sm border border-dashed border-foreground/50" /> Canceled
           </span>
         )}
         {(viewOpen < OPEN || viewClose > CLOSE) && (

@@ -111,8 +111,8 @@ export interface KitOverrides {
   kicker?: string // small line above the name (WEEKLY CLUB, WORKSHOP, ...)
   top?: string // first line of the name, small
   word?: string // name, big (needed when the name is in Arabic)
-  look?: string // key of a look (colour pair, decoration and icon)
-  palette?: string // colours of another look
+  look?: string // key of a look (color pair, decoration and icon)
+  palette?: string // colors of another look
   decor?: string // edge decoration of another look
   icon?: string // icon key of the kit icon library
   bg?: number // WhatsApp picture background, 0 to 7
@@ -207,7 +207,7 @@ export interface TeamMember {
 }
 
 /* something that does not run as usual for a few days or weeks: a teacher who is away (their classes),
-   a club, or an event. It is cancelled, or (classes and clubs) covered by someone else. */
+   a club, or an event. It is canceled, or (classes and clubs) covered by someone else. */
 export interface Absence {
   id: string
   kind?: 'teacher' | 'club' | 'event' // missing = teacher (older entries)
@@ -218,9 +218,9 @@ export interface Absence {
   from: string // ISO date, inclusive
   to: string // ISO date, inclusive
   reason: string // Sick, Away, ...
-  cover?: string // substitute teacher; empty = the class is cancelled
+  cover?: string // substitute teacher; empty = the class is canceled
   note?: string
-  /* kind club or event: not cancelled, only held somewhere else (or at another time) on these dates */
+  /* kind club or event: not canceled, only held somewhere else (or at another time) on these dates */
   moved?: { place: string; outside?: boolean; time?: string }
 }
 

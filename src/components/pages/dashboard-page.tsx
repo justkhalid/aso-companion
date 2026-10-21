@@ -126,7 +126,7 @@ export function DashboardPage() {
               {away.map((a) => (
                 <li key={a.id} className="flex flex-wrap items-center gap-2 text-sm">
                   <span className="font-bold">{awayName(a)}</span>
-                  <Chip tone={a.cover ? 'primary' : 'gold'} icon={a.cover ? UserCheck : Ban}>{a.cover ? `Covered by ${a.cover}` : 'Cancelled'}</Chip>
+                  <Chip tone={a.cover ? 'primary' : 'gold'} icon={a.cover ? UserCheck : Ban}>{a.cover ? `Covered by ${a.cover}` : 'Canceled'}</Chip>
                   <span className="text-muted-foreground">{fmtAbsenceRange(a)} · {a.reason}</span>
                 </li>
               ))}
@@ -165,13 +165,13 @@ export function DashboardPage() {
         ) : (
           <ul className="divide-y divide-border">
             {sessions.map((x) => (
-              <li key={x.key} className={`flex flex-col gap-x-3 gap-y-0.5 py-2 text-sm sm:flex-row sm:flex-wrap sm:items-center ${x.status.kind === 'cancelled' ? 'opacity-60' : ''}`}>
+              <li key={x.key} className={`flex flex-col gap-x-3 gap-y-0.5 py-2 text-sm sm:flex-row sm:flex-wrap sm:items-center ${x.status.kind === 'canceled' ? 'opacity-60' : ''}`}>
                 <span className="shrink-0 font-semibold tabular-nums sm:w-36">{fmtTime(x.time) || '-'}</span>
                 <span className="min-w-0 flex-1">
                   <span className="font-bold">{x.title}</span> <span className="text-muted-foreground">{x.sub}</span>
                 </span>
                 <span className="text-xs font-semibold text-muted-foreground">{x.room}</span>
-                {x.status.kind === 'cancelled' && <Chip tone="gold" icon={Ban}>Cancelled</Chip>}
+                {x.status.kind === 'canceled' && <Chip tone="gold" icon={Ban}>Canceled</Chip>}
                 {x.status.kind === 'cover' && <Chip tone="primary" icon={UserCheck}>Cover: {x.status.cover}</Chip>}
               </li>
             ))}
