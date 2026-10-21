@@ -66,7 +66,7 @@ const chipCls = (on: boolean) =>
 
 export function SocialKitPage() {
   const state = useStore((s) => s.state)
-  const [tab, setTab] = React.useState<Kind | 'month' | 'scheduled' | 'connection'>('club')
+  const [tab, setTab] = React.useState<Kind | 'post' | 'month' | 'scheduled' | 'connection'>('club')
   const toast = useStore((s) => s.toast)
   const { status } = useSocialStatus()
 
@@ -109,7 +109,7 @@ export function SocialKitPage() {
         title="Social kit"
         subtitle="The Instagram story and the WhatsApp group picture of every club and event, the month calendars, and posting to Facebook and Instagram. All made from the data you already keep here."
         right={
-          tab === 'month' || tab === 'scheduled' || tab === 'connection' ? undefined : (
+          tab === 'post' || tab === 'month' || tab === 'scheduled' || tab === 'connection' ? undefined : (
             <Button size="sm" onClick={() => (tab === 'club' ? setClubDlg({ open: true, club: null }) : setEventDlg({ open: true, event: null }))}>
               <Plus className="h-4 w-4" /> {tab === 'club' ? 'New club' : 'New event'}
             </Button>
@@ -117,7 +117,7 @@ export function SocialKitPage() {
         }
       />
       <div className="mb-5 inline-flex rounded-full border border-border bg-card p-1" role="tablist" aria-label="Kind">
-        {([['club', 'Clubs', state.clubs.length], ['event', 'Events', state.events.length], ['month', 'Calendar', null], ['scheduled', 'Scheduled', null], ['connection', 'Connection', null]] as const).map(([k, label, n]) => (
+        {([['club', 'Clubs', state.clubs.length], ['event', 'Events', state.events.length], ['post', 'New post', null], ['month', 'Calendar', null], ['scheduled', 'Scheduled', null], ['connection', 'Connection', null]] as const).map(([k, label, n]) => (
           <button
             key={k}
             role="tab"
@@ -136,7 +136,9 @@ export function SocialKitPage() {
           <Button size="sm" variant="outline" onClick={() => setTab('connection')}>Reconnect</Button>
         </div>
       )}
-      {tab === 'month' ? (
+      {tab === 'post' ? (
+        <NewPostPanel onManage={() => setTab('connection')} />
+      ) : tab === 'month' ? (
         <MonthStoryPanel onManage={() => setTab('connection')} />
       ) : tab === 'scheduled' ? (
         <ScheduledPanel />
@@ -192,6 +194,112 @@ function KitCard({ kind, item, onOpen }: { kind: Kind; item: Club | EventEntry; 
         >
           <Download className="h-3.5 w-3.5" /> Download
         </Button>
+      </div>
+    </div>
+  )
+}
+
+/* ---------------------------------------------------------------- new post */
+
+/* any picture, posted as it is: for an updated poster, a photo, a notice. It becomes a feed post (kept whole, with soft side bars when its shape is not allowed)
+   and a story (the picture centred on a soft copy of itself). */
+async function newPostCanvases(src: string) {
+  const im = await loadImage(src)
+  const ratio = im.width / im.height
+  /* feed: 4:5 up to 1.91:1 is allowed; anything else is placed on a soft background in 4:5 */
+  let feed: HTMLCanvasElement
+  if (ratio >= 0.8 && ratio <= 1.91) {
+    const k = Math.min(1, 1440 / im.width)
+    feed = cv(Math.round(im.width * k), Math.round(im.height * k))
+    feed.getContext('2d')!.drawImage(im, 0, 0, feed.width, feed.height)
+  } else {
+    feed = cv(1080, 1350)
+    const g = feed.getContext('2d')!
+    g.filter = 'blur(40px)'
+    fitCover(g, im, -60, -60, 1200, 1470)
+    g.filter = 'none'
+    const k = Math.min(1080 / im.width, 1350 / im.height)
+    g.drawImage(im, (1080 - im.width * k) / 2, (1350 - im.height * k) / 2, im.width * k, im.height * k)
+  }
+  /* story: 1080x1920 */
+  const story = cv(1080, 1920)
+  const sg = story.getContext('2d')!
+  sg.filter = 'blur(50px)'
+  fitCover(sg, im, -80, -80, 1240, 2080)
+  sg.filter = 'none'
+  sg.fillStyle = 'rgba(255,255,255,0.12)'
+  sg.fillRect(0, 0, 1080, 1920)
+  const k = Math.min(1000 / im.width, 1500 / im.height)
+  const w = im.width * k, h = im.height * k
+  sg.save()
+  sg.shadowColor = 'rgba(0,0,0,0.3)'
+  sg.shadowBlur = 40
+  sg.shadowOffsetY = 12
+  sg.drawImage(im, (1080 - w) / 2, (1920 - h) / 2, w, h)
+  sg.restore()
+  return { feed, story }
+}
+
+function NewPostPanel({ onManage }: { onManage: () => void }) {
+  const state = useStore((s) => s.state)
+  const [src, setSrc] = React.useState<string | null>(null)
+  const [name, setName] = React.useState('')
+  const [out, setOut] = React.useState<{ feed: HTMLCanvasElement; story: HTMLCanvasElement } | null>(null)
+  const [caption, setCaption] = React.useState('')
+  const [about, setAbout] = React.useState('')
+  const [err, setErr] = React.useState('')
+
+  React.useEffect(() => {
+    if (!src) { setOut(null); return }
+    let live = true
+    setErr('')
+    newPostCanvases(src).then((o) => { if (live) setOut(o) }).catch(() => { if (live) setErr('That picture could not be opened. Try a JPG or PNG.') })
+    return () => { live = false }
+  }, [src])
+  React.useEffect(() => () => { if (src) URL.revokeObjectURL(src) }, [src])
+
+  const choices = [...state.clubs.map((c) => ({ id: 'c:' + c.id, label: c.name, text: kitRec('club', c).cap })), ...state.events.map((e) => ({ id: 'e:' + e.id, label: e.title, text: kitRec('event', e).cap }))]
+  const label = about ? `${choices.find((c) => c.id === about)?.label}: new post` : name ? `New post: ${name}` : 'New post'
+
+  return (
+    <div className="grid gap-6 lg:grid-cols-2 lg:items-start">
+      <div className="flex min-w-0 flex-col gap-4">
+        <div className="flex flex-col gap-5 rounded-2xl border border-border bg-card p-5">
+          <Block title="Picture">
+            <p className="text-xs text-muted-foreground">Any picture: an updated poster, a photo, a notice. It is posted as it is, as a feed post and as a story. Nothing is added to it.</p>
+            <div className="flex flex-wrap items-center gap-2">
+              <label className="inline-flex cursor-pointer items-center gap-1.5 rounded-lg border border-border bg-card px-3 py-1.5 text-xs font-bold hover:bg-secondary">
+                <ImagePlus className="h-4 w-4" /> {src ? 'Change picture' : 'Choose a picture'}
+                <input type="file" accept="image/*" className="hidden" onChange={(e) => { const f = e.target.files?.[0]; if (f) { setSrc(URL.createObjectURL(f)); setName(f.name.replace(/\.[^.]+$/, '')) } e.target.value = '' }} />
+              </label>
+              {src && <Button type="button" variant="ghost" size="sm" className="text-destructive" onClick={() => setSrc(null)}><Trash2 className="h-4 w-4" /> Remove</Button>}
+            </div>
+            {err && <p className="text-xs text-destructive">{err}</p>}
+          </Block>
+          <Block title="Caption">
+            <div>
+              <Lab hint="Optional: fills the caption with the text of a club or event.">About</Lab>
+              <select className={inputCls} value={about} onChange={(e) => { setAbout(e.target.value); const c = choices.find((x) => x.id === e.target.value); if (c) setCaption(c.text) }}>
+                <option value="">Nothing in particular</option>
+                {choices.map((c) => <option key={c.id} value={c.id}>{c.label}</option>)}
+              </select>
+            </div>
+            <textarea className={cn(inputCls, 'min-h-[140px] resize-y')} value={caption} onChange={(e) => setCaption(e.target.value)} placeholder="Write the caption here" />
+          </Block>
+        </div>
+        <div className="flex flex-col gap-5 rounded-2xl border border-border bg-card p-5">
+          <PublishPanel storyCanvas={out?.story ?? null} poster={null} feedCanvas={out?.feed ?? null} caption={caption} onManage={onManage} scheduleLabel={label} />
+        </div>
+      </div>
+      <div className="grid grid-cols-2 items-start gap-3 lg:sticky lg:top-20">
+        {out ? (
+          <>
+            <PreviewCard title="Story" canvas={out.story} onDownload={() => void toBlob(out.story).then((b) => saveBlob(b, `${kitSlug({ top: '', word: name, name: 'post' })}-story.png`))} />
+            <PreviewCard title="Feed post" canvas={out.feed} onDownload={() => void toBlob(out.feed).then((b) => saveBlob(b, `${kitSlug({ top: '', word: name, name: 'post' })}-post.png`))} />
+          </>
+        ) : (
+          <p className="col-span-2 rounded-2xl border border-dashed border-border p-8 text-center text-sm text-muted-foreground">Choose a picture and the story and the post appear here.</p>
+        )}
       </div>
     </div>
   )
