@@ -19,7 +19,8 @@ function secret(): string {
   if (env) return env
   /* no dedicated secret: derive one from another server-only secret so
      sessions survive across serverless instances */
-  const base = process.env.BLOB_READ_WRITE_TOKEN || process.env.GITHUB_PAT
+  /* the GitHub token first: connecting a Blob store later must not change the secret (it would end every sign-in) */
+  const base = process.env.GITHUB_PAT || process.env.BLOB_READ_WRITE_TOKEN
   if (base) return createHash('sha256').update('aso-session:' + base).digest('hex')
   if (process.env.NODE_ENV !== 'production') return DEV_SECRET
   /* production with nothing configured: random per process (sessions reset on restart) */

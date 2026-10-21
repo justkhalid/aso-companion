@@ -108,6 +108,8 @@ Optional variables:
 | `META_TOKEN_EXPIRES` | `YYYY-MM-DD` for such a hand-made token (renewal reminder). |
 | `META_GRAPH_VERSION` | Default `v23.0`. |
 
+Scheduling: choose **Later** in any Publish panel, pick a date and time, and press Schedule. Instagram has no timer of its own, so the pictures (or video) wait on the server in `data/schedule`, encrypted, and the workflow `.github/workflows/social-schedule.yml` asks the site to post what is due every 10 minutes (GitHub can run it a few minutes late, so a post goes out within about 10 to 15 minutes of the set time). Social kit > Scheduled lists what waits, what was posted and what failed, and lets you remove a waiting post. The workflow runs from the `main` branch, so it only starts once this code is merged. If you want the timer endpoint locked, set `CRON_SECRET` in Vercel and add the same value as a repository secret named `CRON_SECRET` (Settings > Secrets and variables > Actions).
+
 Handover: add a second admin to the Facebook Page and to the Meta app (App roles), so the setup does not depend on one person.
 
 Notes: Instagram may refuse the 3:4 poster for feed posts; the app then retries with a 4:5 version. The link sticker on Instagram stories cannot be added through the API.

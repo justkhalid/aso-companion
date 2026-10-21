@@ -1,7 +1,7 @@
 'use client'
 
 import * as React from 'react'
-import { ArrowLeft, Check, ChevronLeft, Music, Play, Square, ChevronRight, CircleAlert, Clock, Loader2, Send, X, Copy, Download, ImagePlus, MapPin, Pencil, Plus, Share2, Sparkles, Trash2, CalendarClock, AlertTriangle, CalendarDays } from 'lucide-react'
+import { ArrowLeft, Check, Clock4, ChevronLeft, Music, Play, Square, ChevronRight, CircleAlert, Clock, Loader2, Send, X, Copy, Download, ImagePlus, MapPin, Pencil, Plus, Share2, Sparkles, Trash2, CalendarClock, AlertTriangle, CalendarDays } from 'lucide-react'
 import { useStore } from '@/lib/store'
 import { PageHead, EmptyState } from '@/components/ui-bits'
 import { Button } from '@/components/ui/button'
@@ -66,7 +66,7 @@ const chipCls = (on: boolean) =>
 
 export function SocialKitPage() {
   const state = useStore((s) => s.state)
-  const [tab, setTab] = React.useState<Kind | 'month' | 'connection'>('club')
+  const [tab, setTab] = React.useState<Kind | 'month' | 'scheduled' | 'connection'>('club')
   const toast = useStore((s) => s.toast)
   const { status } = useSocialStatus()
 
@@ -109,7 +109,7 @@ export function SocialKitPage() {
         title="Social kit"
         subtitle="The Instagram story and the WhatsApp group picture of every club and event, the month calendars, and posting to Facebook and Instagram. All made from the data you already keep here."
         right={
-          tab === 'month' || tab === 'connection' ? undefined : (
+          tab === 'month' || tab === 'scheduled' || tab === 'connection' ? undefined : (
             <Button size="sm" onClick={() => (tab === 'club' ? setClubDlg({ open: true, club: null }) : setEventDlg({ open: true, event: null }))}>
               <Plus className="h-4 w-4" /> {tab === 'club' ? 'New club' : 'New event'}
             </Button>
@@ -117,7 +117,7 @@ export function SocialKitPage() {
         }
       />
       <div className="mb-5 inline-flex rounded-full border border-border bg-card p-1" role="tablist" aria-label="Kind">
-        {([['club', 'Clubs', state.clubs.length], ['event', 'Events', state.events.length], ['month', 'Calendar', null], ['connection', 'Connection', null]] as const).map(([k, label, n]) => (
+        {([['club', 'Clubs', state.clubs.length], ['event', 'Events', state.events.length], ['month', 'Calendar', null], ['scheduled', 'Scheduled', null], ['connection', 'Connection', null]] as const).map(([k, label, n]) => (
           <button
             key={k}
             role="tab"
@@ -138,6 +138,8 @@ export function SocialKitPage() {
       )}
       {tab === 'month' ? (
         <MonthStoryPanel onManage={() => setTab('connection')} />
+      ) : tab === 'scheduled' ? (
+        <ScheduledPanel />
       ) : tab === 'connection' ? (
         <ConnectionPanel />
       ) : items.length === 0 ? (
@@ -426,7 +428,7 @@ function MonthStoryPanel({ onManage }: { onManage: () => void }) {
               <textarea className={cn(inputCls, 'min-h-[90px] resize-y')} value={caption} onChange={(e) => { setCaption(e.target.value); setEdited(true) }} />
             </Block>
           )}
-          <PublishPanel storyCanvas={what === 'story' ? still : null} poster={null} feedCanvas={what === 'post' ? cal : null} caption={what === 'post' ? caption : ''} only={what === 'story' ? 'story' : 'feed'} onManage={onManage} key={what} videoMaker={what === 'story' && story ? async (onProgress) => { const ms = await import('@/lib/kit/month-story'); const v = await ms.monthStoryVideo(story, { onProgress, music, forPost: true }); return { blob: v.blob, ext: v.ext } } : undefined} />
+          <PublishPanel storyCanvas={what === 'story' ? still : null} poster={null} feedCanvas={what === 'post' ? cal : null} caption={what === 'post' ? caption : ''} only={what === 'story' ? 'story' : 'feed'} onManage={onManage} scheduleLabel={`${MONTH_NAMES[month]} ${year} calendar ${what === 'story' ? 'story' : 'post'}`} key={what} videoMaker={what === 'story' && story ? async (onProgress) => { const ms = await import('@/lib/kit/month-story'); const v = await ms.monthStoryVideo(story, { onProgress, music, forPost: true }); return { blob: v.blob, ext: v.ext } } : undefined} />
         </div>
       </div>
       <div className="lg:sticky lg:top-20">
@@ -747,6 +749,7 @@ function KitEditor({ kind, id, onBack, onManage, onEditSchedule }: { kind: Kind;
                 caption={R.cap}
                 posts={item.kit?.posts}
                 onManage={onManage}
+                scheduleLabel={`${title}: story and posts`}
                 onPosted={(done) => patch((d) => {
                   const target = (kind === 'club' ? d.clubs : d.events).find((x) => x.id === id) as Club | EventEntry | undefined
                   if (target) target.kit = { ...(target.kit || {}), posts: [...(target.kit?.posts || []), { t: new Date().toISOString(), to: done }] }
@@ -847,7 +850,7 @@ function useSocialStatus() {
 
 type Only = 'story' | 'feed'
 
-function PublishPanel({ storyCanvas, poster, feedCanvas, caption, only, posts, onPosted, onManage, videoMaker }: {
+function PublishPanel({ storyCanvas, poster, feedCanvas, caption, only, posts, onPosted, onManage, videoMaker, scheduleLabel }: {
   storyCanvas: HTMLCanvasElement | null
   poster: string | null
   feedCanvas?: HTMLCanvasElement | null // a ready picture for the post (the month calendar), used instead of the poster
@@ -857,6 +860,7 @@ function PublishPanel({ storyCanvas, poster, feedCanvas, caption, only, posts, o
   onPosted?: (done: string[]) => void
   onManage?: () => void
   videoMaker?: (onProgress: (p: number) => void) => Promise<{ blob: Blob; ext: string }> // records the animated story
+  scheduleLabel?: string // what to call this in the list of scheduled posts
 }) {
   const { status } = useSocialStatus()
   const [pick, setPick] = React.useState<Record<Dest, boolean>>(
@@ -867,6 +871,8 @@ function PublishPanel({ storyCanvas, poster, feedCanvas, caption, only, posts, o
   const [steps, setSteps] = React.useState<Step[] | null>(null)
   const [asVideo, setAsVideo] = React.useState(false)
   const [rec, setRec] = React.useState<number | null>(null)
+  const [later, setLater] = React.useState(false)
+  const [at, setAt] = React.useState('')
 
   const ready = !!status && typeof status !== 'string' && status.connected
   const dests = DESTS.filter(([k]) => !only || (only === 'story' ? k === 'igStory' || k === 'fbStory' : k === 'igFeed' || k === 'fbFeed'))
@@ -899,6 +905,17 @@ function PublishPanel({ storyCanvas, poster, feedCanvas, caption, only, posts, o
         const p = await posterBlobs(poster)
         f.append('poster', p.poster, 'poster.jpg')
         f.append('poster45', p.poster45, 'poster45.jpg')
+      }
+      if (later) {
+        const when = new Date(at)
+        if (!at || Number.isNaN(when.getTime())) throw new Error('Choose a date and time first.')
+        f.append('at', when.toISOString())
+        f.append('label', scheduleLabel || 'Post')
+        f.append('kind', asVideo && videoMaker && (pick.igStory || pick.fbStory) ? 'animation' : 'picture')
+        const r = await fetch('/api/social/schedule', { method: 'POST', body: f })
+        const j = (await r.json().catch(() => ({}))) as { ok?: boolean; msg?: string }
+        setSteps([{ label: 'Scheduled', ok: !!j.ok, msg: j.ok ? `It will be posted around ${when.toLocaleString('en-GB', { weekday: 'short', day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })}. See it under Social kit > Scheduled.` : j.msg || `The server answered with an error (${r.status}).` }])
+        return
       }
       const r = await fetch('/api/social/publish', { method: 'POST', body: f })
       const j = (await r.json()) as { steps?: Step[] }
@@ -936,6 +953,22 @@ function PublishPanel({ storyCanvas, poster, feedCanvas, caption, only, posts, o
         )}
       </Block>
 
+      {scheduleLabel && (
+        <Block title="When">
+          <div className="grid grid-cols-2 gap-1 rounded-full border border-border bg-background p-1" role="tablist" aria-label="When to post">
+            {([[false, 'Now'], [true, 'Later']] as const).map(([v, label]) => (
+              <button key={label} type="button" role="tab" aria-selected={later === v} onClick={() => setLater(v)} className={cn('rounded-full px-3 py-1.5 text-[13px] font-bold transition', later === v ? 'aso-nav-pill' : 'text-foreground/70 hover:bg-secondary')}>{label}</button>
+            ))}
+          </div>
+          {later && (
+            <div>
+              <input type="datetime-local" className={inputCls} value={at} min={new Date(Date.now() + 5 * 60000 - new Date().getTimezoneOffset() * 60000).toISOString().slice(0, 16)} onChange={(e) => setAt(e.target.value)} />
+              <p className="mt-1.5 text-[11px] text-muted-foreground">Posted within about 10 minutes of that time. The pictures wait on the server, encrypted, until then.</p>
+            </div>
+          )}
+        </Block>
+      )}
+
       <Block title="Where to post">
         <div className="grid grid-cols-2 gap-2">
           {dests.map(([k, label, hint]) => (
@@ -956,8 +989,8 @@ function PublishPanel({ storyCanvas, poster, feedCanvas, caption, only, posts, o
           </div>
         )}
         {needsPicture && <p className="flex items-center gap-1.5 text-xs font-semibold text-[var(--aso-gold)]"><CircleAlert className="h-3.5 w-3.5" /> The posts need a poster. Add one under Poster and name.</p>}
-        <Button type="button" className="self-start" disabled={!ready || busy || (!storyCanvas && !feedCanvas) || chosen.length === 0 || needsPicture} onClick={() => setConfirm(true)}>
-          {busy ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />} {rec !== null ? `Recording ${Math.round(rec * 100)}%` : busy ? 'Posting' : 'Post now'}
+        <Button type="button" className="self-start" disabled={!ready || busy || (!storyCanvas && !feedCanvas) || chosen.length === 0 || needsPicture || (later && !at)} onClick={() => setConfirm(true)}>
+          {busy ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />} {rec !== null ? `Recording ${Math.round(rec * 100)}%` : busy ? (later ? 'Saving' : 'Posting') : later ? 'Schedule' : 'Post now'}
         </Button>
         {asVideo && only === 'story' && <p className="text-[11px] text-muted-foreground">The animation is recorded first (about 16 seconds, keep this page open), then sent. Any song you chose is in it.</p>}
       </Block>
@@ -989,18 +1022,98 @@ function PublishPanel({ storyCanvas, poster, feedCanvas, caption, only, posts, o
       <AlertDialog open={confirm} onOpenChange={setConfirm}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Post now?</AlertDialogTitle>
+            <AlertDialogTitle>{later ? 'Schedule this post?' : 'Post now?'}</AlertDialogTitle>
             <AlertDialogDescription>
-              This goes live on {chosen.map(([, l]) => l).join(', ')}. A post cannot be taken back from here.
+              {later
+                ? `It will go live on ${chosen.map(([, l]) => l).join(', ')} around ${at ? new Date(at).toLocaleString('en-GB', { weekday: 'long', day: 'numeric', month: 'long', hour: '2-digit', minute: '2-digit' }) : 'the time you chose'}. You can remove it from Social kit > Scheduled before then.`
+                : `This goes live on ${chosen.map(([, l]) => l).join(', ')}. A post cannot be taken back from here.`}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Not yet</AlertDialogCancel>
-            <AlertDialogAction onClick={() => void post()}>Post</AlertDialogAction>
+            <AlertDialogAction onClick={() => void post()}>{later ? 'Schedule' : 'Post'}</AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
     </>
+  )
+}
+
+/* ---------------------------------------------------------------- scheduled posts */
+
+interface Job {
+  id: string
+  at: string
+  label: string
+  targets: Record<Dest, boolean>
+  kind: 'picture' | 'animation'
+  status: 'pending' | 'running' | 'done' | 'failed'
+  ranAt?: string
+  result?: Step[]
+}
+
+function ScheduledPanel() {
+  const toast = useStore((s) => s.toast)
+  const [jobs, setJobs] = React.useState<Job[] | null>(null)
+  const [state, setState] = React.useState<'ok' | 'signin' | 'error'>('ok')
+  const load = React.useCallback(() => {
+    fetch('/api/social/schedule', { cache: 'no-store' })
+      .then(async (r) => {
+        if (r.status === 401) return setState('signin')
+        if (!r.ok) return setState('error')
+        setState('ok')
+        setJobs(((await r.json()) as { jobs: Job[] }).jobs)
+      })
+      .catch(() => setState('error'))
+  }, [])
+  React.useEffect(() => {
+    load()
+    const t = setInterval(load, 60000)
+    return () => clearInterval(t)
+  }, [load])
+  const cancel = async (id: string) => {
+    const r = await fetch(`/api/social/schedule?id=${encodeURIComponent(id)}`, { method: 'DELETE' })
+    const j = (await r.json().catch(() => ({}))) as { ok?: boolean; msg?: string }
+    toast(j.ok ? 'Removed' : j.msg || 'Could not remove it', !!j.ok)
+    load()
+  }
+  const when = (iso: string) => new Date(iso).toLocaleString('en-GB', { weekday: 'short', day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })
+  const where = (t: Record<Dest, boolean>) => DESTS.filter(([k]) => t[k]).map(([, l]) => l).join(', ')
+
+  if (state === 'signin') return <SignInAgain />
+  return (
+    <div className="mx-auto flex max-w-2xl flex-col gap-4">
+      <div className="flex flex-col gap-4 rounded-2xl border border-border bg-card p-5">
+        <Block title="Scheduled posts">
+          <p className="text-xs text-muted-foreground">Schedule from any Publish panel by choosing <b>Later</b>. The post goes out within about 10 minutes of the time you set. Instagram has no timer of its own, so the pictures wait here, encrypted, until then.</p>
+          {state === 'error' && <p className="text-xs text-destructive">The list could not be loaded. Reload the page and try again.</p>}
+          {jobs === null && state === 'ok' && <p className="text-xs text-muted-foreground">Loading...</p>}
+          {jobs && jobs.length === 0 && <p className="flex items-center gap-2 text-sm text-muted-foreground"><Clock4 className="h-4 w-4" /> Nothing scheduled.</p>}
+          {jobs && jobs.length > 0 && (
+            <ul className="flex flex-col gap-2">
+              {jobs.map((j) => (
+                <li key={j.id} className="flex flex-col gap-1.5 rounded-xl border border-border p-3 text-sm">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <b className="min-w-0 flex-1">{j.label}</b>
+                    <span className={cn('rounded-full px-2.5 py-0.5 text-[11px] font-bold', j.status === 'done' ? 'bg-[var(--aso-ok-tint)] text-[var(--aso-ok)]' : j.status === 'failed' ? 'bg-destructive/10 text-destructive' : 'bg-[var(--aso-gold-tint)] text-[var(--aso-gold)]')}>
+                      {j.status === 'pending' ? 'Waiting' : j.status === 'running' ? 'Posting' : j.status === 'done' ? 'Posted' : 'Failed'}
+                    </span>
+                    {j.status === 'pending' && <Button type="button" variant="ghost" size="sm" className="h-7 text-destructive" onClick={() => void cancel(j.id)}><Trash2 className="h-4 w-4" /> Remove</Button>}
+                  </div>
+                  <div className="text-xs text-muted-foreground">{when(j.at)} · {j.kind === 'animation' ? 'animation' : 'picture'} · {where(j.targets)}</div>
+                  {j.result && j.result.length > 0 && (
+                    <ul className="mt-0.5 flex flex-col gap-0.5 text-xs">
+                      {j.result.map((r, i) => <li key={i} className={cn('flex items-center gap-1.5', r.ok ? 'text-[var(--aso-ok)]' : 'text-destructive')}>{r.ok ? <Check className="h-3.5 w-3.5" /> : <X className="h-3.5 w-3.5" />} {r.label}: {r.msg}</li>)}
+                    </ul>
+                  )}
+                </li>
+              ))}
+            </ul>
+          )}
+          <Button type="button" variant="outline" size="sm" className="self-start" onClick={load}>Refresh</Button>
+        </Block>
+      </div>
+    </div>
   )
 }
 
