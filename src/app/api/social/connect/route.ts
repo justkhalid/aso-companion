@@ -22,7 +22,11 @@ export async function GET(req: NextRequest) {
   url.searchParams.set('client_id', c.appId)
   url.searchParams.set('redirect_uri', callbackUrl(req))
   url.searchParams.set('state', state)
-  url.searchParams.set('scope', OAUTH_SCOPES)
+  if (c.loginConfigId) {
+    /* Facebook Login for Business: the permissions come from the configuration */
+    url.searchParams.set('config_id', c.loginConfigId)
+    url.searchParams.set('override_default_response_type', 'true')
+  } else url.searchParams.set('scope', OAUTH_SCOPES)
   url.searchParams.set('response_type', 'code')
   return NextResponse.redirect(url)
 }

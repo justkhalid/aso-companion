@@ -3,6 +3,7 @@
    it never reaches the browser.
 
    Vercel variables (all optional once the app is connected from inside):
+   META_LOGIN_CONFIG_ID  for apps that use Facebook Login for Business: the id of its configuration (replaces the permission list)
    META_APP_ID + META_APP_SECRET  lets the app turn a pasted token into a lasting one, read its expiry, and offer "Connect with Facebook"
    META_ACCESS_TOKEN, META_PAGE_ID, META_IG_USER_ID  a connection set up by hand (used when nothing is connected in the app)
    META_TOKEN_EXPIRES  YYYY-MM-DD for such a hand-made token (renewal reminder)
@@ -20,6 +21,7 @@ export interface SocialConfig {
   base: string
   appId?: string
   appSecret?: string
+  loginConfigId?: string // Facebook Login for Business: the configuration that lists the permissions
   source: 'app' | 'env' | 'none'
   pageName?: string
   igName?: string
@@ -73,6 +75,7 @@ export async function socialConfig(): Promise<SocialConfig> {
     base: (e.META_GRAPH_BASE?.trim() || 'https://graph.facebook.com').replace(/\/+$/, ''),
     appId: e.META_APP_ID?.trim() || undefined,
     appSecret: e.META_APP_SECRET?.trim() || undefined,
+    loginConfigId: e.META_LOGIN_CONFIG_ID?.trim() || undefined,
   }
   const st = await readStored()
   if (st) return { ...common, token: st.token, page: st.page, ig: st.ig, pageName: st.pageName, igName: st.igName, savedAt: st.savedAt, expiresAt: st.expiresAt, source: 'app' }

@@ -103,6 +103,7 @@ Optional variables:
 | Variable | Description |
 |----------|-------------|
 | `META_APP_ID`, `META_APP_SECRET` | Make pasted tokens lasting, read the real expiry, and enable "Connect with Facebook". |
+| `META_LOGIN_CONFIG_ID` | Only for apps that use Facebook Login for Business: the id of a configuration (Facebook Login for Business > Configurations) with the permissions pages_show_list, pages_read_engagement, pages_manage_posts, instagram_basic, instagram_content_publish and the token type User access token. The Connect button needs it. |
 | `META_ACCESS_TOKEN`, `META_PAGE_ID`, `META_IG_USER_ID` | A connection set up by hand in Vercel. Used only when nothing is connected in the app. |
 | `META_TOKEN_EXPIRES` | `YYYY-MM-DD` for such a hand-made token (renewal reminder). |
 | `META_GRAPH_VERSION` | Default `v23.0`. |
