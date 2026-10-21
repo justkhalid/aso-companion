@@ -27,6 +27,7 @@ export function UpdatesPanel() {
   const [confirm, setConfirm] = React.useState(false)
   const [msg, setMsg] = React.useState<{ ok: boolean; text: string } | null>(null)
   const [restarting, setRestarting] = React.useState(false)
+  const [quitMsg, setQuitMsg] = React.useState('')
 
   const load = React.useCallback(async () => {
     setBusy(true)
@@ -136,6 +137,15 @@ export function UpdatesPanel() {
             )}
           </div>
         </>
+      )}
+
+      {st?.local && (
+        <div className="flex flex-col gap-1.5 border-t border-border pt-4">
+          <h3 className="text-xs font-extrabold uppercase tracking-[0.14em] text-muted-foreground">Close the app</h3>
+          <p className="text-xs text-muted-foreground">The app keeps running quietly in the background so scheduled posts can go out. Close it here when you are finished for the day. The desktop icon opens it again.</p>
+          <Button type="button" variant="outline" size="sm" className="self-start" onClick={async () => { await fetch('/api/quit', { method: 'POST' }).catch(() => undefined); setQuitMsg('The app is closed. You can close this window.') }}>Close the app</Button>
+          {quitMsg && <p className="text-xs font-semibold text-[var(--aso-ok)]">{quitMsg}</p>}
+        </div>
       )}
 
       <AlertDialog open={confirm} onOpenChange={setConfirm}>

@@ -1,0 +1,88 @@
+Option Explicit
+' ASO Companion: double-click this file (or the desktop icon it makes). No black window.
+Dim sh, fso, here, desk, tok, secret, ts, lnk, tries, edge, chrome
+
+Set sh = CreateObject("WScript.Shell")
+Set fso = CreateObject("Scripting.FileSystemObject")
+here = fso.GetParentFolderName(WScript.ScriptFullName)
+sh.CurrentDirectory = here
+
+Function Up()
+  Dim h
+  On Error Resume Next
+  Set h = CreateObject("MSXML2.ServerXMLHTTP.6.0")
+  h.setTimeouts 1500, 1500, 1500, 1500
+  h.open "GET", "http://localhost:3000/api/session", False
+  h.send
+  Up = (Err.Number = 0 And h.Status = 200)
+  On Error GoTo 0
+End Function
+
+If Not Up() Then
+  If sh.Run("cmd /c where node >nul 2>nul", 0, True) <> 0 Then
+    MsgBox "Node.js is not installed on this computer." & vbCrLf & "The download page opens now. Install the LTS version, then open ASO Companion again.", 48, "ASO Companion"
+    sh.Run "https://nodejs.org/en/download"
+    WScript.Quit
+  End If
+
+  If Not fso.FileExists(here & "\.env.local") Then
+    tok = InputBox("First start. Paste the GitHub token here (LOCAL.md explains how to make it):", "ASO Companion")
+    If Trim(tok) = "" Then WScript.Quit
+    secret = LCase(Replace(Replace(Replace(CreateObject("Scriptlet.TypeLib").GUID, "{", ""), "}", ""), "-", ""))
+    secret = Left(secret, 32) & Left(LCase(Replace(Replace(Replace(CreateObject("Scriptlet.TypeLib").GUID, "{", ""), "}", ""), "-", "")), 32)
+    Set ts = fso.CreateTextFile(here & "\.env.local", True)
+    ts.WriteLine "ASO_LOCAL=1"
+    ts.WriteLine "ASO_SESSION_SECRET=" & secret
+    ts.WriteLine "GITHUB_PAT=" & Trim(tok)
+    ts.WriteLine "GITHUB_REPO=justkhalid/aso-companion"
+    ts.WriteLine "GITHUB_BRANCH=main"
+    ts.WriteLine "META_APP_ID="
+    ts.WriteLine "META_APP_SECRET="
+    ts.Close
+  End If
+
+  If fso.FileExists(here & "\aso-failed.txt") Then fso.DeleteFile here & "\aso-failed.txt"
+  sh.Popup "ASO Companion is getting ready. The first time this takes a few minutes. The app opens by itself." & vbCrLf & "You can close this note.", 8, "ASO Companion", 64
+  sh.Run "cmd /c """ & here & "\Run-ASO-Hidden.bat""", 0, False
+
+  tries = 0
+  Do While Not Up()
+    WScript.Sleep 3000
+    tries = tries + 1
+    If fso.FileExists(here & "\aso-failed.txt") Then
+      MsgBox "The app could not start. The reason is written in the file aso.log in the app folder. Send it to the developer.", 16, "ASO Companion"
+      WScript.Quit
+    End If
+    If tries > 600 Then
+      MsgBox "The app is taking too long to start. Check the file aso.log in the app folder.", 16, "ASO Companion"
+      WScript.Quit
+    End If
+  Loop
+End If
+
+' the desktop icon, made once
+desk = sh.SpecialFolders("Desktop")
+If Not fso.FileExists(desk & "\ASO Companion.lnk") Then
+  Set lnk = sh.CreateShortcut(desk & "\ASO Companion.lnk")
+  lnk.TargetPath = "wscript.exe"
+  lnk.Arguments = Chr(34) & here & "\ASO Companion.vbs" & Chr(34)
+  lnk.WorkingDirectory = here
+  lnk.IconLocation = here & "\public\aso-logo.ico"
+  lnk.Description = "ASO Companion"
+  lnk.Save
+End If
+
+' open it in its own window (Edge or Chrome without the browser bars), else in the normal browser
+edge = ""
+chrome = ""
+On Error Resume Next
+edge = sh.RegRead("HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\App Paths\msedge.exe\")
+chrome = sh.RegRead("HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\App Paths\chrome.exe\")
+On Error GoTo 0
+If edge <> "" Then
+  sh.Run """" & edge & """ --app=http://localhost:3000/admin", 1, False
+ElseIf chrome <> "" Then
+  sh.Run """" & chrome & """ --app=http://localhost:3000/admin", 1, False
+Else
+  sh.Run "http://localhost:3000/admin"
+End If

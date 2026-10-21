@@ -90,3 +90,5 @@ captures/
 data/social.enc.json
 data/schedule/
 package-lock.json
+aso.log
+aso-failed.txt

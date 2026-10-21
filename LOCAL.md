@@ -7,10 +7,13 @@ The admin (sign-in, saving, Facebook and Instagram posting) runs only on this co
 1. Install **Node.js** (the LTS version) from nodejs.org. On Windows also install **Git** from git-scm.com. A Mac already offers Git: the first time you use it, say yes to the "command line developer tools" window.
 2. Download the app once. On Windows: open a folder, right-click > **Open in Terminal**. On a Mac: open the **Terminal** app. Then run `git clone https://github.com/justkhalid/aso-companion.git`. Open the new `aso-companion` folder.
 3. Make a GitHub token so the app can save the data: github.com > your picture > **Settings > Developer settings > Personal access tokens > Fine-grained tokens > Generate new token**. Pick this repository only, set **Contents** to **Read and write**, generate, and copy it.
-4. Double-click **Start-ASO.bat** on Windows, or **Start-ASO.command** on a Mac (the first time on a Mac: right-click it > **Open** > **Open**). On the first start it makes a settings file and opens it in Notepad (TextEdit on a Mac). After `GITHUB_PAT=` paste the token, save and close. It then installs and builds (a few minutes) and opens the admin in the browser.
+4. Open the app: on **Windows** double-click **ASO Companion** (the file with the `.vbs` type, shown with the Windows script icon) in the `aso-companion` folder. On a **Mac** double-click the **ASO Companion** app in that folder; the first time, right-click it > **Open** > **Open**. A small box asks for the GitHub token: paste it. The first start installs and builds for a few minutes with no window showing; the app then opens by itself in its own window.
+   - A desktop icon called **ASO Companion** is made automatically. From then on, use that icon.
 5. Sign in with the admin code. In Settings you can change the code.
 
-Every day after that: double-click **Start-ASO.bat** (Mac: **Start-ASO.command**) and keep its window open while using the app. Scheduled posts go out only while the app is running.
+Every day after that: double-click the **ASO Companion** icon on the desktop. There is no black window. The app keeps running quietly in the background (needed for scheduled posts, which go out only while the computer is on and awake). To close it, use Settings > Updates > **Close the app**.
+
+If something does not start, look at the file `aso.log` in the app folder and send it to the developer. `Start-ASO.bat` (Windows) and `Start-ASO.command` (Mac) start the same app with a visible window, which helps when looking for a problem.
 
 ## Facebook and Instagram
 
