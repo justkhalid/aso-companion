@@ -5,10 +5,11 @@ import { AlertTriangle, ArrowDown, ArrowUp, ArrowUpDown, Check, CircleAlert, Cop
 import { PageHead, EmptyState } from '@/components/ui-bits'
 import { Button } from '@/components/ui/button'
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog'
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { cn } from '@/lib/utils'
 import { useStore } from '@/lib/store'
 
-interface Member { nr: number; name: string; occupation: string; date: string; joined: string; q: unknown; cardPrinted: boolean; hasPhoto: boolean; banned: boolean; duplicates: number[] }
+interface Member { all: Record<string, unknown>; nr: number; name: string; occupation: string; date: string; joined: string; q: unknown; cardPrinted: boolean; hasPhoto: boolean; banned: boolean; duplicates: number[] }
 interface Summary { total: number; thisMonth: number; thisYear: number; cardsToPrint: number; noPhoto: number; banned: number; withDuplicates: number }
 interface Reply { available: boolean; connected: boolean; members?: Member[]; summary?: Summary; fetchedAt?: string; error?: string }
 
@@ -23,6 +24,17 @@ const day = (m: Member) => {
   const [y, mo, d] = m.joined.split('-')
   if (!y) return m.date
   return [d && String(+d), mo && MON[+mo - 1], y].filter(Boolean).join(' ')
+}
+const label = (k: string) => k.replace(/([a-z])([A-Z])/g, '$1 $2').replace(/[_-]+/g, ' ').replace(/^./, (c) => c.toUpperCase())
+function Value({ v }: { v: unknown }) {
+  if (v === null || v === undefined || v === '') return <span className="text-muted-foreground">-</span>
+  if (typeof v === 'boolean') return <>{v ? 'Yes' : 'No'}</>
+  if (Array.isArray(v)) return <>{v.length ? v.join(', ') : '-'}</>
+  if (typeof v === 'object') return <>{JSON.stringify(v)}</>
+  const t = String(v)
+  if (/^https?:\/\/\S+$/.test(t)) return <a href={t} target="_blank" rel="noreferrer" className="break-all text-primary underline">{t.length > 60 ? t.slice(0, 57) + '...' : t}</a>
+  if (t.length > 400) return <span className="text-muted-foreground">(a long value, {t.length} characters)</span>
+  return <span className="whitespace-pre-wrap break-words">{t}</span>
 }
 type SortKey = 'nr' | 'name' | 'job' | 'joined' | 'card' | 'photo'
 const SORTERS: Record<SortKey, (m: Member) => string | number> = {
@@ -48,6 +60,7 @@ export function MembersPage() {
   const [key, setKey] = React.useState('')
   const [msg, setMsg] = React.useState<{ ok: boolean; text: string } | null>(null)
   const [confirmOff, setConfirmOff] = React.useState(false)
+  const [open, setOpen] = React.useState<Member | null>(null)
 
   const load = React.useCallback(async (fresh = false) => {
     setBusy(true)
@@ -237,7 +250,7 @@ export function MembersPage() {
                   {rows.slice(page * PAGE, page * PAGE + PAGE).map((m) => (
                     <tr key={m.nr} className={cn('border-b border-border/60 last:border-0', m.banned && 'bg-destructive/5')}>
                       <td className="py-2 pr-3 tabular-nums text-muted-foreground">{m.nr}</td>
-                      <td className="py-2 pr-3 font-semibold">{m.name}</td>
+                      <td className="py-2 pr-3 font-semibold"><button type="button" onClick={() => setOpen(m)} className="text-left hover:text-primary hover:underline">{m.name || '(no name)'}</button></td>
                       <td className="py-2 pr-3 capitalize text-muted-foreground">{m.occupation}</td>
                       <td className="py-2 pr-3 whitespace-nowrap text-muted-foreground">{day(m)}</td>
                       <td className="py-2 pr-3">{m.cardPrinted ? <span className="text-[var(--aso-ok)]">Printed</span> : <span className="text-[var(--aso-gold)]">To print</span>}</td>
@@ -267,6 +280,27 @@ export function MembersPage() {
           </div>
         </>
       )}
+
+      <Dialog open={!!open} onOpenChange={(o) => !o && setOpen(null)}>
+        <DialogContent className="max-h-[85vh] overflow-y-auto sm:max-w-lg">
+          {open && (
+            <>
+              <DialogHeader>
+                <DialogTitle>{open.name || '(no name)'}</DialogTitle>
+                <DialogDescription>Member number {open.nr}{open.banned ? ' · Banned' : ''}</DialogDescription>
+              </DialogHeader>
+              <dl className="grid grid-cols-[8rem_1fr] gap-x-3 gap-y-2 text-sm">
+                {Object.entries(open.all).map(([k, v]) => (
+                  <React.Fragment key={k}>
+                    <dt className="text-xs font-bold text-muted-foreground">{label(k)}</dt>
+                    <dd><Value v={v} /></dd>
+                  </React.Fragment>
+                ))}
+              </dl>
+            </>
+          )}
+        </DialogContent>
+      </Dialog>
 
       <AlertDialog open={confirmOff} onOpenChange={setConfirmOff}>
         <AlertDialogContent>
