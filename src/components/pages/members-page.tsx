@@ -1,23 +1,38 @@
 'use client'
 
 import * as React from 'react'
-import { AlertTriangle, Check, CircleAlert, Copy, Loader2, RefreshCw, Search, Unplug, Users } from 'lucide-react'
+import { AlertTriangle, ArrowDown, ArrowUp, ArrowUpDown, Check, CircleAlert, Copy, Loader2, RefreshCw, Search, Unplug, Users } from 'lucide-react'
 import { PageHead, EmptyState } from '@/components/ui-bits'
 import { Button } from '@/components/ui/button'
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog'
 import { cn } from '@/lib/utils'
 import { useStore } from '@/lib/store'
 
-interface Member { nr: number; name: string; occupation: string; date: string; q: unknown; cardPrinted: boolean; hasPhoto: boolean; banned: boolean; duplicates: number[] }
+interface Member { nr: number; name: string; occupation: string; date: string; joined: string; q: unknown; cardPrinted: boolean; hasPhoto: boolean; banned: boolean; duplicates: number[] }
 interface Summary { total: number; thisMonth: number; thisYear: number; cardsToPrint: number; noPhoto: number; banned: number; withDuplicates: number }
 interface Reply { available: boolean; connected: boolean; members?: Member[]; summary?: Summary; fetchedAt?: string; error?: string }
 
 const inputCls = 'w-full rounded-lg border border-border bg-background px-3 py-2 text-sm outline-none focus:border-primary'
 const PAGE = 50
 type Filter = 'all' | 'print' | 'photo' | 'banned' | 'dupes'
-const FILTERS: [Filter, string][] = [['all', 'Everyone'], ['print', 'Card to print'], ['photo', 'No photo'], ['dupes', 'Possible duplicates'], ['banned', 'Banned']]
+const FILTERS: [Filter, string][] = [['all', 'Everyone'], ['print', 'Card to print'], ['photo', 'No photo'], ['dupes', 'Maybe entered twice'], ['banned', 'Banned']]
 
-const day = (iso: string) => (iso ? new Date(iso).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }) : '')
+const MON = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
+/* joined is yyyy-mm-dd, yyyy-mm or yyyy; anything unreadable is shown as the sheet wrote it */
+const day = (m: Member) => {
+  const [y, mo, d] = m.joined.split('-')
+  if (!y) return m.date
+  return [d && String(+d), mo && MON[+mo - 1], y].filter(Boolean).join(' ')
+}
+type SortKey = 'nr' | 'name' | 'job' | 'joined' | 'card' | 'photo'
+const SORTERS: Record<SortKey, (m: Member) => string | number> = {
+  nr: (m) => m.nr,
+  name: (m) => m.name.toLowerCase(),
+  job: (m) => m.occupation.toLowerCase(),
+  joined: (m) => m.joined || '',
+  card: (m) => (m.cardPrinted ? 1 : 0),
+  photo: (m) => (m.hasPhoto ? 1 : 0),
+}
 
 /* Library > Members: the members of the ASO library, read live from the Google Sheet (only in the app on the director's computer) */
 export function MembersPage() {
@@ -28,6 +43,7 @@ export function MembersPage() {
   const [q, setQ] = React.useState('')
   const [filter, setFilter] = React.useState<Filter>('all')
   const [page, setPage] = React.useState(0)
+  const [sort, setSort] = React.useState<{ key: SortKey; dir: 1 | -1 }>({ key: 'nr', dir: -1 })
   const [url, setUrl] = React.useState('')
   const [key, setKey] = React.useState('')
   const [msg, setMsg] = React.useState<{ ok: boolean; text: string } | null>(null)
@@ -71,14 +87,19 @@ export function MembersPage() {
     return members
       .filter((m) => (filter === 'print' ? !m.cardPrinted && !m.banned : filter === 'photo' ? !m.hasPhoto : filter === 'banned' ? m.banned : filter === 'dupes' ? m.duplicates.length > 0 : true))
       .filter((m) => !t || m.name.toLowerCase().includes(t) || String(m.nr) === t || m.occupation.toLowerCase().includes(t))
-      .sort((a, b) => b.nr - a.nr)
-  }, [members, q, filter])
-  React.useEffect(() => setPage(0), [q, filter])
+      .sort((a, b) => {
+        const f = SORTERS[sort.key]
+        const x = f(a), y = f(b)
+        return (x < y ? -1 : x > y ? 1 : a.nr - b.nr) * sort.dir
+      })
+  }, [members, q, filter, sort])
+  React.useEffect(() => setPage(0), [q, filter, sort])
+  const sortBy = (key: SortKey) => setSort((s) => (s.key === key ? { key, dir: (s.dir * -1) as 1 | -1 } : { key, dir: key === 'nr' || key === 'joined' ? -1 : 1 }))
 
   const byYear = React.useMemo(() => {
     const m = new Map<string, number>()
-    for (const x of members || []) { const y = x.date.slice(0, 4); if (y) m.set(y, (m.get(y) || 0) + 1) }
-    return [...m.entries()].sort((a, b) => a[0].localeCompare(b[0])).slice(-10)
+    for (const x of members || []) { const y = x.joined.slice(0, 4); if (y) m.set(y, (m.get(y) || 0) + 1) }
+    return [...m.entries()].sort((a, b) => a[0].localeCompare(b[0]))
   }, [members])
   const jobs = React.useMemo(() => {
     const m = new Map<string, number>()
@@ -144,7 +165,7 @@ export function MembersPage() {
               ['Joined this year', s.thisYear, null],
               ['Cards to print', s.cardsToPrint, 'print'],
               ['No photo', s.noPhoto, 'photo'],
-              ['Possible duplicates', s.withDuplicates, 'dupes'],
+              ['Maybe entered twice', s.withDuplicates, 'dupes'],
               ['Banned', s.banned, 'banned'],
             ] as [string, number, Filter | null][]).map(([label, n, f]) => (
               <button key={label} type="button" disabled={!f} onClick={() => f && setFilter(f)} className={cn('flex flex-col items-start gap-0.5 rounded-2xl border bg-card p-3 text-left shadow-sm', f ? 'hover:border-primary/40' : 'cursor-default', f && filter === f && f !== 'all' ? 'border-primary' : 'border-border')}>
@@ -157,18 +178,19 @@ export function MembersPage() {
           <div className="mt-4 grid gap-4 md:grid-cols-2">
             <section className="rounded-2xl border border-border bg-card p-4 shadow-sm">
               <h2 className="mb-3 text-sm font-extrabold tracking-tight">Joined per year</h2>
-              <div className="flex h-28 items-end gap-1.5">
-                {byYear.map(([y, n]) => {
-                  const max = Math.max(...byYear.map((x) => x[1]))
-                  return (
-                    <div key={y} className="flex min-w-0 flex-1 flex-col items-center justify-end gap-1">
-                      <span className="text-[10px] font-bold tabular-nums">{n}</span>
-                      <div className="w-full rounded-t-md bg-primary/70" style={{ height: `${Math.max(4, (n / max) * 80)}px` }} />
-                      <span className="text-[10px] text-muted-foreground">{y.slice(2)}</span>
-                    </div>
-                  )
-                })}
-              </div>
+              {byYear.length === 0 ? (
+                <p className="text-sm text-muted-foreground">No join dates could be read from the sheet.</p>
+              ) : (
+                <ul className="flex flex-col gap-1.5">
+                  {byYear.map(([y, n]) => (
+                    <li key={y} className="flex items-center gap-2 text-sm">
+                      <span className="w-10 shrink-0 font-semibold tabular-nums">{y}</span>
+                      <div className="h-3 min-w-0 flex-1 overflow-hidden rounded-full bg-secondary"><div className="h-full rounded-full bg-primary/70" style={{ width: `${(n / Math.max(...byYear.map((x) => x[1]))) * 100}%` }} /></div>
+                      <span className="w-10 text-right text-xs font-bold tabular-nums">{n}</span>
+                    </li>
+                  ))}
+                </ul>
+              )}
             </section>
             <section className="rounded-2xl border border-border bg-card p-4 shadow-sm">
               <h2 className="mb-3 text-sm font-extrabold tracking-tight">What members do</h2>
@@ -200,7 +222,15 @@ export function MembersPage() {
               <table className="w-full min-w-[640px] text-left text-sm">
                 <thead>
                   <tr className="border-b border-border text-xs text-muted-foreground">
-                    <th className="py-2 pr-3 font-bold">Nr</th><th className="py-2 pr-3 font-bold">Name</th><th className="py-2 pr-3 font-bold">Job</th><th className="py-2 pr-3 font-bold">Joined</th><th className="py-2 pr-3 font-bold">Card</th><th className="py-2 pr-3 font-bold">Photo</th><th className="py-2 font-bold">Note</th>
+                    {([['nr', 'Nr'], ['name', 'Name'], ['job', 'Job'], ['joined', 'Joined'], ['card', 'Card'], ['photo', 'Photo']] as [SortKey, string][]).map(([k, label]) => (
+                      <th key={k} className="py-2 pr-3 font-bold" aria-sort={sort.key === k ? (sort.dir === 1 ? 'ascending' : 'descending') : 'none'}>
+                        <button type="button" onClick={() => sortBy(k)} className={cn('inline-flex items-center gap-1 hover:text-foreground', sort.key === k && 'text-foreground')}>
+                          {label}
+                          {sort.key === k ? (sort.dir === 1 ? <ArrowUp className="h-3 w-3" /> : <ArrowDown className="h-3 w-3" />) : <ArrowUpDown className="h-3 w-3 opacity-40" />}
+                        </button>
+                      </th>
+                    ))}
+                    <th className="py-2 font-bold">Note</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -209,7 +239,7 @@ export function MembersPage() {
                       <td className="py-2 pr-3 tabular-nums text-muted-foreground">{m.nr}</td>
                       <td className="py-2 pr-3 font-semibold">{m.name}</td>
                       <td className="py-2 pr-3 capitalize text-muted-foreground">{m.occupation}</td>
-                      <td className="py-2 pr-3 whitespace-nowrap text-muted-foreground">{day(m.date)}</td>
+                      <td className="py-2 pr-3 whitespace-nowrap text-muted-foreground">{day(m)}</td>
                       <td className="py-2 pr-3">{m.cardPrinted ? <span className="text-[var(--aso-ok)]">Printed</span> : <span className="text-[var(--aso-gold)]">To print</span>}</td>
                       <td className="py-2 pr-3">{m.hasPhoto ? 'Yes' : <span className="text-[var(--aso-gold)]">No</span>}</td>
                       <td className="py-2 text-xs">
@@ -250,7 +280,7 @@ export function MembersPage() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-      {s && s.withDuplicates > 0 && filter === 'all' && <p className="mt-2 flex items-center gap-1.5 text-xs text-muted-foreground"><AlertTriangle className="h-3.5 w-3.5" /> Rows marked "same as" look like the same person under another number.</p>}
+      {filter === 'dupes' && <p className="mt-2 flex items-start gap-1.5 text-xs text-muted-foreground"><AlertTriangle className="mt-0.5 h-3.5 w-3.5 shrink-0" /> The sheet flags these people as possibly the same person registered under more than one number. "same as" shows the other number. Check the two cards, then keep one.</p>}
     </div>
   )
 }

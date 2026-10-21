@@ -279,12 +279,9 @@
   background-size: auto, 140px 140px, auto, auto;
 }
 
-/* cursor glow: a soft spot of light follows the pointer inside a hovered card (first layer of .bg-card) */
+/* the glow layer of .bg-card stays at zero (the cursor glow was removed) */
 @property --glow-a { syntax: '<number>'; inherits: false; initial-value: 0; }
 .bg-card { transition: --glow-a .45s ease; }
-@media (hover: hover) and (prefers-reduced-motion: no-preference) {
-  .bg-card:hover { --glow-a: 1; }
-}
 /* calendars never glow (the card around a calendar included) */
 .bg-card.aso-no-glow, .bg-card:has(.aso-no-glow) { --glow-a: 0 !important; }
 

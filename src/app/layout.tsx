@@ -4,7 +4,6 @@ import { Inter, JetBrains_Mono, Playfair_Display } from "next/font/google";
 import "./globals.css";
 import { Toaster } from "@/components/ui/toaster";
 import { ThemeProvider } from "@/components/theme-provider";
-import { CursorGlow } from "@/components/cursor-glow";
 import { HoverMotion } from "@/components/hover-motion";
 import { MonthExportHost } from "@/components/month-export-dialog";
 
@@ -78,7 +77,6 @@ export default function RootLayout({
           enableSystem={false}
           disableTransitionOnChange
         >
-          <CursorGlow />
           <HoverMotion />
           <MonthExportHost />
           {children}
