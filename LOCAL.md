@@ -1,16 +1,16 @@
-# Running ASO Companion on the director's computer
+# Running ASO Companion on the director's computer (Windows or Mac)
 
 The admin (sign-in, saving, Facebook and Instagram posting) runs only on this computer. The public website on Vercel only shows the data.
 
 ## One-time setup
 
-1. Install **Node.js** (the LTS version) from nodejs.org, and **Git** from git-scm.com.
-2. Download the app once: open a folder, right-click > **Open in Terminal** (or Git Bash) and run `git clone https://github.com/justkhalid/aso-companion.git`. Open the new `aso-companion` folder.
+1. Install **Node.js** (the LTS version) from nodejs.org. On Windows also install **Git** from git-scm.com. A Mac already offers Git: the first time you use it, say yes to the "command line developer tools" window.
+2. Download the app once. On Windows: open a folder, right-click > **Open in Terminal**. On a Mac: open the **Terminal** app. Then run `git clone https://github.com/justkhalid/aso-companion.git`. Open the new `aso-companion` folder.
 3. Make a GitHub token so the app can save the data: github.com > your picture > **Settings > Developer settings > Personal access tokens > Fine-grained tokens > Generate new token**. Pick this repository only, set **Contents** to **Read and write**, generate, and copy it.
-4. Double-click **Start-ASO.bat**. On the first start it makes a settings file and opens it in Notepad. After `GITHUB_PAT=` paste the token, save and close. It then installs and builds (a few minutes) and opens the admin in the browser.
+4. Double-click **Start-ASO.bat** on Windows, or **Start-ASO.command** on a Mac (the first time on a Mac: right-click it > **Open** > **Open**). On the first start it makes a settings file and opens it in Notepad (TextEdit on a Mac). After `GITHUB_PAT=` paste the token, save and close. It then installs and builds (a few minutes) and opens the admin in the browser.
 5. Sign in with the admin code. In Settings you can change the code.
 
-Every day after that: double-click **Start-ASO.bat** and keep its window open while using the app. Scheduled posts go out only while the app is running.
+Every day after that: double-click **Start-ASO.bat** (Mac: **Start-ASO.command**) and keep its window open while using the app. Scheduled posts go out only while the app is running.
 
 ## Facebook and Instagram
 
