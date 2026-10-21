@@ -1,7 +1,8 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  output: "standalone",
+  /* the website is built as a standalone bundle; the director's computer (ASO_LOCAL=1) runs with `next start` */
+  output: process.env.ASO_LOCAL === "1" ? undefined : "standalone",
   /* config options here */
   typescript: {
     ignoreBuildErrors: true,

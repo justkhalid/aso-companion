@@ -1,0 +1,24 @@
+# Posts the scheduled Facebook and Instagram posts that are due (Admin > Social kit > Scheduled).
+# GitHub starts this about every 10 minutes (it can run a few minutes late). Nothing is needed here.
+# Optional: if the CRON_SECRET variable is set in Vercel, add the same value as a secret named CRON_SECRET in this repository.
+name: Post scheduled social posts
+
+on:
+  schedule:
+    - cron: '*/10 * * * *'
+  workflow_dispatch:
+
+jobs:
+  run-due:
+    runs-on: ubuntu-latest
+    timeout-minutes: 6
+    steps:
+      - name: Ask the site to post what is due
+        env:
+          CRON_SECRET: ${{ secrets.CRON_SECRET }}
+        run: |
+          if [ -n "$CRON_SECRET" ]; then
+            curl -fsS -m 290 -X POST -H "Authorization: Bearer $CRON_SECRET" https://aso-companion.vercel.app/api/social/run-due
+          else
+            curl -fsS -m 290 -X POST https://aso-companion.vercel.app/api/social/run-due
+          fi

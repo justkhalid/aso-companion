@@ -81,6 +81,39 @@ bun run dev
 | `GITHUB_BRANCH` | No | `main` | The fallback branch. |
 | `GITHUB_STATE_PATH` | No | `data/state.json` | The fallback state file path. |
 
+## Posting to Facebook and Instagram
+
+Admin > Social kit > Connection holds the connection. The person who runs the Page does it from the app: no Vercel access needed after the one-time setup below. Posting itself is in Social kit > a club or event > Publish, and in Social kit > Calendar (month story and calendar post).
+
+How the token is kept: it is checked with Meta, encrypted on the server (AES-256-GCM, key derived from the server secret) and saved as `data/social.enc.json` next to the data (or in Vercel Blob when that is connected). It is never sent to the browser. The repo is public, so only the encrypted file is ever stored there; connecting Vercel Blob (Storage > Create > Blob) keeps even that out of GitHub. Only a signed-in admin can call `/api/social/*`.
+
+One-time setup (whoever manages Vercel and the Meta app):
+
+1. The Instagram account must be a Business or Creator account linked to the Facebook Page.
+2. developers.facebook.com > My Apps > Create App (type Business). Leave it in Development mode. People who run the Page are added under App roles, so posting to their own accounts needs no app review.
+3. Add the products Facebook Login for Business (or Facebook Login) and, under its settings, put this in Valid OAuth Redirect URIs: `https://aso-companion.vercel.app/api/social/callback`.
+4. In Vercel > Settings > Environment Variables add `META_APP_ID` and `META_APP_SECRET` (App settings > Basic), then redeploy.
+
+After that, in the app: Connection > Connect with Facebook. Facebook asks for permission once and the app saves a lasting Page token and the Instagram account id. If a token ever stops working (password change, app removed), press Reconnect. The Connection screen shows when the token runs out and warns 14 days before when the expiry is known.
+
+Without `META_APP_ID` and `META_APP_SECRET` the app can still keep a Page token pasted into Connection, but a token from the Graph API Explorer lasts only about an hour.
+
+Optional variables:
+
+| Variable | Description |
+|----------|-------------|
+| `META_APP_ID`, `META_APP_SECRET` | Make pasted tokens lasting, read the real expiry, and enable "Connect with Facebook". |
+| `META_LOGIN_CONFIG_ID` | Only for apps that use Facebook Login for Business: the id of a configuration (Facebook Login for Business > Configurations) with the permissions pages_show_list, pages_read_engagement, pages_manage_posts, instagram_basic, instagram_content_publish and the token type User access token. The Connect button needs it. |
+| `META_ACCESS_TOKEN`, `META_PAGE_ID`, `META_IG_USER_ID` | A connection set up by hand in Vercel. Used only when nothing is connected in the app. |
+| `META_TOKEN_EXPIRES` | `YYYY-MM-DD` for such a hand-made token (renewal reminder). |
+| `META_GRAPH_VERSION` | Default `v23.0`. |
+
+Scheduling: choose **Later** in any Publish panel, pick a date and time, and press Schedule. Instagram has no timer of its own, so the pictures (or video) wait on the server in `data/schedule`, encrypted, and the workflow `.github/workflows/social-schedule.yml` asks the site to post what is due every 10 minutes (GitHub can run it a few minutes late, so a post goes out within about 10 to 15 minutes of the set time). Social kit > Scheduled lists what waits, what was posted and what failed, and lets you remove a waiting post. The workflow runs from the `main` branch, so it only starts once this code is merged. If you want the timer endpoint locked, set `CRON_SECRET` in Vercel and add the same value as a repository secret named `CRON_SECRET` (Settings > Secrets and variables > Actions).
+
+Handover: add a second admin to the Facebook Page and to the Meta app (App roles), so the setup does not depend on one person.
+
+Notes: Instagram may refuse the 3:4 poster for feed posts; the app then retries with a 4:5 version. The link sticker on Instagram stories cannot be added through the API.
+
 ## Architecture
 
 ```

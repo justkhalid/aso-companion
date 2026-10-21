@@ -7,6 +7,7 @@
  */
 import { createHash, createHmac, randomBytes, timingSafeEqual } from 'crypto'
 import type { NextRequest } from 'next/server'
+import { publicOnly } from './mode'
 
 export const SESSION_COOKIE = 'aso_session'
 export const SESSION_DAYS = 30
@@ -19,7 +20,8 @@ function secret(): string {
   if (env) return env
   /* no dedicated secret: derive one from another server-only secret so
      sessions survive across serverless instances */
-  const base = process.env.BLOB_READ_WRITE_TOKEN || process.env.GITHUB_PAT
+  /* the GitHub token first: connecting a Blob store later must not change the secret (it would end every sign-in) */
+  const base = process.env.GITHUB_PAT || process.env.BLOB_READ_WRITE_TOKEN
   if (base) return createHash('sha256').update('aso-session:' + base).digest('hex')
   if (process.env.NODE_ENV !== 'production') return DEV_SECRET
   /* production with nothing configured: random per process (sessions reset on restart) */
@@ -28,6 +30,20 @@ function secret(): string {
     console.warn('ASO_SESSION_SECRET is not set: admin sessions will not survive restarts.')
   }
   return ephemeral
+}
+
+/** a server secret that stays the same between restarts (needed to keep anything encrypted for later) */
+export function hasStableSecret(): boolean {
+  return !!(process.env.ASO_SESSION_SECRET || process.env.BLOB_READ_WRITE_TOKEN || process.env.GITHUB_PAT) || process.env.NODE_ENV !== 'production'
+}
+
+/** a key derived from the server secret, for one purpose (e.g. 'social') */
+export function derivedKey(purpose: string): Buffer {
+  return createHash('sha256').update(`aso-${purpose}:` + secret()).digest()
+}
+
+export function signValue(payload: string): string {
+  return sign(payload)
 }
 
 function sign(payload: string): string {
@@ -69,7 +85,9 @@ export function verifySessionToken(token: string | undefined | null): boolean {
 }
 
 export function rolesOf(req: NextRequest): Role[] {
-  return sessionRoles(req.cookies.get(SESSION_COOKIE)?.value)
+  const roles = sessionRoles(req.cookies.get(SESSION_COOKIE)?.value)
+  /* on the public website the admin is switched off: even a valid admin cookie counts for nothing */
+  return publicOnly() ? roles.filter((r) => r !== 'admin') : roles
 }
 
 export function isAdmin(req: NextRequest): boolean {

@@ -85,3 +85,8 @@ server.log
 
 # local test artifacts
 captures/
+
+# local copy of the encrypted social connection (production keeps its own)
+data/social.enc.json
+data/schedule/
+package-lock.json

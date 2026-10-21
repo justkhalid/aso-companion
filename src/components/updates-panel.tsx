@@ -1,0 +1,155 @@
+'use client'
+
+import * as React from 'react'
+import { Check, CircleAlert, Download, Loader2, RefreshCw } from 'lucide-react'
+import { Button } from '@/components/ui/button'
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog'
+
+interface LogItem { sha: string; date: string; title: string; note: string }
+interface Status {
+  local: boolean
+  installed: { sha: string; date: string } | null
+  latest: { sha: string; date: string } | null
+  behind: number | null
+  dirty: boolean
+  canUpdate: boolean
+  log: LogItem[]
+  error?: string
+}
+
+const day = (iso: string) => (iso ? new Date(iso).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }) : '')
+
+/* Settings > Updates: the installed version, what is new, and (on the director's computer) a button that updates the app */
+export function UpdatesPanel() {
+  const [st, setSt] = React.useState<Status | null>(null)
+  const [state, setState] = React.useState<'ok' | 'signin' | 'error'>('ok')
+  const [busy, setBusy] = React.useState(false)
+  const [confirm, setConfirm] = React.useState(false)
+  const [msg, setMsg] = React.useState<{ ok: boolean; text: string } | null>(null)
+  const [restarting, setRestarting] = React.useState(false)
+
+  const load = React.useCallback(async () => {
+    setBusy(true)
+    try {
+      const r = await fetch('/api/update/status', { cache: 'no-store' })
+      if (r.status === 401) { setState('signin'); return }
+      if (!r.ok) { setState('error'); return }
+      setState('ok')
+      setSt((await r.json()) as Status)
+    } catch {
+      setState('error')
+    } finally {
+      setBusy(false)
+    }
+  }, [])
+  React.useEffect(() => { void load() }, [load])
+
+  const update = async () => {
+    setBusy(true)
+    setMsg(null)
+    try {
+      const r = await fetch('/api/update/run', { method: 'POST' })
+      const j = (await r.json()) as { ok: boolean; out: string; restarting?: boolean }
+      setMsg({ ok: j.ok, text: j.out || (j.ok ? 'Updated.' : 'The update did not work.') })
+      if (j.ok && j.restarting) {
+        setRestarting(true)
+        /* the start file installs and rebuilds, then starts the app again: wait for it, then reload */
+        let tries = 0
+        const wait = async () => {
+          tries++
+          try {
+            const s = await fetch('/api/session', { cache: 'no-store' })
+            if (s.ok && tries > 3) return window.location.reload()
+          } catch {
+            /* still restarting */
+          }
+          if (tries < 120) setTimeout(wait, 3000)
+          else setRestarting(false)
+        }
+        setTimeout(wait, 6000)
+      }
+    } catch {
+      setMsg({ ok: false, text: 'The app could not be reached.' })
+    } finally {
+      setBusy(false)
+    }
+  }
+
+  if (state === 'signin') return <p className="text-sm text-muted-foreground">Sign in as admin to see updates.</p>
+  return (
+    <div className="mb-4 flex flex-col gap-4 rounded-2xl border border-border bg-card p-5 shadow-sm">
+      <div className="flex items-center gap-2">
+        <h2 className="text-sm font-extrabold tracking-tight">Version and updates</h2>
+        <Button type="button" variant="outline" size="sm" className="ml-auto" onClick={() => void load()} disabled={busy}>
+          {busy && !restarting ? <Loader2 className="h-4 w-4 animate-spin" /> : <RefreshCw className="h-4 w-4" />} Check
+        </Button>
+      </div>
+
+      {state === 'error' && <p className="text-xs text-destructive">The version could not be checked. Try again.</p>}
+      {st?.error && <p className="text-xs text-destructive">{st.error}</p>}
+
+      {st && (
+        <>
+          <div className="rounded-xl bg-secondary/60 p-3 text-sm">
+            {st.installed ? (
+              <>
+                <div>Installed: <b>{st.installed.sha.slice(0, 7)}</b> <span className="text-muted-foreground">({day(st.installed.date)})</span></div>
+                <div>Latest: <b>{st.latest?.sha.slice(0, 7) || '?'}</b> <span className="text-muted-foreground">({day(st.latest?.date || '')})</span></div>
+                <div className="mt-1.5 flex items-center gap-1.5 text-xs font-semibold">
+                  {st.behind === 0 ? <><Check className="h-4 w-4 text-[var(--aso-ok)]" /> You have the latest version.</> : <><CircleAlert className="h-4 w-4 text-[var(--aso-gold)]" /> {st.behind === null ? 'A newer version may be available.' : `${st.behind} newer change${st.behind === 1 ? '' : 's'} available.`}</>}
+                </div>
+              </>
+            ) : (
+              <>
+                <div>Latest version: <b>{st.latest?.sha.slice(0, 7) || '?'}</b> <span className="text-muted-foreground">({day(st.latest?.date || '')})</span></div>
+                <p className="mt-1 text-xs text-muted-foreground">{st.local ? 'This folder is not a git copy, so it cannot update itself. Install it with the Start file from the repository.' : 'This is the website. It updates when a new version is published. The admin app on the director\'s computer updates from here, in this same screen.'}</p>
+              </>
+            )}
+          </div>
+
+          {st.local && st.installed && (st.behind ?? 0) > 0 && (
+            <div className="flex flex-col gap-2">
+              <Button type="button" className="self-start" disabled={!st.canUpdate || busy || restarting} onClick={() => setConfirm(true)}>
+                {restarting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Download className="h-4 w-4" />} {restarting ? 'Restarting...' : 'Update now'}
+              </Button>
+              {st.dirty && <p className="text-xs text-destructive">This copy has changes of its own, so it cannot update by itself.</p>}
+            </div>
+          )}
+          {msg && <p className={`whitespace-pre-wrap text-xs font-semibold ${msg.ok ? 'text-[var(--aso-ok)]' : 'text-destructive'}`}>{msg.text}{restarting ? ' The app is restarting and will reopen in a minute or two. Keep the black window open.' : ''}</p>}
+
+          <div>
+            <h3 className="mb-2 text-xs font-extrabold uppercase tracking-[0.14em] text-muted-foreground">{st.installed && st.behind !== 0 ? 'What is new' : 'Recent changes'}</h3>
+            {st.log.length === 0 ? (
+              <p className="text-xs text-muted-foreground">Nothing to list.</p>
+            ) : (
+              <ul className="flex flex-col gap-2.5">
+                {st.log.map((l) => (
+                  <li key={l.sha} className="text-sm">
+                    <div className="flex items-baseline gap-2">
+                      <b className="min-w-0 flex-1">{l.title}</b>
+                      <span className="shrink-0 text-[11px] text-muted-foreground">{day(l.date)} · {l.sha}</span>
+                    </div>
+                    {l.note && <p className="mt-0.5 whitespace-pre-wrap text-xs text-muted-foreground">{l.note}</p>}
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
+        </>
+      )}
+
+      <AlertDialog open={confirm} onOpenChange={setConfirm}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Update the app?</AlertDialogTitle>
+            <AlertDialogDescription>The app downloads the new version and restarts. This takes a minute or two and the page reloads by itself. Your data is not touched.</AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Not now</AlertDialogCancel>
+            <AlertDialogAction onClick={() => void update()}>Update</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    </div>
+  )
+}

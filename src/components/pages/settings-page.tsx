@@ -22,6 +22,7 @@ import {
 import { useStore } from '@/lib/store'
 import { useTheme } from 'next-themes'
 import { PageHead } from '@/components/ui-bits'
+import { UpdatesPanel } from '@/components/updates-panel'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -95,7 +96,7 @@ export function SettingsPage() {
   const stateChars = React.useMemo(() => compactSize(state), [state])
 
   const s = state.settings
-  const [tab, setTab] = React.useState<'general' | 'access' | 'data'>('general')
+  const [tab, setTab] = React.useState<'general' | 'access' | 'data' | 'updates'>('general')
 
   /* the theme is chosen per device; the site opens in light mode */
   const setThemeVal = (t: Theme) => setTheme(t === 'auto' ? 'system' : t)
@@ -340,6 +341,10 @@ export function SettingsPage() {
       </Section>
 
       </div>
+      <div role="tabpanel" id="settings-panel-updates" aria-labelledby="settings-tab-updates" hidden={tab !== 'updates'}>
+        {tab === 'updates' && <UpdatesPanel />}
+      </div>
+
       <div role="tabpanel" id="settings-panel-data" aria-labelledby="settings-tab-data" hidden={tab !== 'data'}>
       {/* cloud storage */}
       <Section title="Cloud storage" icon={<Cloud className="h-4 w-4" />}>
@@ -462,6 +467,7 @@ const TABS = [
   { id: 'general', label: 'General' },
   { id: 'access', label: 'Access and visibility' },
   { id: 'data', label: 'Data and backup' },
+  { id: 'updates', label: 'Updates' },
 ] as const
 
 function Section({

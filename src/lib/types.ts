@@ -119,6 +119,8 @@ export interface KitOverrides {
   cap?: string // caption for the post
   wa?: string // WhatsApp group link
   poster?: string // the framed 3:4 poster used in the story
+  short?: string // short name for the calendar pictures (default: the name without Club or Activity)
+  posts?: { t: string; to: string[] }[] // when it was posted to Instagram or Facebook, newest last
 }
 
 /* how often a club or event repeats */

@@ -24,6 +24,12 @@ const KIT_NAMES: Record<string, { kicker: string; top: string; word: string }> =
 /* framed 3:4 posters that came with the kit, used until a poster is added in the Social kit (items without one use the website poster) */
 const FRAMED = new Set(['xmuzvr51m52js5', 'xmuzvsa0u3j4s1', 'xmv09rj4g74t8p', 'xmv0ww9qzucgme', 'xmv7zvfbshusl1', 'xmv8dxatdhi9lp'])
 
+/** the kit icon a club or event starts with, from the icon it has in the app */
+export function kitIconOf(appIcon?: string): string {
+  const look = LOOK_BY_ICON[appIcon || ''] || 'aso'
+  return GEN_ICON[appIcon || ''] || LOOKS[look][5]
+}
+
 export interface KitRec {
   id: string
   type: 'club' | 'event'
@@ -45,7 +51,9 @@ export interface KitRec {
   wa: string
   poster: string | null
   sitePoster: string | null // the poster shown on the website
+  framed: boolean // the poster has the ASO frame (a kit poster or one that came with the kit); the website poster does not
   nameNeeded: boolean // the name is Arabic and no English name was typed yet
+  short: string // short name for calendar pictures ('' = automatic)
 }
 
 export function fmtKitTime(r: string | undefined): string {
@@ -71,6 +79,10 @@ function clubDay(c: Club): string {
   const ds = (c.days || []).map((d) => D3[d]).filter(Boolean)
   if (ds.length === 1) return `${c.freq === 'biweekly' ? 'EVERY OTHER' : 'EVERY'} ${ds[0]}`
   return ds.length ? ds.map((d) => d + 'S').join(' AND ') : 'DAY TO BE ANNOUNCED'
+}
+/* the small line above an event's name, from how often it happens */
+function eventKicker(recur: string | undefined): string {
+  return recur === 'weekly' ? 'WEEKLY EVENT' : recur === 'biweekly' ? 'BIWEEKLY EVENT' : recur === 'monthly' ? 'MONTHLY EVENT' : 'SPECIAL EVENT'
 }
 function eventDay(e: EventEntry): string {
   const once = !e.recur || e.recur === 'once' || e.recur === 'none'
@@ -103,7 +115,7 @@ export function kitRec(kind: 'club' | 'event', item: Club | EventEntry): KitRec 
     name,
     lead: c.lead || '',
     desc: cleanDesc(c.desc),
-    kicker: seed ? seed.kicker : kind === 'club' ? (c.freq === 'biweekly' ? 'BIWEEKLY CLUB' : c.freq === 'monthly' ? 'MONTHLY CLUB' : 'WEEKLY CLUB') : 'SPECIAL EVENT',
+    kicker: seed ? seed.kicker : kind === 'club' ? (c.freq === 'biweekly' ? 'BIWEEKLY CLUB' : c.freq === 'monthly' ? 'MONTHLY CLUB' : 'WEEKLY CLUB') : eventKicker(c.recur),
     top,
     word,
     day: kind === 'club' ? clubDay(c) : eventDay(c),
@@ -118,11 +130,14 @@ export function kitRec(kind: 'club' | 'event', item: Club | EventEntry): KitRec 
     wa: kind === 'club' ? c.url || '' : '',
     poster: FRAMED.has(item.id) ? `/kit/framed/${item.id}.webp` : c.poster || null,
     sitePoster: c.poster || null,
+    framed: FRAMED.has(item.id),
     nameNeeded: false,
+    short: '',
   }
   R.cap = R.desc
   /* what was set in the kit wins */
   if (k.kicker !== undefined) R.kicker = k.kicker
+  R.short = k.short || ''
   if (k.top !== undefined) R.top = k.top
   if (k.word !== undefined) R.word = k.word
   if (k.look && LOOKS[k.look]) { R.look = k.look; if (k.icon === undefined) R.icon = LOOKS[k.look][5] }
@@ -132,7 +147,7 @@ export function kitRec(kind: 'club' | 'event', item: Club | EventEntry): KitRec 
   if (k.bg !== undefined) R.bg = k.bg
   if (k.cap !== undefined) R.cap = k.cap
   if (k.wa !== undefined) R.wa = k.wa
-  if (k.poster) R.poster = k.poster
+  if (k.poster) { R.poster = k.poster; R.framed = k.poster !== c.poster }
   R.nameNeeded = ARABIC.test(name) && !R.word
   return R
 }
@@ -151,6 +166,7 @@ export function kitDiff(kind: 'club' | 'event', item: Club | EventEntry, form: K
   const implied = form.look !== base.look ? LOOKS[form.look]?.[5] : base.icon
   if (form.icon !== implied) out.icon = form.icon
   if (form.bg !== base.bg) out.bg = form.bg
+  if (form.short !== base.short && form.short.trim()) out.short = form.short
   if (form.cap !== base.cap) out.cap = form.cap
   if (form.wa !== base.wa) out.wa = form.wa
   if (form.poster && form.poster !== base.poster) out.poster = form.poster
@@ -166,7 +182,7 @@ export function kitTheme(R: Pick<KitRec, 'look' | 'palette' | 'decor' | 'bg'>): 
 export async function kitParams(R: KitRec): Promise<KitParams> {
   let im: HTMLImageElement | null = null
   if (R.poster) { try { im = await loadImage(R.poster) } catch { im = null } }
-  return { im, kicker: R.kicker, top: R.top, word: R.word || 'CLUB NAME', day: R.day, time: R.time, venue: R.venue, icon: R.icon, mode: R.type }
+  return { im, framed: R.framed, kicker: R.kicker, top: R.top, word: R.word || 'CLUB NAME', day: R.day, time: R.time, venue: R.venue, icon: R.icon, mode: R.type }
 }
 
 export const kitSlug = (R: Pick<KitRec, 'top' | 'word' | 'name'>) =>

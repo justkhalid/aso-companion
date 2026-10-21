@@ -24,6 +24,10 @@ export function LoginPage() {
   }, [])
 
   const [busy, setBusy] = React.useState(false)
+  const [adminOff, setAdminOff] = React.useState(false)
+  React.useEffect(() => {
+    fetch('/api/session', { cache: 'no-store' }).then((r) => r.json()).then((j: { adminEnabled?: boolean }) => setAdminOff(j.adminEnabled === false)).catch(() => undefined)
+  }, [])
 
   const attempt = async () => {
     if (busy) return
@@ -48,7 +52,13 @@ export function LoginPage() {
           </p>
         </div>
 
-        <div className="mt-6 rounded-2xl border border-border bg-card p-5 shadow-sm">
+        {adminOff && (
+          <div className="mt-6 rounded-2xl border border-border bg-card p-5 text-sm shadow-sm">
+            <p className="font-bold">The admin is not on this website.</p>
+            <p className="mt-1 text-muted-foreground">For safety, the admin only opens on the director's computer. Use the ASO Companion app there to make changes. Everything you see on the public pages comes from it.</p>
+          </div>
+        )}
+        <div className={adminOff ? 'hidden' : 'mt-6 rounded-2xl border border-border bg-card p-5 shadow-sm'}>
           <div className="flex flex-col gap-1.5">
             <Label htmlFor="admin-code">Access code</Label>
             <Input

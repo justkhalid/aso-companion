@@ -302,13 +302,15 @@ export async function posterRead(name: string): Promise<Buffer | null> {
         const r = await fetch(found.url, { cache: 'no-store' })
         if (r.ok) out = Buffer.from(await r.arrayBuffer())
       }
-    } else if (posterGithub().token) {
-      const { repo, branch } = posterGithub()
-      const r = await fetch(`https://raw.githubusercontent.com/${repo}/${branch}/data/posters/${name}?t=${Date.now()}`, { cache: 'no-store' })
-      if (r.ok) out = Buffer.from(await r.arrayBuffer())
     } else {
+      /* a file next to the app first (development, the director's computer), then the public repository (the website, which holds no token) */
       const { readFile } = await import('node:fs/promises')
       out = await readFile(`data/posters/${name}`).catch(() => null)
+      if (!out) {
+        const { repo, branch } = posterGithub()
+        const r = await fetch(`https://raw.githubusercontent.com/${repo}/${branch}/data/posters/${name}?t=${Date.now()}`, { cache: 'no-store' })
+        if (r.ok) out = Buffer.from(await r.arrayBuffer())
+      }
     }
   } catch {
     out = null
@@ -318,4 +320,200 @@ export async function posterRead(name: string): Promise<Buffer | null> {
     posterMemo.set(name, out)
   }
   return out
+}
+
+/* ---------------- one small secret file (the Meta connection, encrypted before it gets here) ----------------
+   Same storage as the data: Vercel Blob when connected, the GitHub repo otherwise, and a local file in development.
+   Only ciphertext is ever written; the key comes from the server secret. */
+
+const SECRET_BLOB = 'social.enc.json'
+const SECRET_PATH = 'data/social.enc.json'
+let secretMemo: { at: number; text: string | null } | null = null
+
+export async function secretRead(): Promise<string | null> {
+  if (secretMemo && Date.now() - secretMemo.at < 20_000) return secretMemo.text
+  let text: string | null = null
+  try {
+    if (getStorageInfo().mode === 'vercel-blob') {
+      const { list } = await import('@vercel/blob')
+      const hit = (await list({ prefix: SECRET_BLOB, limit: 1 })).blobs.find((b) => b.pathname === SECRET_BLOB)
+      if (hit) {
+        const r = await fetch(hit.url, { cache: 'no-store' })
+        if (r.ok) text = await r.text()
+      }
+    } else if (process.env.GITHUB_PAT) {
+      const { repo, branch, token } = posterGithub()
+      const r = await fetch(`https://api.github.com/repos/${repo}/contents/${SECRET_PATH}?ref=${encodeURIComponent(branch)}`, {
+        headers: { Authorization: `Bearer ${token}`, Accept: 'application/vnd.github+json', 'X-GitHub-Api-Version': '2022-11-28' },
+        cache: 'no-store',
+      })
+      if (r.ok) text = Buffer.from(((await r.json()) as { content: string }).content, 'base64').toString('utf8')
+    } else {
+      const { readFile } = await import('node:fs/promises')
+      text = await readFile(SECRET_PATH, 'utf8').catch(() => null)
+    }
+  } catch {
+    text = null
+  }
+  if (text !== null && !text.trim()) text = null
+  secretMemo = { at: Date.now(), text }
+  return text
+}
+
+/** write the file; an empty text clears it */
+export async function secretWrite(text: string): Promise<{ ok: boolean; msg: string }> {
+  secretMemo = null
+  try {
+    if (getStorageInfo().mode === 'vercel-blob') {
+      const { put } = await import('@vercel/blob')
+      await put(SECRET_BLOB, text || ' ', { access: 'public', addRandomSuffix: false, allowOverwrite: true, contentType: 'application/json' })
+      return { ok: true, msg: 'blob' }
+    }
+    const { repo, branch, token } = posterGithub()
+    if (token) {
+      const headers = { Authorization: `Bearer ${token}`, Accept: 'application/vnd.github+json', 'X-GitHub-Api-Version': '2022-11-28' }
+      const url = `https://api.github.com/repos/${repo}/contents/${SECRET_PATH}`
+      let last = ''
+      for (let i = 0; i < 3; i++) {
+        const meta = await fetch(`${url}?ref=${encodeURIComponent(branch)}`, { headers, cache: 'no-store' })
+        const sha = meta.ok ? ((await meta.json()) as { sha: string }).sha : undefined
+        const put = await fetch(url, {
+          method: 'PUT',
+          headers: { ...headers, 'Content-Type': 'application/json' },
+          body: JSON.stringify({ message: 'aso-companion: social connection', branch, content: Buffer.from(text || ' ').toString('base64'), ...(sha ? { sha } : {}) }),
+        })
+        if (put.ok) return { ok: true, msg: 'github' }
+        last = `GitHub could not save it (${put.status})`
+        if (put.status !== 409 && put.status !== 422) break
+      }
+      return { ok: false, msg: last }
+    }
+    const { mkdir, writeFile } = await import('node:fs/promises')
+    await mkdir('data', { recursive: true })
+    await writeFile(SECRET_PATH, text || ' ')
+    return { ok: true, msg: 'local' }
+  } catch (e) {
+    return { ok: false, msg: e instanceof Error ? e.message : 'could not save' }
+  }
+}
+
+/* ---------------- small files next to the data (scheduled posts) ----------------
+   Same three places as everything else: Vercel Blob when connected, the GitHub repo (data/<path>) otherwise, a local folder in development.
+   Only encrypted text is written here. */
+
+function ghFiles() {
+  const { repo, branch, token } = posterGithub()
+  return { repo, branch, token, headers: { Authorization: `Bearer ${token}`, Accept: 'application/vnd.github+json', 'X-GitHub-Api-Version': '2022-11-28' } }
+}
+
+const blobMode = () => getStorageInfo().mode === 'vercel-blob'
+
+/** the file names (without the folder) in `data/<dir>` */
+export async function fileList(dir: string): Promise<string[]> {
+  try {
+    if (blobMode()) {
+      const { list } = await import('@vercel/blob')
+      const r = await list({ prefix: dir + '/', limit: 1000 })
+      return r.blobs.map((b) => b.pathname.slice(dir.length + 1))
+    }
+    if (process.env.GITHUB_PAT) {
+      const g = ghFiles()
+      const r = await fetch(`https://api.github.com/repos/${g.repo}/contents/data/${dir}?ref=${encodeURIComponent(g.branch)}`, { headers: g.headers, cache: 'no-store' })
+      if (!r.ok) return []
+      return ((await r.json()) as { name: string; type: string }[]).filter((f) => f.type === 'file').map((f) => f.name)
+    }
+    const { readdir } = await import('node:fs/promises')
+    return await readdir(`data/${dir}`).catch(() => [])
+  } catch {
+    return []
+  }
+}
+
+export async function fileRead(path: string): Promise<{ text: string; sha?: string } | null> {
+  try {
+    if (blobMode()) {
+      const { list } = await import('@vercel/blob')
+      const hit = (await list({ prefix: path, limit: 1 })).blobs.find((b) => b.pathname === path)
+      if (!hit) return null
+      const r = await fetch(hit.url, { cache: 'no-store' })
+      return r.ok ? { text: await r.text() } : null
+    }
+    if (process.env.GITHUB_PAT) {
+      const g = ghFiles()
+      const r = await fetch(`https://api.github.com/repos/${g.repo}/contents/data/${path}?ref=${encodeURIComponent(g.branch)}`, { headers: g.headers, cache: 'no-store' })
+      if (!r.ok) return null
+      const j = (await r.json()) as { sha: string; content?: string; encoding?: string }
+      if (j.content && j.encoding === 'base64') return { text: Buffer.from(j.content, 'base64').toString('utf8'), sha: j.sha }
+      /* larger than 1 MB: the blob API gives the whole file */
+      const b = await fetch(`https://api.github.com/repos/${g.repo}/git/blobs/${j.sha}`, { headers: g.headers, cache: 'no-store' })
+      if (!b.ok) return null
+      return { text: Buffer.from(((await b.json()) as { content: string }).content, 'base64').toString('utf8'), sha: j.sha }
+    }
+    const { readFile } = await import('node:fs/promises')
+    const text = await readFile(`data/${path}`, 'utf8').catch(() => null)
+    return text === null ? null : { text }
+  } catch {
+    return null
+  }
+}
+
+/** write a file; with `sha` it only succeeds when the file has not changed since it was read (GitHub), which is how a post is claimed once */
+export async function fileWrite(path: string, text: string, sha?: string): Promise<{ ok: boolean; msg: string; conflict?: boolean }> {
+  try {
+    if (blobMode()) {
+      const { put } = await import('@vercel/blob')
+      await put(path, text, { access: 'public', addRandomSuffix: false, allowOverwrite: true, contentType: 'application/json' })
+      return { ok: true, msg: 'blob' }
+    }
+    if (process.env.GITHUB_PAT) {
+      const g = ghFiles()
+      const url = `https://api.github.com/repos/${g.repo}/contents/data/${path}`
+      let cur = sha
+      if (cur === undefined) {
+        const m = await fetch(`${url}?ref=${encodeURIComponent(g.branch)}`, { headers: g.headers, cache: 'no-store' })
+        cur = m.ok ? ((await m.json()) as { sha: string }).sha : undefined
+      }
+      const put = await fetch(url, {
+        method: 'PUT',
+        headers: { ...g.headers, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ message: 'aso-companion: scheduled posts', branch: g.branch, content: Buffer.from(text).toString('base64'), ...(cur ? { sha: cur } : {}) }),
+      })
+      if (put.ok) return { ok: true, msg: 'github' }
+      return { ok: false, msg: `GitHub could not save it (${put.status})`, conflict: put.status === 409 || put.status === 422 }
+    }
+    const { mkdir, writeFile } = await import('node:fs/promises')
+    await mkdir(`data/${path.split('/').slice(0, -1).join('/')}`, { recursive: true })
+    await writeFile(`data/${path}`, text)
+    return { ok: true, msg: 'local' }
+  } catch (e) {
+    return { ok: false, msg: e instanceof Error ? e.message : 'could not save' }
+  }
+}
+
+export async function fileDelete(path: string, sha?: string): Promise<boolean> {
+  try {
+    if (blobMode()) {
+      const { list, del } = await import('@vercel/blob')
+      const hit = (await list({ prefix: path, limit: 1 })).blobs.find((b) => b.pathname === path)
+      if (hit) await del(hit.url)
+      return true
+    }
+    if (process.env.GITHUB_PAT) {
+      const g = ghFiles()
+      const url = `https://api.github.com/repos/${g.repo}/contents/data/${path}`
+      let cur = sha
+      if (cur === undefined) {
+        const m = await fetch(`${url}?ref=${encodeURIComponent(g.branch)}`, { headers: g.headers, cache: 'no-store' })
+        if (!m.ok) return true
+        cur = ((await m.json()) as { sha: string }).sha
+      }
+      const r = await fetch(url, { method: 'DELETE', headers: { ...g.headers, 'Content-Type': 'application/json' }, body: JSON.stringify({ message: 'aso-companion: scheduled posts', branch: g.branch, sha: cur }) })
+      return r.ok || r.status === 404
+    }
+    const { rm } = await import('node:fs/promises')
+    await rm(`data/${path}`, { force: true })
+    return true
+  } catch {
+    return false
+  }
 }

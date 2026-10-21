@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { readCloudState } from '@/lib/state-store'
+import { publicOnly } from '@/lib/mode'
 import {
   clearFailures, clientKey, createSessionToken, isThrottled, noteFailure,
   rolesOf, safeEqual, sessionCookie, storedCode, type Role,
@@ -26,6 +27,9 @@ export async function POST(req: NextRequest) {
   const code = typeof body.code === 'string' ? body.code.trim() : ''
   if (!code) return NextResponse.json({ ok: false, msg: 'Missing code' }, { status: 400 })
   const role: Role = body.as === 'teacher' || body.as === 'intern' ? body.as : 'admin'
+  if (role === 'admin' && publicOnly()) {
+    return NextResponse.json({ ok: false, msg: 'The admin is switched off on this website. Sign in on the director\'s computer.' }, { status: 403 })
+  }
 
   const read = await readCloudState({ fresh: true })
   if (!read.ok) {
