@@ -81,6 +81,35 @@ bun run dev
 | `GITHUB_BRANCH` | No | `main` | The fallback branch. |
 | `GITHUB_STATE_PATH` | No | `data/state.json` | The fallback state file path. |
 
+## Posting to Facebook and Instagram
+
+Admin > Social kit > a club or event > Publish posts the poster and the story to the Facebook Page and the Instagram account. The token lives only in Vercel environment variables; the browser never sees it, and only a signed-in admin can call `/api/social/*`.
+
+| Variable | Required | Description |
+|----------|----------|-------------|
+| `META_ACCESS_TOKEN` | Yes | Long-lived Page access token. |
+| `META_PAGE_ID` | Yes | Facebook Page id. |
+| `META_IG_USER_ID` | For Instagram | Instagram business account id linked to the Page. |
+| `META_APP_ID`, `META_APP_SECRET` | No | Lets Test connection read the real token expiry. |
+| `META_TOKEN_EXPIRES` | No | `YYYY-MM-DD`. The Publish tab warns 14 days before. Not needed when the two above are set. |
+| `META_GRAPH_VERSION` | No | Default `v23.0`. |
+
+Setup, once:
+
+1. The Instagram account must be a Business or Creator account linked to the Facebook Page.
+2. developers.facebook.com > My Apps > Create App (type Business). Leave it in Development mode. The person who runs the Page is an admin of the app, so posting to their own accounts needs no app review.
+3. In the Graph API Explorer pick the app, then Get User Access Token with: `pages_show_list`, `pages_read_engagement`, `pages_manage_posts`, `instagram_basic`, `instagram_content_publish`.
+4. Make it long-lived: `GET /oauth/access_token?grant_type=fb_exchange_token&client_id=APP_ID&client_secret=APP_SECRET&fb_exchange_token=SHORT_TOKEN`.
+5. `GET /me/accounts` with the long-lived token. The Page entry holds its `id` (`META_PAGE_ID`) and its `access_token` (`META_ACCESS_TOKEN`). A Page token made this way does not expire.
+6. `GET /PAGE_ID?fields=instagram_business_account` gives `META_IG_USER_ID`.
+7. Add the variables in Vercel > Settings > Environment Variables and redeploy. Then Publish > Test connection.
+
+Renewal: the Page token stops working if the person who made it changes their Facebook password or removes the app. Make a new one with steps 3 to 5 and replace `META_ACCESS_TOKEN`.
+
+Handover: add a second admin to the Facebook Page and to the Meta app (App roles), so the setup does not depend on one person.
+
+Notes: Instagram may refuse the 3:4 poster for feed posts; the app then retries with a 4:5 version. The link sticker on Instagram stories cannot be added through the API.
+
 ## Architecture
 
 ```

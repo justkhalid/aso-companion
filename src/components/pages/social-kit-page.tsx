@@ -1,10 +1,11 @@
 'use client'
 
 import * as React from 'react'
-import { ArrowLeft, Check, Clock, Copy, Download, ImagePlus, MapPin, Pencil, Plus, Share2, Sparkles, Trash2, CalendarClock, AlertTriangle, CalendarDays } from 'lucide-react'
+import { ArrowLeft, Check, CircleAlert, Clock, Loader2, Send, X, Copy, Download, ImagePlus, MapPin, Pencil, Plus, Share2, Sparkles, Trash2, CalendarClock, AlertTriangle, CalendarDays } from 'lucide-react'
 import { useStore } from '@/lib/store'
 import { PageHead, EmptyState } from '@/components/ui-bits'
 import { Button } from '@/components/ui/button'
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog'
 import { ClubDialog } from '@/components/dialogs/club-dialog'
 import { EventDialog } from '@/components/dialogs/event-dialog'
 import { cn } from '@/lib/utils'
@@ -183,8 +184,8 @@ const Block = ({ title, children }: { title: string; children: React.ReactNode }
 )
 const inputCls = 'w-full rounded-lg border border-border bg-background px-3 py-2 text-sm outline-none focus:border-primary'
 
-type Section = 'content' | 'look' | 'caption'
-const SECTIONS: [Section, string][] = [['content', 'Poster and name'], ['look', 'Look'], ['caption', 'Caption and link']]
+type Section = 'content' | 'look' | 'caption' | 'publish'
+const SECTIONS: [Section, string][] = [['content', 'Poster and name'], ['look', 'Look'], ['caption', 'Caption and link'], ['publish', 'Publish']]
 
 function KitEditor({ kind, id, onBack, onEditSchedule }: { kind: Kind; id: string; onBack: () => void; onEditSchedule: (item: Club | EventEntry) => void }) {
   const list = useStore((s) => (kind === 'club' ? s.state.clubs : s.state.events)) as (Club | EventEntry)[]
@@ -210,6 +211,7 @@ function KitEditor({ kind, id, onBack, onEditSchedule }: { kind: Kind; id: strin
       const target = (kind === 'club' ? d.clubs : d.events).find((x) => x.id === id) as Club | EventEntry | undefined
       if (!target) return
       const diff = kitDiff(kind, { ...target, kit: undefined }, rec)
+      if (target.kit?.posts?.length) diff.posts = target.kit.posts
       if (Object.keys(diff).length) target.kit = diff
       else delete target.kit
     })
@@ -283,7 +285,7 @@ function KitEditor({ kind, id, onBack, onEditSchedule }: { kind: Kind; id: strin
       <div className="grid gap-6 lg:grid-cols-2 lg:items-start">
         {/* settings */}
         <div className="flex min-w-0 flex-col gap-3">
-          <div className="grid grid-cols-3 gap-1 rounded-full border border-border bg-card p-1" role="tablist" aria-label="Settings">
+          <div className="grid grid-cols-4 gap-1 rounded-full border border-border bg-card p-1" role="tablist" aria-label="Settings">
             {SECTIONS.map(([k, label]) => (
               <button
                 key={k}
@@ -442,13 +444,10 @@ function KitEditor({ kind, id, onBack, onEditSchedule }: { kind: Kind; id: strin
                     </div>
                   </Block>
                 )}
-                <Block title="Publish">
-                  <div className="flex items-start gap-3 rounded-xl border border-dashed border-border bg-secondary/40 p-3 text-xs text-muted-foreground">
-                    <Share2 className="mt-0.5 h-4 w-4 shrink-0" />
-                    <p>Posting to Instagram and Facebook from here is not switched on yet. Download the pictures and post them from the Instagram app for now.</p>
-                  </div>
-                </Block>
               </>
+            )}
+            {section === 'publish' && (
+              <PublishPanel kind={kind} id={id} R={R} out={out} posts={item.kit?.posts} />
             )}
           </div>
         </div>
@@ -481,6 +480,202 @@ function PreviewCard({ title, note, canvas, round, onDownload }: { title: string
       </div>
       <Button type="button" variant="outline" size="sm" disabled={!canvas} onClick={onDownload}><Download className="h-4 w-4" /> Download</Button>
     </section>
+  )
+}
+
+/* ---------------------------------------------------------------- publish */
+
+const blobOf = (c: HTMLCanvasElement, q = 0.92) => new Promise<Blob>((res, rej) => c.toBlob((b) => (b ? res(b) : rej(new Error('picture failed'))), 'image/jpeg', q))
+
+/* the poster as 3:4 (1080x1440) and as 4:5 (1080x1350, with soft side bars) for Instagram feeds that refuse 3:4 */
+async function posterBlobs(src: string) {
+  const im = await loadImage(src)
+  const a = cv(1080, 1440)
+  fitCover(a.getContext('2d')!, im, 0, 0, 1080, 1440)
+  const b = cv(1080, 1350)
+  const g = b.getContext('2d')!
+  g.filter = 'blur(40px)'
+  fitCover(g, im, -60, -60, 1200, 1470)
+  g.filter = 'none'
+  const w = Math.round((1350 * 3) / 4)
+  g.drawImage(im, (1080 - w) / 2, 0, w, 1350)
+  return { poster: await blobOf(a), poster45: await blobOf(b) }
+}
+
+type Dest = 'igFeed' | 'igStory' | 'fbFeed' | 'fbStory'
+const DESTS: [Dest, string, string][] = [
+  ['igFeed', 'Instagram post', 'The poster, with the caption'],
+  ['igStory', 'Instagram story', 'The story picture'],
+  ['fbFeed', 'Facebook post', 'The poster, with the caption'],
+  ['fbStory', 'Facebook story', 'The story picture'],
+]
+interface Step { label: string; ok: boolean; msg: string }
+interface Status { token: boolean; page: boolean; ig: boolean; expires: string | null; daysLeft: number | null }
+
+function PublishPanel({ kind, id, R, out, posts }: { kind: Kind; id: string; R: KitRec; out: { story: HTMLCanvasElement } | null; posts?: { t: string; to: string[] }[] }) {
+  const patch = useStore((s) => s.patch)
+  const [status, setStatus] = React.useState<Status | null | 'error'>(null)
+  const [pick, setPick] = React.useState<Record<Dest, boolean>>({ igFeed: true, igStory: true, fbFeed: true, fbStory: false })
+  const [testing, setTesting] = React.useState(false)
+  const [test, setTest] = React.useState<{ ok: boolean; lines: string[] } | null>(null)
+  const [confirm, setConfirm] = React.useState(false)
+  const [busy, setBusy] = React.useState(false)
+  const [steps, setSteps] = React.useState<Step[] | null>(null)
+
+  React.useEffect(() => {
+    let live = true
+    fetch('/api/social/status', { cache: 'no-store' })
+      .then((r) => (r.ok ? r.json() : Promise.reject(new Error(String(r.status)))))
+      .then((j: Status) => { if (live) setStatus(j) })
+      .catch(() => { if (live) setStatus('error') })
+    return () => { live = false }
+  }, [])
+
+  const ready = status && status !== 'error' && status.token && status.page
+  const chosen = DESTS.filter(([k]) => pick[k])
+  const needsPoster = (pick.igFeed || pick.fbFeed) && !R.poster
+
+  const runTest = async () => {
+    setTesting(true)
+    setTest(null)
+    try {
+      const r = await fetch('/api/social/test', { method: 'POST' })
+      setTest((await r.json()) as { ok: boolean; lines: string[] })
+    } catch {
+      setTest({ ok: false, lines: ['The server could not be reached.'] })
+    } finally {
+      setTesting(false)
+    }
+  }
+
+  const post = async () => {
+    if (!out) return
+    setBusy(true)
+    setSteps(null)
+    try {
+      const f = new FormData()
+      f.append('targets', JSON.stringify(pick))
+      f.append('caption', R.cap)
+      f.append('story', await blobOf(out.story), 'story.jpg')
+      if (R.poster) {
+        const p = await posterBlobs(R.poster)
+        f.append('poster', p.poster, 'poster.jpg')
+        f.append('poster45', p.poster45, 'poster45.jpg')
+      }
+      const r = await fetch('/api/social/publish', { method: 'POST', body: f })
+      const j = (await r.json()) as { steps?: Step[] }
+      const st = j.steps || [{ label: 'Server', ok: false, msg: `The server answered with an error (${r.status}).` }]
+      setSteps(st)
+      const done = st.filter((s) => s.ok).map((s) => s.label)
+      if (done.length) {
+        patch((d) => {
+          const target = (kind === 'club' ? d.clubs : d.events).find((x) => x.id === id) as Club | EventEntry | undefined
+          if (!target) return
+          target.kit = { ...(target.kit || {}), posts: [...(target.kit?.posts || []), { t: new Date().toISOString(), to: done }] }
+        })
+      }
+    } catch (e) {
+      setSteps([{ label: 'Stopped', ok: false, msg: e instanceof Error ? e.message : 'failed' }])
+    } finally {
+      setBusy(false)
+    }
+  }
+
+  const when = (iso: string) => new Date(iso).toLocaleString('en-GB', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })
+
+  return (
+    <>
+      <Block title="Connection">
+        {status === null && <p className="text-xs text-muted-foreground">Checking...</p>}
+        {status === 'error' && <p className="text-xs text-muted-foreground">Sign in as admin to post.</p>}
+        {status && status !== 'error' && !ready && (
+          <div className="flex flex-col gap-2 rounded-xl border border-dashed border-border bg-secondary/40 p-3 text-xs text-muted-foreground">
+            <p className="flex items-center gap-1.5 font-bold text-foreground"><CircleAlert className="h-4 w-4" /> Not connected to Facebook and Instagram yet.</p>
+            <p>The person who manages Vercel adds these three settings under Project, Settings, Environment Variables, then redeploys. The token is never typed in this app.</p>
+            <ul className="list-inside list-disc font-mono text-[11px]">
+              <li className={status.token ? 'opacity-50 line-through' : ''}>META_ACCESS_TOKEN</li>
+              <li className={status.page ? 'opacity-50 line-through' : ''}>META_PAGE_ID</li>
+              <li className={status.ig ? 'opacity-50 line-through' : ''}>META_IG_USER_ID</li>
+            </ul>
+            <p>The steps are in DEPLOY.md, under Posting to Facebook and Instagram.</p>
+          </div>
+        )}
+        {ready && (
+          <div className="flex flex-col gap-2">
+            <div className="flex flex-wrap items-center gap-3">
+              <span className="inline-flex items-center gap-1.5 rounded-full bg-[var(--aso-ok-tint)] px-2.5 py-1 text-xs font-bold text-[var(--aso-ok)]"><Check className="h-3.5 w-3.5" /> Settings found</span>
+              <Button type="button" variant="outline" size="sm" onClick={runTest} disabled={testing}>
+                {testing ? <Loader2 className="h-4 w-4 animate-spin" /> : <Check className="h-4 w-4" />} Test connection
+              </Button>
+            </div>
+            {status.daysLeft !== null && status.daysLeft <= 14 && (
+              <p className="flex items-center gap-1.5 text-xs font-semibold text-[var(--aso-gold)]">
+                <CircleAlert className="h-3.5 w-3.5" /> {status.daysLeft > 0 ? `The token expires in ${status.daysLeft} days. Make a new one before then.` : 'The token has expired. Make a new one.'}
+              </p>
+            )}
+            {test && (
+              <ul className={cn('rounded-xl p-3 text-xs', test.ok ? 'bg-[var(--aso-ok-tint)]' : 'bg-destructive/10')}>
+                {test.lines.map((l, i) => <li key={i}>{l}</li>)}
+              </ul>
+            )}
+          </div>
+        )}
+      </Block>
+
+      <Block title="Where to post">
+        <div className="grid grid-cols-2 gap-2">
+          {DESTS.map(([k, label, hint]) => (
+            <label key={k} className={cn('flex cursor-pointer items-start gap-2.5 rounded-xl border p-3 transition', pick[k] ? 'border-primary bg-primary/5' : 'border-border bg-card hover:bg-secondary')}>
+              <input type="checkbox" className="mt-0.5 h-4 w-4 accent-[var(--primary)]" checked={pick[k]} onChange={(e) => setPick((p) => ({ ...p, [k]: e.target.checked }))} />
+              <span className="min-w-0">
+                <span className="block text-[13px] font-bold leading-tight">{label}</span>
+                <span className="block text-[11px] text-muted-foreground">{hint}</span>
+              </span>
+            </label>
+          ))}
+        </div>
+        {needsPoster && <p className="flex items-center gap-1.5 text-xs font-semibold text-[var(--aso-gold)]"><CircleAlert className="h-3.5 w-3.5" /> The posts need a poster. Add one under Poster and name.</p>}
+        <Button type="button" className="self-start" disabled={!ready || busy || !out || chosen.length === 0 || needsPoster} onClick={() => setConfirm(true)}>
+          {busy ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />} Post now
+        </Button>
+      </Block>
+
+      {steps && (
+        <Block title="Result">
+          <ul className="flex flex-col gap-1.5">
+            {steps.map((s, i) => (
+              <li key={i} className="flex items-start gap-2 text-[13px]">
+                {s.ok ? <Check className="mt-0.5 h-4 w-4 shrink-0 text-[var(--aso-ok)]" /> : <X className="mt-0.5 h-4 w-4 shrink-0 text-destructive" />}
+                <span><b>{s.label}</b>: {s.msg}</span>
+              </li>
+            ))}
+          </ul>
+        </Block>
+      )}
+
+      {posts && posts.length > 0 && (
+        <Block title="Posted before">
+          <ul className="flex flex-col gap-1 text-xs text-muted-foreground">
+            {[...posts].reverse().slice(0, 6).map((p, i) => <li key={i}>{when(p.t)}: {p.to.join(', ')}</li>)}
+          </ul>
+        </Block>
+      )}
+
+      <AlertDialog open={confirm} onOpenChange={setConfirm}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Post now?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This goes live on {chosen.map(([, l]) => l).join(', ')}. A post cannot be taken back from here.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Not yet</AlertDialogCancel>
+            <AlertDialogAction onClick={() => void post()}>Post</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    </>
   )
 }
 
