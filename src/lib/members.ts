@@ -11,7 +11,8 @@ export interface Member {
   nr: number
   name: string
   occupation: string
-  date: string // when the person joined
+  date: string // when the person joined, as written in the sheet
+  joined: string // the same as yyyy-mm-dd (or yyyy-mm, yyyy) when it can be read, else ''
   q: unknown // the sheet's "q" column
   cardPrinted: boolean
   hasPhoto: boolean
@@ -93,6 +94,21 @@ export async function disconnectMembers(): Promise<void> {
   cache = null
 }
 
+/* the sheet may write the date in any style; this reads yyyy-mm-dd, dd/mm/yyyy, a date object or a written date */
+export function parseJoined(raw: string): string {
+  const s = raw.trim()
+  if (!s) return ''
+  const p2 = (n: number | string) => String(n).padStart(2, '0')
+  let m = s.match(/(\d{4})-(\d{1,2})-(\d{1,2})/)
+  if (m) return `${m[1]}-${p2(m[2])}-${p2(m[3])}`
+  m = s.match(/^(\d{1,2})[/.\-](\d{1,2})[/.\-](\d{4})/)
+  if (m) return `${m[3]}-${p2(m[2])}-${p2(m[1])}`
+  const t = Date.parse(s)
+  if (!Number.isNaN(t)) { const d = new Date(t); return `${d.getFullYear()}-${p2(d.getMonth() + 1)}-${p2(d.getDate())}` }
+  m = s.match(/\b((?:19|20)\d{2})\b/)
+  return m ? m[1] : ''
+}
+
 let cache: { at: number; members: Member[] } | null = null
 
 export async function loadMembers(fresh = false): Promise<{ members: Member[]; fetchedAt: string }> {
@@ -106,6 +122,7 @@ export async function loadMembers(fresh = false): Promise<{ members: Member[]; f
     name: String(r[ix('name')] ?? ''),
     occupation: String(r[ix('occupation')] ?? ''),
     date: String(r[ix('date')] ?? ''),
+    joined: parseJoined(String(r[ix('date')] ?? '')),
     q: r[ix('q')],
     cardPrinted: !!r[ix('cardPrinted')] && r[ix('cardPrinted')] !== 'no',
     hasPhoto: !!r[ix('hasPhoto')],
@@ -123,8 +140,8 @@ export function summarize(members: Member[]): MemberSummary {
   const y = now.toISOString().slice(0, 4)
   return {
     total: members.length,
-    thisMonth: members.filter((m) => m.date.startsWith(ym)).length,
-    thisYear: members.filter((m) => m.date.startsWith(y)).length,
+    thisMonth: members.filter((m) => m.joined.startsWith(ym)).length,
+    thisYear: members.filter((m) => m.joined.startsWith(y)).length,
     cardsToPrint: members.filter((m) => !m.cardPrinted && !m.banned).length,
     noPhoto: members.filter((m) => !m.hasPhoto).length,
     banned: members.filter((m) => m.banned).length,
