@@ -3,6 +3,7 @@
 import * as React from 'react'
 import { kitSig } from '@/lib/post-queue'
 import { PostQueue } from '@/components/post-queue'
+import { FullKitButton } from '@/components/full-kit-button'
 import { ArrowLeft, Check, Clock4, ChevronLeft, Music, Play, Square, ChevronRight, CircleAlert, Clock, Loader2, Send, X, Copy, Download, ImagePlus, MapPin, Pencil, Plus, Share2, Sparkles, Trash2, CalendarClock, AlertTriangle, CalendarDays } from 'lucide-react'
 import { useStore } from '@/lib/store'
 import { PageHead, EmptyState } from '@/components/ui-bits'
@@ -15,7 +16,7 @@ import { posterThumb } from '@/lib/poster-url'
 import type { Club, EventEntry, KitOverrides } from '@/lib/types'
 import { DECOR_NAMES, LOOKS, rg } from '@/lib/kit/decor'
 import { KIT_ICONS } from '@/lib/kit/icons'
-import { cv, fitCover, iconCanvas, loadImage, loadKitFonts, makeCover, makeStory } from '@/lib/kit/engine'
+import { cv, fitCover, iconCanvas, loadImage, loadKitFonts, makeCover, makeHighlight, makeStory } from '@/lib/kit/engine'
 import { KICKERS, kitDiff, kitParams, kitRec, kitSlug, kitTheme, type KitRec } from '@/lib/kit/derive'
 
 type Kind = 'club' | 'event'
@@ -37,7 +38,7 @@ async function renderBoth(R: KitRec) {
   const p = await kitParams(R)
   const t = kitTheme(R)
   /* events have no WhatsApp group, so only clubs get the group picture */
-  return { story: await makeStory(p, t), cover: R.type === 'club' ? await makeCover(p, t) : null }
+  return { story: await makeStory(p, t), cover: R.type === 'club' ? await makeCover(p, t) : null, highlight: await makeHighlight(p, t) }
 }
 
 async function downloadBoth(R: KitRec) {
@@ -119,11 +120,14 @@ export function SocialKitPage() {
         title="Posts"
         subtitle="What to post, the pictures of every club and event, the month calendars, and posting to Facebook and Instagram. All made from the data you already keep here."
         right={
-          tab === 'todo' || tab === 'post' || tab === 'month' || tab === 'scheduled' || tab === 'connection' ? undefined : (
-            <Button size="sm" onClick={() => (tab === 'club' ? setClubDlg({ open: true, club: null }) : setEventDlg({ open: true, event: null }))}>
-              <Plus className="h-4 w-4" /> {tab === 'club' ? 'New club' : 'New event'}
-            </Button>
-          )
+          <div className="flex flex-wrap items-center gap-2">
+            {tab !== 'connection' && <FullKitButton />}
+            {(tab === 'club' || tab === 'event') && (
+              <Button size="sm" onClick={() => (tab === 'club' ? setClubDlg({ open: true, club: null }) : setEventDlg({ open: true, event: null }))}>
+                <Plus className="h-4 w-4" /> {tab === 'club' ? 'New club' : 'New event'}
+              </Button>
+            )}
+          </div>
         }
       />
       <div className="mb-5 inline-flex rounded-full border border-border bg-card p-1" role="tablist" aria-label="Kind">
@@ -635,7 +639,7 @@ function KitEditor({ kind, id, onBack, onManage, onEditSchedule }: { kind: Kind;
   }, [savedPoster])
 
   /* the pictures */
-  const [out, setOut] = React.useState<{ story: HTMLCanvasElement; cover: HTMLCanvasElement | null } | null>(null)
+  const [out, setOut] = React.useState<{ story: HTMLCanvasElement; cover: HTMLCanvasElement | null; highlight: HTMLCanvasElement } | null>(null)
   const [updating, setUpdating] = React.useState(true)
   const visual = R ? [R.kicker, R.top, R.word, R.look, R.palette, R.decor, R.icon, R.bg, R.day, R.time, R.venue, R.poster ?? ''].join('|') : ''
   React.useEffect(() => {
@@ -673,6 +677,12 @@ function KitEditor({ kind, id, onBack, onManage, onEditSchedule }: { kind: Kind;
   const sl = kitSlug(R)
   const dlStory = () => out && void toBlob(out.story).then((b) => saveBlob(b, `${sl}-story.png`))
   const dlCover = () => out?.cover && void toBlob(out.cover).then((b) => saveBlob(b, `${sl}-whatsapp.png`))
+  const dlHighlight = () => out && void toBlob(out.highlight).then((b) => saveBlob(b, `${sl}-highlight-cover.png`))
+  const dlKit = async () => {
+    const { kitFiles } = await import('@/lib/kit/bundle')
+    const { zipFiles } = await import('@/lib/kit/zip')
+    saveBlob(await zipFiles(await kitFiles(R, sl)), `${sl}-kit.zip`)
+  }
   const dlBoth = () => { dlStory(); if (out?.cover) setTimeout(dlCover, 600) }
 
   return (
@@ -683,6 +693,7 @@ function KitEditor({ kind, id, onBack, onManage, onEditSchedule }: { kind: Kind;
           <h1 className="truncate text-xl font-extrabold tracking-tight">{title}</h1>
           <p className="text-xs text-muted-foreground">{updating ? 'Updating the pictures...' : 'Changes are saved with the ' + kind + '.'}</p>
         </div>
+        <Button size="sm" variant="outline" disabled={!out} onClick={() => void dlKit()}><Download className="h-4 w-4" /> Full kit (zip)</Button>
         <Button size="sm" disabled={!out} onClick={dlBoth}><Download className="h-4 w-4" /> {kind === 'club' ? 'Download both pictures' : 'Download story'}</Button>
       </div>
 
@@ -881,9 +892,10 @@ function KitEditor({ kind, id, onBack, onManage, onEditSchedule }: { kind: Kind;
 
         {/* the pictures, always in view while settings change */}
         <div className="flex min-w-0 flex-col gap-3 lg:sticky lg:top-20">
-          <div className={cn('grid items-stretch gap-3', kind === 'club' ? 'grid-cols-2' : 'mx-auto w-full max-w-[420px] grid-cols-1')}>
+          <div className="grid grid-cols-2 items-stretch gap-3">
             <PreviewCard title="Instagram story" canvas={out?.story ?? null} onDownload={dlStory} />
             {kind === 'club' && <PreviewCard title="WhatsApp picture" note="shown round" canvas={out?.cover ?? null} round onDownload={dlCover} />}
+            <PreviewCard title="Highlight cover" note="shown round" canvas={out?.highlight ?? null} round crop onDownload={dlHighlight} />
           </div>
         </div>
       </div>
@@ -891,7 +903,7 @@ function KitEditor({ kind, id, onBack, onManage, onEditSchedule }: { kind: Kind;
   )
 }
 
-function PreviewCard({ title, note, canvas, round, onDownload }: { title: string; note?: string; canvas: HTMLCanvasElement | null; round?: boolean; onDownload: () => void }) {
+function PreviewCard({ title, note, canvas, round, crop, onDownload }: { title: string; note?: string; canvas: HTMLCanvasElement | null; round?: boolean; crop?: boolean; onDownload: () => void }) {
   return (
     <section className="flex flex-col gap-2.5 rounded-2xl border border-border bg-card p-3">
       <h3 className="flex items-baseline justify-between gap-2 text-xs font-extrabold">
@@ -899,7 +911,12 @@ function PreviewCard({ title, note, canvas, round, onDownload }: { title: string
         {note && <span className="text-[11px] font-medium text-muted-foreground">{note}</span>}
       </h3>
       <div className="flex flex-1 items-center">
-        {canvas ? (
+        {canvas && crop ? (
+          /* a tall picture shown as the round cut Instagram makes from its middle */
+          <div className="aspect-square w-full overflow-hidden rounded-full bg-secondary">
+            <CanvasHost canvas={canvas} className="w-full [&>canvas]:-mt-[39%]" />
+          </div>
+        ) : canvas ? (
           <CanvasHost canvas={canvas} className={cn('w-full overflow-hidden bg-secondary', round ? 'rounded-full' : 'rounded-[10px]')} />
         ) : (
           <div className={cn('w-full animate-pulse bg-secondary', round ? 'aspect-square rounded-full' : 'aspect-[9/16] rounded-[10px]')} />

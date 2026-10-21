@@ -189,3 +189,20 @@ export async function makeCover(p: KitParams, t: KitTheme) {
   grain(x, 1080, 1080); return c;
 }
 
+
+/* Instagram highlight cover: shown as a circle cut from the middle of a 9:16 picture, so the icon sits in the center */
+export async function makeHighlight(p: KitParams, t: KitTheme) {
+  const c = cv(1080, 1920), x = c.getContext("2d")!
+  x.drawImage(await get(KIT_BG_BASE), 0, 0);
+  glow(x, 540, 960, t.c2);
+  if (t.decor !== "none") x.drawImage(await svgLayer(DECOR[t.decor](t.c1, t.c2)), 0, 0);
+  await drawIcon(x, p.icon, 540, 960, 640, t.c1, t.c2);
+  grain(x, 1080, 1920); return c;
+}
+/* the club icon alone, on a transparent background */
+export async function makeIconPng(p: KitParams, t: KitTheme) {
+  const c = cv(1024, 1024), x = c.getContext("2d")!
+  const ic = await iconCanvas(p.icon, 900, t.c1, t.c2)
+  x.drawImage(ic, (1024 - 900) / 2, (1024 - 900) / 2)
+  return c;
+}
