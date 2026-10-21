@@ -30,3 +30,9 @@ Move the standalone generator (handoff/generator, runs by opening index.html) in
 
 ## Known gaps
 Cybersecurity and Free Course have no dedicated decor (plain looks used); Football/Travel/Theatre icons are weak; event layout for Arabic titles uses an English override; posting untested; phone use needs the app hosted (it is).
+
+## Reference material in this branch
+- handoff/reference/images: current approved outputs (club stories with and without poster, WhatsApp covers, event stories, poster frames, highlight covers, icon library, kit overview, profile). Match these.
+- handoff/reference/scripts: the Python (PIL, cairosvg) scripts that produced the kit. clubs_themed.py (club stories, THEMES colour/decor table), covers.py (WhatsApp covers), events.py (event stories), stories2.py (title layout helpers), icon_library.py (icons). They are reference only; they need fonts and helper files from the author's machine, so do not try to run them. The JS in handoff/generator already reproduces the club story, event story and WhatsApp cover.
+- The author's laptop folder (not available to you): ASO-Instagram-Kit with 1-Profile, 2-Highlights (covers, title-cards, this-month, links, clubs, events, english classes, visit us), 3-WhatsApp-Group-Covers, 4-Posters (posters, club stories with posters, frames), 5-Bilingual-Stories, 6-Previews, 7-Generator.
+- Not covered by the generator: highlight covers, This Month calendar stories, bilingual stories, English classes stories, Visit us stories, profile picture. Those are one-off artwork; see the images and scripts.
