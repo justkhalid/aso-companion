@@ -135,6 +135,17 @@ export async function loadMembers(fresh = false): Promise<{ members: Member[]; f
   return { members, fetchedAt: new Date().toISOString() }
 }
 
+/** everything the sheet holds on one member (phone, email, address, ...), read on demand and never kept */
+export async function loadMember(nr: number): Promise<Record<string, unknown> | null> {
+  const c = await conn()
+  if (!c) throw new Error('Not connected.')
+  const r = await fetch(`${c.url}?key=${encodeURIComponent(c.key)}&action=member&nr=${encodeURIComponent(String(nr))}`, { cache: 'no-store', signal: AbortSignal.timeout(30_000) })
+  const j = (await r.json().catch(() => null)) as { member?: Record<string, unknown> | null; error?: string } | null
+  if (!j) throw new Error('The sheet did not answer properly.')
+  if (j.error) throw new Error(j.error)
+  return j.member || null
+}
+
 export interface MemberSummary { total: number; thisMonth: number; thisYear: number; cardsToPrint: number; noPhoto: number; banned: number; withDuplicates: number }
 export function summarize(members: Member[]): MemberSummary {
   const now = new Date()
