@@ -92,3 +92,6 @@ data/schedule/
 package-lock.json
 aso.log
 aso-failed.txt
+
+# member sheet connection (encrypted, stays on the director's computer)
+data/members.enc.json

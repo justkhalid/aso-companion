@@ -33,6 +33,7 @@ const DashboardPage = dynamic(() => import('./pages/dashboard-page').then((m) =>
 const InternClubsPage = dynamic(() => import('./pages/intern-clubs-page').then((m) => m.InternClubsPage), { ssr: false })
 const InternEventsPage = dynamic(() => import('./pages/intern-events-page').then((m) => m.InternEventsPage), { ssr: false })
 const SocialKitPage = dynamic(() => import('./pages/social-kit-page').then((m) => m.SocialKitPage), { ssr: false })
+const MembersPage = dynamic(() => import('./pages/members-page').then((m) => m.MembersPage), { ssr: false })
 const PublicNav = dynamic(() => import('./public-nav').then((m) => m.PublicNav), { ssr: false })
 
 export function AppShell({ initialView }: { initialView?: View }) {
@@ -270,6 +271,8 @@ function PageBody({ view, admin }: { view: View; admin: boolean }) {
       return admin ? <InternClubsPage /> : <ClubsPage admin={false} />
     case 'intern-events':
       return admin ? <InternEventsPage /> : <ClubsPage admin={false} />
+    case 'members':
+      return admin ? <MembersPage /> : <ClubsPage admin={false} />
     case 'social':
       return admin ? <SocialKitPage /> : <ClubsPage admin={false} />
     case 'login':

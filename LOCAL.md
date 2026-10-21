@@ -30,3 +30,7 @@ In Vercel > Settings > Environment Variables add `ASO_PUBLIC_ONLY` = `1` and red
 ## If something does not start
 
 Close the window, double-click **Start-ASO.bat** again, and if it fails take a photo of the window.
+
+## ASO Library members
+
+Admin > Members reads the members Google Sheet. Open it in the app on this computer, paste the Apps Script link and key once, and press Connect. They are kept encrypted in `data/members.enc.json` (never uploaded) and the list never goes through the website.
