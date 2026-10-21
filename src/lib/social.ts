@@ -206,7 +206,9 @@ export async function connectWithToken(raw: string, pageId?: string): Promise<Co
       if (!pick.access_token) return { ok: false, msg: 'Meta did not give a Page token. The token needs the pages_show_list and pages_manage_posts permissions.' }
       page = { id: pick.id, name: pick.name, token: pick.access_token, ig: pick.instagram_business_account?.id, igName: pick.instagram_business_account?.username }
     } else {
-      /* a Page token */
+      /* no Pages came with the token: either it is a Page token, or a personal token that was given no Pages */
+      const why = await explainNoPages(c, cfg, tok)
+      if (why) return { ok: false, msg: why }
       const me = (await gp(cfg, 'me', { method: 'GET', data: { fields: 'id,name' }, token: tok })) as { id: string; name?: string }
       const pg = (await gp(cfg, me.id, { method: 'GET', data: { fields: 'name,instagram_business_account{id,username}' }, token: tok })) as { name?: string; instagram_business_account?: { id: string; username?: string } }
       page = { id: me.id, name: pg.name || me.name, token: tok, ig: pg.instagram_business_account?.id, igName: pg.instagram_business_account?.username }
@@ -226,6 +228,32 @@ export async function connectWithToken(raw: string, pageId?: string): Promise<Co
     return { ok: true, msg: page.ig ? `Connected to ${page.name || 'the Page'} and @${page.igName || 'Instagram'}.` : `Connected to ${page.name || 'the Page'}. No Instagram account is linked to it, so only Facebook can be used.` }
   } catch (e) {
     return { ok: false, msg: e instanceof Error ? e.message : 'The connection failed.' }
+  }
+}
+
+const NEEDED = ['pages_show_list', 'pages_read_engagement', 'pages_manage_posts', 'instagram_basic', 'instagram_content_publish']
+
+/* a personal token that came with no Pages: say what is missing (the permissions, or the Page not ticked in Facebook's window) */
+async function explainNoPages(c: SocialConfig, cfg: Cfg, tok: string): Promise<string | null> {
+  const fix = 'Generate the token again and, in the Facebook window, tick the American Space Page and its Instagram account.'
+  if (c.appId && c.appSecret) {
+    try {
+      const d = (await gp(cfg, 'debug_token', { method: 'GET', data: { input_token: tok }, token: `${c.appId}|${c.appSecret}` })).data as { type?: string; scopes?: string[] } | undefined
+      if (d?.type === 'USER') {
+        const missing = NEEDED.filter((n) => !(d.scopes || []).includes(n))
+        if (missing.length) return `The token is missing these permissions: ${missing.join(', ')}. Add them in the Explorer, then generate the token again.`
+        return `The token has the permissions but no Pages. ${fix}`
+      }
+    } catch {
+      /* fall through to the Page token check */
+    }
+  }
+  try {
+    const me = (await gp(cfg, 'me', { method: 'GET', data: { fields: 'id,name,instagram_business_account{id}' }, token: tok })) as { id: string }
+    void me
+    return null
+  } catch (e) {
+    return /nonexisting field|instagram_business_account/i.test(e instanceof Error ? e.message : '') ? `That token belongs to a person, and no Pages came with it. ${fix}` : null
   }
 }
 
