@@ -277,6 +277,7 @@ export type View =
   | 'intern-clubs'
   | 'intern-events'
   | 'social'
+  | 'members'
 
 export type Side = 'elt' | 'intern'
 

@@ -22,6 +22,7 @@ import {
   CloudOff,
   RotateCcw,
   Share2,
+  BookUser,
 } from 'lucide-react'
 import { Logo } from './logo'
 import { ThemeToggle } from './theme-toggle'
@@ -41,19 +42,7 @@ function useNavGroups(): NavGroup[] {
   return [
     {
       label: 'Overview',
-      items: [
-        { label: 'Dashboard', view: 'dashboard', icon: LayoutDashboard },
-        { label: 'Week schedule', view: 'home', icon: CalendarRange },
-      ],
-    },
-    {
-      label: 'Teaching',
-      items: [
-        { label: 'Classes', view: 'classes', icon: Users },
-        { label: 'Levels and plans', view: 'eltaso', icon: GraduationCap },
-        { label: 'Library', view: 'library', icon: FolderOpen },
-        { label: 'Reports', view: 'reports', icon: FileText },
-      ],
+      items: [{ label: 'Dashboard', view: 'dashboard', icon: LayoutDashboard }],
     },
     {
       label: 'Clubs and events',
@@ -65,11 +54,25 @@ function useNavGroups(): NavGroup[] {
       ],
     },
     {
-      label: 'Spaces and people',
+      label: 'Classes',
       items: [
+        { label: 'Classes', view: 'classes', icon: Users },
+        { label: 'Week schedule', view: 'home', icon: CalendarRange },
+        { label: 'Levels and plans', view: 'eltaso', icon: GraduationCap },
+        { label: 'Teaching resources', view: 'library', icon: FolderOpen },
+        { label: 'Reports', view: 'reports', icon: FileText },
+      ],
+    },
+    {
+      label: 'ASO Library',
+      items: [{ label: 'Members', view: 'members', icon: BookUser }],
+    },
+    {
+      label: 'Shared',
+      items: [
+        { label: 'People', view: 'team', icon: Users },
         { label: 'Rooms', view: 'rooms', icon: DoorOpen },
         { label: 'Absences', view: 'absences', icon: UserX },
-        { label: 'People', view: 'team', icon: Users },
       ],
     },
   ]
@@ -90,7 +93,8 @@ export function pageTitle(view: View, selectedLevelKey: string, levelLabel?: str
     case 'team': return 'People'
     case 'rooms': return 'Rooms'
     case 'absences': return 'Absences'
-    case 'library': return 'Library'
+    case 'library': return 'Teaching resources'
+    case 'members': return 'Members'
     case 'reports': return 'Reports'
     case 'intern-clubs': return 'Clubs'
     case 'intern-events': return 'Events'
