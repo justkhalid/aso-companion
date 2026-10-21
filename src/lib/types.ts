@@ -229,6 +229,14 @@ export interface ChangeEntry {
   text: string // "Public Speaking Club: time changed from 2:00 PM - 4:00 PM to 3:00 PM - 5:00 PM"
 }
 
+/* the director's part of a monthly report: the words, and for each club, event or class the head count and a note */
+export interface MonthReport {
+  highlights?: string
+  challenges?: string
+  next?: string
+  items?: Record<string, { attendance?: number; note?: string }> // keyed by kind and name, e.g. "club:Public Speaking Club"
+}
+
 export interface State {
   v: 1
   _rev: number
@@ -245,6 +253,7 @@ export interface State {
   notes: Note[]
   team: TeamMember[]
   absences?: Absence[]
+  monthReports?: Record<string, MonthReport> // keyed by yyyy-mm, admin only
   _filtered?: boolean // a cut-down copy sent to visitors; never saved back
   rootUrl?: string
 }
@@ -278,6 +287,7 @@ export type View =
   | 'intern-events'
   | 'social'
   | 'members'
+  | 'month-report'
 
 export type Side = 'elt' | 'intern'
 

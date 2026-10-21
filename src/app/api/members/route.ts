@@ -9,6 +9,7 @@ const headers = { 'Cache-Control': 'no-store' }
 /**
  * GET /api/members            -> { available, connected }
  * GET /api/members?summary=1  -> the counts only (for the dashboard)
+ * GET /api/members?month=2026-10 -> how many joined that month
  * GET /api/members?nr=12      -> everything the sheet holds on that member
  * GET /api/members?fresh=1    -> the members, read again from the sheet
  * POST { url, key }           -> connect the sheet. DELETE -> forget it.
@@ -23,6 +24,7 @@ export async function GET(req: NextRequest) {
   try {
     if (q.get('nr')) return NextResponse.json({ available: true, connected: true, member: await loadMember(Number(q.get('nr'))) }, { headers })
     const { members, fetchedAt } = await loadMembers(q.get('fresh') === '1')
+    if (q.get('month')) return NextResponse.json({ available: true, connected: true, joined: members.filter((m) => m.joined.startsWith(q.get('month') || '~')).length }, { headers })
     if (q.get('summary') === '1') return NextResponse.json({ available: true, connected: true, summary: summarize(members), fetchedAt }, { headers })
     return NextResponse.json({ available: true, connected: true, members, summary: summarize(members), fetchedAt }, { headers })
   } catch (e) {

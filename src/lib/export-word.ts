@@ -1,6 +1,7 @@
 'use client'
 
-import type { Band, Level, LibraryFolder, State, Week } from './types'
+import type { Band, Level, LibraryFolder, MonthReport, State, Week } from './types'
+import type { ReportData } from './month-report'
 import {
   TONE_RGB,
   toneIdx,
@@ -733,6 +734,74 @@ export async function exportCalendarListDoc(o: ExportOptions, filename: string) 
     (sections || '<p class="sub">No sessions scheduled yet.</p>') +
     (o.rooms ? '<p class="sub" style="margin-top:8pt;">' + esc(o.rooms) + '</p>' : '') +
     docLinksBlock(o.libraryLinks, o.appUrl || appOrigin()) +
+    docFooterBlock(logo) +
+    '</div></body></html>'
+
+  saveDoc(mimeDocBlob(html, logo), filename)
+}
+
+/* ---------- the monthly report ---------- */
+
+export interface MonthReportDocInput {
+  title: string // "October 2026"
+  data: ReportData
+  report: MonthReport
+  membersJoined: number | null // from the members sheet, when it is connected
+}
+
+const longDay = (iso: string) => new Date(iso + 'T00:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
+const paras = (t: string | undefined) => (t || '').split(/\n+/).filter((l) => l.trim()).map((l) => '<p style="margin:0 0 4pt 0;">' + esc(l) + '</p>').join('')
+
+export async function exportMonthReportDoc(o: MonthReportDocInput, filename: string) {
+  const logo = await loadLogoPart()
+  const { data, report } = o
+  const th = (w?: string) => thBase.replace('style="', 'style="' + (w ? 'width:' + w + ';' : ''))
+  const stat = (n: number | string, label: string) =>
+    '<td style="border:1px solid #D9D9E0;padding:8px;text-align:center;width:20%;"><div style="font-size:20pt;font-weight:bold;color:#1B2A55;">' + n + '</div><div style="font-size:9pt;color:#6E6E73;">' + label + '</div></td>'
+
+  const summary =
+    '<table class="plan"><tr>' +
+    stat(data.totals.held, 'sessions held') +
+    stat(data.totals.canceled, 'sessions canceled') +
+    stat(data.absences.length, 'absences') +
+    stat(data.posts.length, 'social media posts') +
+    stat(o.membersJoined ?? '-', 'new library members') +
+    '</tr></table>'
+
+  const words = ([['Highlights', report.highlights], ['Challenges', report.challenges], ['Plans for next month', report.next]] as const)
+    .filter(([, t]) => t && t.trim())
+    .map(([h, t]) => '<h2>' + h + '</h2>' + paras(t))
+    .join('')
+
+  const group = (kind: 'club' | 'event' | 'class', heading: string) => {
+    const rows = data.items.filter((i) => i.kind === kind)
+    if (!rows.length) return ''
+    const total = rows.reduce((s, i) => s + (report.items?.[i.key]?.attendance || 0), 0)
+    return '<h2>' + heading + '</h2><table class="plan"><tr>' +
+      '<th ' + th('34%') + '>Name</th><th ' + th('9%') + '>Held</th><th ' + th('11%') + '>Canceled</th><th ' + th('12%') + '>People</th><th ' + th() + '>Notes</th></tr>' +
+      rows.map((i) => {
+        const r = report.items?.[i.key] || {}
+        return '<tr><td ' + tdBase + ' style="font-weight:bold;">' + esc(i.name) + '</td><td ' + tdBase + '>' + i.held + '</td><td ' + tdBase + '>' + (i.canceled || '') + '</td><td ' + tdBase + '>' + (r.attendance ?? '') + '</td><td ' + tdBase + '>' + esc(r.note || '') + '</td></tr>'
+      }).join('') +
+      (total ? '<tr><td ' + tdBase + ' style="font-weight:bold;">Total people counted</td><td ' + tdBase + '></td><td ' + tdBase + '></td><td ' + tdBase + ' style="font-weight:bold;">' + total + '</td><td ' + tdBase + '></td></tr>' : '') +
+      '</table>'
+  }
+
+  const absences = data.absences.length
+    ? '<h2>Absences and cancellations</h2><table class="plan"><tr><th ' + th('26%') + '>Who</th><th ' + th('20%') + '>When</th><th ' + th('18%') + '>Reason</th><th ' + th() + '>What happened</th></tr>' +
+      data.absences.map((a) => '<tr><td ' + tdBase + ' style="font-weight:bold;">' + esc(a.who) + '</td><td ' + tdBase + '>' + longDay(a.from) + (a.to !== a.from ? ' to ' + longDay(a.to) : '') + '</td><td ' + tdBase + '>' + esc(a.reason) + '</td><td ' + tdBase + '>' + (a.cover === 'canceled' ? 'Canceled' : /^held elsewhere/.test(a.cover) ? esc(a.cover) : 'Covered by ' + esc(a.cover)) + '</td></tr>').join('') + '</table>'
+    : ''
+
+  const posts = data.posts.length
+    ? '<h2>Social media</h2><table class="plan"><tr><th ' + th('30%') + '>Posted</th><th ' + th('40%') + '>Club or event</th><th ' + th() + '>Where</th></tr>' +
+      data.posts.map((p) => '<tr><td ' + tdBase + '>' + longDay(p.t.slice(0, 10)) + '</td><td ' + tdBase + ' style="font-weight:bold;">' + esc(p.name) + '</td><td ' + tdBase + '>' + esc(p.to.join(', ')) + '</td></tr>').join('') + '</table>'
+    : ''
+
+  const html = docHead('Monthly report ' + o.title, A4_PORTRAIT) + '<body><div class="Section1">' +
+    docHeaderBlock(logo, 'Monthly report', esc(o.title) + ' · American Space Oujda') +
+    summary + words +
+    group('club', 'Clubs') + group('event', 'Events') + group('class', 'Classes') +
+    absences + posts +
     docFooterBlock(logo) +
     '</div></body></html>'
 

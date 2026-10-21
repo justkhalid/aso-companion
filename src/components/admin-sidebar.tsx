@@ -26,6 +26,7 @@ import {
   Send,
   Plus,
   Clock,
+  ClipboardList,
 } from 'lucide-react'
 import { Logo } from './logo'
 import { ThemeToggle } from './theme-toggle'
@@ -83,7 +84,13 @@ function useNavGroups(): NavGroup[] {
         { label: 'Week schedule', view: 'home', icon: CalendarRange },
         { label: 'Levels and plans', view: 'eltaso', icon: GraduationCap },
         { label: 'Teaching resources', view: 'library', icon: FolderOpen },
-        { label: 'Reports', view: 'reports', icon: FileText },
+      ],
+    },
+    {
+      label: 'Reports',
+      items: [
+        { label: 'Monthly report', view: 'month-report', icon: ClipboardList },
+        { label: 'Reporting guide', view: 'reports', icon: FileText },
       ],
     },
     {
@@ -118,7 +125,8 @@ export function pageTitle(view: View, selectedLevelKey: string, levelLabel?: str
     case 'absences': return 'Absences'
     case 'library': return 'Teaching resources'
     case 'members': return 'Members'
-    case 'reports': return 'Reports'
+    case 'reports': return 'Reporting guide'
+    case 'month-report': return 'Monthly report'
     case 'intern-clubs': return 'Clubs'
     case 'intern-events': return 'Events'
     case 'social': return 'Posts'

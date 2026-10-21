@@ -177,6 +177,7 @@ export function filterStateFor<T>(state: T, roles: Role[], opts?: { lite?: boole
     team: [],
     volunteers: [],
     reports: [],
+    monthReports: {},
     prep: {},
     rootUrl: teacher ? s.rootUrl : '',
     library: teacher ? s.library : [],
