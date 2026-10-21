@@ -1,7 +1,7 @@
 'use client'
 
 import * as React from 'react'
-import { ArrowLeft, Check, ChevronLeft, ChevronRight, CircleAlert, Clock, Loader2, Send, X, Copy, Download, ImagePlus, MapPin, Pencil, Plus, Share2, Sparkles, Trash2, CalendarClock, AlertTriangle, CalendarDays } from 'lucide-react'
+import { ArrowLeft, Check, ChevronLeft, Music, Play, Square, ChevronRight, CircleAlert, Clock, Loader2, Send, X, Copy, Download, ImagePlus, MapPin, Pencil, Plus, Share2, Sparkles, Trash2, CalendarClock, AlertTriangle, CalendarDays } from 'lucide-react'
 import { useStore } from '@/lib/store'
 import { PageHead, EmptyState } from '@/components/ui-bits'
 import { Button } from '@/components/ui/button'
@@ -230,6 +230,26 @@ function MonthStoryPanel({ onManage }: { onManage: () => void }) {
   const [err, setErr] = React.useState('')
   const [working, setWorking] = React.useState<string | null>(null)
   const view = React.useRef<HTMLCanvasElement>(null)
+  const [song, setSong] = React.useState<File | null>(null)
+  const [songStart, setSongStart] = React.useState(0)
+  const [songVol, setSongVol] = React.useState(80)
+  const [playing, setPlaying] = React.useState(false)
+  const audio = React.useRef<HTMLAudioElement | null>(null)
+  const music = React.useMemo(() => (song ? { file: song as Blob, start: songStart, volume: songVol / 100 } : null), [song, songStart, songVol])
+  const stopSong = React.useCallback(() => { audio.current?.pause(); setPlaying(false) }, [])
+  React.useEffect(() => () => { audio.current?.pause() }, [])
+  const playSong = () => {
+    if (!song) return
+    if (playing) return stopSong()
+    audio.current?.pause()
+    const a = new Audio(URL.createObjectURL(song))
+    a.currentTime = songStart
+    a.volume = songVol / 100
+    audio.current = a
+    void a.play().then(() => setPlaying(true)).catch(() => toast('The song could not be played.', false))
+    window.setTimeout(() => { if (audio.current === a) stopSong() }, 15000)
+    a.onended = () => setPlaying(false)
+  }
 
   /* the caption for the calendar post follows the month until it is edited */
   const defaultCaption = `Clubs and events at ${state.settings.institute || 'the American Space Oujda'}, ${MONTH_NAMES[month]} ${year}.`
@@ -306,7 +326,7 @@ function MonthStoryPanel({ onManage }: { onManage: () => void }) {
   const video = () => run('Recording', async () => {
     if (!story) return
     const ms = await import('@/lib/kit/month-story')
-    const v = await ms.monthStoryVideo(story, (p) => setWorking(`Recording ${Math.round(p * 100)}%`))
+    const v = await ms.monthStoryVideo(story, { onProgress: (p) => setWorking(`Recording ${Math.round(p * 100)}%`), music })
     saveBlob(v.blob, `calendar-story-${name}.${v.ext}`)
   })
   const all = () => run('Making all months', async () => {
@@ -371,6 +391,34 @@ function MonthStoryPanel({ onManage }: { onManage: () => void }) {
             )}
             <p className="text-xs text-muted-foreground">{working ? working + '...' : what === 'story' ? 'The animation is a 15 second loop. All of the year comes as one zip of 12 pictures.' : ''}</p>
           </Block>
+          {what === 'story' && (
+            <Block title="Music (optional)">
+              <p className="text-xs text-muted-foreground">Pick a song from your computer and it is mixed into the animation. Use only music you have the right to use: Instagram and Facebook can mute or block other music. Instagram's own song library cannot be used from here.</p>
+              <div className="flex flex-wrap items-center gap-2">
+                <label className="inline-flex cursor-pointer items-center gap-1.5 rounded-lg border border-border bg-card px-3 py-1.5 text-xs font-bold hover:bg-secondary">
+                  <Music className="h-4 w-4" /> {song ? 'Change song' : 'Choose a song'}
+                  <input type="file" accept="audio/*" className="hidden" onChange={(e) => { const f = e.target.files?.[0]; if (f) { stopSong(); setSong(f); setSongStart(0) } e.target.value = '' }} />
+                </label>
+                {song && <span className="min-w-0 max-w-[16rem] truncate text-xs text-muted-foreground">{song.name}</span>}
+                {song && <Button type="button" variant="ghost" size="sm" className="text-destructive" onClick={() => { stopSong(); setSong(null) }}><Trash2 className="h-4 w-4" /> Remove</Button>}
+              </div>
+              {song && (
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <Lab hint="Where in the song it begins.">Start at (seconds)</Lab>
+                    <input type="number" min={0} className={inputCls} value={songStart} onChange={(e) => setSongStart(Math.max(0, Number(e.target.value) || 0))} />
+                  </div>
+                  <div>
+                    <Lab hint={`${songVol}%`}>Volume</Lab>
+                    <input type="range" min={0} max={100} className="w-full accent-[var(--primary)]" value={songVol} onChange={(e) => setSongVol(Number(e.target.value))} />
+                  </div>
+                  <Button type="button" variant="outline" size="sm" className="col-span-2 self-start" onClick={playSong}>
+                    {playing ? <Square className="h-4 w-4" /> : <Play className="h-4 w-4" />} {playing ? 'Stop' : 'Listen (15 seconds)'}
+                  </Button>
+                </div>
+              )}
+            </Block>
+          )}
         </div>
         <div className="flex flex-col gap-5 rounded-2xl border border-border bg-card p-5">
           {what === 'post' && (
@@ -378,7 +426,7 @@ function MonthStoryPanel({ onManage }: { onManage: () => void }) {
               <textarea className={cn(inputCls, 'min-h-[90px] resize-y')} value={caption} onChange={(e) => { setCaption(e.target.value); setEdited(true) }} />
             </Block>
           )}
-          <PublishPanel storyCanvas={what === 'story' ? still : null} poster={null} feedCanvas={what === 'post' ? cal : null} caption={what === 'post' ? caption : ''} only={what === 'story' ? 'story' : 'feed'} onManage={onManage} key={what} />
+          <PublishPanel storyCanvas={what === 'story' ? still : null} poster={null} feedCanvas={what === 'post' ? cal : null} caption={what === 'post' ? caption : ''} only={what === 'story' ? 'story' : 'feed'} onManage={onManage} key={what} videoMaker={what === 'story' && story ? async (onProgress) => { const ms = await import('@/lib/kit/month-story'); const v = await ms.monthStoryVideo(story, { onProgress, music, forPost: true }); return { blob: v.blob, ext: v.ext } } : undefined} />
         </div>
       </div>
       <div className="lg:sticky lg:top-20">
@@ -795,7 +843,7 @@ function useSocialStatus() {
 
 type Only = 'story' | 'feed'
 
-function PublishPanel({ storyCanvas, poster, feedCanvas, caption, only, posts, onPosted, onManage }: {
+function PublishPanel({ storyCanvas, poster, feedCanvas, caption, only, posts, onPosted, onManage, videoMaker }: {
   storyCanvas: HTMLCanvasElement | null
   poster: string | null
   feedCanvas?: HTMLCanvasElement | null // a ready picture for the post (the month calendar), used instead of the poster
@@ -804,6 +852,7 @@ function PublishPanel({ storyCanvas, poster, feedCanvas, caption, only, posts, o
   posts?: { t: string; to: string[] }[]
   onPosted?: (done: string[]) => void
   onManage?: () => void
+  videoMaker?: (onProgress: (p: number) => void) => Promise<{ blob: Blob; ext: string }> // records the animated story
 }) {
   const { status } = useSocialStatus()
   const [pick, setPick] = React.useState<Record<Dest, boolean>>(
@@ -812,6 +861,8 @@ function PublishPanel({ storyCanvas, poster, feedCanvas, caption, only, posts, o
   const [confirm, setConfirm] = React.useState(false)
   const [busy, setBusy] = React.useState(false)
   const [steps, setSteps] = React.useState<Step[] | null>(null)
+  const [asVideo, setAsVideo] = React.useState(false)
+  const [rec, setRec] = React.useState<number | null>(null)
 
   const ready = !!status && status !== 'error' && status.connected
   const dests = DESTS.filter(([k]) => !only || (only === 'story' ? k === 'igStory' || k === 'fbStory' : k === 'igFeed' || k === 'fbFeed'))
@@ -826,7 +877,14 @@ function PublishPanel({ storyCanvas, poster, feedCanvas, caption, only, posts, o
       const f = new FormData()
       f.append('targets', JSON.stringify(pick))
       f.append('caption', caption)
-      if (storyCanvas) f.append('story', await blobOf(storyCanvas), 'story.jpg')
+      if (asVideo && videoMaker && (pick.igStory || pick.fbStory)) {
+        setRec(0)
+        const v = await videoMaker((p) => setRec(p))
+        setRec(null)
+        if (v.ext !== 'mp4') throw new Error('This browser made a WebM video, which Instagram does not take. Use the latest Chrome or Edge, or post the picture.')
+        if (v.blob.size > 4_300_000) throw new Error(`The video is ${(v.blob.size / 1e6).toFixed(1)} MB, more than the site can send (4 MB). Try again, or post the picture.`)
+        f.append('video', v.blob, 'story.mp4')
+      } else if (storyCanvas) f.append('story', await blobOf(storyCanvas), 'story.jpg')
       if (feedCanvas) {
         /* the month calendar is wide: send it as it is, at most 1920 px across */
         const k = Math.min(1, 1920 / feedCanvas.width)
@@ -847,6 +905,7 @@ function PublishPanel({ storyCanvas, poster, feedCanvas, caption, only, posts, o
     } catch (e) {
       setSteps([{ label: 'Stopped', ok: false, msg: e instanceof Error ? e.message : 'failed' }])
     } finally {
+      setRec(null)
       setBusy(false)
     }
   }
@@ -879,15 +938,23 @@ function PublishPanel({ storyCanvas, poster, feedCanvas, caption, only, posts, o
               <input type="checkbox" className="mt-0.5 h-4 w-4 accent-[var(--primary)]" checked={pick[k]} onChange={(e) => setPick((p) => ({ ...p, [k]: e.target.checked }))} />
               <span className="min-w-0">
                 <span className="block text-[13px] font-bold leading-tight">{label}</span>
-                <span className="block text-[11px] text-muted-foreground">{hint}</span>
+                <span className="block text-[11px] text-muted-foreground">{asVideo && only === 'story' ? 'The animation' : hint}</span>
               </span>
             </label>
           ))}
         </div>
+        {videoMaker && only === 'story' && (
+          <div className="grid grid-cols-2 gap-1 rounded-full border border-border bg-background p-1" role="tablist" aria-label="Story kind">
+            {([[false, 'Picture'], [true, 'Animation']] as const).map(([v, label]) => (
+              <button key={label} type="button" role="tab" aria-selected={asVideo === v} onClick={() => setAsVideo(v)} className={cn('rounded-full px-3 py-1.5 text-[13px] font-bold transition', asVideo === v ? 'aso-nav-pill' : 'text-foreground/70 hover:bg-secondary')}>{label}</button>
+            ))}
+          </div>
+        )}
         {needsPicture && <p className="flex items-center gap-1.5 text-xs font-semibold text-[var(--aso-gold)]"><CircleAlert className="h-3.5 w-3.5" /> The posts need a poster. Add one under Poster and name.</p>}
         <Button type="button" className="self-start" disabled={!ready || busy || (!storyCanvas && !feedCanvas) || chosen.length === 0 || needsPicture} onClick={() => setConfirm(true)}>
-          {busy ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />} Post now
+          {busy ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />} {rec !== null ? `Recording ${Math.round(rec * 100)}%` : busy ? 'Posting' : 'Post now'}
         </Button>
+        {asVideo && only === 'story' && <p className="text-[11px] text-muted-foreground">The animation is recorded first (about 16 seconds, keep this page open), then sent. Any song you chose is in it.</p>}
       </Block>
 
       {steps && (
@@ -900,6 +967,9 @@ function PublishPanel({ storyCanvas, poster, feedCanvas, caption, only, posts, o
               </li>
             ))}
           </ul>
+          {steps.some((x) => x.ok && /story/i.test(x.label)) && (
+            <p className="text-xs text-muted-foreground">To keep a story on the profile: open it on Instagram, tap <b>Highlight</b> and choose an album. Instagram does not let other tools do that step.</p>
+          )}
         </Block>
       )}
 

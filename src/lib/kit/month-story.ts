@@ -501,27 +501,69 @@ export function monthStoryStill(m: MonthStory): HTMLCanvasElement {
   return c
 }
 
-/* a looping video of the story: MP4 where the browser can make one (Instagram accepts it), else WebM */
-export async function monthStoryVideo(m: MonthStory, onProgress?: (p: number) => void): Promise<{ blob: Blob; ext: 'mp4' | 'webm' }> {
+export interface Music {
+  file: Blob // the song the person chose (their own file)
+  start: number // where in the song to begin, seconds
+  volume: number // 0 to 1
+}
+
+/* a looping video of the story, with the chosen song mixed in: MP4 where the browser can make one (Instagram accepts it), else WebM.
+   forPost makes a lighter file (about 3 MB) so it can be sent to Instagram and Facebook. */
+export async function monthStoryVideo(m: MonthStory, o: { onProgress?: (p: number) => void; music?: Music | null; forPost?: boolean } = {}): Promise<{ blob: Blob; ext: 'mp4' | 'webm' }> {
   const c = cv(W, H)
   const g = c.getContext('2d')!
-  const types: [string, 'mp4' | 'webm'][] = [['video/mp4;codecs=avc1.640028', 'mp4'], ['video/mp4', 'mp4'], ['video/webm;codecs=vp9', 'webm'], ['video/webm', 'webm']]
+  const withAudio = !!o.music
+  const types: [string, 'mp4' | 'webm'][] = withAudio
+    ? [['video/mp4;codecs=avc1.640028,mp4a.40.2', 'mp4'], ['video/mp4', 'mp4'], ['video/webm;codecs=vp9,opus', 'webm'], ['video/webm', 'webm']]
+    : [['video/mp4;codecs=avc1.640028', 'mp4'], ['video/mp4', 'mp4'], ['video/webm;codecs=vp9', 'webm'], ['video/webm', 'webm']]
   const pick = types.find(([t]) => typeof MediaRecorder !== 'undefined' && MediaRecorder.isTypeSupported(t))
   if (!pick) throw new Error('This browser cannot record video. Use Chrome or Edge.')
   drawMonthStory(g, m, 0)
-  const stream = c.captureStream(30)
-  const rec = new MediaRecorder(stream, { mimeType: pick[0], videoBitsPerSecond: 8_000_000 })
+  const canvasStream = c.captureStream(30)
+  const tracks: MediaStreamTrack[] = [...canvasStream.getVideoTracks()]
+
+  /* the song: decoded, started at the chosen point, faded in and out, and fed into the recording */
+  let ac: AudioContext | null = null
+  let src: AudioBufferSourceNode | null = null
+  let gain: GainNode | null = null
+  if (o.music) {
+    ac = new AudioContext()
+    await ac.resume().catch(() => undefined)
+    const buf = await ac.decodeAudioData(await o.music.file.arrayBuffer())
+    src = ac.createBufferSource()
+    src.buffer = buf
+    src.loop = true
+    gain = ac.createGain()
+    gain.gain.value = 0
+    const dest = ac.createMediaStreamDestination()
+    src.connect(gain)
+    gain.connect(dest)
+    tracks.push(...dest.stream.getAudioTracks())
+  }
+
+  const stream = new MediaStream(tracks)
+  const rec = new MediaRecorder(stream, { mimeType: pick[0], videoBitsPerSecond: o.forPost ? 1_500_000 : 8_000_000, audioBitsPerSecond: 96_000 })
   const chunks: Blob[] = []
   rec.ondataavailable = (e) => { if (e.data.size) chunks.push(e.data) }
   const done = new Promise<void>((res) => { rec.onstop = () => res() })
   rec.start(500)
+  if (ac && src && gain && o.music) {
+    const t = ac.currentTime
+    const v = Math.max(0, Math.min(1, o.music.volume))
+    gain.gain.setValueAtTime(0, t)
+    gain.gain.linearRampToValueAtTime(v, t + 0.4)
+    gain.gain.setValueAtTime(v, t + RECORD_SECONDS - 1.5)
+    gain.gain.linearRampToValueAtTime(0, t + RECORD_SECONDS)
+    const begin = Math.max(0, Math.min(o.music.start, Math.max(0, (src.buffer?.duration || 1) - 1)))
+    src.start(0, begin)
+  }
   const t0 = performance.now()
   await new Promise<void>((res) => {
     const tick = () => {
       const t = (performance.now() - t0) / 1000
       /* a little over one loop, so the file is never shorter than LOOP_SECONDS; the motion just carries on from the start */
       drawMonthStory(g, m, t % LOOP_SECONDS)
-      onProgress?.(Math.min(1, t / RECORD_SECONDS))
+      o.onProgress?.(Math.min(1, t / RECORD_SECONDS))
       if (t >= RECORD_SECONDS) res()
       else requestAnimationFrame(tick)
     }
@@ -529,6 +571,8 @@ export async function monthStoryVideo(m: MonthStory, onProgress?: (p: number) =>
   })
   rec.stop()
   await done
+  try { src?.stop() } catch { /* already stopped */ }
+  void ac?.close()
   stream.getTracks().forEach((t) => t.stop())
   return { blob: new Blob(chunks, { type: pick[0].split(';')[0] }), ext: pick[1] }
 }

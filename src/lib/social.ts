@@ -326,6 +326,7 @@ export interface PublishInput {
   story: Blob | null // 1080x1920
   poster: Blob | null // the feed picture
   poster45: Blob | null // 1080x1350, tried when Instagram refuses the feed picture's shape
+  video?: Blob | null // an animated story (MP4, 9:16): used for the story destinations instead of the picture
 }
 export interface Step {
   label: string
@@ -356,6 +357,46 @@ async function igPublish(c: SocialConfig, imageUrl: string, extra: Data): Promis
   return pub.id
 }
 
+/* upload the bytes of a video to the address Meta gave for it (resumable upload protocol, one piece) */
+async function rupload(uri: string, token: string, blob: Blob): Promise<void> {
+  const res = await fetch(uri, { method: 'POST', headers: { Authorization: `OAuth ${token}`, offset: '0', file_size: String(blob.size) }, body: blob })
+  const j = (await res.json().catch(() => ({}))) as { success?: boolean; error?: { message?: string }; debug_info?: { message?: string } }
+  if (!res.ok || j.success === false || j.error) throw new Error(j.error?.message || j.debug_info?.message || `The video upload failed (${res.status})`)
+}
+
+async function igVideoStory(c: SocialConfig, video: Blob): Promise<string> {
+  const cont = (await gp(c, `${c.ig}/media`, { data: { media_type: 'STORIES', upload_type: 'resumable' } })) as { id: string; uri?: string }
+  if (!cont.uri) throw new Error('Instagram did not give an address to upload the video to')
+  await rupload(cont.uri, c.token!, video)
+  for (let i = 0; i < 40; i++) {
+    const st = (await gp(c, cont.id, { method: 'GET', data: { fields: 'status_code,status' } })) as { status_code?: string; status?: string }
+    if (st.status_code === 'FINISHED') break
+    if (st.status_code === 'ERROR' || st.status_code === 'EXPIRED') throw new Error('Instagram could not process the video' + (st.status ? ': ' + st.status : ''))
+    await wait(2000)
+  }
+  await gp(c, `${c.ig}/media_publish`, { data: { creation_id: cont.id } })
+  return 'Posted'
+}
+
+async function fbVideoStory(c: SocialConfig, video: Blob): Promise<string> {
+  const start = (await gp(c, `${c.page}/video_stories`, { data: { upload_phase: 'start' } })) as { video_id: string; upload_url: string }
+  await rupload(start.upload_url, c.token!, video)
+  await gp(c, `${c.page}/video_stories`, { data: { upload_phase: 'finish', video_id: start.video_id } })
+  for (let i = 0; i < 20; i++) {
+    try {
+      const st = (await gp(c, start.video_id, { method: 'GET', data: { fields: 'status' } })) as { status?: { video_status?: string } }
+      const v = st.status?.video_status
+      if (v === 'ready' || v === 'published') break
+      if (v === 'error') throw new Error('Facebook could not process the video')
+    } catch (e) {
+      if (e instanceof Error && /could not process/.test(e.message)) throw e
+      break
+    }
+    await wait(2000)
+  }
+  return 'Posted'
+}
+
 export async function publish(input: PublishInput): Promise<{ ok: boolean; steps: Step[] }> {
   const c = await socialConfig()
   const steps: Step[] = []
@@ -370,6 +411,7 @@ export async function publish(input: PublishInput): Promise<{ ok: boolean; steps
   const t = input.targets
   if ((t.igFeed || t.igStory) && !c.ig) return { ok: false, steps: [{ label: 'Instagram', ok: false, msg: 'No Instagram account is linked to the Page.' }] }
 
+  const video = input.video && input.video.size > 0 ? input.video : null
   let storyHost: { id: string; url: string } | null = null
   const story = async () => {
     if (!input.story) throw new Error('The story picture is missing')
@@ -390,7 +432,7 @@ export async function publish(input: PublishInput): Promise<{ ok: boolean; steps
       }
     })
   }
-  if (t.igStory) await run('Instagram story', async () => { await igPublish(c, (await story()).url, { media_type: 'STORIES' }); return 'Posted' })
+  if (t.igStory) await run(video ? 'Instagram story (video)' : 'Instagram story', async () => { if (video) return igVideoStory(c, video); await igPublish(c, (await story()).url, { media_type: 'STORIES' }); return 'Posted' })
   if (t.fbFeed) {
     await run('Facebook post', async () => {
       if (!input.poster) throw new Error('There is no picture for the post')
@@ -398,6 +440,6 @@ export async function publish(input: PublishInput): Promise<{ ok: boolean; steps
       return 'Posted'
     })
   }
-  if (t.fbStory) await run('Facebook story', async () => { await gp(c, `${c.page}/photo_stories`, { data: { photo_id: (await story()).id } }); return 'Posted' })
+  if (t.fbStory) await run(video ? 'Facebook story (video)' : 'Facebook story', async () => { if (video) return fbVideoStory(c, video); await gp(c, `${c.page}/photo_stories`, { data: { photo_id: (await story()).id } }); return 'Posted' })
   return { ok: steps.length > 0 && steps.every((s) => s.ok), steps }
 }
