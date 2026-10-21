@@ -16,7 +16,7 @@ import type { View } from './types'
      /admin               -> the admin's dashboard (sign-in when signed out)
      /admin/schedule      -> week schedule
      /admin/teaching/...  -> classes, levels, library, reports, resources
-     /admin/clubs/...     -> calendar, (clubs), events
+     /admin/clubs/...     -> calendar, (clubs), events, social kit
      /admin/rooms, /admin/people (+ /absences), /admin/settings
    Old paths (/eltaso, /resources, /clubs) redirect to their new home.
    Transient public sub-views (level-detail) keep the parent tab's path, and
@@ -93,6 +93,7 @@ const ADMIN_PATH: Partial<Record<View, string>> = {
   clubs: '/admin/clubs/calendar',
   'intern-clubs': '/admin/clubs',
   'intern-events': '/admin/clubs/events',
+  social: '/admin/clubs/social',
   rooms: '/admin/rooms',
   absences: '/admin/people/absences',
   team: '/admin/people',

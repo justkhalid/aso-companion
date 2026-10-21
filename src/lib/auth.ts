@@ -166,6 +166,9 @@ export function filterStateFor<T>(state: T, roles: Role[], opts?: { lite?: boole
     notes: teacher ? s.notes : [],
     levels: (s.levels || []).map((l) => (teacher ? l : { ...l, weeks: [] })),
     absences: (s.absences || []).map((a) => ({ ...a, reason: '', note: undefined })),
+    /* the Social kit settings (captions, framed posters) are for the admin only */
+    clubs: ((s.clubs as Record<string, unknown>[] | undefined) || []).map(({ kit: _kit, ...c }) => c),
+    events: ((s.events as Record<string, unknown>[] | undefined) || []).map(({ kit: _kit, ...e }) => e),
   }
   return out as unknown as T
 }

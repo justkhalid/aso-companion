@@ -106,6 +106,21 @@ export interface ClassEntry {
   time: string // '14:00-16:00'
 }
 
+/* Social kit: what the club kit remembers about one club or event (only what differs from what the kit works out itself) */
+export interface KitOverrides {
+  kicker?: string // small line above the name (WEEKLY CLUB, WORKSHOP, ...)
+  top?: string // first line of the name, small
+  word?: string // name, big (needed when the name is in Arabic)
+  look?: string // key of a look (colour pair, decoration and icon)
+  palette?: string // colours of another look
+  decor?: string // edge decoration of another look
+  icon?: string // icon key of the kit icon library
+  bg?: number // WhatsApp picture background, 0 to 7
+  cap?: string // caption for the post
+  wa?: string // WhatsApp group link
+  poster?: string // the framed 3:4 poster used in the story
+}
+
 /* how often a club or event repeats */
 export type Freq = 'weekly' | 'biweekly' | 'monthly'
 
@@ -126,6 +141,7 @@ export interface Club {
   freq?: Freq // how often the sessions repeat (default weekly)
   from?: string // ISO date the series starts (optional)
   until?: string // ISO date the series ends (optional)
+  kit?: KitOverrides // Social kit settings
 }
 
 /* legacy 'none' is treated as 'once' everywhere */
@@ -146,6 +162,7 @@ export interface EventEntry {
   until?: string // ISO date the series ends (repeating events)
   poster?: string
   icon?: string // key from CLUB_ICONS, rendered on calendar chips
+  kit?: KitOverrides // Social kit settings
 }
 
 export interface Volunteer {
@@ -257,6 +274,7 @@ export type View =
   | 'reports'
   | 'intern-clubs'
   | 'intern-events'
+  | 'social'
 
 export type Side = 'elt' | 'intern'
 

@@ -21,6 +21,7 @@ import {
   Loader2,
   CloudOff,
   RotateCcw,
+  Share2,
 } from 'lucide-react'
 import { Logo } from './logo'
 import { ThemeToggle } from './theme-toggle'
@@ -60,6 +61,7 @@ function useNavGroups(): NavGroup[] {
         { label: 'Calendar', view: 'clubs', icon: CalendarDays },
         { label: 'Clubs', view: 'intern-clubs', icon: Sparkles },
         { label: 'Events', view: 'intern-events', icon: CalendarClock },
+        { label: 'Social kit', view: 'social', icon: Share2 },
       ],
     },
     {
@@ -92,6 +94,7 @@ export function pageTitle(view: View, selectedLevelKey: string, levelLabel?: str
     case 'reports': return 'Reports'
     case 'intern-clubs': return 'Clubs'
     case 'intern-events': return 'Events'
+    case 'social': return 'Social kit'
     default: return 'ASO Companion'
   }
 }
