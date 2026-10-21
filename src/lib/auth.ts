@@ -7,6 +7,7 @@
  */
 import { createHash, createHmac, randomBytes, timingSafeEqual } from 'crypto'
 import type { NextRequest } from 'next/server'
+import { publicOnly } from './mode'
 
 export const SESSION_COOKIE = 'aso_session'
 export const SESSION_DAYS = 30
@@ -84,7 +85,9 @@ export function verifySessionToken(token: string | undefined | null): boolean {
 }
 
 export function rolesOf(req: NextRequest): Role[] {
-  return sessionRoles(req.cookies.get(SESSION_COOKIE)?.value)
+  const roles = sessionRoles(req.cookies.get(SESSION_COOKIE)?.value)
+  /* on the public website the admin is switched off: even a valid admin cookie counts for nothing */
+  return publicOnly() ? roles.filter((r) => r !== 'admin') : roles
 }
 
 export function isAdmin(req: NextRequest): boolean {

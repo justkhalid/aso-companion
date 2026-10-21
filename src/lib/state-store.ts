@@ -302,13 +302,15 @@ export async function posterRead(name: string): Promise<Buffer | null> {
         const r = await fetch(found.url, { cache: 'no-store' })
         if (r.ok) out = Buffer.from(await r.arrayBuffer())
       }
-    } else if (posterGithub().token) {
-      const { repo, branch } = posterGithub()
-      const r = await fetch(`https://raw.githubusercontent.com/${repo}/${branch}/data/posters/${name}?t=${Date.now()}`, { cache: 'no-store' })
-      if (r.ok) out = Buffer.from(await r.arrayBuffer())
     } else {
+      /* a file next to the app first (development, the director's computer), then the public repository (the website, which holds no token) */
       const { readFile } = await import('node:fs/promises')
       out = await readFile(`data/posters/${name}`).catch(() => null)
+      if (!out) {
+        const { repo, branch } = posterGithub()
+        const r = await fetch(`https://raw.githubusercontent.com/${repo}/${branch}/data/posters/${name}?t=${Date.now()}`, { cache: 'no-store' })
+        if (r.ok) out = Buffer.from(await r.arrayBuffer())
+      }
     }
   } catch {
     out = null
