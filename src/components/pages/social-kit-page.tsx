@@ -1,7 +1,7 @@
 'use client'
 
 import * as React from 'react'
-import { ArrowLeft, Check, CircleAlert, Clock, Loader2, Send, X, Copy, Download, ImagePlus, MapPin, Pencil, Plus, Share2, Sparkles, Trash2, CalendarClock, AlertTriangle, CalendarDays } from 'lucide-react'
+import { ArrowLeft, Check, ChevronLeft, ChevronRight, CircleAlert, Clock, Loader2, Send, X, Copy, Download, ImagePlus, MapPin, Pencil, Plus, Share2, Sparkles, Trash2, CalendarClock, AlertTriangle, CalendarDays } from 'lucide-react'
 import { useStore } from '@/lib/store'
 import { PageHead, EmptyState } from '@/components/ui-bits'
 import { Button } from '@/components/ui/button'
@@ -218,8 +218,9 @@ function MonthStoryPanel({ onManage }: { onManage: () => void }) {
   const toast = useStore((s) => s.toast)
   const key = useMonthKey()
   const thisYear = new Date().getFullYear()
-  const years = [thisYear, thisYear + 1]
   const [year, setYear] = React.useState(thisYear)
+  const [yearText, setYearText] = React.useState(String(thisYear))
+  const goYear = (y: number) => { if (y >= 2000 && y <= 2200) { setYear(y); setYearText(String(y)) } }
   const [month, setMonth] = React.useState(() => new Date().getMonth())
   const [what, setWhat] = React.useState<'story' | 'post'>('story')
   const [story, setStory] = React.useState<import('@/lib/kit/month-story').MonthStory | null>(null)
@@ -326,10 +327,22 @@ function MonthStoryPanel({ onManage }: { onManage: () => void }) {
       <div className="flex min-w-0 flex-col gap-4">
         <div className="flex flex-col gap-5 rounded-2xl border border-border bg-card p-5">
           <Block title="Month">
-            <div className="grid grid-cols-2 gap-1 rounded-full border border-border bg-background p-1" role="tablist" aria-label="Year">
-              {years.map((y) => (
-                <button key={y} role="tab" aria-selected={year === y} onClick={() => setYear(y)} className={cn('rounded-full px-3 py-1.5 text-[13px] font-bold transition', year === y ? 'aso-nav-pill' : 'text-foreground/70 hover:bg-secondary')}>{y}</button>
-              ))}
+            <div className="flex items-center gap-2">
+              <Button type="button" variant="outline" size="icon" aria-label="Previous year" onClick={() => goYear(year - 1)}><ChevronLeft className="h-4 w-4" /></Button>
+              <input
+                inputMode="numeric"
+                aria-label="Year"
+                className={cn(inputCls, 'w-24 text-center text-base font-bold')}
+                value={yearText}
+                onChange={(e) => {
+                  const v = e.target.value.replace(/\D/g, '').slice(0, 4)
+                  setYearText(v)
+                  if (/^\d{4}$/.test(v)) goYear(Number(v))
+                }}
+                onBlur={() => setYearText(String(year))}
+              />
+              <Button type="button" variant="outline" size="icon" aria-label="Next year" onClick={() => goYear(year + 1)}><ChevronRight className="h-4 w-4" /></Button>
+              <Button type="button" variant="ghost" size="sm" onClick={() => { goYear(thisYear); setMonth(new Date().getMonth()) }}>Today</Button>
             </div>
             <div className="grid grid-cols-4 gap-2">
               {MONTH_NAMES.map((m, i) => (
@@ -356,7 +369,7 @@ function MonthStoryPanel({ onManage }: { onManage: () => void }) {
             ) : (
               <Button type="button" variant="outline" className="self-start" disabled={!cal} onClick={() => void calPng()}><Download className="h-4 w-4" /> Picture</Button>
             )}
-            <p className="text-xs text-muted-foreground">{working ? working + '...' : what === 'story' ? 'The animation is an 8 second loop. All of the year comes as one zip of 12 pictures.' : ''}</p>
+            <p className="text-xs text-muted-foreground">{working ? working + '...' : what === 'story' ? 'The animation is a 15 second loop. All of the year comes as one zip of 12 pictures.' : ''}</p>
           </Block>
         </div>
         <div className="flex flex-col gap-5 rounded-2xl border border-border bg-card p-5">

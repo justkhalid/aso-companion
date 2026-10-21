@@ -13,7 +13,8 @@ import { KIT_BG_BASE, cv, drawLogo, fit, get, grain, loadKitFonts, loadImage, me
 const W = 1080
 const H = 1920
 const CX = 540
-export const LOOP_SECONDS = 8
+export const LOOP_SECONDS = 15
+const RECORD_SECONDS = LOOP_SECONDS + 0.7
 
 type RGB = [number, number, number]
 const hx = (h: string): RGB => { const s = h.replace('#', ''); return [0, 2, 4].map((i) => parseInt(s.slice(i, i + 2), 16)) as RGB }
@@ -120,7 +121,7 @@ async function makeSprites(monthIdx: number, motif: string, cols: RGB[], title: 
         c = cols[Math.floor(r.random() * 2)]
       }
       const rad = sz * 2.1
-      out.push({ img: await spriteImage(piece(kind, n++, c, sz), rad), x, y, r: rad, ang, mode: kind === 'flake' ? 'spin' : 'sway', k: 1 + (n % 2), ph: r.uniform(0, Math.PI * 2), dir: n % 2 ? 1 : -1 })
+      out.push({ img: await spriteImage(piece(kind, n++, c, sz), rad), x, y, r: rad, ang, mode: kind === 'flake' ? 'spin' : 'sway', k: 2 + (n % 2), ph: r.uniform(0, Math.PI * 2), dir: n % 2 ? 1 : -1 })
     }
   }
   if (motif === 'sun') out.push({ img: await spriteImage(piece('sun', n++, cols[0], 70), 70 * 2.1), x: 1010, y: 70, r: 70 * 2.1, ang: 0, mode: 'sway', k: 1, ph: 0, dir: 1 })
@@ -484,7 +485,7 @@ export function drawMonthStory(g: CanvasRenderingContext2D, m: MonthStory, t: nu
       const bob = Math.sin(u * s.k + s.ph + 1.3) * 7
       g.translate(s.x, s.y + bob)
       g.rotate(((s.ang + sway) * Math.PI) / 180)
-      const sc = 1 + Math.sin(u + s.ph) * 0.025
+      const sc = 1 + Math.sin(u * 2 + s.ph) * 0.025
       g.scale(sc, sc)
       g.drawImage(s.img, -s.r, -s.r)
     }
@@ -518,9 +519,10 @@ export async function monthStoryVideo(m: MonthStory, onProgress?: (p: number) =>
   await new Promise<void>((res) => {
     const tick = () => {
       const t = (performance.now() - t0) / 1000
-      drawMonthStory(g, m, Math.min(t, LOOP_SECONDS))
-      onProgress?.(Math.min(1, t / LOOP_SECONDS))
-      if (t >= LOOP_SECONDS) res()
+      /* a little over one loop, so the file is never shorter than LOOP_SECONDS; the motion just carries on from the start */
+      drawMonthStory(g, m, t % LOOP_SECONDS)
+      onProgress?.(Math.min(1, t / RECORD_SECONDS))
+      if (t >= RECORD_SECONDS) res()
       else requestAnimationFrame(tick)
     }
     tick()
