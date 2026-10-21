@@ -541,8 +541,11 @@ export const useStore = create<UIStore>((set, get) => ({
         /* posters the server turned into files: this copy now holds their address instead of the picture (only where nothing was changed meanwhile) */
         for (const [key, v] of Object.entries(result?.posters || {})) {
           const [kind, id] = key.split(':')
-          const item = (kind === 'club' ? draft.clubs : draft.events).find((x) => x.id === id)
-          if (item?.poster && item.poster.startsWith('data:') && item.poster.length === v.len) item.poster = v.url
+          const kit = kind.startsWith('kit-')
+          const item = (kind.endsWith('club') ? draft.clubs : draft.events).find((x) => x.id === id)
+          if (kit) {
+            if (item?.kit?.poster && item.kit.poster.startsWith('data:') && item.kit.poster.length === v.len) item.kit.poster = v.url
+          } else if (item?.poster && item.poster.startsWith('data:') && item.poster.length === v.len) item.poster = v.url
         }
         draft.settings.ghLastSync = new Date().toISOString()
         set({ state: draft, lastSync: draft.settings.ghLastSync, syncing: false })
