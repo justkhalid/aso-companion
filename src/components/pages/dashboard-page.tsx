@@ -1,7 +1,7 @@
 'use client'
 
 import * as React from 'react'
-import { BookUser, AlertTriangle, GraduationCap, Sparkles, UserX, ArrowRight, Ban, UserCheck } from 'lucide-react'
+import { Send, BookUser, AlertTriangle, GraduationCap, Sparkles, UserX, ArrowRight, Ban, UserCheck } from 'lucide-react'
 import { useStore } from '@/lib/store'
 import { DAY_KEYS } from '@/lib/constants'
 import { PageHead, Chip } from '@/components/ui-bits'
@@ -9,6 +9,7 @@ import { peopleOf, rolesOf, fmtAbsenceRange, isoOf, nextOccurrence, termStatus, 
 import { Button } from '@/components/ui/button'
 import { openQuickAdd } from '@/components/admin/quick-add'
 import { CalendarSwitch, type CalTab } from '@/components/calendar-switch'
+import { PostQueue } from '@/components/post-queue'
 import { MonthCalendarImage } from '@/components/month-calendar-image'
 import type { View } from '@/lib/types'
 
@@ -63,8 +64,8 @@ export function DashboardPage() {
       stats: [
         { label: 'Clubs', value: state.clubs.length, view: 'intern-clubs' },
         { label: 'Upcoming events', value: upcomingEvents, view: 'intern-events' },
-        { label: 'Calendar', value: state.clubs.length + upcomingEvents, view: 'clubs' },
-        { label: 'Social kit', value: state.clubs.filter((c) => !!c.poster).length + state.events.filter((e) => !!e.poster).length, view: 'social' },
+        { label: 'On the calendar', value: state.clubs.length + upcomingEvents, view: 'clubs' },
+        { label: 'Posters ready', value: state.clubs.filter((c) => !!c.poster).length + state.events.filter((e) => !!e.poster).length, view: 'social' },
       ],
     },
     {
@@ -99,6 +100,11 @@ export function DashboardPage() {
         }
       />
 
+      <section aria-labelledby="dash-post" className="mb-4 rounded-2xl border border-border bg-card p-4 shadow-sm">
+        <h2 id="dash-post" className="mb-2 flex items-center gap-2 text-sm font-extrabold tracking-tight"><Send className="h-4 w-4 text-primary" aria-hidden /> To post</h2>
+        <PostQueue compact />
+      </section>
+
       <nav aria-label="Sections" className="mb-4 grid gap-3 md:grid-cols-3">
         {sections.map((x) => (
           <section key={x.title} className="flex flex-col rounded-2xl border border-border bg-card p-4 shadow-sm">
@@ -126,7 +132,7 @@ export function DashboardPage() {
               {away.map((a) => (
                 <li key={a.id} className="flex flex-wrap items-center gap-2 text-sm">
                   <span className="font-bold">{awayName(a)}</span>
-                  <Chip tone={a.cover ? 'primary' : 'gold'} icon={a.cover ? UserCheck : Ban}>{a.cover ? `Covered by ${a.cover}` : 'Cancelled'}</Chip>
+                  <Chip tone={a.cover ? 'primary' : 'gold'} icon={a.cover ? UserCheck : Ban}>{a.cover ? `Covered by ${a.cover}` : 'Canceled'}</Chip>
                   <span className="text-muted-foreground">{fmtAbsenceRange(a)} · {a.reason}</span>
                 </li>
               ))}
@@ -165,13 +171,13 @@ export function DashboardPage() {
         ) : (
           <ul className="divide-y divide-border">
             {sessions.map((x) => (
-              <li key={x.key} className={`flex flex-col gap-x-3 gap-y-0.5 py-2 text-sm sm:flex-row sm:flex-wrap sm:items-center ${x.status.kind === 'cancelled' ? 'opacity-60' : ''}`}>
+              <li key={x.key} className={`flex flex-col gap-x-3 gap-y-0.5 py-2 text-sm sm:flex-row sm:flex-wrap sm:items-center ${x.status.kind === 'canceled' ? 'opacity-60' : ''}`}>
                 <span className="shrink-0 font-semibold tabular-nums sm:w-36">{fmtTime(x.time) || '-'}</span>
                 <span className="min-w-0 flex-1">
                   <span className="font-bold">{x.title}</span> <span className="text-muted-foreground">{x.sub}</span>
                 </span>
                 <span className="text-xs font-semibold text-muted-foreground">{x.room}</span>
-                {x.status.kind === 'cancelled' && <Chip tone="gold" icon={Ban}>Cancelled</Chip>}
+                {x.status.kind === 'canceled' && <Chip tone="gold" icon={Ban}>Canceled</Chip>}
                 {x.status.kind === 'cover' && <Chip tone="primary" icon={UserCheck}>Cover: {x.status.cover}</Chip>}
               </li>
             ))}

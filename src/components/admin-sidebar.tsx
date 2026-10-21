@@ -23,22 +23,39 @@ import {
   RotateCcw,
   Share2,
   BookUser,
+  Send,
+  Plus,
+  Clock,
+  ClipboardList,
+  ClipboardCheck,
+  Boxes,
 } from 'lucide-react'
 import { Logo } from './logo'
 import { ThemeToggle } from './theme-toggle'
 import { useStore } from '@/lib/store'
 import type { View } from '@/lib/types'
 import { termStatus } from '@/lib/app-utils'
+import { postQueue } from '@/lib/post-queue'
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
 import { QuickAdd } from '@/components/admin/quick-add'
 
+interface NavItem {
+  label: string
+  view: View
+  icon: React.ElementType
+  tab?: 'todo' | 'club' | 'event' | 'post' | 'month' | 'scheduled' | 'connection' // opens the Posts page on this tab
+  tabs?: string[] // all the tabs that keep this item lit
+  badge?: number
+}
 interface NavGroup {
   label: string
-  items: { label: string; view: View; icon: React.ElementType }[]
+  items: NavItem[]
 }
 
 function useNavGroups(): NavGroup[] {
+  const state = useStore((s) => s.state)
+  const toPost = React.useMemo(() => postQueue(state).length, [state])
   return [
     {
       label: 'Overview',
@@ -50,7 +67,16 @@ function useNavGroups(): NavGroup[] {
         { label: 'Calendar', view: 'clubs', icon: CalendarDays },
         { label: 'Clubs', view: 'intern-clubs', icon: Sparkles },
         { label: 'Events', view: 'intern-events', icon: CalendarClock },
-        { label: 'Social kit', view: 'social', icon: Share2 },
+      ],
+    },
+    {
+      label: 'Posts',
+      items: [
+        { label: 'To post', view: 'social', icon: Send, tab: 'todo', badge: toPost },
+        { label: 'Posters and kits', view: 'social', icon: Share2, tab: 'club', tabs: ['club', 'event'] },
+        { label: 'New post', view: 'social', icon: Plus, tab: 'post' },
+        { label: 'Month calendar', view: 'social', icon: CalendarDays, tab: 'month' },
+        { label: 'Scheduled', view: 'social', icon: Clock, tab: 'scheduled' },
       ],
     },
     {
@@ -60,12 +86,22 @@ function useNavGroups(): NavGroup[] {
         { label: 'Week schedule', view: 'home', icon: CalendarRange },
         { label: 'Levels and plans', view: 'eltaso', icon: GraduationCap },
         { label: 'Teaching resources', view: 'library', icon: FolderOpen },
-        { label: 'Reports', view: 'reports', icon: FileText },
+      ],
+    },
+    {
+      label: 'Reports',
+      items: [
+        { label: 'Monthly report', view: 'month-report', icon: ClipboardList },
+        { label: 'Submissions', view: 'submissions', icon: ClipboardCheck },
+        { label: 'Reporting guide', view: 'reports', icon: FileText },
       ],
     },
     {
       label: 'ASO Library',
-      items: [{ label: 'Members', view: 'members', icon: BookUser }],
+      items: [
+        { label: 'Members', view: 'members', icon: BookUser },
+        { label: 'Inventory', view: 'inventory', icon: Boxes },
+      ],
     },
     {
       label: 'Shared',
@@ -95,10 +131,13 @@ export function pageTitle(view: View, selectedLevelKey: string, levelLabel?: str
     case 'absences': return 'Absences'
     case 'library': return 'Teaching resources'
     case 'members': return 'Members'
-    case 'reports': return 'Reports'
+    case 'inventory': return 'Inventory'
+    case 'submissions': return 'Report submissions'
+    case 'reports': return 'Reporting guide'
+    case 'month-report': return 'Monthly report'
     case 'intern-clubs': return 'Clubs'
     case 'intern-events': return 'Events'
-    case 'social': return 'Social kit'
+    case 'social': return 'Posts'
     default: return 'ASO Companion'
   }
 }
@@ -112,8 +151,11 @@ function SidebarBody({ onNavigate }: { onNavigate?: () => void }) {
   const logout = useStore((s) => s.logout)
   const state = useStore((s) => s.state)
 
-  const handleNav = (v: View) => {
-    setView(v)
+  const socialTab = useStore((s) => s.socialTab)
+  const openSocial = useStore((s) => s.openSocial)
+  const handleNav = (it: NavItem) => {
+    if (it.tab) openSocial(it.tab)
+    else setView(it.view)
     onNavigate?.()
   }
 
@@ -139,11 +181,11 @@ function SidebarBody({ onNavigate }: { onNavigate?: () => void }) {
               <div className="flex flex-col gap-0.5">
                 {g.items.map((it) => {
                   const Icon = it.icon
-                  const active = view === it.view || (it.view === 'eltaso' && view === 'level-detail')
+                  const active = it.tab ? view === 'social' && (it.tabs || [it.tab]).includes(socialTab) : view === it.view || (it.view === 'eltaso' && view === 'level-detail')
                   return (
                     <button
                       key={it.label}
-                      onClick={() => handleNav(it.view)}
+                      onClick={() => handleNav(it)}
                       aria-current={active ? 'page' : undefined}
                       className={cn(
                         'flex items-center gap-2.5 rounded-full px-2.5 py-2 text-left text-[13.5px] font-semibold transition',
@@ -153,7 +195,8 @@ function SidebarBody({ onNavigate }: { onNavigate?: () => void }) {
                       )}
                     >
                       <Icon className="h-4 w-4 shrink-0" aria-hidden />
-                      <span className="truncate">{it.label}</span>
+                      <span className="min-w-0 flex-1 truncate">{it.label}</span>
+                      {!!it.badge && <span className="rounded-full bg-primary px-1.5 py-0.5 text-[10.5px] font-extrabold leading-none text-primary-foreground">{it.badge}</span>}
                     </button>
                   )
                 })}

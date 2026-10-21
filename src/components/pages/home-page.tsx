@@ -74,7 +74,7 @@ export function HomePage({ admin }: { admin: boolean }) {
   else if (st.mode === 'break') wkMon = st.s2
 
   /* a class whose teacher is away on some days this week splits into up to three chips:
-     the normal days, the cancelled days (gray) and the days someone covers */
+     the normal days, the canceled days (gray) and the days someone covers */
   const classItems: GridItem[] = (state.classes || []).flatMap((c) => {
     const base = {
       slot: c.time,
@@ -90,7 +90,7 @@ export function HomePage({ admin }: { admin: boolean }) {
     const sp = splitDaysByStatus(c.days || [], wkMon, (iso) => classStatusOn(state, c, iso))
     const out: GridItem[] = []
     if (sp.normal.length) out.push({ ...base, id: c.id, days: sp.normal, lead: c.teacher, tone })
-    if (sp.cancelled.length) out.push({ ...base, id: c.id + ':off', days: sp.cancelled, code: base.code + ' · cancelled', lead: c.teacher, tone: 'tone-8' })
+    if (sp.canceled.length) out.push({ ...base, id: c.id + ':off', days: sp.canceled, code: base.code + ' · canceled', lead: c.teacher, tone: 'tone-8' })
     for (const [who, days] of Object.entries(sp.covered)) out.push({ ...base, id: c.id + ':cov:' + who, days, lead: 'Cover: ' + who, tone })
     return out
   })
@@ -100,7 +100,7 @@ export function HomePage({ admin }: { admin: boolean }) {
       if (c.level && !used.includes(c.level)) used.push(c.level)
     })
     const out = used.map((l) => ({ label: l, tone: toneClassForLevel(state, l) }))
-    if (classItems.some((i) => i.tone === 'tone-8')) out.push({ label: 'Cancelled (teacher away)', tone: 'tone-8' })
+    if (classItems.some((i) => i.tone === 'tone-8')) out.push({ label: 'Canceled (teacher away)', tone: 'tone-8' })
     return out
   })()
 
@@ -116,7 +116,7 @@ export function HomePage({ admin }: { admin: boolean }) {
       const out: GridItem[] = []
       const at = (days: string[]) => groupByWhere(days, wkMon!, (iso) => clubWhere(state, c, iso))
       for (const g of at(sp.normal)) out.push({ ...base, id: whereId(c.id, g.w), days: g.days, slot: g.w.time, room: g.w.place, outside: g.w.outside, moved: g.w.moved, lead, tone: g.w.outside ? PUBLIC_OUTSIDE_TONE : tone })
-      if (sp.cancelled.length) out.push({ ...base, id: c.id + ':off', days: sp.cancelled, code: c.name + ' · cancelled', lead: 'cancelled', tone: 'tone-8' })
+      if (sp.canceled.length) out.push({ ...base, id: c.id + ':off', days: sp.canceled, code: c.name + ' · canceled', lead: 'canceled', tone: 'tone-8' })
       for (const [who, days] of Object.entries(sp.covered)) for (const g of at(days)) out.push({ ...base, id: whereId(c.id + ':cov:' + who, g.w), days: g.days, slot: g.w.time, room: g.w.place, outside: g.w.outside, moved: g.w.moved, lead: 'Led by ' + who, tone: g.w.outside ? PUBLIC_OUTSIDE_TONE : tone })
       return out
     })
@@ -141,7 +141,7 @@ export function HomePage({ admin }: { admin: boolean }) {
       const off = wkMon
         ? splitDaysByStatus([day], wkMon, (iso) => eventStatusOn(state, e.id, isOnceEvent(e) && e.date ? e.date : iso))
         : null
-      if (off && off.cancelled.length) return { ...base, id: e.id + ':off', days: [day], code: e.title + ' · cancelled', lead: 'cancelled', tone: 'tone-8' }
+      if (off && off.canceled.length) return { ...base, id: e.id + ':off', days: [day], code: e.title + ' · canceled', lead: 'canceled', tone: 'tone-8' }
       return { ...base, id: e.id, days: [day], code: e.title, lead: '', tone: w.outside ? PUBLIC_OUTSIDE_TONE : PUBLIC_EVENT_TONE }
     })
     .filter(Boolean) as GridItem[]
@@ -149,7 +149,7 @@ export function HomePage({ admin }: { admin: boolean }) {
   const homeClubLegend = [
     ...clubLegend,
     ...(homeEventItems.length ? [{ label: 'Special events', tone: PUBLIC_EVENT_TONE } as LegendEntry] : []),
-    ...([...clubItems, ...homeEventItems].some((i) => i.tone === 'tone-8') ? [{ label: 'Cancelled', tone: 'tone-8' } as LegendEntry] : []),
+    ...([...clubItems, ...homeEventItems].some((i) => i.tone === 'tone-8') ? [{ label: 'Canceled', tone: 'tone-8' } as LegendEntry] : []),
   ]
 
   // today's schedule
@@ -161,9 +161,9 @@ export function HomePage({ admin }: { admin: boolean }) {
     const stt = classStatusOn(state, c, isoOf(new Date()))
     todayItems.push({
       mins: parseSlot(c.time).mins,
-      title: `${c.code} · ${c.level}${stt.kind === 'cancelled' ? ' · cancelled' : ''}`,
+      title: `${c.code} · ${c.level}${stt.kind === 'canceled' ? ' · canceled' : ''}`,
       sub:
-        stt.kind === 'cancelled'
+        stt.kind === 'canceled'
           ? [fmtTime(c.time), c.room, `${c.teacher} is away`].filter(Boolean).join(' · ')
           : stt.kind === 'cover'
             ? [fmtTime(c.time), c.room, `cover: ${stt.cover}`].filter(Boolean).join(' · ')
@@ -176,10 +176,10 @@ export function HomePage({ admin }: { admin: boolean }) {
     const stt = clubStatusOn(state, c.id, isoOf(new Date()))
     todayItems.push({
       mins: parseSlot(c.time).mins,
-      title: c.name + (stt.kind === 'cancelled' ? ' · cancelled' : ''),
+      title: c.name + (stt.kind === 'canceled' ? ' · canceled' : ''),
       sub:
-        stt.kind === 'cancelled'
-          ? [fmtTime(c.time), c.room, 'cancelled'].filter(Boolean).join(' · ')
+        stt.kind === 'canceled'
+          ? [fmtTime(c.time), c.room, 'canceled'].filter(Boolean).join(' · ')
           : [fmtTime(c.time), c.room, stt.kind === 'cover' ? `led by ${stt.cover}` : c.lead ? `lead: ${c.lead}` : ''].filter(Boolean).join(' · '),
       kind: 'club',
     })
@@ -190,10 +190,10 @@ export function HomePage({ admin }: { admin: boolean }) {
         ? e.date && now.toDateString() === new Date(e.date).toDateString()
         : e.day === tKey
     if (!isToday) return
-    const off = eventStatusOn(state, e.id, isoOf(new Date())).kind === 'cancelled'
+    const off = eventStatusOn(state, e.id, isoOf(new Date())).kind === 'canceled'
     todayItems.push({
       mins: parseSlot(e.time || '23:59').mins,
-      title: e.title + (off ? ' · cancelled' : ''),
+      title: e.title + (off ? ' · canceled' : ''),
       sub: [fmtTime(e.time), e.place].filter(Boolean).join(' · ') || 'all day',
       kind: 'event',
     })
@@ -330,7 +330,7 @@ export function HomePage({ admin }: { admin: boolean }) {
             />
           )
         ) : (
-          <EmptyState icon={<CalendarDays className="h-5 w-5" />} title="No classes yet" hint="The weekly timetable appears here once classes are added." />
+          <EmptyState icon={<CalendarDays className="h-5 w-5" />} title="No classes yet" hint="The weekly schedule appears here once classes are added." />
         )}
       </div>
 

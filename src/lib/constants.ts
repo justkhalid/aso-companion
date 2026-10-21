@@ -22,7 +22,7 @@ export const SKILLS = [
 
 export const LIB_SKILLS = ['', 'L', 'S', 'R', 'W'] as const
 
-/* Library groups in display order, organised by what a teacher needs: lessons
+/* Library groups in display order, organized by what a teacher needs: lessons
    first, then visuals, games, media, practice, reading, tests, teacher
    support and self-study last. */
 export const LIB_GROUPS = [
@@ -115,13 +115,13 @@ Type of activities: Class          (Meeting / Club / Event / Workshop / Class)
 Type of categories: English Language Learning
                     (Information about the USA / English Language Learning / Education on the U.S.A. / Alumni Activities / Community Engagement)
 Summary text:
-Week 3 introduced the five colour words (red, blue, green, yellow, orange) and the frame "It is [colour].". Eleven learners were registered; nine attended (Imane and Yassine absent, recorded in Attendance). The lesson followed the standard 2-hour arc.
+Week 3 introduced the five color words (red, blue, green, yellow, orange) and the frame "It is [color].". Eleven learners were registered; nine attended (Imane and Yassine absent, recorded in Attendance). The lesson followed the standard 2-hour arc.
 
-After the hello routine, a quick feelings review showed the class still holds four of the six feeling words from Week 2. The new colour vocabulary was presented with large flashcards and modelled in full sentences; most learners could produce "It is red" by the end of the guided practice slot. The listening task ("Listen and colour") gave an honest comprehension check: eight of the nine present matched every description correctly. After the break, the team collage brought the language together. Three teams cut magazine pictures in their colour and presented "It is blue!" to the class. Reading and writing closed the session with tracing and colouring of the five target words.
+After the hello routine, a quick feelings review showed the class still holds four of the six feeling words from Week 2. The new color vocabulary was presented with large flashcards and modelled in full sentences; most learners could produce "It is red" by the end of the guided practice slot. The listening task ("Listen and color") gave an honest comprehension check: eight of the nine present matched every description correctly. After the break, the team collage brought the language together. Three teams cut magazine pictures in their color and presented "It is blue!" to the class. Reading and writing closed the session with tracing and coloring of the five target words.
 
-What worked: the team collage. Full sentences from every learner, real pride in the wall gallery, and the "It is [colour]" frame is now stable.
-What to change: red and orange were confused by three learners (the crayon shades are too close). Next week, use larger and more distinct colour swatches, and pair each colour with a classroom object to keep the words recycling.
-One concrete step for next week: link colours to classroom objects (the red chair, the blue pen) in Week 4 Numbers, so the colour words are reused in a new context.
+What worked: the team collage. Full sentences from every learner, real pride in the wall gallery, and the "It is [color]" frame is now stable.
+What to change: red and orange were confused by three learners (the crayon shades are too close). Next week, use larger and more distinct color swatches, and pair each color with a classroom object to keep the words recycling.
+One concrete step for next week: link colors to classroom objects (the red chair, the blue pen) in Week 4 Numbers, so the color words are reused in a new context.
 
 Drafted by: Aya`
 
@@ -138,7 +138,7 @@ Type of categories: English Language Learning
 Summary text:
 Today's session was about telling a short personal story with a clear beginning, middle and end. Fourteen members attended, three of them for the first time.
 
-After a quick icebreaker, members practised in pairs for five minutes, then six volunteers told their story to the whole group in under two minutes each. Peers gave one positive comment and one tip, which kept the feedback kind and useful.
+After a quick icebreaker, members practiced in pairs for five minutes, then six volunteers told their story to the whole group in under two minutes each. Peers gave one positive comment and one tip, which kept the feedback kind and useful.
 
 What worked: the pair practice before speaking. Even the shy members spoke, and the new members joined in quickly.
 What to change: the timing slipped and the last two speakers were rushed. Next time, use a visible timer and cap the stories at ninety seconds.

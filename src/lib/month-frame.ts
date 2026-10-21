@@ -56,7 +56,7 @@ export function paintHeader(g: CanvasRenderingContext2D, f: { display: string; b
   star(g, W / 2 + (sw / 2 + 330) + 22, 206, 11)
 }
 
-/* logo and text centred between the end of the calendar and the page edge */
+/* logo and text centered between the end of the calendar and the page edge */
 export function paintFooter(g: CanvasRenderingContext2D, f: { body: string }, logo: HTMLImageElement | null, note: string, W: number, H: number, gridBottom: number) {
   g.font = `600 32px ${f.body}`
   g.textAlign = 'left'

@@ -13,7 +13,7 @@ import { holidaysOf, type Holiday } from './holidays'
 import type { State } from './types'
 
 /* A month of clubs and events as one calendar picture in the site's style, with big readable names and times.
-   Clubs are purple, events gold, cancelled sessions grey. */
+   Clubs are purple, events gold, canceled sessions gray. */
 
 export interface MonthOptions {
   year: number
@@ -71,14 +71,14 @@ export function monthOccurrences(state: State, o: MonthOptions): Map<string, Occ
         if (c.placeholder || !c.time || !repeatsOn(d, c.days || [], c.freq, c.from, c.until, anchor)) continue
         const st = clubStatusOn(state, c.id, iso)
         const w = clubWhere(state, c, iso)
-        push(iso, { kind: 'club', title: c.name, time: w.time, startMin: parseSlot(w.time).mins, place: w.place, outside: w.outside, moved: w.moved, icon: c.icon, off: st.kind === 'cancelled', cover: st.kind === 'cover' ? st.cover : undefined })
+        push(iso, { kind: 'club', title: c.name, time: w.time, startMin: parseSlot(w.time).mins, place: w.place, outside: w.outside, moved: w.moved, icon: c.icon, off: st.kind === 'canceled', cover: st.kind === 'cover' ? st.cover : undefined })
       }
     }
     if (o.classes) {
       for (const c of state.classes || []) {
         if (!c.time || !repeatsOn(d, c.days || [], undefined, undefined, undefined, anchor)) continue
         const st = classStatusOn(state, c, iso)
-        push(iso, { kind: 'class', title: publicGroupName(c.code, c.level), time: c.time, startMin: parseSlot(c.time).mins, place: c.room, mark: classMark(state, c) || undefined, off: st.kind === 'cancelled' })
+        push(iso, { kind: 'class', title: publicGroupName(c.code, c.level), time: c.time, startMin: parseSlot(c.time).mins, place: c.room, mark: classMark(state, c) || undefined, off: st.kind === 'canceled' })
       }
     }
     if (o.events) {
@@ -87,7 +87,7 @@ export function monthOccurrences(state: State, o: MonthOptions): Map<string, Occ
         if (!hit) continue
         const st = eventStatusOn(state, e.id, iso)
         const w = eventWhere(state, e, iso)
-        push(iso, { kind: 'event', title: e.title, time: w.time, startMin: w.time ? parseSlot(w.time).mins : 0, place: w.place, outside: w.outside, moved: w.moved, icon: e.icon || 'calendar', off: st.kind === 'cancelled' })
+        push(iso, { kind: 'event', title: e.title, time: w.time, startMin: w.time ? parseSlot(w.time).mins : 0, place: w.place, outside: w.outside, moved: w.moved, icon: e.icon || 'calendar', off: st.kind === 'canceled' })
       }
     }
   }
@@ -173,8 +173,8 @@ function blocksOf(list: Occ[]): Block[] {
   return out
 }
 
-/* text colours sit straight on the page: dark enough to read on every month's background */
-const INKS = { club: ACTIVITY.club.ink, event: ACTIVITY.event.ink, class: ACTIVITY.class.ink, off: STATUS.cancelled.ink }
+/* text colors sit straight on the page: dark enough to read on every month's background */
+const INKS = { club: ACTIVITY.club.ink, event: ACTIVITY.event.ink, class: ACTIVITY.class.ink, off: STATUS.canceled.ink }
 
 export async function renderMonth(state: State, o: MonthOptions): Promise<HTMLCanvasElement> {
   const occ = monthOccurrences(state, o)
@@ -184,7 +184,7 @@ export async function renderMonth(state: State, o: MonthOptions): Promise<HTMLCa
   /* on a public holiday the space is closed: nothing is held, the day says so */
   const closedOn = (iso: string) => (hol.get(iso) || []).some((h) => h.closed)
   for (const iso of Array.from(occ.keys())) if (closedOn(iso)) occ.delete(iso)
-  /* each club and event keeps its own icon, drawn big in front of its name, in the same colour as the text */
+  /* each club and event keeps its own icon, drawn big in front of its name, in the same color as the text */
   const iconKey = (icon: string | undefined, kind: Kind, off: boolean, mark?: ClassMark, outside?: boolean) => `${icon || ''}|${off ? 'off' : outside ? 'out' : kind}|${mark ? markKey(mark) : ''}`
   const iconImgs = new Map<string, CanvasImageSource | null>()
   {
@@ -238,7 +238,7 @@ export async function renderMonth(state: State, o: MonthOptions): Promise<HTMLCa
         scratch.font = `800 56px ${f.body}`
         const nw = scratch.measureText(bl.names[0].title).width
         scratch.font = `700 46px ${f.body}`
-        const tw = scratch.measureText(bl.off ? 'Cancelled' : fmtTime(bl.time)).width
+        const tw = scratch.measureText(bl.off ? 'Canceled' : fmtTime(bl.time)).width
         m = Math.max(m, (95 + 18 + Math.max(nw, tw)) * CAP)
       }
     }
@@ -341,7 +341,7 @@ export async function renderMonth(state: State, o: MonthOptions): Promise<HTMLCa
       if (!d) continue
       for (const it of placeCell(d, i, L.NAME, L.TIME, s, L.HOL).items) {
         scratch.font = `700 ${L.TIME}px ${f.body}`
-        const tw = it.bl.off ? scratch.measureText('Cancelled').width : scratch.measureText(fmtTime(it.bl.time)).width
+        const tw = it.bl.off ? scratch.measureText('Canceled').width : scratch.measureText(fmtTime(it.bl.time)).width
         widest = Math.max(widest, it.lay.isz + 18 + Math.max(it.lay.rows[0].lineW, tw))
       }
     }
@@ -360,7 +360,7 @@ export async function renderMonth(state: State, o: MonthOptions): Promise<HTMLCa
   const names = [o.classes && 'CLASSES', o.clubs && 'CLUBS', o.events && 'EVENTS'].filter(Boolean) as string[]
   paintHeader(g, f, theme, o.year, names)
 
-  /* the calendar sits straight on the month's page: fine lines in the month's colour, and a large faint drawing
+  /* the calendar sits straight on the month's page: fine lines in the month's color, and a large faint drawing
      in some of the empty days, the way a printed wall calendar does it */
   const line = theme.accent + '55'
   g.strokeStyle = line
@@ -459,7 +459,7 @@ export async function renderMonth(state: State, o: MonthOptions): Promise<HTMLCa
         g.font = `700 ${Math.round(L.HOL * 0.85)}px ${f.body}`
         g.fillStyle = theme.title
         if (bw < 300) {
-          /* a narrow weekday cell: both texts wrap and are centred */
+          /* a narrow weekday cell: both texts wrap and are centered */
           const small = Math.round(L.HOL * 0.7)
           g.font = `700 ${small}px ${f.body}`
           scratch.font = g.font
@@ -529,7 +529,7 @@ export async function renderMonth(state: State, o: MonthOptions): Promise<HTMLCa
           ly += L.NAME + 2 * s
         })
         g.font = `700 ${L.TIME}px ${f.body}`
-        if (it.bl.off) g.fillText('Cancelled', tx0, ly + 4 * s)
+        if (it.bl.off) g.fillText('Canceled', tx0, ly + 4 * s)
         else if (it.bl.time) g.fillText(fmtTime(it.bl.time), tx0, ly + 4 * s)
         if (it.bl.where) g.fillText(it.bl.where, tx0, ly + 4 * s + L.TIME + 2 * s, it.lay.textW)
       }

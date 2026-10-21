@@ -192,7 +192,7 @@
   background-color: rgba(44, 44, 46, 0.6);
 }
 
-/* ================= timetable tone palette (9 tones, light + dark) ================= */
+/* ================= schedule tone palette (9 tones, light + dark) ================= */
 .tone-0 { --tone-bg: rgba(11,92,230,.12);  --tone-txt: #0A54C4; --tone-line: rgba(11,92,230,.30); }
 .tone-1 { --tone-bg: rgba(255,149,0,.16);  --tone-txt: #A85700; --tone-line: rgba(255,149,0,.34); }
 .tone-2 { --tone-bg: rgba(52,199,89,.16);  --tone-txt: #1E7A3A; --tone-line: rgba(52,199,89,.32); }
@@ -301,7 +301,7 @@
 .aso-marble { animation: aso-marble-drift 40s ease-in-out infinite alternate; will-change: transform; }
 @media (prefers-reduced-motion: reduce) { .aso-marble { animation: none; } }
 
-/* the month picture comes alive on hover: every leaf, flake or flower swings a little around its own centre */
+/* the month picture comes alive on hover: every leaf, flake or flower swings a little around its own center */
 @keyframes aso-sway {
   from { transform: rotate(calc(var(--turn) * -1)) translate(-3px, 2px); }
   to { transform: rotate(var(--turn)) translate(3px, -2px); }

@@ -106,7 +106,7 @@ export function noteFor(state: State, wi: number): string {
   return n ? String(n.text) : ''
 }
 
-/* ---- timetable slot parsing ----
+/* ---- schedule slot parsing ----
    Rounds the start time to the nearest hour for the row key, so events
    starting in the same hour (15:00-17:00 and 15:30-17:30) share a row.
    The full time range is kept as the label (AM/PM). Stored times are 24h. */
@@ -392,14 +392,14 @@ export function visLevels(state: State): Level[] {
 
 
 /* ---- absences: teachers, clubs and events ----
-   A class, club session or event is cancelled (or covered by someone else) on a date when an
+   A class, club session or event is canceled (or covered by someone else) on a date when an
    absence covers that date and applies to it. */
 export type ClassStatus =
   | { kind: 'normal' }
-  | { kind: 'cancelled'; absence: Absence }
+  | { kind: 'canceled'; absence: Absence }
   | { kind: 'cover'; absence: Absence; cover: string }
 
-/* a public holiday closes the space: everything that day counts as cancelled, the reason is the holiday's name */
+/* a public holiday closes the space: everything that day counts as canceled, the reason is the holiday's name */
 function holidayAbsence(iso: string): Absence | undefined {
   const h = closedHoliday(iso)
   return h ? ({ id: 'holiday-' + iso, from: iso, to: iso, reason: h.name } as unknown as Absence) : undefined
@@ -407,7 +407,7 @@ function holidayAbsence(iso: string): Absence | undefined {
 
 function statusFrom(a: Absence | undefined): ClassStatus {
   if (!a) return { kind: 'normal' }
-  return a.cover ? { kind: 'cover', absence: a, cover: a.cover } : { kind: 'cancelled', absence: a }
+  return a.cover ? { kind: 'cover', absence: a, cover: a.cover } : { kind: 'canceled', absence: a }
 }
 const within = (a: Absence, iso: string) => iso >= a.from && iso <= a.to
 
@@ -443,18 +443,18 @@ function whereOn(state: Pick<State, 'absences'>, kind: 'club' | 'event', id: str
 export const clubWhere = (state: Pick<State, 'absences'>, c: Club, iso: string): Where => whereOn(state, 'club', c.id, iso, c.room, !!c.outside, c.time)
 export const eventWhere = (state: Pick<State, 'absences'>, e: EventEntry, iso: string): Where => whereOn(state, 'event', e.id, iso, e.place, !!e.outside, e.time)
 
-/* split a weekly pattern's days into normal days, cancelled days and covered days for one week */
+/* split a weekly pattern's days into normal days, canceled days and covered days for one week */
 export function splitDaysByStatus(
   days: string[],
   monday: Date,
   statusOn: (iso: string) => ClassStatus,
-): { normal: string[]; cancelled: string[]; why: string; covered: Record<string, string[]> } {
-  const out = { normal: [] as string[], cancelled: [] as string[], why: '', covered: {} as Record<string, string[]> }
+): { normal: string[]; canceled: string[]; why: string; covered: Record<string, string[]> } {
+  const out = { normal: [] as string[], canceled: [] as string[], why: '', covered: {} as Record<string, string[]> }
   for (const d of days) {
     const di = DAY_KEYS.indexOf(d as (typeof DAY_KEYS)[number])
     const stt = di < 0 ? ({ kind: 'normal' } as ClassStatus) : statusOn(isoOf(addDays(monday, di)))
-    if (stt.kind === 'cancelled') {
-      out.cancelled.push(d)
+    if (stt.kind === 'canceled') {
+      out.canceled.push(d)
       out.why = stt.absence.reason
     } else if (stt.kind === 'cover') (out.covered[stt.cover] ||= []).push(d)
     else out.normal.push(d)

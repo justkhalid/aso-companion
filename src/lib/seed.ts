@@ -45,8 +45,8 @@ const KIDS_W1_LP = {
   ],
   ls: 'Listen and do: teacher calls instructions in random order while children respond; add "touch your nose/head" silliness to check listening honestly.',
   re: 'Quick hello circle again - count how many children say their name with confidence; celebrate with a class cheer.',
-  prod: 'Make the Class Rules Poster together: children add handprints / smiley stickers and practise "We look. We listen." Display it on the wall all year.',
-  rw: 'Table time: trace names on pre-writing sheets (dotted letters), colour a "Hello" badge to wear home. Fast finishers trace "hello" and "goodbye".',
+  prod: 'Make the Class Rules Poster together: children add handprints / smiley stickers and practice "We look. We listen." Display it on the wall all year.',
+  rw: 'Table time: trace names on pre-writing sheets (dotted letters), color a "Hello" badge to wear home. Fast finishers trace "hello" and "goodbye".',
   st: 'Hello Song (Music/Songs) with actions, sung twice; teach the Goodbye Song ready for the end of class. Goodbye routine: Goodbye Song + sticker chart + high-five line (teach it this week).',
   g: [
     ['Name Ball Toss', 'Soft ball, catch-say name-throw. Wrong name? Everyone helps kindly.'],
@@ -63,7 +63,7 @@ const KIDS_W1_LP = {
   hw: [
     'Teach the hello song to someone at home.',
     'Bring a small object from home that makes you happy (for next week show and tell).',
-    'Practise the goodbye routine once with a family member.',
+    'Practice the goodbye routine once with a family member.',
   ],
   tip: 'Lower the stakes this week: lots of smiles, no correction of pronunciation yet. The goal is that every child leaves saying "I like English class". Build the routines now - they carry the whole year.',
 }
@@ -114,7 +114,7 @@ function kidsWeeks(): Week[] {
         L: 'Hello song and attention signal - listen and join in (Music/Songs)',
         S: 'Greet the class chorally and say my name in the hello circle',
         R: 'Match name cards to faces; find letters in my name (Flashcards)',
-        W: 'Trace and copy my name; help colour the class-rules poster',
+        W: 'Trace and copy my name; help color the class-rules poster',
       },
       lp: KIDS_W1_LP,
     }),
@@ -139,13 +139,13 @@ function kidsWeeks(): Week[] {
       lang: 'red, blue, green, yellow, orange; It is...; What color is it?',
       res: 'Flashcards/Colors; Worksheets/Coloring',
       urls: ['https://drive.google.com/drive/folders/0B2Q8XuO2ebzxMEYzb0RYV1NBZVU'],
-      act: 'Listen and colour; colour team collage; "It is blue!" gallery',
-      hw: 'find 3 things at home in your favourite colour',
+      act: 'Listen and color; color team collage; "It is blue!" gallery',
+      hw: 'find 3 things at home in your favorite color',
       skills: {
-        L: 'Listen and colour: match the description to the right crayon',
+        L: 'Listen and color: match the description to the right crayon',
         S: 'Present my team collage: "It is blue!"',
-        R: 'Read 5 colour words on the wall labels',
-        W: 'Trace and colour the 5 target words',
+        R: 'Read 5 color words on the wall labels',
+        W: 'Trace and color the 5 target words',
       },
     }),
     w({
@@ -169,7 +169,7 @@ function kidsWeeks(): Week[] {
       lang: 'recycle of W1-W14 language',
       res: 'Assessment stations; observation checklists',
       urls: [],
-      act: 'Station day: hello, feelings, colours, numbers; tick the checklist during play',
+      act: 'Station day: hello, feelings, colors, numbers; tick the checklist during play',
       hw: 'tell someone at home three things you can do in English',
       skills: {
         L: 'Listen and do: 5 instructions in a row',
@@ -192,7 +192,7 @@ function kidsWeeks(): Week[] {
           'Says own name in a full sentence',
           'Follows 3 classroom instructions',
           'Names 5 feelings',
-          'Names 5 colours',
+          'Names 5 colors',
           'Counts 1-10',
           'Matches word cards to pictures',
           'Traces own name',
@@ -262,7 +262,7 @@ function teensWeeks(): Week[] {
         L: 'Listen to a short dialogue; answer 5 questions',
         S: '3-minute speaking task: introduce + describe my routine',
         R: 'Read a 120-word text; answer 6 comprehension questions',
-        W: 'Write 80 words about my favourite food',
+        W: 'Write 80 words about my favorite food',
       },
       lp: {
         ...TEENS_W1_LP,
@@ -453,7 +453,7 @@ const CLUBS: Club[] = [
     name: 'Conversation Club',
     icon: 'mic',
     desc:
-      'A relaxed weekly speaking club where members practise real-life English around a theme: travel, food, work, dreams. Open to all levels.',
+      'A relaxed weekly speaking club where members practice real-life English around a theme: travel, food, work, dreams. Open to all levels.',
     days: ['Tue'],
     time: '17:00-18:30',
     room: 'American Space',
@@ -580,7 +580,7 @@ const LIBRARY: LibraryFolder[] = [
   {
     id: 'l3',
     name: 'Flashcards',
-    desc: 'Picture flashcards organised by topic, ready to print.',
+    desc: 'Picture flashcards organized by topic, ready to print.',
     url: 'https://drive.google.com/drive/folders/0B2Q8XuO2ebzxMEYzb0RYV1NBZVU',
     sk: ['L', 'S', 'R'],
   },

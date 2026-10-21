@@ -41,11 +41,11 @@ export function ClubsExportItems({ state }: { state: State }) {
           </span>
         </DropdownMenuItem>
       )}
-      <Item icon={Table2} title="Weekly calendar with posters" hint="Week timetable on top, every poster in full below" run={cal('clubs')} done={done} />
+      <Item icon={Table2} title="Weekly calendar with posters" hint="Week schedule on top, every poster in full below" run={cal('clubs')} done={done} />
       <DropdownMenuSeparator />
       <DropdownMenuLabel className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground">Events with posters</DropdownMenuLabel>
       <Item icon={LayoutGrid} title="All events on one page" hint="Four per row, posters in full, date, time and place below" run={() => downloadClubsPng(state, 'events')} done={done} />
-      <Item icon={Table2} title="Weekly calendar of events with posters" hint="Week timetable on top, every poster in full below" run={cal('events')} done={done} />
+      <Item icon={Table2} title="Weekly calendar of events with posters" hint="Week schedule on top, every poster in full below" run={cal('events')} done={done} />
     </>
   )
 }
