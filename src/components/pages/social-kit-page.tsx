@@ -66,7 +66,7 @@ const chipCls = (on: boolean) =>
 
 export function SocialKitPage() {
   const state = useStore((s) => s.state)
-  const [tab, setTab] = React.useState<Kind>('club')
+  const [tab, setTab] = React.useState<Kind | 'month'>('club')
   const [editing, setEditing] = React.useState<{ kind: Kind; id: string } | null>(null)
   const [clubDlg, setClubDlg] = React.useState<{ open: boolean; club: Club | null }>({ open: false, club: null })
   const [eventDlg, setEventDlg] = React.useState<{ open: boolean; event: EventEntry | null }>({ open: false, event: null })
@@ -87,7 +87,7 @@ export function SocialKitPage() {
     )
   }
 
-  const items: (Club | EventEntry)[] = tab === 'club' ? state.clubs : state.events
+  const items: (Club | EventEntry)[] = tab === 'club' ? state.clubs : tab === 'event' ? state.events : []
 
   return (
     <div className="mx-auto max-w-6xl px-4 py-6 sm:py-8">
@@ -95,13 +95,15 @@ export function SocialKitPage() {
         title="Social kit"
         subtitle="The Instagram story and the WhatsApp group picture of every club and event, made from the data you already keep here."
         right={
-          <Button size="sm" onClick={() => (tab === 'club' ? setClubDlg({ open: true, club: null }) : setEventDlg({ open: true, event: null }))}>
-            <Plus className="h-4 w-4" /> {tab === 'club' ? 'New club' : 'New event'}
-          </Button>
+          tab === 'month' ? undefined : (
+            <Button size="sm" onClick={() => (tab === 'club' ? setClubDlg({ open: true, club: null }) : setEventDlg({ open: true, event: null }))}>
+              <Plus className="h-4 w-4" /> {tab === 'club' ? 'New club' : 'New event'}
+            </Button>
+          )
         }
       />
       <div className="mb-5 inline-flex rounded-full border border-border bg-card p-1" role="tablist" aria-label="Kind">
-        {([['club', 'Clubs', state.clubs.length], ['event', 'Events', state.events.length]] as const).map(([k, label, n]) => (
+        {([['club', 'Clubs', state.clubs.length], ['event', 'Events', state.events.length], ['month', 'Month story', null]] as const).map(([k, label, n]) => (
           <button
             key={k}
             role="tab"
@@ -109,16 +111,18 @@ export function SocialKitPage() {
             onClick={() => setTab(k)}
             className={cn('rounded-full px-4 py-1.5 text-[13px] font-bold transition', tab === k ? 'aso-nav-pill' : 'text-foreground/70 hover:bg-secondary')}
           >
-            {label} <span className="ml-1 text-[11px] opacity-70">{n}</span>
+            {label} {n !== null && <span className="ml-1 text-[11px] opacity-70">{n}</span>}
           </button>
         ))}
       </div>
-      {items.length === 0 ? (
+      {tab === 'month' ? (
+        <MonthStoryPanel />
+      ) : items.length === 0 ? (
         <EmptyState icon={<Sparkles className="h-5 w-5" />} title={tab === 'club' ? 'No clubs yet' : 'No events yet'} hint="Add one and its pictures appear here." />
       ) : (
         <div className="grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-4">
           {items.map((it) => (
-            <KitCard key={it.id} kind={tab} item={it} onOpen={() => setEditing({ kind: tab, id: it.id })} />
+            <KitCard key={it.id} kind={tab as Kind} item={it} onOpen={() => setEditing({ kind: tab as Kind, id: it.id })} />
           ))}
         </div>
       )}
@@ -168,6 +172,158 @@ function KitCard({ kind, item, onOpen }: { kind: Kind; item: Club | EventEntry; 
   )
 }
 
+/* ---------------------------------------------------------------- month story */
+
+const MONTH_NAMES = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
+
+/* what the month pictures show, so they are made again only when it changes */
+function useMonthKey() {
+  const state = useStore((s) => s.state)
+  return React.useMemo(
+    () =>
+      JSON.stringify([
+        state.clubs.map((c) => [c.id, c.name, c.days, c.time, c.room, c.outside, c.freq, c.from, c.until, c.icon, c.placeholder, c.kit?.short]),
+        state.events.map((e) => [e.id, e.title, e.recur, e.day, e.date, e.time, e.place, e.outside, e.from, e.until, e.icon, e.kit?.short]),
+        state.absences || [],
+      ]),
+    [state.clubs, state.events, state.absences],
+  )
+}
+
+function MonthStoryPanel() {
+  const state = useStore((s) => s.state)
+  const toast = useStore((s) => s.toast)
+  const key = useMonthKey()
+  /* twelve months from the start of the school year */
+  const months = React.useMemo(() => {
+    const s = new Date((state.settings.s1Start || new Date().toISOString().slice(0, 10)) + 'T00:00:00')
+    return Array.from({ length: 12 }, (_, i) => { const d = new Date(s.getFullYear(), s.getMonth() + i, 1); return { year: d.getFullYear(), month: d.getMonth() } })
+  }, [state.settings.s1Start])
+  const [idx, setIdx] = React.useState(() => {
+    const now = new Date()
+    const i = months.findIndex((m) => m.year === now.getFullYear() && m.month === now.getMonth())
+    return i >= 0 ? i : 0
+  })
+  const m = months[idx]
+  const [story, setStory] = React.useState<import('@/lib/kit/month-story').MonthStory | null>(null)
+  const [still, setStill] = React.useState<HTMLCanvasElement | null>(null)
+  const [err, setErr] = React.useState('')
+  const [working, setWorking] = React.useState<string | null>(null)
+  const view = React.useRef<HTMLCanvasElement>(null)
+
+  /* make the story again when the month or the clubs and events change */
+  const stateRef = React.useRef(state)
+  React.useEffect(() => { stateRef.current = state })
+  React.useEffect(() => {
+    let live = true
+    setErr('')
+    const t = setTimeout(async () => {
+      try {
+        const ms = await import('@/lib/kit/month-story')
+        const built = await ms.buildMonthStory(stateRef.current, m.year, m.month)
+        if (!live) return
+        setStory(built)
+        setStill(ms.monthStoryStill(built))
+      } catch (e) {
+        if (live) setErr(e instanceof Error ? e.message : 'The picture could not be made.')
+      }
+    }, 250)
+    return () => { live = false; clearTimeout(t) }
+  }, [m.year, m.month, key])
+
+  /* show it moving (still when the visitor prefers less motion) */
+  React.useEffect(() => {
+    const cvs = view.current
+    if (!story || !cvs) return
+    const g = cvs.getContext('2d')!
+    let raf = 0
+    let live = true
+    const calm = window.matchMedia('(prefers-reduced-motion: reduce)').matches
+    let last = 0
+    void import('@/lib/kit/month-story').then((ms) => {
+      const t0 = performance.now()
+      const tick = (now: number) => {
+        if (!live) return
+        if (now - last > 33) { last = now; ms.drawMonthStory(g, story, calm ? 0 : (now - t0) / 1000) }
+        if (!calm) raf = requestAnimationFrame(tick)
+      }
+      raf = requestAnimationFrame(tick)
+    })
+    return () => { live = false; cancelAnimationFrame(raf) }
+  }, [story])
+
+  const name = `${MONTH_NAMES[m.month].toLowerCase()}-${m.year}`
+  const run = async (label: string, fn: () => Promise<void>) => {
+    setWorking(label)
+    try { await fn() } catch (e) { toast(e instanceof Error ? e.message : 'Failed', false) } finally { setWorking(null) }
+  }
+  const png = async () => { if (still) saveBlob(await toBlob(still), `calendar-story-${name}.png`) }
+  const video = () => run('Recording', async () => {
+    if (!story) return
+    const ms = await import('@/lib/kit/month-story')
+    const v = await ms.monthStoryVideo(story, (p) => setWorking(`Recording ${Math.round(p * 100)}%`))
+    saveBlob(v.blob, `calendar-story-${name}.${v.ext}`)
+  })
+  const all = () => run('Making all months', async () => {
+    const ms = await import('@/lib/kit/month-story')
+    const { zipFiles } = await import('@/lib/kit/zip')
+    const files: { name: string; blob: Blob }[] = []
+    for (let i = 0; i < months.length; i++) {
+      setWorking(`Making ${i + 1} of ${months.length}`)
+      const b = await ms.buildMonthStory(stateRef.current, months[i].year, months[i].month)
+      const blob = await toBlob(ms.monthStoryStill(b))
+      if (blob) files.push({ name: `${String(i + 1).padStart(2, '0')}-${MONTH_NAMES[months[i].month].toLowerCase()}-${months[i].year}.png`, blob })
+    }
+    saveBlob(await zipFiles(files), 'calendar-stories.zip')
+  })
+
+  return (
+    <div className="grid gap-6 lg:grid-cols-2 lg:items-start">
+      <div className="flex min-w-0 flex-col gap-4">
+        <div className="flex flex-col gap-5 rounded-2xl border border-border bg-card p-5">
+          <Block title="Month">
+            <div className="grid grid-cols-4 gap-2">
+              {months.map((x, i) => (
+                <button
+                  key={i}
+                  type="button"
+                  onClick={() => setIdx(i)}
+                  aria-pressed={i === idx}
+                  className={cn('rounded-xl border px-2 py-2.5 text-center text-[13px] font-bold transition', i === idx ? 'border-primary bg-primary/10 ring-2 ring-primary' : 'border-border bg-card hover:bg-secondary')}
+                >
+                  {MONTH_NAMES[x.month]}
+                  <span className="block text-[11px] font-medium text-muted-foreground">{x.year}</span>
+                </button>
+              ))}
+            </div>
+            <p className="text-xs text-muted-foreground">Made from the clubs and events in the app. Add or change one and the picture follows.</p>
+          </Block>
+          <Block title="Download">
+            <div className="grid grid-cols-1 gap-2 sm:grid-cols-3">
+              <Button type="button" variant="outline" disabled={!still || !!working} onClick={() => void png()}><Download className="h-4 w-4" /> Picture</Button>
+              <Button type="button" variant="outline" disabled={!story || !!working} onClick={() => void video()}><Download className="h-4 w-4" /> Animation</Button>
+              <Button type="button" variant="outline" disabled={!!working} onClick={() => void all()}><Download className="h-4 w-4" /> All 12 months</Button>
+            </div>
+            <p className="text-xs text-muted-foreground">{working ? working + '...' : 'The animation is an 8 second loop. All 12 months come as one zip of pictures.'}</p>
+          </Block>
+        </div>
+        <div className="flex flex-col gap-5 rounded-2xl border border-border bg-card p-5">
+          <PublishPanel storyCanvas={still} poster={null} caption="" storyOnly />
+        </div>
+      </div>
+      <div className="lg:sticky lg:top-20">
+        <section className="mx-auto flex w-full max-w-[420px] flex-col gap-2.5 rounded-2xl border border-border bg-card p-3">
+          <h3 className="text-xs font-extrabold">{MONTH_NAMES[m.month]} {m.year} story</h3>
+          {err ? <p className="text-xs text-destructive">{err}</p> : null}
+          <div className="overflow-hidden rounded-[10px] bg-secondary">
+            {story ? <canvas ref={view} width={1080} height={1920} className="block h-auto w-full" /> : <div className="aspect-[9/16] w-full animate-pulse bg-secondary" />}
+          </div>
+        </section>
+      </div>
+    </div>
+  )
+}
+
 /* ---------------------------------------------------------------- the editor */
 
 const Lab = ({ children, hint }: { children: React.ReactNode; hint?: string }) => (
@@ -182,6 +338,7 @@ const Block = ({ title, children }: { title: string; children: React.ReactNode }
     {children}
   </div>
 )
+const shortPlaceholder = (name: string) => name.replace(/^American Space\s+/i, '').replace(/\s+(Club|Activity)$/i, '')
 const inputCls = 'w-full rounded-lg border border-border bg-background px-3 py-2 text-sm outline-none focus:border-primary'
 
 type Section = 'content' | 'look' | 'caption' | 'publish'
@@ -344,6 +501,10 @@ function KitEditor({ kind, id, onBack, onEditSchedule }: { kind: Kind; id: strin
                       <input className={inputCls} value={R.word} placeholder="e.g. PHYSICS" onChange={(e) => set('word', e.target.value.toUpperCase())} />
                     </div>
                   </div>
+                  <div>
+                    <Lab hint="Used inside the calendar pictures. Leave empty and it is worked out from the name.">Short name for calendars</Lab>
+                    <input className={inputCls} value={R.short} placeholder={shortPlaceholder(R.name)} onChange={(e) => set('short', e.target.value)} />
+                  </div>
                   {R.nameNeeded && (
                     <p className="flex items-center gap-1.5 text-xs font-semibold text-[var(--aso-gold)]">
                       <AlertTriangle className="h-3.5 w-3.5" /> The name is in Arabic. Type the English name for the story.
@@ -447,7 +608,16 @@ function KitEditor({ kind, id, onBack, onEditSchedule }: { kind: Kind; id: strin
               </>
             )}
             {section === 'publish' && (
-              <PublishPanel kind={kind} id={id} R={R} out={out} posts={item.kit?.posts} />
+              <PublishPanel
+                storyCanvas={out?.story ?? null}
+                poster={R.poster}
+                caption={R.cap}
+                posts={item.kit?.posts}
+                onPosted={(done) => patch((d) => {
+                  const target = (kind === 'club' ? d.clubs : d.events).find((x) => x.id === id) as Club | EventEntry | undefined
+                  if (target) target.kit = { ...(target.kit || {}), posts: [...(target.kit?.posts || []), { t: new Date().toISOString(), to: done }] }
+                })}
+              />
             )}
           </div>
         </div>
@@ -512,10 +682,9 @@ const DESTS: [Dest, string, string][] = [
 interface Step { label: string; ok: boolean; msg: string }
 interface Status { token: boolean; page: boolean; ig: boolean; expires: string | null; daysLeft: number | null }
 
-function PublishPanel({ kind, id, R, out, posts }: { kind: Kind; id: string; R: KitRec; out: { story: HTMLCanvasElement } | null; posts?: { t: string; to: string[] }[] }) {
-  const patch = useStore((s) => s.patch)
+function PublishPanel({ storyCanvas, poster, caption, storyOnly, posts, onPosted }: { storyCanvas: HTMLCanvasElement | null; poster: string | null; caption: string; storyOnly?: boolean; posts?: { t: string; to: string[] }[]; onPosted?: (done: string[]) => void }) {
   const [status, setStatus] = React.useState<Status | null | 'error'>(null)
-  const [pick, setPick] = React.useState<Record<Dest, boolean>>({ igFeed: true, igStory: true, fbFeed: true, fbStory: false })
+  const [pick, setPick] = React.useState<Record<Dest, boolean>>(storyOnly ? { igFeed: false, igStory: true, fbFeed: false, fbStory: true } : { igFeed: true, igStory: true, fbFeed: true, fbStory: false })
   const [testing, setTesting] = React.useState(false)
   const [test, setTest] = React.useState<{ ok: boolean; lines: string[] } | null>(null)
   const [confirm, setConfirm] = React.useState(false)
@@ -532,8 +701,9 @@ function PublishPanel({ kind, id, R, out, posts }: { kind: Kind; id: string; R: 
   }, [])
 
   const ready = status && status !== 'error' && status.token && status.page
-  const chosen = DESTS.filter(([k]) => pick[k])
-  const needsPoster = (pick.igFeed || pick.fbFeed) && !R.poster
+  const dests = DESTS.filter(([k]) => !storyOnly || k === 'igStory' || k === 'fbStory')
+  const chosen = dests.filter(([k]) => pick[k])
+  const needsPoster = (pick.igFeed || pick.fbFeed) && !poster
 
   const runTest = async () => {
     setTesting(true)
@@ -549,16 +719,16 @@ function PublishPanel({ kind, id, R, out, posts }: { kind: Kind; id: string; R: 
   }
 
   const post = async () => {
-    if (!out) return
+    if (!storyCanvas) return
     setBusy(true)
     setSteps(null)
     try {
       const f = new FormData()
       f.append('targets', JSON.stringify(pick))
-      f.append('caption', R.cap)
-      f.append('story', await blobOf(out.story), 'story.jpg')
-      if (R.poster) {
-        const p = await posterBlobs(R.poster)
+      f.append('caption', caption)
+      f.append('story', await blobOf(storyCanvas), 'story.jpg')
+      if (poster) {
+        const p = await posterBlobs(poster)
         f.append('poster', p.poster, 'poster.jpg')
         f.append('poster45', p.poster45, 'poster45.jpg')
       }
@@ -567,13 +737,7 @@ function PublishPanel({ kind, id, R, out, posts }: { kind: Kind; id: string; R: 
       const st = j.steps || [{ label: 'Server', ok: false, msg: `The server answered with an error (${r.status}).` }]
       setSteps(st)
       const done = st.filter((s) => s.ok).map((s) => s.label)
-      if (done.length) {
-        patch((d) => {
-          const target = (kind === 'club' ? d.clubs : d.events).find((x) => x.id === id) as Club | EventEntry | undefined
-          if (!target) return
-          target.kit = { ...(target.kit || {}), posts: [...(target.kit?.posts || []), { t: new Date().toISOString(), to: done }] }
-        })
-      }
+      if (done.length) onPosted?.(done)
     } catch (e) {
       setSteps([{ label: 'Stopped', ok: false, msg: e instanceof Error ? e.message : 'failed' }])
     } finally {
@@ -624,7 +788,7 @@ function PublishPanel({ kind, id, R, out, posts }: { kind: Kind; id: string; R: 
 
       <Block title="Where to post">
         <div className="grid grid-cols-2 gap-2">
-          {DESTS.map(([k, label, hint]) => (
+          {dests.map(([k, label, hint]) => (
             <label key={k} className={cn('flex cursor-pointer items-start gap-2.5 rounded-xl border p-3 transition', pick[k] ? 'border-primary bg-primary/5' : 'border-border bg-card hover:bg-secondary')}>
               <input type="checkbox" className="mt-0.5 h-4 w-4 accent-[var(--primary)]" checked={pick[k]} onChange={(e) => setPick((p) => ({ ...p, [k]: e.target.checked }))} />
               <span className="min-w-0">
@@ -635,7 +799,7 @@ function PublishPanel({ kind, id, R, out, posts }: { kind: Kind; id: string; R: 
           ))}
         </div>
         {needsPoster && <p className="flex items-center gap-1.5 text-xs font-semibold text-[var(--aso-gold)]"><CircleAlert className="h-3.5 w-3.5" /> The posts need a poster. Add one under Poster and name.</p>}
-        <Button type="button" className="self-start" disabled={!ready || busy || !out || chosen.length === 0 || needsPoster} onClick={() => setConfirm(true)}>
+        <Button type="button" className="self-start" disabled={!ready || busy || !storyCanvas || chosen.length === 0 || needsPoster} onClick={() => setConfirm(true)}>
           {busy ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />} Post now
         </Button>
       </Block>

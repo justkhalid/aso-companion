@@ -32,7 +32,7 @@ const img = (src: string) => new Promise<HTMLImageElement>((res, rej) => { const
 export const loadImage = img
 export const cv = (w: number, h: number) => { const c = document.createElement('canvas'); c.width = w; c.height = h; return c }
 const cache: Record<string, HTMLImageElement> = {}
-const get = async (src: string) => cache[src] || (cache[src] = await img(src))
+export const get = async (src: string) => cache[src] || (cache[src] = await img(src))
 
 const AR = /[\u0600-\u06FF]/
 function kick(ctx: Ctx, text: string, cx: number, base: number, tr: number, fill: string | CanvasGradient) {
@@ -52,9 +52,9 @@ export function loadKitFonts(): Promise<void> {
 }
 
 // ---------- drawing helpers ----------
-function measure(ctx: Ctx, t: string, tr: number) { let w = 0; for (const ch of t) w += ctx.measureText(ch).width + tr; return w - tr; }
-function fit(ctx: Ctx, tpl: (s: number) => string, t: string, maxW: number, maxS: number, tr: number) { let s = maxS; for (; s > 20; s--) { ctx.font = tpl(s); if (measure(ctx, t, tr) <= maxW) break; } return s; }
-function spaced(ctx: Ctx, t: string, cx: number, base: number, tr: number, fill: string | CanvasGradient) {
+export function measure(ctx: Ctx, t: string, tr: number) { let w = 0; for (const ch of t) w += ctx.measureText(ch).width + tr; return w - tr; }
+export function fit(ctx: Ctx, tpl: (s: number) => string, t: string, maxW: number, maxS: number, tr: number) { let s = maxS; for (; s > 20; s--) { ctx.font = tpl(s); if (measure(ctx, t, tr) <= maxW) break; } return s; }
+export function spaced(ctx: Ctx, t: string, cx: number, base: number, tr: number, fill: string | CanvasGradient) {
   let x = cx - measure(ctx, t, tr) / 2; ctx.fillStyle = fill; ctx.textAlign = "left"; ctx.textBaseline = "alphabetic";
   for (const ch of t) { ctx.fillText(ch, x, base); x += ctx.measureText(ch).width + tr; }
 }
@@ -67,7 +67,7 @@ function gradTitle(ctx: Ctx, t: string, cx: number, base: number, size: number, 
   spaced(ctx, t, cx, base, tr, grad(ctx, cx - w / 2, cx + w / 2, c1, c2)); ctx.restore();
 }
 function rr(ctx: Ctx, x: number, y: number, w: number, h: number, r: number) { ctx.beginPath(); ctx.roundRect(x, y, w, h, r); }
-async function svgLayer(body: string) { return get("data:image/svg+xml;charset=utf-8," + encodeURIComponent(`<svg xmlns="http://www.w3.org/2000/svg" width="1080" height="1920" viewBox="0 0 1080 1920">${body}</svg>`)); }
+export async function svgLayer(body: string) { return get("data:image/svg+xml;charset=utf-8," + encodeURIComponent(`<svg xmlns="http://www.w3.org/2000/svg" width="1080" height="1920" viewBox="0 0 1080 1920">${body}</svg>`)); }
 function glow(ctx: Ctx, cx: number, cy: number, c2: RGB) {
   ctx.save(); ctx.translate(cx, cy); ctx.scale(720, 620);
   const g = ctx.createRadialGradient(0, 0, 0, 0, 0, 1);
@@ -75,11 +75,11 @@ function glow(ctx: Ctx, cx: number, cy: number, c2: RGB) {
   ctx.fillStyle = g; ctx.fillRect(-1, -1, 2, 2); ctx.restore();
 }
 let grainCanvas: HTMLCanvasElement | null = null;
-function grain(ctx: Ctx, w: number, h: number) {
+export function grain(ctx: Ctx, w: number, h: number) {
   if (!grainCanvas) { grainCanvas = cv(512, 512); const x = grainCanvas.getContext("2d")!, d = x.createImageData(512, 512); for (let i = 0; i < d.data.length; i += 4) { const v = Math.random() * 255; d.data[i] = d.data[i + 1] = d.data[i + 2] = v; d.data[i + 3] = 18; } x.putImageData(d, 0, 0); }
   ctx.fillStyle = ctx.createPattern(grainCanvas, "repeat")!; ctx.fillRect(0, 0, w, h);
 }
-async function drawLogo(ctx: Ctx, cx: number, cy: number, h: number) {
+export async function drawLogo(ctx: Ctx, cx: number, cy: number, h: number) {
   const l = await get(KIT_LOGO), w = h * l.width / l.height;
   ctx.save(); ctx.shadowColor = "rgba(40,30,60,.18)"; ctx.shadowBlur = 20; ctx.shadowOffsetY = 8; ctx.drawImage(l, cx - w / 2, cy - h / 2, w, h); ctx.restore();
 }
