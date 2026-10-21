@@ -288,6 +288,8 @@ export type View =
   | 'social'
   | 'members'
   | 'month-report'
+  | 'inventory'
+  | 'submissions'
 
 export type Side = 'elt' | 'intern'
 

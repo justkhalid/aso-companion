@@ -27,6 +27,8 @@ import {
   Plus,
   Clock,
   ClipboardList,
+  ClipboardCheck,
+  Boxes,
 } from 'lucide-react'
 import { Logo } from './logo'
 import { ThemeToggle } from './theme-toggle'
@@ -90,12 +92,16 @@ function useNavGroups(): NavGroup[] {
       label: 'Reports',
       items: [
         { label: 'Monthly report', view: 'month-report', icon: ClipboardList },
+        { label: 'Submissions', view: 'submissions', icon: ClipboardCheck },
         { label: 'Reporting guide', view: 'reports', icon: FileText },
       ],
     },
     {
       label: 'ASO Library',
-      items: [{ label: 'Members', view: 'members', icon: BookUser }],
+      items: [
+        { label: 'Members', view: 'members', icon: BookUser },
+        { label: 'Inventory', view: 'inventory', icon: Boxes },
+      ],
     },
     {
       label: 'Shared',
@@ -125,6 +131,8 @@ export function pageTitle(view: View, selectedLevelKey: string, levelLabel?: str
     case 'absences': return 'Absences'
     case 'library': return 'Teaching resources'
     case 'members': return 'Members'
+    case 'inventory': return 'Inventory'
+    case 'submissions': return 'Report submissions'
     case 'reports': return 'Reporting guide'
     case 'month-report': return 'Monthly report'
     case 'intern-clubs': return 'Clubs'
