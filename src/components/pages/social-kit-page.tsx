@@ -129,7 +129,7 @@ export function SocialKitPage() {
           </button>
         ))}
       </div>
-      {status && status !== 'error' && status.connected && status.daysLeft !== null && status.daysLeft <= 14 && tab !== 'connection' && (
+      {status && typeof status !== 'string' && status.connected && status.daysLeft !== null && status.daysLeft <= 14 && tab !== 'connection' && (
         <div className="mb-4 flex flex-wrap items-center gap-3 rounded-xl border border-[var(--aso-gold)]/40 bg-[var(--aso-gold-tint)] px-4 py-2.5 text-sm font-semibold">
           <CircleAlert className="h-4 w-4 shrink-0 text-[var(--aso-gold)]" />
           <span className="min-w-0 flex-1">{status.daysLeft > 0 ? `The Facebook and Instagram token runs out in ${status.daysLeft} days.` : 'The Facebook and Instagram token has run out.'}</span>
@@ -830,11 +830,15 @@ export interface SocialStatus {
 
 /* whether Facebook and Instagram are connected; `reload` asks again (after connecting or disconnecting) */
 function useSocialStatus() {
-  const [status, setStatus] = React.useState<SocialStatus | null | 'error'>(null)
+  /* 'signin': the server no longer knows this admin (the sign-in ended); 'error': the server did not answer properly */
+  const [status, setStatus] = React.useState<SocialStatus | null | 'error' | 'signin'>(null)
   const reload = React.useCallback(() => {
     fetch('/api/social/status', { cache: 'no-store' })
-      .then((r) => (r.ok ? r.json() : Promise.reject(new Error(String(r.status)))))
-      .then((j: SocialStatus) => setStatus(j))
+      .then(async (r) => {
+        if (r.status === 401) return setStatus('signin')
+        if (!r.ok) return setStatus('error')
+        setStatus((await r.json()) as SocialStatus)
+      })
       .catch(() => setStatus('error'))
   }, [])
   React.useEffect(() => { reload() }, [reload])
@@ -864,7 +868,7 @@ function PublishPanel({ storyCanvas, poster, feedCanvas, caption, only, posts, o
   const [asVideo, setAsVideo] = React.useState(false)
   const [rec, setRec] = React.useState<number | null>(null)
 
-  const ready = !!status && status !== 'error' && status.connected
+  const ready = !!status && typeof status !== 'string' && status.connected
   const dests = DESTS.filter(([k]) => !only || (only === 'story' ? k === 'igStory' || k === 'fbStory' : k === 'igFeed' || k === 'fbFeed'))
   const chosen = dests.filter(([k]) => pick[k])
   const needsPicture = (pick.igFeed || pick.fbFeed) && !poster && !feedCanvas
@@ -916,8 +920,9 @@ function PublishPanel({ storyCanvas, poster, feedCanvas, caption, only, posts, o
     <>
       <Block title="Connection">
         {status === null && <p className="text-xs text-muted-foreground">Checking...</p>}
-        {status === 'error' && <p className="text-xs text-muted-foreground">Sign in as admin to post.</p>}
-        {status && status !== 'error' && (
+        {status === 'signin' && <SignInAgain />}
+        {status === 'error' && <p className="text-xs text-muted-foreground">The server did not answer. Reload the page and try again.</p>}
+        {status && typeof status !== 'string' && (
           <div className="flex flex-wrap items-center gap-3">
             {status.connected ? (
               <span className="inline-flex items-center gap-1.5 rounded-full bg-[var(--aso-ok-tint)] px-2.5 py-1 text-xs font-bold text-[var(--aso-ok)]">
@@ -999,6 +1004,18 @@ function PublishPanel({ storyCanvas, poster, feedCanvas, caption, only, posts, o
   )
 }
 
+/* the screen still shows the admin menu, but the server no longer accepts this browser: signing out and in again fixes it */
+function SignInAgain() {
+  const logout = useStore((s) => s.logout)
+  return (
+    <div className="flex flex-col gap-2 rounded-xl border border-dashed border-border bg-secondary/40 p-3 text-xs text-muted-foreground">
+      <p className="font-bold text-foreground">The server does not recognise this sign-in any more.</p>
+      <p>This happens when the sign-in has ended. Sign out and sign in again with the admin code, then come back here.</p>
+      <Button type="button" size="sm" className="self-start" onClick={() => void logout()}>Sign in again</Button>
+    </div>
+  )
+}
+
 /* ---------------------------------------------------------------- connection */
 
 function ConnectionPanel() {
@@ -1047,7 +1064,8 @@ function ConnectionPanel() {
   }
 
   if (status === null) return <p className="text-sm text-muted-foreground">Checking...</p>
-  if (status === 'error') return <p className="text-sm text-muted-foreground">Sign in as admin to manage the connection.</p>
+  if (status === 'signin') return <SignInAgain />
+  if (status === 'error') return <p className="text-sm text-muted-foreground">The server did not answer. Reload the page and try again.</p>
   const connected = status.connected
   const day = (iso: string) => new Date(iso).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' })
 
