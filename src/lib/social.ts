@@ -189,10 +189,31 @@ export async function connectWithToken(raw: string, pageId?: string): Promise<Co
       }
     }
     let pages: PageRow[] = []
+    let accountsError = ''
     try {
       pages = ((await gp(cfg, 'me/accounts', { method: 'GET', data: { fields: 'id,name,access_token,instagram_business_account{id,username}', limit: 50 }, token: tok })).data as PageRow[]) || []
-    } catch {
+    } catch (e) {
+      accountsError = e instanceof Error ? e.message : ''
       pages = []
+    }
+    /* me/accounts can come back empty for Pages that belong to a Business portfolio: ask Meta which Pages were granted and fetch each one directly */
+    if (!pages.length && canExchange) {
+      try {
+        const d = (await gp(cfg, 'debug_token', { method: 'GET', data: { input_token: tok }, token: `${c.appId}|${c.appSecret}` })).data as { type?: string; granular_scopes?: { scope: string; target_ids?: string[] }[] } | undefined
+        if (d?.type === 'USER') {
+          const ids = [...new Set((d.granular_scopes || []).filter((g) => /^pages_|^instagram_/.test(g.scope)).flatMap((g) => g.target_ids || []))]
+          for (const id of ids) {
+            try {
+              const row = (await gp(cfg, id, { method: 'GET', data: { fields: 'id,name,access_token,instagram_business_account{id,username}' }, token: tok })) as PageRow
+              if (row.access_token) pages.push(row)
+            } catch (e) {
+              accountsError ||= e instanceof Error ? e.message : ''
+            }
+          }
+        }
+      } catch {
+        /* the message below explains */
+      }
     }
     let page: { id: string; name?: string; token: string; ig?: string; igName?: string }
     if (pages.length) {
@@ -207,7 +228,7 @@ export async function connectWithToken(raw: string, pageId?: string): Promise<Co
       page = { id: pick.id, name: pick.name, token: pick.access_token, ig: pick.instagram_business_account?.id, igName: pick.instagram_business_account?.username }
     } else {
       /* no Pages came with the token: either it is a Page token, or a personal token that was given no Pages */
-      const why = await explainNoPages(c, cfg, tok)
+      const why = await explainNoPages(c, cfg, tok, accountsError)
       if (why) return { ok: false, msg: why }
       const me = (await gp(cfg, 'me', { method: 'GET', data: { fields: 'id,name' }, token: tok })) as { id: string; name?: string }
       const pg = (await gp(cfg, me.id, { method: 'GET', data: { fields: 'name,instagram_business_account{id,username}' }, token: tok })) as { name?: string; instagram_business_account?: { id: string; username?: string } }
@@ -234,7 +255,7 @@ export async function connectWithToken(raw: string, pageId?: string): Promise<Co
 const NEEDED = ['pages_show_list', 'pages_read_engagement', 'pages_manage_posts', 'instagram_basic', 'instagram_content_publish']
 
 /* a personal token that came with no Pages: say what is missing (the permissions, or the Page not ticked in Facebook's window) */
-async function explainNoPages(c: SocialConfig, cfg: Cfg, tok: string): Promise<string | null> {
+async function explainNoPages(c: SocialConfig, cfg: Cfg, tok: string, accountsError: string): Promise<string | null> {
   const fix = 'Generate the token again and, in the Facebook window, tick the American Space Page and its Instagram account.'
   if (c.appId && c.appSecret) {
     try {
@@ -242,7 +263,7 @@ async function explainNoPages(c: SocialConfig, cfg: Cfg, tok: string): Promise<s
       if (d?.type === 'USER') {
         const missing = NEEDED.filter((n) => !(d.scopes || []).includes(n))
         if (missing.length) return `The token is missing these permissions: ${missing.join(', ')}. Add them in the Explorer, then generate the token again.`
-        return `The token has the permissions but no Pages. ${fix}`
+        return `The token has the permissions but Meta shows no Pages for it${accountsError ? ' (' + accountsError + ')' : ''}. ${fix} If the Page belongs to a Business portfolio, also add the business_management permission in the Explorer.`
       }
     } catch {
       /* fall through to the Page token check */
