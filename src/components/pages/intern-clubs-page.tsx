@@ -1,7 +1,7 @@
 'use client'
 
 import * as React from 'react'
-import { Plus, ExternalLink, Sparkles, Clock, MapPin, User, AlertTriangle, CircleDashed } from 'lucide-react'
+import { Send, Plus, ExternalLink, Sparkles, Clock, MapPin, User, AlertTriangle, CircleDashed } from 'lucide-react'
 import { useStore } from '@/lib/store'
 import { PosterThumb } from '@/components/poster-thumb'
 import { PageHead, EmptyState, Chip } from '@/components/ui-bits'
@@ -14,6 +14,7 @@ import type { Club } from '@/lib/types'
 export function InternClubsPage() {
   const state = useStore((s) => s.state)
   const patch = useStore((s) => s.patch)
+  const openSocial = useStore((s) => s.openSocial)
   const [dialog, setDialog] = React.useState<{ open: boolean; club: Club | null }>({ open: false, club: null })
 
   const duplicate = (c: Club) => {
@@ -66,6 +67,7 @@ export function InternClubsPage() {
                     <Button variant="outline" size="sm"><ExternalLink className="h-3.5 w-3.5" /> Link</Button>
                   </a>
                 )}
+                <Button variant="outline" size="sm" onClick={() => openSocial('club', { kind: 'club', id: c.id })}><Send className="h-3.5 w-3.5" /> Post update</Button>
                 <div className="ml-auto">
                   <RowActions
                     name={c.name}

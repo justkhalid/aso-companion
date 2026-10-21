@@ -1,7 +1,7 @@
 'use client'
 
 import * as React from 'react'
-import { Plus, CalendarDays, Clock, MapPin, Repeat2, User } from 'lucide-react'
+import { Send, Plus, CalendarDays, Clock, MapPin, Repeat2, User } from 'lucide-react'
 import { PosterThumb } from '@/components/poster-thumb'
 import { useStore } from '@/lib/store'
 import { fmtEventWhen, nextOccurrence, fmtD, isOnceEvent, fmtTime } from '@/lib/app-utils'
@@ -15,6 +15,7 @@ import type { EventEntry } from '@/lib/types'
 export function InternEventsPage() {
   const state = useStore((s) => s.state)
   const patch = useStore((s) => s.patch)
+  const openSocial = useStore((s) => s.openSocial)
   const [dialog, setDialog] = React.useState<{ open: boolean; event: EventEntry | null }>({ open: false, event: null })
 
   const duplicate = (e: EventEntry) => {
@@ -57,7 +58,8 @@ export function InternEventsPage() {
                 {e.place && <span className="inline-flex items-center gap-1"><MapPin className="h-3.5 w-3.5" /> {e.outside ? 'Outside: ' : ''}{e.place}</span>}
               </div>
               {e.lead && <div className="mt-1.5 inline-flex items-center gap-1 text-xs font-semibold"><User className="h-3.5 w-3.5" /> Lead: {e.lead}</div>}
-              <div className="mt-2 flex justify-end">
+              <div className="mt-2 flex items-center justify-end gap-1.5">
+                <Button variant="outline" size="sm" onClick={() => openSocial('event', { kind: 'event', id: e.id })}><Send className="h-3.5 w-3.5" /> Post update</Button>
                 <RowActions
                   name={e.title}
                   onEdit={() => setDialog({ open: true, event: e })}

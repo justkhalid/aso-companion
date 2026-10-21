@@ -1,6 +1,8 @@
 'use client'
 
 import * as React from 'react'
+import { kitSig } from '@/lib/post-queue'
+import { PostQueue } from '@/components/post-queue'
 import { ArrowLeft, Check, Clock4, ChevronLeft, Music, Play, Square, ChevronRight, CircleAlert, Clock, Loader2, Send, X, Copy, Download, ImagePlus, MapPin, Pencil, Plus, Share2, Sparkles, Trash2, CalendarClock, AlertTriangle, CalendarDays } from 'lucide-react'
 import { useStore } from '@/lib/store'
 import { PageHead, EmptyState } from '@/components/ui-bits'
@@ -66,7 +68,9 @@ const chipCls = (on: boolean) =>
 
 export function SocialKitPage() {
   const state = useStore((s) => s.state)
-  const [tab, setTab] = React.useState<Kind | 'post' | 'month' | 'scheduled' | 'connection'>('club')
+  const tab = useStore((s) => s.socialTab)
+  const setTab = (t: typeof tab) => useStore.setState({ socialTab: t })
+  const target = useStore((s) => s.socialTarget)
   const toast = useStore((s) => s.toast)
   const { status } = useSocialStatus()
 
@@ -81,6 +85,12 @@ export function SocialKitPage() {
     window.history.replaceState({}, '', window.location.pathname)
   }, [])
   const [editing, setEditing] = React.useState<{ kind: Kind; id: string } | null>(null)
+  /* a "Post" button elsewhere (To post, a club page) opens straight into that club or event */
+  React.useEffect(() => {
+    if (!target) return
+    setEditing(target)
+    useStore.setState({ socialTarget: null })
+  }, [target])
   const [clubDlg, setClubDlg] = React.useState<{ open: boolean; club: Club | null }>({ open: false, club: null })
   const [eventDlg, setEventDlg] = React.useState<{ open: boolean; event: EventEntry | null }>({ open: false, event: null })
 
@@ -106,10 +116,10 @@ export function SocialKitPage() {
   return (
     <div className="mx-auto max-w-6xl px-4 py-6 sm:py-8">
       <PageHead
-        title="Social kit"
-        subtitle="The Instagram story and the WhatsApp group picture of every club and event, the month calendars, and posting to Facebook and Instagram. All made from the data you already keep here."
+        title="Posts"
+        subtitle="What to post, the pictures of every club and event, the month calendars, and posting to Facebook and Instagram. All made from the data you already keep here."
         right={
-          tab === 'post' || tab === 'month' || tab === 'scheduled' || tab === 'connection' ? undefined : (
+          tab === 'todo' || tab === 'post' || tab === 'month' || tab === 'scheduled' || tab === 'connection' ? undefined : (
             <Button size="sm" onClick={() => (tab === 'club' ? setClubDlg({ open: true, club: null }) : setEventDlg({ open: true, event: null }))}>
               <Plus className="h-4 w-4" /> {tab === 'club' ? 'New club' : 'New event'}
             </Button>
@@ -117,7 +127,7 @@ export function SocialKitPage() {
         }
       />
       <div className="mb-5 inline-flex rounded-full border border-border bg-card p-1" role="tablist" aria-label="Kind">
-        {([['club', 'Clubs', state.clubs.length], ['event', 'Events', state.events.length], ['post', 'New post', null], ['month', 'Calendar', null], ['scheduled', 'Scheduled', null], ['connection', 'Connection', null]] as const).map(([k, label, n]) => (
+        {([['todo', 'To post', null], ['club', 'Clubs', state.clubs.length], ['event', 'Events', state.events.length], ['post', 'New post', null], ['month', 'Calendar', null], ['scheduled', 'Scheduled', null], ['connection', 'Connection', null]] as const).map(([k, label, n]) => (
           <button
             key={k}
             role="tab"
@@ -136,7 +146,9 @@ export function SocialKitPage() {
           <Button size="sm" variant="outline" onClick={() => setTab('connection')}>Reconnect</Button>
         </div>
       )}
-      {tab === 'post' ? (
+      {tab === 'todo' ? (
+        <PostQueue />
+      ) : tab === 'post' ? (
         <NewPostPanel onManage={() => setTab('connection')} />
       ) : tab === 'month' ? (
         <MonthStoryPanel onManage={() => setTab('connection')} />
@@ -860,7 +872,7 @@ function KitEditor({ kind, id, onBack, onManage, onEditSchedule }: { kind: Kind;
                 scheduleLabel={`${title}: story and posts`}
                 onPosted={(done) => patch((d) => {
                   const target = (kind === 'club' ? d.clubs : d.events).find((x) => x.id === id) as Club | EventEntry | undefined
-                  if (target) target.kit = { ...(target.kit || {}), posts: [...(target.kit?.posts || []), { t: new Date().toISOString(), to: done }] }
+                  if (target) target.kit = { ...(target.kit || {}), posts: [...(target.kit?.posts || []), { t: new Date().toISOString(), to: done, sig: kitSig(kind, target) }] }
                 })}
               />
             )}

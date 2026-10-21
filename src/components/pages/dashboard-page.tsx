@@ -1,7 +1,7 @@
 'use client'
 
 import * as React from 'react'
-import { BookUser, AlertTriangle, GraduationCap, Sparkles, UserX, ArrowRight, Ban, UserCheck } from 'lucide-react'
+import { Send, BookUser, AlertTriangle, GraduationCap, Sparkles, UserX, ArrowRight, Ban, UserCheck } from 'lucide-react'
 import { useStore } from '@/lib/store'
 import { DAY_KEYS } from '@/lib/constants'
 import { PageHead, Chip } from '@/components/ui-bits'
@@ -9,6 +9,7 @@ import { peopleOf, rolesOf, fmtAbsenceRange, isoOf, nextOccurrence, termStatus, 
 import { Button } from '@/components/ui/button'
 import { openQuickAdd } from '@/components/admin/quick-add'
 import { CalendarSwitch, type CalTab } from '@/components/calendar-switch'
+import { PostQueue } from '@/components/post-queue'
 import { MonthCalendarImage } from '@/components/month-calendar-image'
 import type { View } from '@/lib/types'
 
@@ -63,8 +64,8 @@ export function DashboardPage() {
       stats: [
         { label: 'Clubs', value: state.clubs.length, view: 'intern-clubs' },
         { label: 'Upcoming events', value: upcomingEvents, view: 'intern-events' },
-        { label: 'Calendar', value: state.clubs.length + upcomingEvents, view: 'clubs' },
-        { label: 'Social kit', value: state.clubs.filter((c) => !!c.poster).length + state.events.filter((e) => !!e.poster).length, view: 'social' },
+        { label: 'On the calendar', value: state.clubs.length + upcomingEvents, view: 'clubs' },
+        { label: 'Posters ready', value: state.clubs.filter((c) => !!c.poster).length + state.events.filter((e) => !!e.poster).length, view: 'social' },
       ],
     },
     {
@@ -98,6 +99,11 @@ export function DashboardPage() {
           </Button>
         }
       />
+
+      <section aria-labelledby="dash-post" className="mb-4 rounded-2xl border border-border bg-card p-4 shadow-sm">
+        <h2 id="dash-post" className="mb-2 flex items-center gap-2 text-sm font-extrabold tracking-tight"><Send className="h-4 w-4 text-primary" aria-hidden /> To post</h2>
+        <PostQueue compact />
+      </section>
 
       <nav aria-label="Sections" className="mb-4 grid gap-3 md:grid-cols-3">
         {sections.map((x) => (

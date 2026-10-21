@@ -47,6 +47,11 @@ interface UIStore {
   /* toast */
   toasts: Toast[]
 
+  /* where the Posts page opens: a tab, or straight into the pictures and posting of one club or event */
+  socialTab: 'todo' | 'club' | 'event' | 'post' | 'month' | 'scheduled' | 'connection'
+  socialTarget: { kind: 'club' | 'event'; id: string } | null
+  openSocial: (tab: UIStore['socialTab'], target?: { kind: 'club' | 'event'; id: string }) => void
+
   /* actions */
   setView: (v: View) => void
   setSide: (s: Side) => void
@@ -224,6 +229,13 @@ export const useStore = create<UIStore>((set, get) => ({
   viewer: { teacher: false, intern: false },
 
   toasts: [],
+
+  socialTab: 'todo',
+  socialTarget: null,
+  openSocial: (tab, target) => {
+    set({ socialTab: tab, socialTarget: target || null })
+    get().setView('social')
+  },
 
   setView: (v) => {
     set({ view: v })
