@@ -17,6 +17,7 @@ export interface Member {
   cardPrinted: boolean
   hasPhoto: boolean
   banned: boolean
+  all: Record<string, unknown> // every column the sheet gives for this person
   duplicates: number[] // numbers of members that look like the same person
 }
 
@@ -127,6 +128,7 @@ export async function loadMembers(fresh = false): Promise<{ members: Member[]; f
     cardPrinted: !!r[ix('cardPrinted')] && r[ix('cardPrinted')] !== 'no',
     hasPhoto: !!r[ix('hasPhoto')],
     banned: !!r[ix('banned')],
+    all: Object.fromEntries(fields.map((f, i) => [f, r[i]])),
     duplicates: Array.isArray(r[ix('duplicates')]) ? (r[ix('duplicates')] as unknown[]).map(Number).filter(Boolean) : [],
   }))
   cache = { at: Date.now(), members }
