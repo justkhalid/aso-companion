@@ -319,3 +319,78 @@ export async function posterRead(name: string): Promise<Buffer | null> {
   }
   return out
 }
+
+/* ---------------- one small secret file (the Meta connection, encrypted before it gets here) ----------------
+   Same storage as the data: Vercel Blob when connected, the GitHub repo otherwise, and a local file in development.
+   Only ciphertext is ever written; the key comes from the server secret. */
+
+const SECRET_BLOB = 'social.enc.json'
+const SECRET_PATH = 'data/social.enc.json'
+let secretMemo: { at: number; text: string | null } | null = null
+
+export async function secretRead(): Promise<string | null> {
+  if (secretMemo && Date.now() - secretMemo.at < 20_000) return secretMemo.text
+  let text: string | null = null
+  try {
+    if (getStorageInfo().mode === 'vercel-blob') {
+      const { list } = await import('@vercel/blob')
+      const hit = (await list({ prefix: SECRET_BLOB, limit: 1 })).blobs.find((b) => b.pathname === SECRET_BLOB)
+      if (hit) {
+        const r = await fetch(hit.url, { cache: 'no-store' })
+        if (r.ok) text = await r.text()
+      }
+    } else if (process.env.GITHUB_PAT) {
+      const { repo, branch, token } = posterGithub()
+      const r = await fetch(`https://api.github.com/repos/${repo}/contents/${SECRET_PATH}?ref=${encodeURIComponent(branch)}`, {
+        headers: { Authorization: `Bearer ${token}`, Accept: 'application/vnd.github+json', 'X-GitHub-Api-Version': '2022-11-28' },
+        cache: 'no-store',
+      })
+      if (r.ok) text = Buffer.from(((await r.json()) as { content: string }).content, 'base64').toString('utf8')
+    } else {
+      const { readFile } = await import('node:fs/promises')
+      text = await readFile(SECRET_PATH, 'utf8').catch(() => null)
+    }
+  } catch {
+    text = null
+  }
+  if (text !== null && !text.trim()) text = null
+  secretMemo = { at: Date.now(), text }
+  return text
+}
+
+/** write the file; an empty text clears it */
+export async function secretWrite(text: string): Promise<{ ok: boolean; msg: string }> {
+  secretMemo = null
+  try {
+    if (getStorageInfo().mode === 'vercel-blob') {
+      const { put } = await import('@vercel/blob')
+      await put(SECRET_BLOB, text || ' ', { access: 'public', addRandomSuffix: false, allowOverwrite: true, contentType: 'application/json' })
+      return { ok: true, msg: 'blob' }
+    }
+    const { repo, branch, token } = posterGithub()
+    if (token) {
+      const headers = { Authorization: `Bearer ${token}`, Accept: 'application/vnd.github+json', 'X-GitHub-Api-Version': '2022-11-28' }
+      const url = `https://api.github.com/repos/${repo}/contents/${SECRET_PATH}`
+      let last = ''
+      for (let i = 0; i < 3; i++) {
+        const meta = await fetch(`${url}?ref=${encodeURIComponent(branch)}`, { headers, cache: 'no-store' })
+        const sha = meta.ok ? ((await meta.json()) as { sha: string }).sha : undefined
+        const put = await fetch(url, {
+          method: 'PUT',
+          headers: { ...headers, 'Content-Type': 'application/json' },
+          body: JSON.stringify({ message: 'aso-companion: social connection', branch, content: Buffer.from(text || ' ').toString('base64'), ...(sha ? { sha } : {}) }),
+        })
+        if (put.ok) return { ok: true, msg: 'github' }
+        last = `GitHub could not save it (${put.status})`
+        if (put.status !== 409 && put.status !== 422) break
+      }
+      return { ok: false, msg: last }
+    }
+    const { mkdir, writeFile } = await import('node:fs/promises')
+    await mkdir('data', { recursive: true })
+    await writeFile(SECRET_PATH, text || ' ')
+    return { ok: true, msg: 'local' }
+  } catch (e) {
+    return { ok: false, msg: e instanceof Error ? e.message : 'could not save' }
+  }
+}

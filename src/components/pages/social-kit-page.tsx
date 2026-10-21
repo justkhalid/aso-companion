@@ -66,7 +66,20 @@ const chipCls = (on: boolean) =>
 
 export function SocialKitPage() {
   const state = useStore((s) => s.state)
-  const [tab, setTab] = React.useState<Kind | 'month'>('club')
+  const [tab, setTab] = React.useState<Kind | 'month' | 'connection'>('club')
+  const toast = useStore((s) => s.toast)
+  const { status } = useSocialStatus()
+
+  /* back from Facebook's "Connect" screen */
+  React.useEffect(() => {
+    const q = new URLSearchParams(window.location.search)
+    const r = q.get('social')
+    if (!r) return
+    setTab('connection')
+    if (r === 'connected') toast('Connected to Facebook and Instagram')
+    else toast(q.get('msg') || 'The connection did not work.', false)
+    window.history.replaceState({}, '', window.location.pathname)
+  }, [])
   const [editing, setEditing] = React.useState<{ kind: Kind; id: string } | null>(null)
   const [clubDlg, setClubDlg] = React.useState<{ open: boolean; club: Club | null }>({ open: false, club: null })
   const [eventDlg, setEventDlg] = React.useState<{ open: boolean; event: EventEntry | null }>({ open: false, event: null })
@@ -79,6 +92,7 @@ export function SocialKitPage() {
           kind={editing.kind}
           id={editing.id}
           onBack={() => setEditing(null)}
+          onManage={() => { setEditing(null); setTab('connection') }}
           onEditSchedule={(item) => (editing.kind === 'club' ? setClubDlg({ open: true, club: item as Club }) : setEventDlg({ open: true, event: item as EventEntry }))}
         />
         <ClubDialog open={clubDlg.open} onOpenChange={(v) => setClubDlg((s) => ({ ...s, open: v }))} club={clubDlg.club} />
@@ -93,9 +107,9 @@ export function SocialKitPage() {
     <div className="mx-auto max-w-6xl px-4 py-6 sm:py-8">
       <PageHead
         title="Social kit"
-        subtitle="The Instagram story and the WhatsApp group picture of every club and event, made from the data you already keep here."
+        subtitle="The Instagram story and the WhatsApp group picture of every club and event, the month calendars, and posting to Facebook and Instagram. All made from the data you already keep here."
         right={
-          tab === 'month' ? undefined : (
+          tab === 'month' || tab === 'connection' ? undefined : (
             <Button size="sm" onClick={() => (tab === 'club' ? setClubDlg({ open: true, club: null }) : setEventDlg({ open: true, event: null }))}>
               <Plus className="h-4 w-4" /> {tab === 'club' ? 'New club' : 'New event'}
             </Button>
@@ -103,7 +117,7 @@ export function SocialKitPage() {
         }
       />
       <div className="mb-5 inline-flex rounded-full border border-border bg-card p-1" role="tablist" aria-label="Kind">
-        {([['club', 'Clubs', state.clubs.length], ['event', 'Events', state.events.length], ['month', 'Month story', null]] as const).map(([k, label, n]) => (
+        {([['club', 'Clubs', state.clubs.length], ['event', 'Events', state.events.length], ['month', 'Calendar', null], ['connection', 'Connection', null]] as const).map(([k, label, n]) => (
           <button
             key={k}
             role="tab"
@@ -115,8 +129,17 @@ export function SocialKitPage() {
           </button>
         ))}
       </div>
+      {status && status !== 'error' && status.connected && status.daysLeft !== null && status.daysLeft <= 14 && tab !== 'connection' && (
+        <div className="mb-4 flex flex-wrap items-center gap-3 rounded-xl border border-[var(--aso-gold)]/40 bg-[var(--aso-gold-tint)] px-4 py-2.5 text-sm font-semibold">
+          <CircleAlert className="h-4 w-4 shrink-0 text-[var(--aso-gold)]" />
+          <span className="min-w-0 flex-1">{status.daysLeft > 0 ? `The Facebook and Instagram token runs out in ${status.daysLeft} days.` : 'The Facebook and Instagram token has run out.'}</span>
+          <Button size="sm" variant="outline" onClick={() => setTab('connection')}>Reconnect</Button>
+        </div>
+      )}
       {tab === 'month' ? (
-        <MonthStoryPanel />
+        <MonthStoryPanel onManage={() => setTab('connection')} />
+      ) : tab === 'connection' ? (
+        <ConnectionPanel />
       ) : items.length === 0 ? (
         <EmptyState icon={<Sparkles className="h-5 w-5" />} title={tab === 'club' ? 'No clubs yet' : 'No events yet'} hint="Add one and its pictures appear here." />
       ) : (
@@ -190,37 +213,40 @@ function useMonthKey() {
   )
 }
 
-function MonthStoryPanel() {
+function MonthStoryPanel({ onManage }: { onManage: () => void }) {
   const state = useStore((s) => s.state)
   const toast = useStore((s) => s.toast)
   const key = useMonthKey()
-  /* twelve months from the start of the school year */
-  const months = React.useMemo(() => {
-    const s = new Date((state.settings.s1Start || new Date().toISOString().slice(0, 10)) + 'T00:00:00')
-    return Array.from({ length: 12 }, (_, i) => { const d = new Date(s.getFullYear(), s.getMonth() + i, 1); return { year: d.getFullYear(), month: d.getMonth() } })
-  }, [state.settings.s1Start])
-  const [idx, setIdx] = React.useState(() => {
-    const now = new Date()
-    const i = months.findIndex((m) => m.year === now.getFullYear() && m.month === now.getMonth())
-    return i >= 0 ? i : 0
-  })
-  const m = months[idx]
+  const thisYear = new Date().getFullYear()
+  const years = [thisYear, thisYear + 1]
+  const [year, setYear] = React.useState(thisYear)
+  const [month, setMonth] = React.useState(() => new Date().getMonth())
+  const [what, setWhat] = React.useState<'story' | 'post'>('story')
   const [story, setStory] = React.useState<import('@/lib/kit/month-story').MonthStory | null>(null)
   const [still, setStill] = React.useState<HTMLCanvasElement | null>(null)
+  const [cal, setCal] = React.useState<HTMLCanvasElement | null>(null)
+  const [caption, setCaption] = React.useState('')
   const [err, setErr] = React.useState('')
   const [working, setWorking] = React.useState<string | null>(null)
   const view = React.useRef<HTMLCanvasElement>(null)
 
-  /* make the story again when the month or the clubs and events change */
+  /* the caption for the calendar post follows the month until it is edited */
+  const defaultCaption = `Clubs and events at ${state.settings.institute || 'the American Space Oujda'}, ${MONTH_NAMES[month]} ${year}.`
+  const [edited, setEdited] = React.useState(false)
+  React.useEffect(() => { if (!edited) setCaption(defaultCaption) }, [defaultCaption, edited])
+
   const stateRef = React.useRef(state)
   React.useEffect(() => { stateRef.current = state })
+
+  /* the story: made again when the month or the clubs and events change */
   React.useEffect(() => {
+    if (what !== 'story') return
     let live = true
     setErr('')
     const t = setTimeout(async () => {
       try {
         const ms = await import('@/lib/kit/month-story')
-        const built = await ms.buildMonthStory(stateRef.current, m.year, m.month)
+        const built = await ms.buildMonthStory(stateRef.current, year, month)
         if (!live) return
         setStory(built)
         setStill(ms.monthStoryStill(built))
@@ -229,12 +255,29 @@ function MonthStoryPanel() {
       }
     }, 250)
     return () => { live = false; clearTimeout(t) }
-  }, [m.year, m.month, key])
+  }, [what, year, month, key])
 
-  /* show it moving (still when the visitor prefers less motion) */
+  /* the post: the site's normal month calendar */
+  React.useEffect(() => {
+    if (what !== 'post') return
+    let live = true
+    setErr('')
+    const t = setTimeout(async () => {
+      try {
+        const { renderMonth } = await import('@/lib/month-export')
+        const c = await renderMonth(stateRef.current, { year, month, clubs: true, events: true, holidays: true, scale: 0.625 })
+        if (live) setCal(c)
+      } catch (e) {
+        if (live) setErr(e instanceof Error ? e.message : 'The picture could not be made.')
+      }
+    }, 250)
+    return () => { live = false; clearTimeout(t) }
+  }, [what, year, month, key])
+
+  /* show the story moving (still when the visitor prefers less motion) */
   React.useEffect(() => {
     const cvs = view.current
-    if (!story || !cvs) return
+    if (what !== 'story' || !story || !cvs) return
     const g = cvs.getContext('2d')!
     let raf = 0
     let live = true
@@ -250,14 +293,15 @@ function MonthStoryPanel() {
       raf = requestAnimationFrame(tick)
     })
     return () => { live = false; cancelAnimationFrame(raf) }
-  }, [story])
+  }, [what, story])
 
-  const name = `${MONTH_NAMES[m.month].toLowerCase()}-${m.year}`
+  const name = `${MONTH_NAMES[month].toLowerCase()}-${year}`
   const run = async (label: string, fn: () => Promise<void>) => {
     setWorking(label)
     try { await fn() } catch (e) { toast(e instanceof Error ? e.message : 'Failed', false) } finally { setWorking(null) }
   }
   const png = async () => { if (still) saveBlob(await toBlob(still), `calendar-story-${name}.png`) }
+  const calPng = async () => { if (cal) saveBlob(await toBlob(cal), `calendar-${name}.png`) }
   const video = () => run('Recording', async () => {
     if (!story) return
     const ms = await import('@/lib/kit/month-story')
@@ -268,13 +312,13 @@ function MonthStoryPanel() {
     const ms = await import('@/lib/kit/month-story')
     const { zipFiles } = await import('@/lib/kit/zip')
     const files: { name: string; blob: Blob }[] = []
-    for (let i = 0; i < months.length; i++) {
-      setWorking(`Making ${i + 1} of ${months.length}`)
-      const b = await ms.buildMonthStory(stateRef.current, months[i].year, months[i].month)
+    for (let i = 0; i < 12; i++) {
+      setWorking(`Making ${i + 1} of 12`)
+      const b = await ms.buildMonthStory(stateRef.current, year, i)
       const blob = await toBlob(ms.monthStoryStill(b))
-      if (blob) files.push({ name: `${String(i + 1).padStart(2, '0')}-${MONTH_NAMES[months[i].month].toLowerCase()}-${months[i].year}.png`, blob })
+      if (blob) files.push({ name: `${String(i + 1).padStart(2, '0')}-${MONTH_NAMES[i].toLowerCase()}-${year}.png`, blob })
     }
-    saveBlob(await zipFiles(files), 'calendar-stories.zip')
+    saveBlob(await zipFiles(files), `calendar-stories-${year}.zip`)
   })
 
   return (
@@ -282,41 +326,60 @@ function MonthStoryPanel() {
       <div className="flex min-w-0 flex-col gap-4">
         <div className="flex flex-col gap-5 rounded-2xl border border-border bg-card p-5">
           <Block title="Month">
-            <div className="grid grid-cols-4 gap-2">
-              {months.map((x, i) => (
-                <button
-                  key={i}
-                  type="button"
-                  onClick={() => setIdx(i)}
-                  aria-pressed={i === idx}
-                  className={cn('rounded-xl border px-2 py-2.5 text-center text-[13px] font-bold transition', i === idx ? 'border-primary bg-primary/10 ring-2 ring-primary' : 'border-border bg-card hover:bg-secondary')}
-                >
-                  {MONTH_NAMES[x.month]}
-                  <span className="block text-[11px] font-medium text-muted-foreground">{x.year}</span>
-                </button>
+            <div className="grid grid-cols-2 gap-1 rounded-full border border-border bg-background p-1" role="tablist" aria-label="Year">
+              {years.map((y) => (
+                <button key={y} role="tab" aria-selected={year === y} onClick={() => setYear(y)} className={cn('rounded-full px-3 py-1.5 text-[13px] font-bold transition', year === y ? 'aso-nav-pill' : 'text-foreground/70 hover:bg-secondary')}>{y}</button>
               ))}
             </div>
-            <p className="text-xs text-muted-foreground">Made from the clubs and events in the app. Add or change one and the picture follows.</p>
+            <div className="grid grid-cols-4 gap-2">
+              {MONTH_NAMES.map((m, i) => (
+                <button key={m} type="button" onClick={() => setMonth(i)} aria-pressed={i === month} className={cn('rounded-xl border px-2 py-2.5 text-center text-[13px] font-bold transition', i === month ? 'border-primary bg-primary/10 ring-2 ring-primary' : 'border-border bg-card hover:bg-secondary')}>{m}</button>
+              ))}
+            </div>
+            <p className="text-xs text-muted-foreground">Made from the clubs and events in the app. Add or change one and the pictures follow.</p>
+          </Block>
+          <Block title="What to make">
+            <div className="grid grid-cols-2 gap-1 rounded-full border border-border bg-background p-1" role="tablist" aria-label="Kind of picture">
+              {([['story', 'Story'], ['post', 'Calendar post']] as const).map(([k, label]) => (
+                <button key={k} role="tab" aria-selected={what === k} onClick={() => setWhat(k)} className={cn('rounded-full px-3 py-1.5 text-[13px] font-bold transition', what === k ? 'aso-nav-pill' : 'text-foreground/70 hover:bg-secondary')}>{label}</button>
+              ))}
+            </div>
+            <p className="text-xs text-muted-foreground">{what === 'story' ? 'The tall picture for stories, with a moving version.' : 'The normal wide month calendar of the site, to post on the feed.'}</p>
           </Block>
           <Block title="Download">
-            <div className="grid grid-cols-1 gap-2 sm:grid-cols-3">
-              <Button type="button" variant="outline" disabled={!still || !!working} onClick={() => void png()}><Download className="h-4 w-4" /> Picture</Button>
-              <Button type="button" variant="outline" disabled={!story || !!working} onClick={() => void video()}><Download className="h-4 w-4" /> Animation</Button>
-              <Button type="button" variant="outline" disabled={!!working} onClick={() => void all()}><Download className="h-4 w-4" /> All 12 months</Button>
-            </div>
-            <p className="text-xs text-muted-foreground">{working ? working + '...' : 'The animation is an 8 second loop. All 12 months come as one zip of pictures.'}</p>
+            {what === 'story' ? (
+              <div className="grid grid-cols-1 gap-2 sm:grid-cols-3">
+                <Button type="button" variant="outline" disabled={!still || !!working} onClick={() => void png()}><Download className="h-4 w-4" /> Picture</Button>
+                <Button type="button" variant="outline" disabled={!story || !!working} onClick={() => void video()}><Download className="h-4 w-4" /> Animation</Button>
+                <Button type="button" variant="outline" disabled={!!working} onClick={() => void all()}><Download className="h-4 w-4" /> All of {year}</Button>
+              </div>
+            ) : (
+              <Button type="button" variant="outline" className="self-start" disabled={!cal} onClick={() => void calPng()}><Download className="h-4 w-4" /> Picture</Button>
+            )}
+            <p className="text-xs text-muted-foreground">{working ? working + '...' : what === 'story' ? 'The animation is an 8 second loop. All of the year comes as one zip of 12 pictures.' : ''}</p>
           </Block>
         </div>
         <div className="flex flex-col gap-5 rounded-2xl border border-border bg-card p-5">
-          <PublishPanel storyCanvas={still} poster={null} caption="" storyOnly />
+          {what === 'post' && (
+            <Block title="Caption">
+              <textarea className={cn(inputCls, 'min-h-[90px] resize-y')} value={caption} onChange={(e) => { setCaption(e.target.value); setEdited(true) }} />
+            </Block>
+          )}
+          <PublishPanel storyCanvas={what === 'story' ? still : null} poster={null} feedCanvas={what === 'post' ? cal : null} caption={what === 'post' ? caption : ''} only={what === 'story' ? 'story' : 'feed'} onManage={onManage} key={what} />
         </div>
       </div>
       <div className="lg:sticky lg:top-20">
-        <section className="mx-auto flex w-full max-w-[420px] flex-col gap-2.5 rounded-2xl border border-border bg-card p-3">
-          <h3 className="text-xs font-extrabold">{MONTH_NAMES[m.month]} {m.year} story</h3>
+        <section className={cn('mx-auto flex w-full flex-col gap-2.5 rounded-2xl border border-border bg-card p-3', what === 'story' ? 'max-w-[420px]' : 'max-w-[640px]')}>
+          <h3 className="text-xs font-extrabold">{MONTH_NAMES[month]} {year} {what === 'story' ? 'story' : 'calendar post'}</h3>
           {err ? <p className="text-xs text-destructive">{err}</p> : null}
           <div className="overflow-hidden rounded-[10px] bg-secondary">
-            {story ? <canvas ref={view} width={1080} height={1920} className="block h-auto w-full" /> : <div className="aspect-[9/16] w-full animate-pulse bg-secondary" />}
+            {what === 'story' ? (
+              story ? <canvas ref={view} width={1080} height={1920} className="block h-auto w-full" /> : <div className="aspect-[9/16] w-full animate-pulse bg-secondary" />
+            ) : cal ? (
+              <CanvasHost canvas={cal} />
+            ) : (
+              <div className="aspect-video w-full animate-pulse bg-secondary" />
+            )}
           </div>
         </section>
       </div>
@@ -344,12 +407,13 @@ const inputCls = 'w-full rounded-lg border border-border bg-background px-3 py-2
 type Section = 'content' | 'look' | 'caption' | 'publish'
 const SECTIONS: [Section, string][] = [['content', 'Poster and name'], ['look', 'Look'], ['caption', 'Caption and link'], ['publish', 'Publish']]
 
-function KitEditor({ kind, id, onBack, onEditSchedule }: { kind: Kind; id: string; onBack: () => void; onEditSchedule: (item: Club | EventEntry) => void }) {
+function KitEditor({ kind, id, onBack, onManage, onEditSchedule }: { kind: Kind; id: string; onBack: () => void; onManage: () => void; onEditSchedule: (item: Club | EventEntry) => void }) {
   const list = useStore((s) => (kind === 'club' ? s.state.clubs : s.state.events)) as (Club | EventEntry)[]
   const patch = useStore((s) => s.patch)
   const toast = useStore((s) => s.toast)
   const item = list.find((x) => x.id === id)
   const [section, setSection] = React.useState<Section>('content')
+  const [typeOpen, setTypeOpen] = React.useState(false)
 
   const [edits, setEdits] = React.useState<KitOverrides>(() => ({ ...(item?.kit || {}) }))
   const R = React.useMemo(() => (item ? kitRec(kind, { ...item, kit: edits }) : null), [kind, item, edits])
@@ -488,8 +552,16 @@ function KitEditor({ kind, id, onBack, onEditSchedule }: { kind: Kind; id: strin
 
                 <Block title="Name">
                   <div>
-                    <Lab>Type</Lab>
-                    <KickerPicker value={R.kicker} onChange={(v) => set('kicker', v)} />
+                    <Lab hint="Worked out from how often it happens.">Type</Lab>
+                    <div className="flex flex-wrap items-center gap-2">
+                      <span className="rounded-full border border-border bg-secondary/60 px-3 py-1.5 text-[12.5px] font-bold">{R.kicker}</span>
+                      <span className="text-[11px] font-semibold text-muted-foreground">{edits.kicker !== undefined ? 'Custom' : 'Automatic'}</span>
+                      <Button type="button" variant="ghost" size="sm" className="h-7 rounded-lg px-2 text-xs" onClick={() => setTypeOpen((v) => !v)}>{typeOpen ? 'Done' : 'Change'}</Button>
+                      {edits.kicker !== undefined && (
+                        <Button type="button" variant="ghost" size="sm" className="h-7 rounded-lg px-2 text-xs" onClick={() => { change((e) => { const n = { ...e }; delete n.kicker; return n }); setTypeOpen(false) }}>Back to automatic</Button>
+                      )}
+                    </div>
+                    {typeOpen && <div className="mt-2"><KickerPicker value={R.kicker} onChange={(v) => set('kicker', v)} /></div>}
                   </div>
                   <div className="grid grid-cols-2 gap-3">
                     <div>
@@ -613,6 +685,7 @@ function KitEditor({ kind, id, onBack, onEditSchedule }: { kind: Kind; id: strin
                 poster={R.poster}
                 caption={R.cap}
                 posts={item.kit?.posts}
+                onManage={onManage}
                 onPosted={(done) => patch((d) => {
                   const target = (kind === 'club' ? d.clubs : d.events).find((x) => x.id === id) as Club | EventEntry | undefined
                   if (target) target.kit = { ...(target.kit || {}), posts: [...(target.kit?.posts || []), { t: new Date().toISOString(), to: done }] }
@@ -680,54 +753,74 @@ const DESTS: [Dest, string, string][] = [
   ['fbStory', 'Facebook story', 'The story picture'],
 ]
 interface Step { label: string; ok: boolean; msg: string }
-interface Status { token: boolean; page: boolean; ig: boolean; expires: string | null; daysLeft: number | null }
+export interface SocialStatus {
+  connected: boolean
+  source: 'app' | 'env' | 'none'
+  pageName: string | null
+  igName: string | null
+  hasIg: boolean
+  savedAt: string | null
+  expiresAt: string | null
+  noExpiry: boolean
+  daysLeft: number | null
+  canExchange: boolean
+  canKeep: boolean
+}
 
-function PublishPanel({ storyCanvas, poster, caption, storyOnly, posts, onPosted }: { storyCanvas: HTMLCanvasElement | null; poster: string | null; caption: string; storyOnly?: boolean; posts?: { t: string; to: string[] }[]; onPosted?: (done: string[]) => void }) {
-  const [status, setStatus] = React.useState<Status | null | 'error'>(null)
-  const [pick, setPick] = React.useState<Record<Dest, boolean>>(storyOnly ? { igFeed: false, igStory: true, fbFeed: false, fbStory: true } : { igFeed: true, igStory: true, fbFeed: true, fbStory: false })
-  const [testing, setTesting] = React.useState(false)
-  const [test, setTest] = React.useState<{ ok: boolean; lines: string[] } | null>(null)
+/* whether Facebook and Instagram are connected; `reload` asks again (after connecting or disconnecting) */
+function useSocialStatus() {
+  const [status, setStatus] = React.useState<SocialStatus | null | 'error'>(null)
+  const reload = React.useCallback(() => {
+    fetch('/api/social/status', { cache: 'no-store' })
+      .then((r) => (r.ok ? r.json() : Promise.reject(new Error(String(r.status)))))
+      .then((j: SocialStatus) => setStatus(j))
+      .catch(() => setStatus('error'))
+  }, [])
+  React.useEffect(() => { reload() }, [reload])
+  return { status, reload }
+}
+
+type Only = 'story' | 'feed'
+
+function PublishPanel({ storyCanvas, poster, feedCanvas, caption, only, posts, onPosted, onManage }: {
+  storyCanvas: HTMLCanvasElement | null
+  poster: string | null
+  feedCanvas?: HTMLCanvasElement | null // a ready picture for the post (the month calendar), used instead of the poster
+  caption: string
+  only?: Only
+  posts?: { t: string; to: string[] }[]
+  onPosted?: (done: string[]) => void
+  onManage?: () => void
+}) {
+  const { status } = useSocialStatus()
+  const [pick, setPick] = React.useState<Record<Dest, boolean>>(
+    only === 'story' ? { igFeed: false, igStory: true, fbFeed: false, fbStory: true } : only === 'feed' ? { igFeed: true, igStory: false, fbFeed: true, fbStory: false } : { igFeed: true, igStory: true, fbFeed: true, fbStory: false },
+  )
   const [confirm, setConfirm] = React.useState(false)
   const [busy, setBusy] = React.useState(false)
   const [steps, setSteps] = React.useState<Step[] | null>(null)
 
-  React.useEffect(() => {
-    let live = true
-    fetch('/api/social/status', { cache: 'no-store' })
-      .then((r) => (r.ok ? r.json() : Promise.reject(new Error(String(r.status)))))
-      .then((j: Status) => { if (live) setStatus(j) })
-      .catch(() => { if (live) setStatus('error') })
-    return () => { live = false }
-  }, [])
-
-  const ready = status && status !== 'error' && status.token && status.page
-  const dests = DESTS.filter(([k]) => !storyOnly || k === 'igStory' || k === 'fbStory')
+  const ready = !!status && status !== 'error' && status.connected
+  const dests = DESTS.filter(([k]) => !only || (only === 'story' ? k === 'igStory' || k === 'fbStory' : k === 'igFeed' || k === 'fbFeed'))
   const chosen = dests.filter(([k]) => pick[k])
-  const needsPoster = (pick.igFeed || pick.fbFeed) && !poster
-
-  const runTest = async () => {
-    setTesting(true)
-    setTest(null)
-    try {
-      const r = await fetch('/api/social/test', { method: 'POST' })
-      setTest((await r.json()) as { ok: boolean; lines: string[] })
-    } catch {
-      setTest({ ok: false, lines: ['The server could not be reached.'] })
-    } finally {
-      setTesting(false)
-    }
-  }
+  const needsPicture = (pick.igFeed || pick.fbFeed) && !poster && !feedCanvas
 
   const post = async () => {
-    if (!storyCanvas) return
+    if (!storyCanvas && !feedCanvas) return
     setBusy(true)
     setSteps(null)
     try {
       const f = new FormData()
       f.append('targets', JSON.stringify(pick))
       f.append('caption', caption)
-      f.append('story', await blobOf(storyCanvas), 'story.jpg')
-      if (poster) {
+      if (storyCanvas) f.append('story', await blobOf(storyCanvas), 'story.jpg')
+      if (feedCanvas) {
+        /* the month calendar is wide: send it as it is, at most 1920 px across */
+        const k = Math.min(1, 1920 / feedCanvas.width)
+        const c = cv(Math.round(feedCanvas.width * k), Math.round(feedCanvas.height * k))
+        c.getContext('2d')!.drawImage(feedCanvas, 0, 0, c.width, c.height)
+        f.append('poster', await blobOf(c), 'post.jpg')
+      } else if (poster) {
         const p = await posterBlobs(poster)
         f.append('poster', p.poster, 'poster.jpg')
         f.append('poster45', p.poster45, 'poster45.jpg')
@@ -736,7 +829,7 @@ function PublishPanel({ storyCanvas, poster, caption, storyOnly, posts, onPosted
       const j = (await r.json()) as { steps?: Step[] }
       const st = j.steps || [{ label: 'Server', ok: false, msg: `The server answered with an error (${r.status}).` }]
       setSteps(st)
-      const done = st.filter((s) => s.ok).map((s) => s.label)
+      const done = st.filter((x) => x.ok).map((x) => x.label)
       if (done.length) onPosted?.(done)
     } catch (e) {
       setSteps([{ label: 'Stopped', ok: false, msg: e instanceof Error ? e.message : 'failed' }])
@@ -752,36 +845,16 @@ function PublishPanel({ storyCanvas, poster, caption, storyOnly, posts, onPosted
       <Block title="Connection">
         {status === null && <p className="text-xs text-muted-foreground">Checking...</p>}
         {status === 'error' && <p className="text-xs text-muted-foreground">Sign in as admin to post.</p>}
-        {status && status !== 'error' && !ready && (
-          <div className="flex flex-col gap-2 rounded-xl border border-dashed border-border bg-secondary/40 p-3 text-xs text-muted-foreground">
-            <p className="flex items-center gap-1.5 font-bold text-foreground"><CircleAlert className="h-4 w-4" /> Not connected to Facebook and Instagram yet.</p>
-            <p>The person who manages Vercel adds these three settings under Project, Settings, Environment Variables, then redeploys. The token is never typed in this app.</p>
-            <ul className="list-inside list-disc font-mono text-[11px]">
-              <li className={status.token ? 'opacity-50 line-through' : ''}>META_ACCESS_TOKEN</li>
-              <li className={status.page ? 'opacity-50 line-through' : ''}>META_PAGE_ID</li>
-              <li className={status.ig ? 'opacity-50 line-through' : ''}>META_IG_USER_ID</li>
-            </ul>
-            <p>The steps are in DEPLOY.md, under Posting to Facebook and Instagram.</p>
-          </div>
-        )}
-        {ready && (
-          <div className="flex flex-col gap-2">
-            <div className="flex flex-wrap items-center gap-3">
-              <span className="inline-flex items-center gap-1.5 rounded-full bg-[var(--aso-ok-tint)] px-2.5 py-1 text-xs font-bold text-[var(--aso-ok)]"><Check className="h-3.5 w-3.5" /> Settings found</span>
-              <Button type="button" variant="outline" size="sm" onClick={runTest} disabled={testing}>
-                {testing ? <Loader2 className="h-4 w-4 animate-spin" /> : <Check className="h-4 w-4" />} Test connection
-              </Button>
-            </div>
-            {status.daysLeft !== null && status.daysLeft <= 14 && (
-              <p className="flex items-center gap-1.5 text-xs font-semibold text-[var(--aso-gold)]">
-                <CircleAlert className="h-3.5 w-3.5" /> {status.daysLeft > 0 ? `The token expires in ${status.daysLeft} days. Make a new one before then.` : 'The token has expired. Make a new one.'}
-              </p>
+        {status && status !== 'error' && (
+          <div className="flex flex-wrap items-center gap-3">
+            {status.connected ? (
+              <span className="inline-flex items-center gap-1.5 rounded-full bg-[var(--aso-ok-tint)] px-2.5 py-1 text-xs font-bold text-[var(--aso-ok)]">
+                <Check className="h-3.5 w-3.5" /> {[status.pageName, status.igName && '@' + status.igName].filter(Boolean).join(' · ') || 'Connected'}
+              </span>
+            ) : (
+              <span className="inline-flex items-center gap-1.5 rounded-full bg-[var(--aso-gold-tint)] px-2.5 py-1 text-xs font-bold text-[var(--aso-gold)]"><CircleAlert className="h-3.5 w-3.5" /> Not connected yet</span>
             )}
-            {test && (
-              <ul className={cn('rounded-xl p-3 text-xs', test.ok ? 'bg-[var(--aso-ok-tint)]' : 'bg-destructive/10')}>
-                {test.lines.map((l, i) => <li key={i}>{l}</li>)}
-              </ul>
-            )}
+            {onManage && <Button type="button" variant="outline" size="sm" onClick={onManage}>{status.connected ? 'Manage' : 'Connect'}</Button>}
           </div>
         )}
       </Block>
@@ -798,8 +871,8 @@ function PublishPanel({ storyCanvas, poster, caption, storyOnly, posts, onPosted
             </label>
           ))}
         </div>
-        {needsPoster && <p className="flex items-center gap-1.5 text-xs font-semibold text-[var(--aso-gold)]"><CircleAlert className="h-3.5 w-3.5" /> The posts need a poster. Add one under Poster and name.</p>}
-        <Button type="button" className="self-start" disabled={!ready || busy || !storyCanvas || chosen.length === 0 || needsPoster} onClick={() => setConfirm(true)}>
+        {needsPicture && <p className="flex items-center gap-1.5 text-xs font-semibold text-[var(--aso-gold)]"><CircleAlert className="h-3.5 w-3.5" /> The posts need a poster. Add one under Poster and name.</p>}
+        <Button type="button" className="self-start" disabled={!ready || busy || (!storyCanvas && !feedCanvas) || chosen.length === 0 || needsPicture} onClick={() => setConfirm(true)}>
           {busy ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />} Post now
         </Button>
       </Block>
@@ -807,10 +880,10 @@ function PublishPanel({ storyCanvas, poster, caption, storyOnly, posts, onPosted
       {steps && (
         <Block title="Result">
           <ul className="flex flex-col gap-1.5">
-            {steps.map((s, i) => (
+            {steps.map((st, i) => (
               <li key={i} className="flex items-start gap-2 text-[13px]">
-                {s.ok ? <Check className="mt-0.5 h-4 w-4 shrink-0 text-[var(--aso-ok)]" /> : <X className="mt-0.5 h-4 w-4 shrink-0 text-destructive" />}
-                <span><b>{s.label}</b>: {s.msg}</span>
+                {st.ok ? <Check className="mt-0.5 h-4 w-4 shrink-0 text-[var(--aso-ok)]" /> : <X className="mt-0.5 h-4 w-4 shrink-0 text-destructive" />}
+                <span><b>{st.label}</b>: {st.msg}</span>
               </li>
             ))}
           </ul>
@@ -840,6 +913,147 @@ function PublishPanel({ storyCanvas, poster, caption, storyOnly, posts, onPosted
         </AlertDialogContent>
       </AlertDialog>
     </>
+  )
+}
+
+/* ---------------------------------------------------------------- connection */
+
+function ConnectionPanel() {
+  const { status, reload } = useSocialStatus()
+  const toast = useStore((s) => s.toast)
+  const [token, setToken] = React.useState('')
+  const [busy, setBusy] = React.useState(false)
+  const [choose, setChoose] = React.useState<{ id: string; name: string }[] | null>(null)
+  const [msg, setMsg] = React.useState<{ ok: boolean; text: string } | null>(null)
+  const [testing, setTesting] = React.useState(false)
+  const [test, setTest] = React.useState<{ ok: boolean; lines: string[] } | null>(null)
+  const [changing, setChanging] = React.useState(false)
+  const [confirmOff, setConfirmOff] = React.useState(false)
+
+  const connect = async (pageId?: string) => {
+    setBusy(true)
+    setMsg(null)
+    try {
+      const r = await fetch('/api/social/token', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ token, pageId }) })
+      const j = (await r.json()) as { ok: boolean; msg: string; choose?: { id: string; name: string }[] }
+      setChoose(j.choose || null)
+      setMsg({ ok: j.ok, text: j.msg })
+      if (j.ok) { setToken(''); setChanging(false); toast('Connected'); reload() }
+    } catch {
+      setMsg({ ok: false, text: 'The server could not be reached.' })
+    } finally {
+      setBusy(false)
+    }
+  }
+  const runTest = async () => {
+    setTesting(true)
+    setTest(null)
+    try {
+      setTest((await (await fetch('/api/social/test', { method: 'POST' })).json()) as { ok: boolean; lines: string[] })
+    } catch {
+      setTest({ ok: false, lines: ['The server could not be reached.'] })
+    } finally {
+      setTesting(false)
+    }
+  }
+  const off = async () => {
+    await fetch('/api/social/disconnect', { method: 'POST' })
+    setTest(null)
+    reload()
+    toast('Disconnected')
+  }
+
+  if (status === null) return <p className="text-sm text-muted-foreground">Checking...</p>
+  if (status === 'error') return <p className="text-sm text-muted-foreground">Sign in as admin to manage the connection.</p>
+  const connected = status.connected
+  const day = (iso: string) => new Date(iso).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' })
+
+  return (
+    <div className="mx-auto flex max-w-2xl flex-col gap-4">
+      <div className="flex flex-col gap-5 rounded-2xl border border-border bg-card p-5">
+        <Block title="Facebook and Instagram">
+          {connected ? (
+            <div className="flex flex-col gap-3">
+              <div className="rounded-xl bg-[var(--aso-ok-tint)] p-3 text-sm">
+                <div className="flex items-center gap-2 font-bold text-[var(--aso-ok)]"><Check className="h-4 w-4" /> Connected</div>
+                <div className="mt-1 text-foreground">Facebook Page: <b>{status.pageName || 'set'}</b></div>
+                <div className="text-foreground">Instagram: <b>{status.hasIg ? '@' + (status.igName || 'linked') : 'none linked'}</b></div>
+                <div className="mt-1 text-xs text-muted-foreground">
+                  {status.noExpiry ? 'The token does not expire.' : status.expiresAt ? `The token expires on ${day(status.expiresAt)}.` : 'The token expiry is not known.'}
+                  {status.source === 'env' ? ' Set up in Vercel.' : status.savedAt ? ` Connected on ${day(status.savedAt)}.` : ''}
+                </div>
+              </div>
+              {status.daysLeft !== null && status.daysLeft <= 14 && (
+                <p className="flex items-center gap-1.5 text-xs font-semibold text-[var(--aso-gold)]">
+                  <CircleAlert className="h-3.5 w-3.5" /> {status.daysLeft > 0 ? `The token runs out in ${status.daysLeft} days. Reconnect before then.` : 'The token has run out. Reconnect.'}
+                </p>
+              )}
+              <div className="flex flex-wrap gap-2">
+                <Button type="button" variant="outline" size="sm" onClick={() => void runTest()} disabled={testing}>
+                  {testing ? <Loader2 className="h-4 w-4 animate-spin" /> : <Check className="h-4 w-4" />} Test connection
+                </Button>
+                <Button type="button" variant="outline" size="sm" onClick={() => setChanging((v) => !v)}>Reconnect</Button>
+                {status.source === 'app' && <Button type="button" variant="ghost" size="sm" className="text-destructive" onClick={() => setConfirmOff(true)}>Disconnect</Button>}
+              </div>
+              {test && (
+                <ul className={cn('rounded-xl p-3 text-xs', test.ok ? 'bg-[var(--aso-ok-tint)]' : 'bg-destructive/10')}>
+                  {test.lines.map((l, i) => <li key={i}>{l}</li>)}
+                </ul>
+              )}
+            </div>
+          ) : (
+            <p className="flex items-center gap-1.5 text-sm font-semibold text-[var(--aso-gold)]"><CircleAlert className="h-4 w-4" /> Not connected yet.</p>
+          )}
+        </Block>
+
+        {(!connected || changing) && (
+          <>
+            {status.canExchange && (
+              <Block title="The easy way">
+                <p className="text-xs text-muted-foreground">Log in to Facebook with the account that runs the Page and say yes. The app does the rest.</p>
+                <a href="/api/social/connect" className="self-start">
+                  <Button type="button" size="sm"><Share2 className="h-4 w-4" /> Connect with Facebook</Button>
+                </a>
+              </Block>
+            )}
+            <Block title={status.canExchange ? 'Or paste a token' : 'Paste a token'}>
+              <ol className="list-inside list-decimal space-y-1 text-xs text-muted-foreground">
+                <li>Open <b>developers.facebook.com/tools/explorer</b> and pick the ASO app.</li>
+                <li>Press <b>Generate Access Token</b> and tick: pages_show_list, pages_read_engagement, pages_manage_posts, instagram_basic, instagram_content_publish.</li>
+                <li>Copy the token and paste it here.</li>
+              </ol>
+              <textarea className={cn(inputCls, 'min-h-[80px] resize-y font-mono text-xs')} value={token} onChange={(e) => setToken(e.target.value)} placeholder="Paste the token here" autoComplete="off" spellCheck={false} />
+              <div className="flex flex-wrap items-center gap-2">
+                <Button type="button" size="sm" disabled={busy || !token.trim()} onClick={() => void connect()}>
+                  {busy ? <Loader2 className="h-4 w-4 animate-spin" /> : <Check className="h-4 w-4" />} Connect
+                </Button>
+                <span className="text-[11px] text-muted-foreground">The token is checked with Meta, then kept encrypted on the server. It is never shown again.</span>
+              </div>
+              {choose && (
+                <div className="flex flex-wrap gap-2">
+                  {choose.map((c) => <Button key={c.id} type="button" variant="outline" size="sm" onClick={() => void connect(c.id)}>{c.name}</Button>)}
+                </div>
+              )}
+              {msg && <p className={cn('text-xs font-semibold', msg.ok ? 'text-[var(--aso-ok)]' : 'text-destructive')}>{msg.text}</p>}
+              {!status.canExchange && <p className="text-[11px] text-muted-foreground">A token from the Explorer lasts about an hour. To make it last, whoever manages Vercel adds <b>META_APP_ID</b> and <b>META_APP_SECRET</b> once (see DEPLOY.md). After that this screen turns it into a lasting token by itself and offers the Connect button.</p>}
+              {!status.canKeep && <p className="text-[11px] font-semibold text-destructive">The server has no fixed secret to keep the token with. Ask whoever manages Vercel to set ASO_SESSION_SECRET.</p>}
+            </Block>
+          </>
+        )}
+      </div>
+      <AlertDialog open={confirmOff} onOpenChange={setConfirmOff}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Disconnect Facebook and Instagram?</AlertDialogTitle>
+            <AlertDialogDescription>The app forgets the token. Nothing is deleted on Facebook or Instagram. You can connect again any time.</AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Keep it</AlertDialogCancel>
+            <AlertDialogAction onClick={() => void off()}>Disconnect</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    </div>
   )
 }
 

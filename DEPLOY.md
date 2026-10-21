@@ -83,28 +83,29 @@ bun run dev
 
 ## Posting to Facebook and Instagram
 
-Admin > Social kit > a club or event > Publish posts the poster and the story to the Facebook Page and the Instagram account. The token lives only in Vercel environment variables; the browser never sees it, and only a signed-in admin can call `/api/social/*`.
+Admin > Social kit > Connection holds the connection. The person who runs the Page does it from the app: no Vercel access needed after the one-time setup below. Posting itself is in Social kit > a club or event > Publish, and in Social kit > Calendar (month story and calendar post).
 
-| Variable | Required | Description |
-|----------|----------|-------------|
-| `META_ACCESS_TOKEN` | Yes | Long-lived Page access token. |
-| `META_PAGE_ID` | Yes | Facebook Page id. |
-| `META_IG_USER_ID` | For Instagram | Instagram business account id linked to the Page. |
-| `META_APP_ID`, `META_APP_SECRET` | No | Lets Test connection read the real token expiry. |
-| `META_TOKEN_EXPIRES` | No | `YYYY-MM-DD`. The Publish tab warns 14 days before. Not needed when the two above are set. |
-| `META_GRAPH_VERSION` | No | Default `v23.0`. |
+How the token is kept: it is checked with Meta, encrypted on the server (AES-256-GCM, key derived from the server secret) and saved as `data/social.enc.json` next to the data (or in Vercel Blob when that is connected). It is never sent to the browser. The repo is public, so only the encrypted file is ever stored there; connecting Vercel Blob (Storage > Create > Blob) keeps even that out of GitHub. Only a signed-in admin can call `/api/social/*`.
 
-Setup, once:
+One-time setup (whoever manages Vercel and the Meta app):
 
 1. The Instagram account must be a Business or Creator account linked to the Facebook Page.
-2. developers.facebook.com > My Apps > Create App (type Business). Leave it in Development mode. The person who runs the Page is an admin of the app, so posting to their own accounts needs no app review.
-3. In the Graph API Explorer pick the app, then Get User Access Token with: `pages_show_list`, `pages_read_engagement`, `pages_manage_posts`, `instagram_basic`, `instagram_content_publish`.
-4. Make it long-lived: `GET /oauth/access_token?grant_type=fb_exchange_token&client_id=APP_ID&client_secret=APP_SECRET&fb_exchange_token=SHORT_TOKEN`.
-5. `GET /me/accounts` with the long-lived token. The Page entry holds its `id` (`META_PAGE_ID`) and its `access_token` (`META_ACCESS_TOKEN`). A Page token made this way does not expire.
-6. `GET /PAGE_ID?fields=instagram_business_account` gives `META_IG_USER_ID`.
-7. Add the variables in Vercel > Settings > Environment Variables and redeploy. Then Publish > Test connection.
+2. developers.facebook.com > My Apps > Create App (type Business). Leave it in Development mode. People who run the Page are added under App roles, so posting to their own accounts needs no app review.
+3. Add the products Facebook Login for Business (or Facebook Login) and, under its settings, put this in Valid OAuth Redirect URIs: `https://aso-companion.vercel.app/api/social/callback`.
+4. In Vercel > Settings > Environment Variables add `META_APP_ID` and `META_APP_SECRET` (App settings > Basic), then redeploy.
 
-Renewal: the Page token stops working if the person who made it changes their Facebook password or removes the app. Make a new one with steps 3 to 5 and replace `META_ACCESS_TOKEN`.
+After that, in the app: Connection > Connect with Facebook. Facebook asks for permission once and the app saves a lasting Page token and the Instagram account id. If a token ever stops working (password change, app removed), press Reconnect. The Connection screen shows when the token runs out and warns 14 days before when the expiry is known.
+
+Without `META_APP_ID` and `META_APP_SECRET` the app can still keep a Page token pasted into Connection, but a token from the Graph API Explorer lasts only about an hour.
+
+Optional variables:
+
+| Variable | Description |
+|----------|-------------|
+| `META_APP_ID`, `META_APP_SECRET` | Make pasted tokens lasting, read the real expiry, and enable "Connect with Facebook". |
+| `META_ACCESS_TOKEN`, `META_PAGE_ID`, `META_IG_USER_ID` | A connection set up by hand in Vercel. Used only when nothing is connected in the app. |
+| `META_TOKEN_EXPIRES` | `YYYY-MM-DD` for such a hand-made token (renewal reminder). |
+| `META_GRAPH_VERSION` | Default `v23.0`. |
 
 Handover: add a second admin to the Facebook Page and to the Meta app (App roles), so the setup does not depend on one person.
 

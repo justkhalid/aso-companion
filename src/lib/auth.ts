@@ -30,6 +30,20 @@ function secret(): string {
   return ephemeral
 }
 
+/** a server secret that stays the same between restarts (needed to keep anything encrypted for later) */
+export function hasStableSecret(): boolean {
+  return !!(process.env.ASO_SESSION_SECRET || process.env.BLOB_READ_WRITE_TOKEN || process.env.GITHUB_PAT) || process.env.NODE_ENV !== 'production'
+}
+
+/** a key derived from the server secret, for one purpose (e.g. 'social') */
+export function derivedKey(purpose: string): Buffer {
+  return createHash('sha256').update(`aso-${purpose}:` + secret()).digest()
+}
+
+export function signValue(payload: string): string {
+  return sign(payload)
+}
+
 function sign(payload: string): string {
   return createHmac('sha256', secret()).update(payload).digest('base64url')
 }

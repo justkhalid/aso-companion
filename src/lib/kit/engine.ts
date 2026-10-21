@@ -5,6 +5,7 @@ import { DECOR, rg, type RGB } from './decor'
 
 export interface KitParams {
   im: HTMLImageElement | null // the framed poster, or null for the empty slot
+  framed?: boolean // false: a plain poster, which gets a light wavy corner effect (default true)
   kicker: string
   top: string
   word: string
@@ -101,6 +102,39 @@ export function fitCover(ctx: Ctx, im: CanvasImageSource & { width: number; heig
 const dim = (c: RGB, k: number): RGB => c.map(v => Math.round(v * k)) as RGB;
 
 // ---------- the three outputs ----------
+/* a light wavy glass effect in two corners, for posters that came without the ASO frame */
+let waveCache: HTMLCanvasElement | null = null
+function waveLayer(w: number, h: number): HTMLCanvasElement {
+  if (waveCache) return waveCache
+  const o = cv(w, h), g = o.getContext("2d")!
+  const cols = ["255,255,255", "140,180,255", "255,190,120", "255,255,255"]
+  const draw = () => {
+    for (let k = 0; k < 16; k++) {
+      g.strokeStyle = `rgba(${cols[k % cols.length]},${0.4 + (k % 4) * 0.1})`
+      g.lineWidth = 2 + (k % 4) * 2.5
+      g.beginPath()
+      const sx = k * 15 - 10, L = 260 + (k % 5) * 40
+      for (let i = 0; i <= 24; i++) {
+        const t = i / 24
+        const px = sx - t * L * 0.62 + Math.sin(t * 7 + k) * 9, py = t * L * 0.78 + Math.cos(t * 5 + k * 0.7) * 5
+        if (i) g.lineTo(px, py); else g.moveTo(px, py)
+      }
+      g.stroke()
+    }
+  }
+  g.save(); draw(); g.restore()
+  g.save(); g.translate(w, h); g.rotate(Math.PI); draw(); g.restore()
+  const m = cv(w, h), mg = m.getContext("2d")!
+  for (const [cx, cy] of [[0, 0], [w, h]]) {
+    const gr = mg.createRadialGradient(cx, cy, 0, cx, cy, 380)
+    gr.addColorStop(0, "rgba(0,0,0,1)"); gr.addColorStop(1, "rgba(0,0,0,0)")
+    mg.fillStyle = gr; mg.fillRect(0, 0, w, h)
+  }
+  g.globalCompositeOperation = "destination-in"
+  g.drawImage(m, 0, 0)
+  return (waveCache = o)
+}
+
 export async function makeStory(p: KitParams, t: KitTheme) {
   const c = cv(1080, 1920), x = c.getContext("2d")!, CX = 540;
   x.drawImage(await get(KIT_BG_BASE), 0, 0);
@@ -128,7 +162,7 @@ export async function makeStory(p: KitParams, t: KitTheme) {
   const R = 44;
   x.save(); x.shadowColor = "rgba(40,30,60,.28)"; x.shadowBlur = 40; x.shadowOffsetY = 14; rr(x, 199, 857, 681, 906, R); x.fillStyle = "#f6f3ee"; x.fill(); x.restore();
   x.save(); rr(x, 199, 857, 681, 906, R); x.clip();
-  if (p.im) fitCover(x, p.im, 199, 857, 681, 906); else { x.fillStyle = "#f6f3ee"; x.fillRect(199, 857, 681, 906); x.font = "700 23px ManropeA"; spaced(x, "POSTER 3:4", CX, 1318, 6, rg(t.ink, .45)); }
+  if (p.im) { fitCover(x, p.im, 199, 857, 681, 906); if (p.framed === false) { x.save(); x.filter = "blur(1px)"; x.globalAlpha = 0.95; x.drawImage(waveLayer(681, 906), 199, 857); x.restore() } } else { x.fillStyle = "#f6f3ee"; x.fillRect(199, 857, 681, 906); x.font = "700 23px ManropeA"; spaced(x, "POSTER 3:4", CX, 1318, 6, rg(t.ink, .45)); }
   x.restore();
   // link pill
   if (ev) { await drawIcon(x, p.icon, CX, 1838, 64, t.c1, t.c2); grain(x, 1080, 1920); return c; }
