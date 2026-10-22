@@ -1,10 +1,12 @@
 /* Canvas engine of the club kit: the Instagram story (1080x1920) and the WhatsApp group picture (1080x1080).
    Ported from the generator; the layout numbers are unchanged. Browser only. */
+import qrcode from "qrcode-generator";
 import { KIT_ICONS } from './icons'
 import { DECOR, rg, type RGB } from './decor'
 import { makeDecorAnim } from './decor-anim'
 
 export interface KitParams {
+  wa?: string // the WhatsApp group link of a club: shown as a QR code on its story
   im: HTMLImageElement | null // the framed poster, or null for the empty slot
   framed?: boolean // false: a plain poster, which gets a light wavy corner effect (default true)
   kicker: string
@@ -191,6 +193,18 @@ export async function makeStoryAnim(p: KitParams, t: KitTheme, loop = 10) {
   }
 }
 
+/* a QR code of a link on a white rounded card: the card is size x size, the code sits inside with a quiet margin */
+function drawQR(x: Ctx, url: string, left: number, top: number, size: number) {
+  const q = qrcode(0, "M"); q.addData(url); q.make();
+  const n = q.getModuleCount(), pad = Math.round(size * 0.09), cell = (size - pad * 2) / n;
+  x.save(); x.shadowColor = "rgba(40,30,60,.22)"; x.shadowBlur = 26; x.shadowOffsetY = 10;
+  rr(x, left, top, size, size, Math.round(size * 0.12)); x.fillStyle = "#ffffff"; x.fill(); x.restore();
+  x.fillStyle = "#17142b";
+  for (let r = 0; r < n; r++) for (let c = 0; c < n; c++) if (q.isDark(r, c)) x.fillRect(Math.floor(left + pad + c * cell), Math.floor(top + pad + r * cell), Math.ceil(cell), Math.ceil(cell));
+}
+/* writing set from a left edge (spaced() centres its text) */
+function spacedLeft(x: Ctx, t: string, left: number, base: number, tr: number, fill: string | CanvasGradient) { spaced(x, t, left + measure(x, t, tr) / 2, base, tr, fill); }
+
 async function storyBody(p: KitParams, t: KitTheme, withBg: boolean, withDecor = true) {
   const c = cv(1080, 1920), x = c.getContext("2d")!, CX = 540;
   if (withBg) await paintGlass(x, storyBg(t), glassOf(t), t);
@@ -205,7 +219,7 @@ async function storyBody(p: KitParams, t: KitTheme, withBg: boolean, withDecor =
   const dsz = ev ? 40 : 42, dtr = ev ? 7 : 8;
   const B = cap(25) + g1 + inkH + g2 + g3 + cap(dsz) + g4 + cap(30);
   /* even spacing: logo to writing, writing to poster, poster to the bottom button (or the small icon) are the same distance */
-  const PH = 906, bottom = ev ? 1800 : 1792, space = Math.floor((bottom - 204 - B - PH) / 3)
+  const withQR = !ev && !!p.wa, PH = withQR ? 700 : 906, PW = Math.round(PH * 0.75), PX = Math.round((1080 - PW) / 2), bottom = withQR ? 1560 : 1800, space = Math.floor((bottom - 204 - B - PH) / 3)
   const y = 204 + space, PY = bottom - space - PH;
   x.font = "700 25px ManropeA"; kick(x, p.kicker, CX, y + cap(25), 7, rg(dim(t.c2, .72)));
   const ty = y + cap(25) + g1, base = ty + inkH;
@@ -218,15 +232,17 @@ async function storyBody(p: KitParams, t: KitTheme, withBg: boolean, withDecor =
   x.font = "500 30px ManropeA"; spaced(x, [p.time, p.venue].filter(Boolean).join("   |   "), CX, yb2, 3, rg(t.ink, .92));
   // poster slot: soft shadow and the poster with rounded corners (no border around it)
   const R = 44;
-  x.save(); x.shadowColor = "rgba(40,30,60,.28)"; x.shadowBlur = 40; x.shadowOffsetY = 14; rr(x, 199, PY, 681, PH, R); x.fillStyle = "#f6f3ee"; x.fill(); x.restore();
-  x.save(); rr(x, 199, PY, 681, PH, R); x.clip();
-  if (p.im) { fitCover(x, p.im, 199, PY, 681, PH) } else { x.fillStyle = "#f6f3ee"; x.fillRect(199, PY, 681, PH); x.font = "700 23px ManropeA"; spaced(x, "POSTER 3:4", CX, PY + PH / 2 + 8, 6, rg(t.ink, .45)); }
+  x.save(); x.shadowColor = "rgba(40,30,60,.28)"; x.shadowBlur = 40; x.shadowOffsetY = 14; rr(x, PX, PY, PW, PH, R); x.fillStyle = "#f6f3ee"; x.fill(); x.restore();
+  x.save(); rr(x, PX, PY, PW, PH, R); x.clip();
+  if (p.im) { fitCover(x, p.im, PX, PY, PW, PH) } else { x.fillStyle = "#f6f3ee"; x.fillRect(PX, PY, PW, PH); x.font = "700 23px ManropeA"; spaced(x, "POSTER 3:4", CX, PY + PH / 2 + 8, 6, rg(t.ink, .45)); }
   x.restore();
-  // link pill
-  if (ev) { await drawIcon(x, p.icon, CX, 1838, 64, t.c1, t.c2); if (withBg) grain(x, 1080, 1920); return c; }
-  const py = 1792; rr(x, CX - 300, py, 600, 84, 42); x.fillStyle = "rgba(250,247,241,.95)"; x.fill();
-  x.strokeStyle = grad(x, CX - 300, CX + 300, t.c1, t.c2); x.lineWidth = 3; rr(x, CX - 300, py, 600, 84, 42); x.stroke();
-  x.font = "700 22px ManropeA"; spaced(x, "WHATSAPP GROUP LINK HERE", CX, py + 50, 5, rg(t.ink, .67));
+  // bottom: a QR code of the WhatsApp group (a story cannot carry a tappable link from the app), or the small club icon
+  if (withQR) {
+    const QS = 190, top = 1590;
+    drawQR(x, p.wa!, CX - QS / 2, top, QS);
+    x.font = "700 28px ManropeA"; spaced(x, "SCAN TO JOIN THE WHATSAPP GROUP", CX, top + QS + 52, 5, grad(x, CX - 400, CX + 400, t.c1, t.c2));
+    x.font = "500 23px ManropeA"; spaced(x, "or find the link in our highlights", CX, top + QS + 92, 1, rg(t.ink, .6));
+  } else await drawIcon(x, p.icon, CX, 1838, 64, t.c1, t.c2);
   if (withBg) grain(x, 1080, 1920); return c;
 }
 /* a rounded square with smooth corners (a superellipse), the outline WhatsApp gives a community icon */
@@ -277,6 +293,33 @@ export async function makeHighlight(p: KitParams, t: KitTheme) {
   glow(x, 540, 960, t.c2);
   if (t.decor !== "none") x.drawImage(await svgLayer(DECOR[t.decor](t.c1, t.c2)), 0, 0);
   await drawIcon(x, p.icon, 540, 960, 640, t.c1, t.c2);
+  grain(x, 1080, 1920); return c;
+}
+
+/* the "Links" highlight story: the ASO community with the WhatsApp icon and a big QR code, all on the centre line */
+export async function makeLinksStory(url: string, t: KitTheme) {
+  const c = cv(1080, 1920), x = c.getContext("2d")!, CX = 540;
+  await paintGlass(x, storyBg(t), glassOf(t), t);
+  glow(x, 540, 1100, t.c2);
+  await drawLogo(x, CX, 165, 78);
+  x.font = "700 25px ManropeA"; kick(x, "JOIN THE", CX, 340, 7, rg(dim(t.c2, .72)));
+  const fw = fit(x, s => `italic 600 ${s}px Bodoni`, "ASO Community", 820, 170, -5), cw = capOf(x, fw, 600);
+  gradTitle(x, "ASO Community", CX, 372 + cw, fw, -5, 600, t.c1, t.c2);
+  const hl = 372 + cw + 52; x.fillStyle = grad(x, CX - 260, CX + 260, t.c1, t.c2); x.fillRect(CX - 260, hl, 520, 3);
+  await drawIconFit(x, "i-whatsapp", CX, hl + 170, 190, 190, t.c1, t.c2);
+  const QS = 540, qt = hl + 320;
+  drawQR(x, url, CX - QS / 2, qt, QS);
+  x.font = "700 30px ManropeA"; spaced(x, "SCAN TO JOIN THE", CX, qt + QS + 74, 6, rg(t.ink, .92));
+  x.font = "700 30px ManropeA"; spaced(x, "WHATSAPP COMMUNITY", CX, qt + QS + 120, 6, grad(x, CX - 300, CX + 300, t.c1, t.c2));
+  x.font = "500 24px ManropeA"; spaced(x, "or tap the link below", CX, qt + QS + 176, 1, rg(t.ink, .6));
+  grain(x, 1080, 1920); return c;
+}
+/* the round cover of the "Links" highlight: the WhatsApp icon on the same ground as the club covers */
+export async function makeLinksCover(t: KitTheme) {
+  const c = cv(1080, 1920), x = c.getContext("2d")!;
+  x.drawImage(await groundCanvas(t, 1080, 1920), 0, 0); wash(x, t, 1080, 1920);
+  glow(x, 540, 960, t.c2);
+  await drawIconFit(x, "i-whatsapp", 540, 960, 640, 640, t.c1, t.c2);
   grain(x, 1080, 1920); return c;
 }
 /* the club icon alone, on a transparent background */

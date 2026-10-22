@@ -77,3 +77,35 @@ export function FullKitButton({ size = 'sm' }: { size?: 'sm' | 'default' }) {
     </>
   )
 }
+
+/* "Links highlight": the story pages with every club group and its QR code, and the round highlight cover */
+export function LinksKitButton({ size = 'sm' }: { size?: 'sm' | 'default' }) {
+  const state = useStore((s) => s.state)
+  const toast = useStore((s) => s.toast)
+  const [busy, setBusy] = React.useState(false)
+  const make = async () => {
+    setBusy(true)
+    try {
+      const { linksFiles } = await import('@/lib/kit/bundle')
+      const { zipFiles } = await import('@/lib/kit/zip')
+      const files = await linksFiles(state, 'Links')
+      if (!files.length) { toast('No club has a WhatsApp link yet'); return }
+      const blob = await zipFiles(files)
+      const a = document.createElement('a')
+      a.href = URL.createObjectURL(blob)
+      a.download = 'ASO-links-highlight.zip'
+      a.click()
+      setTimeout(() => URL.revokeObjectURL(a.href), 4000)
+      toast('The links highlight was downloaded')
+    } catch (e) {
+      toast(e instanceof Error ? e.message : 'The links highlight could not be made')
+    } finally {
+      setBusy(false)
+    }
+  }
+  return (
+    <Button type="button" variant="outline" size={size} disabled={busy} onClick={() => void make()}>
+      {busy ? <Loader2 className="h-4 w-4 animate-spin" /> : <Archive className="h-4 w-4" />} Links highlight
+    </Button>
+  )
+}
