@@ -21,6 +21,7 @@ export interface Settings {
   internLoginRequired?: boolean // default off: anyone can open the interns' page; on = they need the interns' code
   hiddenLevels?: string[] // level keys teachers do not see on the ELTASO tab
   showAccessBox?: boolean // main page: the box that sends teachers and interns to their own pages
+  holidays?: import('./holidays').HolidayRules // Settings > Holidays: moved, hidden and own holidays
   ghToken?: string
   ghRepo?: string
   ghBranch?: string

@@ -8,6 +8,7 @@ import { addChanges } from './change-log'
 import { syncViewUrl } from './url-sync'
 import { readLocal, writeLocal } from './local-db'
 import { mergeUnsaved } from './restore-merge'
+import { setHolidayRules } from './holidays'
 
 export type BootStatus = 'idle' | 'loading' | 'loaded' | 'error'
 
@@ -680,5 +681,9 @@ export function effectiveView(store: UIStore): View {
   }
   return store.view
 }
+
+/* the holiday list follows the saved settings (moved lunar dates, own holidays) wherever it is used */
+setHolidayRules(useStore.getState().state?.settings?.holidays)
+useStore.subscribe((st) => setHolidayRules(st.state?.settings?.holidays))
 
 export { applyTheme }
