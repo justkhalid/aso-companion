@@ -7,7 +7,7 @@
  */
 import { createHash, createHmac, randomBytes, timingSafeEqual } from 'crypto'
 import type { NextRequest } from 'next/server'
-import { publicOnly } from './mode'
+import { isLocal, publicOnly } from './mode'
 
 export const SESSION_COOKIE = 'aso_session'
 export const SESSION_DAYS = 30
@@ -100,7 +100,8 @@ export function sessionCookie(token: string, persistent: boolean) {
     value: token,
     httpOnly: true,
     sameSite: 'lax' as const,
-    secure: process.env.NODE_ENV === 'production',
+    /* the director's computer runs on plain http://localhost: a secure-only cookie is dropped there by some browsers, which leaves the admin screen open with no session behind it */
+    secure: process.env.NODE_ENV === 'production' && !isLocal(),
     path: '/',
     ...(persistent ? { maxAge: SESSION_DAYS * 86_400 } : {}),
   }
