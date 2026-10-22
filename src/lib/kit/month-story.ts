@@ -546,6 +546,18 @@ export async function monthStoryVideo(m: MonthStory, o: { onProgress?: (p: numbe
   const chunks: Blob[] = []
   rec.ondataavailable = (e) => { if (e.data.size) chunks.push(e.data) }
   const done = new Promise<void>((res) => { rec.onstop = () => res() })
+  /* warm-up: the encoder needs a moment before it keeps up, so the picture already moves for a second before recording starts (otherwise the start of the video looks frozen) */
+  const PRE = 1
+  const pre0 = performance.now()
+  await new Promise<void>((res) => {
+    const warm = () => {
+      const w = (performance.now() - pre0) / 1000
+      drawMonthStory(g, m, w)
+      if (w >= PRE) res()
+      else requestAnimationFrame(warm)
+    }
+    warm()
+  })
   rec.start(500)
   if (ac && src && gain && o.music) {
     const t = ac.currentTime
@@ -562,7 +574,7 @@ export async function monthStoryVideo(m: MonthStory, o: { onProgress?: (p: numbe
     const tick = () => {
       const t = (performance.now() - t0) / 1000
       /* a little over one loop, so the file is never shorter than LOOP_SECONDS; the motion just carries on from the start */
-      drawMonthStory(g, m, t % LOOP_SECONDS)
+      drawMonthStory(g, m, (t + PRE) % LOOP_SECONDS)
       o.onProgress?.(Math.min(1, t / RECORD_SECONDS))
       if (t >= RECORD_SECONDS) res()
       else requestAnimationFrame(tick)

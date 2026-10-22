@@ -47,6 +47,8 @@ export interface KitRec {
   decor: string // 'same' or a decoration key
   icon: string
   bg: number
+  glass: number // 0 to 100
+  motion: number // 0 still, 1 gentle, 2 lively
   cap: string
   wa: string
   poster: string | null
@@ -126,6 +128,8 @@ export function kitRec(kind: 'club' | 'event', item: Club | EventEntry): KitRec 
     decor: 'same',
     icon,
     bg: 0,
+    glass: 100,
+    motion: 1,
     cap: '',
     wa: kind === 'club' ? c.url || '' : '',
     poster: FRAMED.has(item.id) ? `/kit/framed/${item.id}.webp` : c.poster || null,
@@ -145,6 +149,8 @@ export function kitRec(kind: 'club' | 'event', item: Club | EventEntry): KitRec 
   if (k.decor) R.decor = k.decor
   if (k.icon && KIT_ICONS[k.icon]) R.icon = k.icon
   if (k.bg !== undefined) R.bg = k.bg
+  if (k.glass !== undefined) R.glass = k.glass
+  if (k.motion !== undefined) R.motion = k.motion
   if (k.cap !== undefined) R.cap = k.cap
   if (k.wa !== undefined) R.wa = k.wa
   if (k.poster) { R.poster = k.poster; R.framed = k.poster !== c.poster }
@@ -166,6 +172,8 @@ export function kitDiff(kind: 'club' | 'event', item: Club | EventEntry, form: K
   const implied = form.look !== base.look ? LOOKS[form.look]?.[5] : base.icon
   if (form.icon !== implied) out.icon = form.icon
   if (form.bg !== base.bg) out.bg = form.bg
+  if (form.glass !== base.glass) out.glass = form.glass
+  if (form.motion !== base.motion) out.motion = form.motion
   if (form.short !== base.short && form.short.trim()) out.short = form.short
   if (form.cap !== base.cap) out.cap = form.cap
   if (form.wa !== base.wa) out.wa = form.wa
@@ -173,10 +181,10 @@ export function kitDiff(kind: 'club' | 'event', item: Club | EventEntry, form: K
   return out
 }
 
-export function kitTheme(R: Pick<KitRec, 'look' | 'palette' | 'decor' | 'bg'>): KitTheme {
+export function kitTheme(R: Pick<KitRec, 'look' | 'palette' | 'decor' | 'bg'> & Partial<Pick<KitRec, 'glass' | 'motion'>>): KitTheme {
   const L = LOOKS[R.look] || LOOKS.aso
   const pal = LOOKS[R.palette && R.palette !== 'same' ? R.palette : R.look] || L
-  return { c1: pal[1] as RGB, c2: pal[2] as RGB, ink: pal[3] as RGB, decor: R.decor && R.decor !== 'same' ? R.decor : L[4], bg: +R.bg || 0 }
+  return { c1: pal[1] as RGB, c2: pal[2] as RGB, ink: pal[3] as RGB, decor: R.decor && R.decor !== 'same' ? R.decor : L[4], bg: +R.bg || 0, glass: R.glass === undefined ? 100 : R.glass, motion: R.motion === undefined ? 1 : R.motion }
 }
 
 export async function kitParams(R: KitRec): Promise<KitParams> {

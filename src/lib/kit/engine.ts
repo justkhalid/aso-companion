@@ -15,7 +15,7 @@ export interface KitParams {
   icon: string
   mode: 'club' | 'event'
 }
-export interface KitTheme { c1: RGB; c2: RGB; ink: RGB; decor: string; bg: number }
+export interface KitTheme { c1: RGB; c2: RGB; ink: RGB; decor: string; bg: number; glass?: number; motion?: number }
 
 const FONT_FILES: [string, string, string, string][] = [
   ['Bodoni', 'bodoni500i', '500', 'italic'],
@@ -114,9 +114,45 @@ function storyBg(t: KitTheme): string {
   return KIT_BG_STORIES[0]
 }
 
-export async function makeStory(p: KitParams, t: KitTheme) {
+const glassOf = (t: KitTheme) => Math.max(0, Math.min(100, t.glass === undefined ? 100 : t.glass)) / 100
+/* the glass waves are a picture laid over the plain pearl ground; the strength is how much of it shows */
+async function paintGlass(x: Ctx, src: string, a: number) {
+  x.drawImage(await get(KIT_BG_BASE), 0, 0, x.canvas.width, x.canvas.height)
+  if (a > 0) { x.save(); x.globalAlpha = a; x.drawImage(await get(src), 0, 0); x.restore() }
+}
+
+export async function makeStory(p: KitParams, t: KitTheme) { return storyBody(p, t, true) }
+
+/* the story as a moving picture: the glass waves drift and a soft light sweeps across, the writing and the poster stay still */
+export async function makeStoryAnim(p: KitParams, t: KitTheme, loop = 10) {
+  const fg = await storyBody(p, t, false), base = await get(KIT_BG_BASE), glassImg = await get(storyBg(t))
+  const a = glassOf(t), k = t.motion === undefined ? 1 : t.motion
+  return {
+    loop,
+    draw(x: Ctx, time: number) {
+      const ph = (2 * Math.PI * time) / loop
+      x.drawImage(base, 0, 0, 1080, 1920)
+      if (a > 0) {
+        x.save(); x.globalAlpha = a
+        x.translate(540, 960); x.scale(1.07 + 0.015 * k * Math.sin(ph), 1.07 + 0.015 * k * Math.sin(ph))
+        x.translate(Math.sin(ph) * 16 * k, Math.cos(ph) * 24 * k)
+        x.drawImage(glassImg, -540, -960); x.restore()
+        if (k > 0) {
+          const u = (time / loop) % 1, pos = -700 + u * (1080 + 1920 + 1400) / 1
+          const g = x.createLinearGradient(pos - 350, pos - 350, pos + 350, pos + 350)
+          g.addColorStop(0, "rgba(255,255,255,0)"); g.addColorStop(.5, `rgba(255,255,255,${(0.16 * k * a).toFixed(3)})`); g.addColorStop(1, "rgba(255,255,255,0)")
+          x.save(); x.globalCompositeOperation = "screen"; x.fillStyle = g; x.fillRect(0, 0, 1080, 1920); x.restore()
+        }
+      }
+      x.drawImage(fg, 0, 0)
+      grain(x, 1080, 1920)
+    },
+  }
+}
+
+async function storyBody(p: KitParams, t: KitTheme, withBg: boolean) {
   const c = cv(1080, 1920), x = c.getContext("2d")!, CX = 540;
-  x.drawImage(await get(storyBg(t)), 0, 0);
+  if (withBg) await paintGlass(x, storyBg(t), glassOf(t));
   glow(x, 540, 1300, t.c2);
   if (t.decor !== "none") x.drawImage(await svgLayer(DECOR[t.decor](t.c1, t.c2)), 0, 0);
   await drawLogo(x, CX, 165, 78);
@@ -141,18 +177,18 @@ export async function makeStory(p: KitParams, t: KitTheme) {
   const R = 44;
   x.save(); x.shadowColor = "rgba(40,30,60,.28)"; x.shadowBlur = 40; x.shadowOffsetY = 14; rr(x, 199, 857, 681, 906, R); x.fillStyle = "#f6f3ee"; x.fill(); x.restore();
   x.save(); rr(x, 199, 857, 681, 906, R); x.clip();
-  if (p.im) { fitCover(x, p.im, 199, 857, 681, 906); if (p.framed === false) fitCover(x, await get(KIT_WAVE), 199, 857, 681, 906) } else { x.fillStyle = "#f6f3ee"; x.fillRect(199, 857, 681, 906); x.font = "700 23px ManropeA"; spaced(x, "POSTER 3:4", CX, 1318, 6, rg(t.ink, .45)); }
+  if (p.im) { fitCover(x, p.im, 199, 857, 681, 906); if (p.framed === false) { x.globalAlpha = glassOf(t); fitCover(x, await get(KIT_WAVE), 199, 857, 681, 906); x.globalAlpha = 1 } } else { x.fillStyle = "#f6f3ee"; x.fillRect(199, 857, 681, 906); x.font = "700 23px ManropeA"; spaced(x, "POSTER 3:4", CX, 1318, 6, rg(t.ink, .45)); }
   x.restore();
   // link pill
-  if (ev) { await drawIcon(x, p.icon, CX, 1838, 64, t.c1, t.c2); grain(x, 1080, 1920); return c; }
+  if (ev) { await drawIcon(x, p.icon, CX, 1838, 64, t.c1, t.c2); if (withBg) grain(x, 1080, 1920); return c; }
   const py = 1792; rr(x, CX - 300, py, 600, 84, 42); x.fillStyle = "rgba(250,247,241,.95)"; x.fill();
   x.strokeStyle = grad(x, CX - 300, CX + 300, t.c1, t.c2); x.lineWidth = 3; rr(x, CX - 300, py, 600, 84, 42); x.stroke();
   x.font = "700 22px ManropeA"; spaced(x, "WHATSAPP GROUP LINK HERE", CX, py + 50, 5, rg(t.ink, .67));
-  grain(x, 1080, 1920); return c;
+  if (withBg) grain(x, 1080, 1920); return c;
 }
 export async function makeCover(p: KitParams, t: KitTheme) {
   const c = cv(1080, 1080), x = c.getContext("2d")!, CX = 540;
-  x.drawImage(await get(KIT_BG_COVERS[t.bg] || KIT_BG_COVERS[0]), 0, 0);
+  await paintGlass(x, KIT_BG_COVERS[t.bg] || KIT_BG_COVERS[0], glassOf(t));
   glow(x, 540, 580, t.c2);
   if (t.decor !== "none" && t.decor !== "brain") { x.save(); x.translate(0, -420); x.drawImage(await svgLayer(DECOR[t.decor](t.c1, t.c2)), 0, 0); x.restore(); }
   await drawLogo(x, CX, 95, 62);

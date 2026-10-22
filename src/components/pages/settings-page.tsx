@@ -96,7 +96,13 @@ export function SettingsPage() {
   const stateChars = React.useMemo(() => compactSize(state), [state])
 
   const s = state.settings
-  const [tab, setTab] = React.useState<'general' | 'access' | 'data' | 'updates'>('general')
+  const [tab, setTab] = React.useState<'general' | 'access' | 'data' | 'updates'>(() => {
+    /* the "Update available" badge opens this page on the Updates tab */
+    try {
+      if (sessionStorage.getItem('aso-settings-tab') === 'updates') { sessionStorage.removeItem('aso-settings-tab'); return 'updates' }
+    } catch { /* not available */ }
+    return 'general'
+  })
 
   /* the theme is chosen per device; the site opens in light mode */
   const setThemeVal = (t: Theme) => setTheme(t === 'auto' ? 'system' : t)
