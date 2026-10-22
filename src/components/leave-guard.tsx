@@ -24,7 +24,7 @@ export function LeaveGuard() {
         <AlertDialogHeader>
           <AlertDialogTitle>You have unsaved changes</AlertDialogTitle>
           <AlertDialogDescription>
-            Save them before you leave, or stay and keep editing.{err ? ' ' + err : ''}
+            Save them, discard them (the last saved copy comes back), or stay and keep editing.{err ? ' ' + err : ''}
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
@@ -32,9 +32,14 @@ export function LeaveGuard() {
           <Button
             variant="outline"
             disabled={busy}
-            onClick={() => { const g = go; close(); g?.() }}
+            onClick={async () => {
+              setBusy(true)
+              const r = await useStore.getState().discardChanges().catch(() => ({ ok: false, msg: 'Could not put back the saved copy.' }))
+              setBusy(false)
+              if (r.ok) { const g = go; close(); g?.() } else setErr(r.msg || 'Could not put back the saved copy.')
+            }}
           >
-            Leave, save later
+            Discard changes
           </Button>
           <Button
             disabled={busy}
