@@ -289,6 +289,34 @@ export async function makeCover(p: KitParams, t: KitTheme) {
 }
 
 /* the ASO logo in the same format as the club pictures (glass picture and ring), for the profile picture and the community icon (rounded-square ring) */
+
+/* sample styles for the WhatsApp club picture: "block" (bold colour background, solid cream icon), "letters" (giant initials) and "medallion" (glass with a filled colour disc) */
+export async function makeCoverAlt(p: KitParams, t: KitTheme, style: "block" | "letters" | "medallion") {
+  const c = cv(1080, 1080), x = c.getContext("2d")!, CX = 540, cream: RGB = [252, 248, 240];
+  if (style === "block") {
+    const g = x.createLinearGradient(0, 0, 1080, 1080); g.addColorStop(0, rg(dim(t.c1, .82))); g.addColorStop(1, rg(t.c2)); x.fillStyle = g; x.fillRect(0, 0, 1080, 1080);
+    glow(x, 760, 300, cream); x.save(); x.globalAlpha = .12; x.fillStyle = "#fff"; x.beginPath(); x.arc(CX, CX + 20, 400, 0, Math.PI * 2); x.fill(); x.restore();
+    await drawIconFit(x, p.icon, CX, 560, 560, 520, cream, cream);
+  } else if (style === "letters") {
+    await paintGlass(x, KIT_BG_COVERS[t.bg] || KIT_BG_COVERS[0], glassOf(t), t); glow(x, 540, 560, t.c2);
+    const words = [p.top, p.word].filter(Boolean).join(" ").split(/\s+/).filter(Boolean);
+    const ini = (words.length > 1 ? words[0][0] + words[words.length - 1][0] : (words[0] || "A").slice(0, 2)).toUpperCase();
+    const fs = fit(x, s => `italic 600 ${s}px Bodoni`, ini, 700, 560, -10), cw = capOf(x, fs, 600);
+    gradTitle(x, ini, CX, 540 + cw / 2, fs, -10, 600, t.c1, t.c2);
+    await drawIconFit(x, p.icon, CX, 820, 130, 130, t.c1, t.c2);
+  } else {
+    await paintGlass(x, KIT_BG_COVERS[t.bg] || KIT_BG_COVERS[0], glassOf(t), t); glow(x, 540, 560, t.c2);
+    x.save(); x.shadowColor = "rgba(40,30,60,.35)"; x.shadowBlur = 50; x.shadowOffsetY = 20;
+    const g = x.createLinearGradient(CX - 340, CX - 340, CX + 340, CX + 340); g.addColorStop(0, rg(dim(t.c1, .9))); g.addColorStop(1, rg(t.c2));
+    x.fillStyle = g; x.beginPath(); x.arc(CX, 560, 350, 0, Math.PI * 2); x.fill(); x.restore();
+    const hi = x.createRadialGradient(CX - 120, 360, 20, CX - 120, 360, 330); hi.addColorStop(0, "rgba(255,255,255,.38)"); hi.addColorStop(1, "rgba(255,255,255,0)");
+    x.fillStyle = hi; x.beginPath(); x.arc(CX, 560, 350, 0, Math.PI * 2); x.fill();
+    x.strokeStyle = "rgba(255,255,255,.55)"; x.lineWidth = 5; x.beginPath(); x.arc(CX, 560, 372, 0, Math.PI * 2); x.stroke();
+    await drawIconFit(x, p.icon, CX, 570, 380, 350, cream, cream);
+    await drawLogo(x, CX, 95, 62);
+  }
+  grain(x, 1080, 1080); return c;
+}
 export async function makeProfilePicture(t: KitTheme, shape: "circle" | "squircle" = "squircle") {
   const c = cv(1080, 1080), x = c.getContext("2d")!, CX = 540;
   await paintGlass(x, KIT_BG_COVERS[t.bg] || KIT_BG_COVERS[0], glassOf(t), t);
