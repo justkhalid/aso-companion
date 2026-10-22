@@ -154,6 +154,7 @@ function SidebarBody({ onNavigate }: { onNavigate?: () => void }) {
   const socialTab = useStore((s) => s.socialTab)
   const openSocial = useStore((s) => s.openSocial)
   const handleNav = (it: NavItem) => {
+    useStore.setState((s) => ({ navTick: s.navTick + 1 }))
     if (it.tab) openSocial(it.tab)
     else setView(it.view)
     onNavigate?.()
