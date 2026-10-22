@@ -237,7 +237,7 @@ async function storyBody(p: KitParams, t: KitTheme, withBg: boolean, withDecor =
   const dsz = ev ? 40 : 42, dtr = ev ? 7 : 8;
   const B = cap(25) + g1 + inkH + g2 + g3 + cap(dsz) + g4 + cap(30);
   /* even spacing: logo to writing, writing to poster, poster to the bottom button (or the small icon) are the same distance */
-  const withQR = !ev && !!p.wa, PH = withQR ? 640 : 906, PW = Math.round(PH * 0.8), PX = Math.round((1080 - PW) / 2), bottom = withQR ? 1490 : 1800, space = Math.floor((bottom - 204 - B - PH) / 3)
+  const withQR = !ev && !!p.wa, PH = withQR ? 640 : 906, PW = Math.round(PH * 0.75), PX = Math.round((1080 - PW) / 2), bottom = withQR ? 1490 : 1800, space = Math.floor((bottom - 204 - B - PH) / 3)
   const y = 204 + space, PY = bottom - space - PH;
   x.font = "700 25px ManropeA"; kick(x, p.kicker, CX, y + cap(25), 7, rg(dim(t.c2, .72)));
   const ty = y + cap(25) + g1, base = ty + inkH;
@@ -252,7 +252,7 @@ async function storyBody(p: KitParams, t: KitTheme, withBg: boolean, withDecor =
   const R = 0;
   x.save(); x.shadowColor = "rgba(40,30,60,.28)"; x.shadowBlur = 40; x.shadowOffsetY = 14; rr(x, PX, PY, PW, PH, R); x.fillStyle = "#f6f3ee"; x.fill(); x.restore();
   x.save(); rr(x, PX, PY, PW, PH, R); x.clip();
-  if (p.im) { fitCover(x, p.im, PX, PY, PW, PH) } else { x.fillStyle = "#f6f3ee"; x.fillRect(PX, PY, PW, PH); x.font = "700 23px ManropeA"; spaced(x, "POSTER 4:5", CX, PY + PH / 2 + 8, 6, rg(t.ink, .45)); }
+  if (p.im) { fitCover(x, p.im, PX, PY, PW, PH) } else { x.fillStyle = "#f6f3ee"; x.fillRect(PX, PY, PW, PH); x.font = "700 23px ManropeA"; spaced(x, "POSTER 3:4", CX, PY + PH / 2 + 8, 6, rg(t.ink, .45)); }
   x.restore();
   // bottom: a QR code of the WhatsApp group (a story cannot carry a tappable link from the app), or the small club icon
   if (withQR) {
@@ -265,7 +265,7 @@ async function storyBody(p: KitParams, t: KitTheme, withBg: boolean, withDecor =
   if (withBg) grain(x, 1080, 1920); return c;
 }
 
-/* "this session is canceled": the same look as the kit but always in reds, with the poster, as a story (1080x1920) or a post (1080x1350) */
+/* "this session is canceled": the same look as the kit but always in reds, with the poster, as a story (1080x1920) or a post (1080x1440, 3:4) */
 export interface CancelInfo { reason: string; next?: string }
 export async function makeCancel(p: KitParams, t0: KitTheme, shape: "story" | "post", info: CancelInfo) {
   const t: KitTheme = { ...t0, c1: [128, 12, 32], c2: [236, 68, 52], ink: [74, 14, 22] };
@@ -274,9 +274,9 @@ export async function makeCancel(p: KitParams, t0: KitTheme, shape: "story" | "p
   glow(x, 540, 960, t.c2);
   if (t.decor !== "none") x.drawImage(await svgLayer(DECOR[t.decor](t.c1, t.c2)), 0, 0);
   const story = shape === "story";
-  const out = story ? full : cv(1080, 1350);
+  const out = story ? full : cv(1080, 1440);
   const g = story ? x : out.getContext("2d")!;
-  if (!story) g.drawImage(full, 0, 285, 1080, 1350, 0, 0, 1080, 1350);
+  if (!story) g.drawImage(full, 0, 240, 1080, 1440, 0, 0, 1080, 1440);
   const redGrad = (a: number, b: number) => grad(g, a, b, t.c1, t.c2);
   const wrap = (txt: string, maxW: number, font: string, maxLines: number) => {
     g.font = font;
@@ -324,7 +324,7 @@ export async function makeCancel(p: KitParams, t0: KitTheme, shape: "story" | "p
   };
   const nextText = info.next ? "SEE YOU " + info.next : "SEE YOU AT THE NEXT ONE";
   if (story) {
-    const PH = 640, PW = Math.round(PH * .8);
+    const PH = 640, PW = Math.round(PH * .75);
     poster(CX - PW / 2, y, PW, PH);
     y += PH + 60;
     g.font = "700 24px ManropeA"; spaced(g, "WAS PLANNED FOR", CX, y, 6, rg(t.ink, .6));
@@ -336,7 +336,7 @@ export async function makeCancel(p: KitParams, t0: KitTheme, shape: "story" | "p
     g.font = "700 30px ManropeA"; const nw = fit(g, sz => `700 ${sz}px ManropeA`, nextText, 900, 30, 5); g.font = `700 ${nw}px ManropeA`; spaced(g, nextText, CX, y, 5, redGrad(CX - 300, CX + 300));
     await drawIcon(g, p.icon, CX, 1856, 56, t.c1, t.c2);
   } else {
-    const PH = 600, PW = Math.round(PH * .8), px = 70;
+    const PH = 600, PW = Math.round(PH * .75), px = 70;
     poster(px, y, PW, PH);
     const rcx = px + PW + (1080 - px - (px + PW)) / 2, colW = 1080 - 70 - (px + PW) - 50;
     let ry = y + 26;
@@ -352,9 +352,9 @@ export async function makeCancel(p: KitParams, t0: KitTheme, shape: "story" | "p
     ry += ch;
     y += PH + 56;
     g.font = "700 30px ManropeA"; const nw = fit(g, sz => `700 ${sz}px ManropeA`, nextText, 900, 30, 5); g.font = `700 ${nw}px ManropeA`; spaced(g, nextText, CX, y, 5, redGrad(CX - 300, CX + 300));
-    await drawIcon(g, p.icon, CX, Math.min(1290, y + 70), 52, t.c1, t.c2);
+    await drawIcon(g, p.icon, CX, Math.min(1380, y + 70), 52, t.c1, t.c2);
   }
-  grain(g, 1080, story ? 1920 : 1350);
+  grain(g, 1080, story ? 1920 : 1440);
   return out;
 }
 /* a rounded square with smooth corners (a superellipse), the outline WhatsApp gives a community icon */
