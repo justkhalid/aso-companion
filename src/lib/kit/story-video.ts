@@ -1,7 +1,7 @@
 /* a club or event story as a short looping video (MP4 where the browser can make one, else WebM) */
 import { cv, makeStoryAnim, type KitParams, type KitTheme } from './engine'
 
-export async function storyVideo(p: KitParams, t: KitTheme, o: { onProgress?: (p: number) => void } = {}): Promise<{ blob: Blob; ext: 'mp4' | 'webm' }> {
+export async function storyVideo(p: KitParams, t: KitTheme, o: { onProgress?: (p: number) => void; forPost?: boolean } = {}): Promise<{ blob: Blob; ext: 'mp4' | 'webm' }> {
   const anim = await makeStoryAnim(p, t)
   const types: [string, 'mp4' | 'webm'][] = [['video/mp4;codecs=avc1.640028', 'mp4'], ['video/mp4', 'mp4'], ['video/webm;codecs=vp9', 'webm'], ['video/webm', 'webm']]
   const pick = types.find(([m]) => typeof MediaRecorder !== 'undefined' && MediaRecorder.isTypeSupported(m))
@@ -10,7 +10,7 @@ export async function storyVideo(p: KitParams, t: KitTheme, o: { onProgress?: (p
   const g = c.getContext('2d')!
   anim.draw(g, 0)
   const stream = c.captureStream(30)
-  const rec = new MediaRecorder(stream, { mimeType: pick[0], videoBitsPerSecond: 8_000_000 })
+  const rec = new MediaRecorder(stream, { mimeType: pick[0], videoBitsPerSecond: o.forPost ? 1_500_000 : 8_000_000 })
   const chunks: Blob[] = []
   rec.ondataavailable = (e) => { if (e.data.size) chunks.push(e.data) }
   const done = new Promise<void>((res) => { rec.onstop = () => res() })
