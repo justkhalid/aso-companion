@@ -117,6 +117,7 @@ export interface KitOverrides {
   icon?: string // icon key of the kit icon library
   bg?: number // background of the story and the WhatsApp picture, 0 to 7
   glass?: number // strength of the glass waves, 0 to 100 (default 100)
+  ground?: string // color of the ground under the waves (pearl, cream, silver, ...)
   motion?: number // movement of the story video: 0 still, 1 gentle (default), 2 lively
   cap?: string // caption for the post
   wa?: string // WhatsApp group link

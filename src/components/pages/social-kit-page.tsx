@@ -16,7 +16,7 @@ import { posterThumb } from '@/lib/poster-url'
 import type { Club, EventEntry, KitOverrides } from '@/lib/types'
 import { DECOR_NAMES, LOOKS, rg } from '@/lib/kit/decor'
 import { KIT_ICONS } from '@/lib/kit/icons'
-import { cv, fitCover, iconCanvas, loadImage, loadKitFonts, makeCover, makeHighlight, makeStory, makeStoryAnim } from '@/lib/kit/engine'
+import { cv, fitCover, iconCanvas, loadImage, loadKitFonts, makeCover, makeHighlight, makeStory, makeStoryAnim, GROUNDS } from '@/lib/kit/engine'
 import { KICKERS, kitDiff, kitParams, kitRec, kitSlug, kitTheme, type KitRec } from '@/lib/kit/derive'
 
 type Kind = 'club' | 'event'
@@ -641,7 +641,7 @@ function KitEditor({ kind, id, onBack, onManage, onEditSchedule }: { kind: Kind;
   /* the pictures */
   const [out, setOut] = React.useState<{ story: HTMLCanvasElement; cover: HTMLCanvasElement | null; highlight: HTMLCanvasElement } | null>(null)
   const [updating, setUpdating] = React.useState(true)
-  const visual = R ? [R.kicker, R.top, R.word, R.look, R.palette, R.decor, R.icon, R.bg, R.glass, R.motion, R.day, R.time, R.venue, R.poster ?? ''].join('|') : ''
+  const visual = R ? [R.kicker, R.top, R.word, R.look, R.palette, R.decor, R.icon, R.bg, R.glass, R.ground, R.motion, R.day, R.time, R.venue, R.poster ?? ''].join('|') : ''
   React.useEffect(() => {
     if (!R) return
     let live = true
@@ -860,7 +860,21 @@ function KitEditor({ kind, id, onBack, onManage, onEditSchedule }: { kind: Kind;
 
                 <Block title="Background and glass">
                   <div>
-                    <Lab hint="The waves behind the writing. Used by the story and the WhatsApp picture.">Background</Lab>
+                    <Lab hint="The color of the background picture itself, under the waves. Used by the story, the WhatsApp picture and the highlight cover.">Background color</Lab>
+                    <div className="grid grid-cols-3 gap-2 sm:grid-cols-5">
+                      {Object.entries(GROUNDS).map(([k, [label, tint]]) => {
+                        const sw = k === 'look' ? `linear-gradient(135deg,${rg(theme.c1, .35)},${rg(theme.c2, .35)})` : tint ? rg(tint, .7) : 'rgb(244,240,232)'
+                        return (
+                          <button key={k} type="button" onClick={() => set('ground', k)} aria-pressed={R.ground === k} className={cn('flex flex-col gap-1 rounded-xl border p-1.5 text-left text-[11px] font-bold transition', R.ground === k ? 'border-primary bg-primary/5 ring-2 ring-primary' : 'border-border bg-card hover:bg-secondary')}>
+                            <span className="h-7 rounded-md border border-black/5" style={{ background: sw }} />
+                            <span className="leading-tight">{label}</span>
+                          </button>
+                        )
+                      })}
+                    </div>
+                  </div>
+                  <div>
+                    <Lab hint="The glass waves picture behind the writing. Used by the story and the WhatsApp picture.">Wave picture</Lab>
                     <div className="grid grid-cols-4 gap-2">
                       {Array.from({ length: 8 }, (_, i) => (
                         <button key={i} type="button" onClick={() => set('bg', i)} aria-pressed={R.bg === i} className={cn('overflow-hidden rounded-lg border p-0', R.bg === i ? 'border-primary ring-2 ring-primary' : 'border-border')} aria-label={`Background ${i + 1}`}>

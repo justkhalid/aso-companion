@@ -2,6 +2,7 @@
    Ported from the generator; the layout numbers are unchanged. Browser only. */
 import { KIT_ICONS } from './icons'
 import { DECOR, rg, type RGB } from './decor'
+import { makeDecorAnim } from './decor-anim'
 
 export interface KitParams {
   im: HTMLImageElement | null // the framed poster, or null for the empty slot
@@ -15,7 +16,7 @@ export interface KitParams {
   icon: string
   mode: 'club' | 'event'
 }
-export interface KitTheme { c1: RGB; c2: RGB; ink: RGB; decor: string; bg: number; glass?: number; motion?: number }
+export interface KitTheme { c1: RGB; c2: RGB; ink: RGB; decor: string; bg: number; glass?: number; motion?: number; ground?: string }
 
 const FONT_FILES: [string, string, string, string][] = [
   ['Bodoni', 'bodoni500i', '500', 'italic'],
@@ -116,27 +117,57 @@ function storyBg(t: KitTheme): string {
 
 const glassOf = (t: KitTheme) => Math.max(0, Math.min(100, t.glass === undefined ? 100 : t.glass)) / 100
 /* the glass waves are a picture laid over the plain pearl ground; the strength is how much of it shows */
-async function paintGlass(x: Ctx, src: string, a: number) {
-  x.drawImage(await get(KIT_BG_BASE), 0, 0, x.canvas.width, x.canvas.height)
+/* the ground under the waves: the pearl picture, or the same picture washed with a color */
+export const GROUNDS: Record<string, [label: string, tint: RGB | null, strength: number]> = {
+  pearl: ["Pearl", null, 0],
+  cream: ["Warm cream", [250, 226, 176], .55],
+  silver: ["Cool silver", [190, 204, 226], .6],
+  blush: ["Blush", [246, 196, 208], .55],
+  mint: ["Mint mist", [186, 232, 212], .55],
+  sky: ["Sky", [184, 214, 246], .6],
+  lilac: ["Lilac", [208, 196, 242], .55],
+  sand: ["Sand", [232, 208, 172], .6],
+  look: ["Colors of the look", null, 0],
+}
+export async function groundCanvas(_t: KitTheme, w: number, h: number) {
+  const c = cv(w, h), x = c.getContext("2d")!
+  x.drawImage(await get(KIT_BG_BASE), 0, 0, w, h)
+  return c
+}
+/* the wash of color over the ground and the waves together (multiply keeps the light glints) */
+function washOf(t: KitTheme): [RGB, number] | null {
+  const g = GROUNDS[t.ground || "pearl"] || GROUNDS.pearl
+  if (t.ground === "look") return [[0, 1, 2].map(i => Math.round(t.c1[i] * .35 + t.c2[i] * .15 + 255 * .5)) as RGB, .9]
+  return g[1] ? [g[1], Math.min(1, g[2] + .1)] : null
+}
+function wash(x: Ctx, t: KitTheme, w: number, h: number) {
+  const k = washOf(t); if (!k) return
+  x.save(); x.globalCompositeOperation = "multiply"; x.globalAlpha = k[1]; x.fillStyle = rg(k[0]); x.fillRect(0, 0, w, h); x.restore()
+}
+async function paintGlass(x: Ctx, src: string, a: number, t: KitTheme) {
+  x.drawImage(await groundCanvas(t, x.canvas.width, x.canvas.height), 0, 0)
   if (a > 0) { x.save(); x.globalAlpha = a; x.drawImage(await get(src), 0, 0); x.restore() }
+  wash(x, t, x.canvas.width, x.canvas.height)
 }
 
 export async function makeStory(p: KitParams, t: KitTheme) { return storyBody(p, t, true) }
 
 /* the story as a moving picture: the glass waves drift and a soft light sweeps across, the writing and the poster stay still */
 export async function makeStoryAnim(p: KitParams, t: KitTheme, loop = 10) {
-  const fg = await storyBody(p, t, false), base = await get(KIT_BG_BASE), glassImg = await get(storyBg(t))
+  const fg = await storyBody(p, t, false, false), base = await groundCanvas(t, 1080, 1920), glassImg = await get(storyBg(t)), deco = await makeDecorAnim(t.decor, t.c1, t.c2)
   const a = glassOf(t), k = t.motion === undefined ? 1 : t.motion
   return {
     loop,
     draw(x: Ctx, time: number) {
       const ph = (2 * Math.PI * time) / loop
       x.drawImage(base, 0, 0, 1080, 1920)
+      if (a <= 0) wash(x, t, 1080, 1920)
       if (a > 0) {
         x.save(); x.globalAlpha = a
         x.translate(540, 960); x.scale(1.07 + 0.015 * k * Math.sin(ph), 1.07 + 0.015 * k * Math.sin(ph))
         x.translate(Math.sin(ph) * 16 * k, Math.cos(ph) * 24 * k)
         x.drawImage(glassImg, -540, -960); x.restore()
+        wash(x, t, 1080, 1920)
         if (k > 0) {
           const u = (time / loop) % 1, pos = -700 + u * (1080 + 1920 + 1400) / 1
           const g = x.createLinearGradient(pos - 350, pos - 350, pos + 350, pos + 350)
@@ -144,17 +175,18 @@ export async function makeStoryAnim(p: KitParams, t: KitTheme, loop = 10) {
           x.save(); x.globalCompositeOperation = "screen"; x.fillStyle = g; x.fillRect(0, 0, 1080, 1920); x.restore()
         }
       }
+      deco?.draw(x, time, loop, k)
       x.drawImage(fg, 0, 0)
       grain(x, 1080, 1920)
     },
   }
 }
 
-async function storyBody(p: KitParams, t: KitTheme, withBg: boolean) {
+async function storyBody(p: KitParams, t: KitTheme, withBg: boolean, withDecor = true) {
   const c = cv(1080, 1920), x = c.getContext("2d")!, CX = 540;
-  if (withBg) await paintGlass(x, storyBg(t), glassOf(t));
+  if (withBg) await paintGlass(x, storyBg(t), glassOf(t), t);
   glow(x, 540, 1300, t.c2);
-  if (t.decor !== "none") x.drawImage(await svgLayer(DECOR[t.decor](t.c1, t.c2)), 0, 0);
+  if (withDecor && t.decor !== "none") x.drawImage(await svgLayer(DECOR[t.decor](t.c1, t.c2)), 0, 0);
   await drawLogo(x, CX, 165, 78);
   const ev = p.mode === "event", single = !p.top, [g1, g2, g3, g4] = ev ? [40, 46, 46, 26] : single ? [62, 64, 66, 34] : [40, 46, 46, 26];
   const cap = (px: number, k = .72) => Math.floor(px * k);
@@ -188,7 +220,7 @@ async function storyBody(p: KitParams, t: KitTheme, withBg: boolean) {
 }
 export async function makeCover(p: KitParams, t: KitTheme) {
   const c = cv(1080, 1080), x = c.getContext("2d")!, CX = 540;
-  await paintGlass(x, KIT_BG_COVERS[t.bg] || KIT_BG_COVERS[0], glassOf(t));
+  await paintGlass(x, KIT_BG_COVERS[t.bg] || KIT_BG_COVERS[0], glassOf(t), t);
   glow(x, 540, 580, t.c2);
   if (t.decor !== "none" && t.decor !== "brain") { x.save(); x.translate(0, -420); x.drawImage(await svgLayer(DECOR[t.decor](t.c1, t.c2)), 0, 0); x.restore(); }
   await drawLogo(x, CX, 95, 62);
@@ -208,7 +240,7 @@ export async function makeCover(p: KitParams, t: KitTheme) {
 /* Instagram highlight cover: shown as a circle cut from the middle of a 9:16 picture, so the icon sits in the center */
 export async function makeHighlight(p: KitParams, t: KitTheme) {
   const c = cv(1080, 1920), x = c.getContext("2d")!
-  x.drawImage(await get(KIT_BG_BASE), 0, 0);
+  x.drawImage(await groundCanvas(t, 1080, 1920), 0, 0); wash(x, t, 1080, 1920);
   glow(x, 540, 960, t.c2);
   if (t.decor !== "none") x.drawImage(await svgLayer(DECOR[t.decor](t.c1, t.c2)), 0, 0);
   await drawIcon(x, p.icon, 540, 960, 640, t.c1, t.c2);
