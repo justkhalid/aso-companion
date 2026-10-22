@@ -1,11 +1,11 @@
 'use client'
 
 import * as React from 'react'
-import { Send, AlertTriangle, Sparkles, UserX, ArrowRight, Ban, UserCheck, CalendarClock, Clock, Sun } from 'lucide-react'
+import { Send, AlertTriangle, Sparkles, UserX, ArrowRight, Ban, UserCheck, CalendarClock, Clock, Sun, GraduationCap, BookUser } from 'lucide-react'
 import { useStore } from '@/lib/store'
 import { DAY_KEYS } from '@/lib/constants'
 import { PageHead, Chip } from '@/components/ui-bits'
-import { fmtAbsenceRange, isoOf, nextOccurrence, termStatus, classStatusOn, clubStatusOn, clubWhere, eventStatusOn, eventWhere, isOnceEvent, fmtTime, parseSlot } from '@/lib/app-utils'
+import { peopleOf, rolesOf, fmtAbsenceRange, isoOf, nextOccurrence, termStatus, classStatusOn, clubStatusOn, clubWhere, eventStatusOn, eventWhere, isOnceEvent, fmtTime, parseSlot } from '@/lib/app-utils'
 import { Button } from '@/components/ui/button'
 import { openQuickAdd } from '@/components/admin/quick-add'
 import { PostQueue } from '@/components/post-queue'
@@ -20,6 +20,10 @@ export function DashboardPage() {
   const setView = useStore((s) => s.setView)
   const openSocial = useStore((s) => s.openSocial)
   const [calTab, setCalTab] = React.useState<CalTab>('cluev')
+  const [lib, setLib] = React.useState<{ available: boolean; connected: boolean; summary?: { total: number; thisMonth: number; cardsToPrint: number; noPhoto: number } } | null>(null)
+  React.useEffect(() => {
+    fetch('/api/members?summary=1', { cache: 'no-store' }).then((r) => (r.ok ? r.json() : null)).then(setLib).catch(() => setLib(null))
+  }, [])
   const toPost = React.useMemo(() => postQueue(state).length, [state])
 
   const now = new Date()
@@ -46,6 +50,33 @@ export function DashboardPage() {
     ...state.clubs.filter((c) => !c.poster && !c.placeholder).map((c) => ({ text: `${c.name} has no poster`, view: 'intern-clubs' as View })),
   ]
 
+  /* the main numbers, in three groups */
+  const people = peopleOf(state)
+  const upcomingEvents = state.events.filter((e) => nextOccurrence(e)).length
+  const libStats: { label: string; value: string | number; view: View }[] = lib?.connected && lib.summary
+    ? [
+        { label: 'Members', value: lib.summary.total, view: 'members' },
+        { label: 'Joined this month', value: lib.summary.thisMonth, view: 'members' },
+        { label: 'Cards to print', value: lib.summary.cardsToPrint, view: 'members' },
+        { label: 'No photo', value: lib.summary.noPhoto, view: 'members' },
+      ]
+    : [{ label: 'Members', value: '-', view: 'members' }]
+  const stats: { title: string; icon: React.ElementType; items: { label: string; value: string | number; view: View }[]; note?: string }[] = [
+    { title: 'Clubs and events', icon: Sparkles, items: [
+      { label: 'Clubs', value: state.clubs.length, view: 'intern-clubs' },
+      { label: 'Upcoming events', value: upcomingEvents, view: 'intern-events' },
+      { label: 'On the calendar', value: state.clubs.length + upcomingEvents, view: 'clubs' },
+      { label: 'Posters ready', value: state.clubs.filter((c) => !!c.poster).length + state.events.filter((e) => !!e.poster).length, view: 'social' },
+    ] },
+    { title: 'Classes', icon: GraduationCap, items: [
+      { label: 'Classes', value: state.classes.length, view: 'classes' },
+      { label: 'Teachers', value: people.filter((p) => rolesOf(p).includes('Teacher')).length, view: 'team' },
+      { label: 'Levels', value: state.levels.length, view: 'eltaso' },
+      { label: 'Rooms', value: 4, view: 'rooms' },
+    ] },
+    { title: 'ASO Library', icon: BookUser, items: libStats, note: !lib ? undefined : !lib.available ? "Members open only in the app on the director's computer." : !lib.connected ? 'The members sheet is not connected yet. Open Members to connect it.' : undefined },
+  ]
+
   /* one row of buttons for the jobs done most */
   type Job = { label: string; icon: React.ElementType; go: () => void; badge?: number }
   const jobs: Job[] = [
@@ -65,7 +96,25 @@ export function DashboardPage() {
         subtitle={`${now.toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long' })} · ${week}`}
       />
 
-      {/* 1. today, and what needs her */}
+      {/* 1. the main numbers */}
+      <nav aria-label="Statistics" className="mb-4 grid gap-3 md:grid-cols-3">
+        {stats.map((x) => (
+          <section key={x.title} className="flex flex-col rounded-2xl border border-border bg-card p-4 shadow-sm">
+            <h2 className="flex items-center gap-2 text-sm font-extrabold tracking-tight"><x.icon className="h-4 w-4 text-primary" aria-hidden /> {x.title}</h2>
+            <div className="mt-3 grid flex-1 grid-cols-2 gap-2">
+              {x.items.map((t) => (
+                <button key={t.label} onClick={() => setView(t.view)} className="rounded-xl bg-secondary/60 p-2.5 text-left transition hover:bg-secondary">
+                  <span className="block text-xl font-extrabold leading-none tabular-nums">{t.value}</span>
+                  <span className="text-xs font-semibold text-muted-foreground">{t.label}</span>
+                </button>
+              ))}
+            </div>
+            {x.note && <p className="mt-3 text-xs text-muted-foreground">{x.note}</p>}
+          </section>
+        ))}
+      </nav>
+
+      {/* 2. today, and what needs her */}
       <div className="mb-4 grid gap-4 lg:grid-cols-2">
         <section aria-label="Today" className="rounded-2xl border border-border bg-card p-4 shadow-sm">
           <h2 className="mb-3 flex items-center gap-2 text-sm font-extrabold tracking-tight"><Sun className="h-4 w-4 text-primary" aria-hidden /> Today</h2>
@@ -131,7 +180,7 @@ export function DashboardPage() {
         </section>
       </div>
 
-      {/* 2. the jobs done most, in one row */}
+      {/* 3. the jobs done most, in one row */}
       <nav aria-label="Shortcuts" className="mb-4 flex flex-wrap gap-2">
         {jobs.map((j) => (
           <button key={j.label} onClick={j.go} className="relative inline-flex h-10 items-center gap-2 rounded-full border border-border bg-card px-4 text-sm font-bold shadow-sm transition hover:border-primary/40 hover:bg-secondary">
@@ -141,7 +190,7 @@ export function DashboardPage() {
         ))}
       </nav>
 
-      {/* 3. the calendar, editable: tap a session to edit it, drag it to move it */}
+      {/* 4. the calendar, editable: tap a session to edit it, drag it to move it */}
       <section aria-label="Calendar" className="rounded-2xl border border-border bg-card p-4 shadow-sm">
         <UnifiedCalendar tab={calTab} onTab={setCalTab} />
       </section>

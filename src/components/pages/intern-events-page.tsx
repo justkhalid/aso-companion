@@ -58,7 +58,7 @@ export function InternEventsPage() {
                 {e.place && <span className="inline-flex items-center gap-1"><MapPin className="h-3.5 w-3.5" /> {e.outside ? 'Outside: ' : ''}{e.place}</span>}
               </div>
               {e.lead && <div className="mt-1.5 inline-flex items-center gap-1 text-xs font-semibold"><User className="h-3.5 w-3.5" /> Lead: {e.lead}</div>}
-              <div className="mt-2 flex items-center justify-end gap-1.5">
+              <div className="mt-2 flex flex-wrap items-center justify-end gap-1.5">
                 <Button variant="outline" size="sm" onClick={() => openSocial('event', { kind: 'event', id: e.id })}><Send className="h-3.5 w-3.5" /> Poster and post</Button>
                 <RowActions
                   name={e.title}
