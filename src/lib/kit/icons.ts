@@ -6,10 +6,10 @@ export const KIT_ICONS: Record<string, { label: string; stroke: string; accent: 
   "stroke": "<circle cx=\"12\" cy=\"12\" r=\"9.2\" fill=\"none\"/><circle cx=\"12\" cy=\"6.4\" r=\"1.9\" fill=\"none\"/><circle cx=\"17.6\" cy=\"12\" r=\"1.9\" fill=\"none\"/><circle cx=\"12\" cy=\"17.6\" r=\"1.9\" fill=\"none\"/><circle cx=\"6.4\" cy=\"12\" r=\"1.9\" fill=\"none\"/>",
   "accent": "<circle cx=\"12\" cy=\"12\" r=\"1.7\" fill=\"#000\" stroke=\"none\"/>"
  },
- "i-links": {
-  "label": "Links",
-  "stroke": "<path d=\"M10 13.4a4.4 4.4 0 0 0 6.6.5l3-3a4.4 4.4 0 0 0-6.2-6.2l-1.7 1.7\" fill=\"none\"/><path d=\"M14 10.6a4.4 4.4 0 0 0-6.6-.5l-3 3a4.4 4.4 0 0 0 6.2 6.2l1.7-1.7\" fill=\"none\"/>",
-  "accent": "<circle cx=\"20.4\" cy=\"19.8\" r=\"0.9\" fill=\"#000\" stroke=\"none\"/><circle cx=\"3.6\" cy=\"4.2\" r=\"0.9\" fill=\"#000\" stroke=\"none\"/>"
+ "i-whatsapp": {
+  "label": "WhatsApp",
+  "stroke": "<path d=\"M8.2 20.4A9.4 9.4 0 1 0 3.6 15.8L2.2 21.8z\" fill=\"none\"/><path d=\"M9 7.8c-.8.6-1 1.6-.6 2.8.9 2.4 2.9 4.2 5.3 5 1.1.4 2.1.2 2.6-.7l.2-.8-2-1.1-.9.8c-1-.4-1.9-1.3-2.3-2.3l.8-.9-1-2z\" fill=\"none\"/>",
+  "accent": ""
  },
  "i-speaking": {
   "label": "Public speaking",

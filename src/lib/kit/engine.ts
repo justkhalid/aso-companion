@@ -219,7 +219,7 @@ async function storyBody(p: KitParams, t: KitTheme, withBg: boolean, withDecor =
   const dsz = ev ? 40 : 42, dtr = ev ? 7 : 8;
   const B = cap(25) + g1 + inkH + g2 + g3 + cap(dsz) + g4 + cap(30);
   /* even spacing: logo to writing, writing to poster, poster to the bottom button (or the small icon) are the same distance */
-  const withQR = !ev && !!p.wa, PH = withQR ? 740 : 906, PW = Math.round(PH * 0.75), PX = Math.round((1080 - PW) / 2), bottom = withQR ? 1610 : 1800, space = Math.floor((bottom - 204 - B - PH) / 3)
+  const withQR = !ev && !!p.wa, PH = withQR ? 700 : 906, PW = Math.round(PH * 0.75), PX = Math.round((1080 - PW) / 2), bottom = withQR ? 1560 : 1800, space = Math.floor((bottom - 204 - B - PH) / 3)
   const y = 204 + space, PY = bottom - space - PH;
   x.font = "700 25px ManropeA"; kick(x, p.kicker, CX, y + cap(25), 7, rg(dim(t.c2, .72)));
   const ty = y + cap(25) + g1, base = ty + inkH;
@@ -238,11 +238,10 @@ async function storyBody(p: KitParams, t: KitTheme, withBg: boolean, withDecor =
   x.restore();
   // bottom: a QR code of the WhatsApp group (a story cannot carry a tappable link from the app), or the small club icon
   if (withQR) {
-    const QS = 200, left = CX - 310, top = 1650, tx = left + QS + 36;
-    drawQR(x, p.wa!, left, top, QS);
-    x.font = "700 30px ManropeA"; spacedLeft(x, "SCAN TO JOIN", tx, top + 62, 5, grad(x, tx, tx + 340, t.c1, t.c2));
-    x.font = "700 30px ManropeA"; spacedLeft(x, "THE WHATSAPP GROUP", tx, top + 104, 3, rg(t.ink, .9));
-    x.font = "500 23px ManropeA"; spacedLeft(x, "or find the link in our highlights", tx, top + 150, 1, rg(t.ink, .6));
+    const QS = 190, top = 1590;
+    drawQR(x, p.wa!, CX - QS / 2, top, QS);
+    x.font = "700 28px ManropeA"; spaced(x, "SCAN TO JOIN THE WHATSAPP GROUP", CX, top + QS + 52, 5, grad(x, CX - 400, CX + 400, t.c1, t.c2));
+    x.font = "500 23px ManropeA"; spaced(x, "or find the link in our highlights", CX, top + QS + 92, 1, rg(t.ink, .6));
   } else await drawIcon(x, p.icon, CX, 1838, 64, t.c1, t.c2);
   if (withBg) grain(x, 1080, 1920); return c;
 }
@@ -297,41 +296,30 @@ export async function makeHighlight(p: KitParams, t: KitTheme) {
   grain(x, 1080, 1920); return c;
 }
 
-/* the "Links" highlight: a story listing the clubs' WhatsApp groups, each with its QR code. Six clubs to a story. */
-export interface LinkItem { name: string; icon: string; url: string; c1: RGB; c2: RGB }
-export async function makeLinksStories(items: LinkItem[], t: KitTheme): Promise<HTMLCanvasElement[]> {
-  const per = 6, pages: HTMLCanvasElement[] = [];
-  for (let i = 0; i < Math.max(1, items.length); i += per) {
-    const chunk = items.slice(i, i + per), c = cv(1080, 1920), x = c.getContext("2d")!, CX = 540;
-    await paintGlass(x, storyBg(t), glassOf(t), t);
-    glow(x, 540, 1300, t.c2);
-    await drawLogo(x, CX, 165, 78);
-    x.font = "700 25px ManropeA"; kick(x, "JOIN THE CLUBS", CX, 330, 7, rg(dim(t.c2, .72)));
-    const fw = fit(x, s => `italic 600 ${s}px Bodoni`, "Our groups", 800, 150, -4), cw = capOf(x, fw, 600);
-    gradTitle(x, "Our groups", CX, 360 + cw, fw, -4, 600, t.c1, t.c2);
-    const hl = 360 + cw + 50; x.fillStyle = grad(x, CX - 260, CX + 260, t.c1, t.c2); x.fillRect(CX - 260, hl, 520, 3);
-    const top = hl + 70, areaH = 1700 - top, rh = Math.min(210, Math.floor(areaH / Math.max(chunk.length, 1))), ph = rh - 26;
-    for (let k = 0; k < chunk.length; k++) {
-      const it = chunk[k], y = top + k * rh, L = 90, W = 900;
-      x.save(); x.shadowColor = "rgba(40,30,60,.2)"; x.shadowBlur = 30; x.shadowOffsetY = 10; rr(x, L, y, W, ph, 40); x.fillStyle = "rgba(250,247,241,.94)"; x.fill(); x.restore();
-      x.strokeStyle = grad(x, L, L + W, it.c1, it.c2); x.lineWidth = 3; rr(x, L, y, W, ph, 40); x.stroke();
-      await drawIconFit(x, it.icon, L + 95, y + ph / 2, 100, 100, it.c1, it.c2);
-      const qs = ph - 36, tx = L + 190, maxW = W - 190 - qs - 60;
-      const fs = fit(x, s => `700 ${s}px ManropeA`, it.name, maxW, 40, 0);
-      x.font = `700 ${fs}px ManropeA`; spacedLeft(x, it.name, tx, y + ph / 2 - 4, 0, rg(t.ink));
-      x.font = "700 20px ManropeA"; spacedLeft(x, "WHATSAPP GROUP", tx, y + ph / 2 + 34, 4, rg(dim(it.c2, .75)));
-      if (it.url) drawQR(x, it.url, L + W - qs - 20, y + 18, qs);
-    }
-    grain(x, 1080, 1920); pages.push(c);
-  }
-  return pages;
+/* the "Links" highlight story: the ASO community with the WhatsApp icon and a big QR code, all on the centre line */
+export async function makeLinksStory(url: string, t: KitTheme) {
+  const c = cv(1080, 1920), x = c.getContext("2d")!, CX = 540;
+  await paintGlass(x, storyBg(t), glassOf(t), t);
+  glow(x, 540, 1100, t.c2);
+  await drawLogo(x, CX, 165, 78);
+  x.font = "700 25px ManropeA"; kick(x, "JOIN THE", CX, 340, 7, rg(dim(t.c2, .72)));
+  const fw = fit(x, s => `italic 600 ${s}px Bodoni`, "ASO Community", 820, 170, -5), cw = capOf(x, fw, 600);
+  gradTitle(x, "ASO Community", CX, 372 + cw, fw, -5, 600, t.c1, t.c2);
+  const hl = 372 + cw + 52; x.fillStyle = grad(x, CX - 260, CX + 260, t.c1, t.c2); x.fillRect(CX - 260, hl, 520, 3);
+  await drawIconFit(x, "i-whatsapp", CX, hl + 170, 190, 190, t.c1, t.c2);
+  const QS = 540, qt = hl + 320;
+  drawQR(x, url, CX - QS / 2, qt, QS);
+  x.font = "700 30px ManropeA"; spaced(x, "SCAN TO JOIN THE", CX, qt + QS + 74, 6, rg(t.ink, .92));
+  x.font = "700 30px ManropeA"; spaced(x, "WHATSAPP COMMUNITY", CX, qt + QS + 120, 6, grad(x, CX - 300, CX + 300, t.c1, t.c2));
+  x.font = "500 24px ManropeA"; spaced(x, "or tap the link below", CX, qt + QS + 176, 1, rg(t.ink, .6));
+  grain(x, 1080, 1920); return c;
 }
-/* the round cover of the "Links" highlight: a chain link on the same ground as the club covers */
+/* the round cover of the "Links" highlight: the WhatsApp icon on the same ground as the club covers */
 export async function makeLinksCover(t: KitTheme) {
   const c = cv(1080, 1920), x = c.getContext("2d")!;
   x.drawImage(await groundCanvas(t, 1080, 1920), 0, 0); wash(x, t, 1080, 1920);
   glow(x, 540, 960, t.c2);
-  await drawIconFit(x, "i-links", 540, 960, 640, 640, t.c1, t.c2);
+  await drawIconFit(x, "i-whatsapp", 540, 960, 640, 640, t.c1, t.c2);
   grain(x, 1080, 1920); return c;
 }
 /* the club icon alone, on a transparent background */

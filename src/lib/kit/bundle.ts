@@ -1,7 +1,7 @@
 /* The whole social kit in one zip: for every club and event the poster, story, WhatsApp picture, highlight cover, icon and caption, plus a month calendar. */
 import type { Club, EventEntry, State } from '../types'
 import { kitRec, kitParams, kitSlug, kitTheme, type KitRec } from './derive'
-import { loadKitFonts, makeCover, makeHighlight, makeIconPng, makeLinksCover, makeLinksStories, makeStory, type LinkItem } from './engine'
+import { loadKitFonts, makeCover, makeHighlight, makeIconPng, makeLinksCover, makeLinksStory, makeStory } from './engine'
 import { zipFiles } from './zip'
 
 type File = { name: string; blob: Blob }
@@ -40,20 +40,17 @@ export async function kitFiles(R: KitRec, folder: string): Promise<File[]> {
   return files
 }
 
-/** the "Links" highlight: story pages listing every club group with its QR code, and the round cover */
-export async function linksFiles(state: State, folder = 'Links'): Promise<File[]> {
+/** the ASO community group: the one link of the "Links" highlight */
+export const ASO_COMMUNITY_URL = 'https://chat.whatsapp.com/JPpn70ho996IAKS1bNjCTm'
+
+/** the "Links" highlight: one story (the ASO community, its WhatsApp icon and QR code) and the round cover */
+export async function linksFiles(_state?: State, folder = 'Links'): Promise<File[]> {
   await loadKitFonts()
-  const items: LinkItem[] = state.clubs.filter((c) => !c.placeholder && c.url).map((c) => {
-    const R = kitRec('club', c), t = kitTheme(R)
-    return { name: R.name, icon: R.icon, url: c.url as string, c1: t.c1, c2: t.c2 }
-  })
-  if (!items.length) return []
   const t = kitTheme({ look: 'aso', palette: 'same', decor: 'same', bg: 0 })
-  const files: File[] = []
-  const pages = await makeLinksStories(items, t)
-  for (let i = 0; i < pages.length; i++) files.push({ name: `${folder}/links-story-${i + 1}.jpg`, blob: await jpg(pages[i]) })
-  files.push({ name: `${folder}/links-highlight-cover.jpg`, blob: await jpg(await makeLinksCover(t)) })
-  return files
+  return [
+    { name: `${folder}/links-story.jpg`, blob: await jpg(await makeLinksStory(ASO_COMMUNITY_URL, t)) },
+    { name: `${folder}/links-highlight-cover.jpg`, blob: await jpg(await makeLinksCover(t)) },
+  ]
 }
 
 export interface BundleOptions {
