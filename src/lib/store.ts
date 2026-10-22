@@ -161,17 +161,6 @@ function pickNewer(a: State, b: State): State {
 /* the theme is a per-device choice kept by next-themes (light by default); the shared data no longer sets it */
 function applyTheme(_theme: Theme) {}
 
-/* autosave: wait for a quiet moment so a burst of edits becomes one save
-   (one commit) instead of one request per keystroke or click */
-let autoSaveTimer: ReturnType<typeof setTimeout> | null = null
-function scheduleAutoSave(run: () => Promise<unknown>) {
-  if (autoSaveTimer) clearTimeout(autoSaveTimer)
-  autoSaveTimer = setTimeout(() => {
-    autoSaveTimer = null
-    void run().catch(() => {})
-  }, 2500)
-}
-
 async function gzipText(text: string): Promise<Blob | null> {
   try {
     if (typeof CompressionStream === 'undefined') return null
@@ -217,7 +206,6 @@ export const useStore = create<UIStore>((set, get) => ({
   markUnsaved: () => {
     if (get().admin) lsSet(DIRTY_KEY, String(get().state._rev || 0))
     set({ saveStatus: get().saveStatus === 'saving' ? 'saving' : 'unsaved' })
-    if (get().admin && get().state.settings.ghAutoSave) scheduleAutoSave(() => get().saveToCloud({ background: true }))
   },
   state: seedState(),
   boot: 'idle',
@@ -685,7 +673,7 @@ export const useStore = create<UIStore>((set, get) => ({
     set((st) => ({ toasts: st.toasts.filter((t) => t.id !== id) })),
 }))
 
-/* leaving with unsaved changes: ask first, and try to save the moment the page is hidden */
+/* leaving with unsaved changes: ask first */
 if (typeof window !== 'undefined') {
   window.addEventListener('beforeunload', (e) => {
     const st = useStore.getState()
@@ -694,9 +682,14 @@ if (typeof window !== 'undefined') {
       e.returnValue = ''
     }
   })
-  document.addEventListener('visibilitychange', () => {
-    const st = useStore.getState()
-    if (document.visibilityState === 'hidden' && st.admin && st.saveStatus === 'unsaved') void st.saveToCloud({ background: true })
+  /* saving is manual: the Save button, or Ctrl+S / Cmd+S */
+  window.addEventListener('keydown', (e) => {
+    if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 's') {
+      const st = useStore.getState()
+      if (!st.admin) return
+      e.preventDefault()
+      if (st.saveStatus !== 'saved') void st.saveToCloud()
+    }
   })
 }
 
