@@ -57,8 +57,8 @@ export function DashboardPage() {
     { label: 'Events', hint: 'Add or edit an event', icon: CalendarClock, go: () => setView('intern-events') },
     { label: 'Report an absence', hint: 'Cancel or cover a session', icon: UserX, go: () => openQuickAdd('absence') },
   ]
-  const group = (title: string, accent: string, tint: string, jobs: Job[]) => (
-    <section aria-label={title} className={`rounded-2xl border border-border border-t-4 bg-card p-4 shadow-sm ${accent}`}>
+  const group = (title: string, tint: string, jobs: Job[]) => (
+    <section aria-label={title} className={`rounded-2xl border border-border bg-card p-4 shadow-sm`}>
       <h2 className="mb-3 text-sm font-extrabold tracking-tight">{title}</h2>
       <div className="grid gap-2">
         {jobs.map((j) => (
@@ -78,21 +78,21 @@ export function DashboardPage() {
   const week = st.mode === 's1' || st.mode === 's2' ? `Week ${st.week}` : st.mode === 'before' ? `Year starts in ${st.daysTo} days` : st.mode === 'break' ? 'Winter break' : 'Year complete'
 
   return (
-    <div className="mx-auto max-w-6xl px-4 py-6 sm:py-8">
+    <div className="mx-auto max-w-5xl px-4 py-6 sm:py-8">
       <PageHead
         title="Home"
         subtitle={`${now.toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long' })} · ${week}`}
       />
 
       {/* 1. the calendar: clubs and events, classes or free rooms; as the designed month picture or as a week; each with its download */}
-      <section aria-label="Calendar" className="mb-4 rounded-2xl border border-border border-t-4 border-t-primary bg-card p-4 shadow-sm">
+      <section aria-label="Calendar" className="mb-4 rounded-2xl border border-border bg-card p-4 shadow-sm">
         <UnifiedCalendar tab={calTab} onTab={setCalTab} />
       </section>
 
       <div className="grid gap-4 lg:grid-cols-[minmax(0,1.5fr)_minmax(0,1fr)]">
         {/* 2. today: what is on, who is away, what needs her */}
-        <section aria-label="Today" className="rounded-2xl border border-border border-t-4 border-t-emerald-500 bg-card p-4 shadow-sm">
-          <h2 className="mb-3 flex items-center gap-2 text-sm font-extrabold tracking-tight"><Sun className="h-4 w-4 text-emerald-600" aria-hidden /> Today</h2>
+        <section aria-label="Today" className="rounded-2xl border border-border bg-card p-4 shadow-sm">
+          <h2 className="mb-3 flex items-center gap-2 text-sm font-extrabold tracking-tight"><Sun className="h-4 w-4 text-primary" aria-hidden /> Today</h2>
 
           <h3 className="mb-1.5 text-[11px] font-bold uppercase tracking-wider text-muted-foreground">Sessions</h3>
           {sessions.length === 0 ? (
@@ -153,8 +153,8 @@ export function DashboardPage() {
 
         {/* 3. shortcuts, in two groups of their own colour */}
         <div className="grid content-start gap-4">
-          {group('Posting', 'border-t-violet-500', 'bg-violet-500/10 text-violet-600 dark:text-violet-300', posting)}
-          {group('Manage', 'border-t-amber-500', 'bg-amber-500/10 text-amber-600 dark:text-amber-300', managing)}
+          {group('Posting', 'bg-primary/10 text-primary', posting)}
+          {group('Manage', 'bg-[var(--aso-gold)]/15 text-[var(--aso-gold)]', managing)}
         </div>
       </div>
     </div>
