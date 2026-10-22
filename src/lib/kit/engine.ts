@@ -265,63 +265,96 @@ async function storyBody(p: KitParams, t: KitTheme, withBg: boolean, withDecor =
   if (withBg) grain(x, 1080, 1920); return c;
 }
 
-/* "this session is canceled": the same look as the kit, as a story (1080x1920) or a post (1080x1350, the middle of the same picture) */
+/* "this session is canceled": the same look as the kit but always in reds, with the poster, as a story (1080x1920) or a post (1080x1350) */
 export interface CancelInfo { reason: string; next?: string }
-export async function makeCancel(p: KitParams, t: KitTheme, shape: "story" | "post", info: CancelInfo) {
+export async function makeCancel(p: KitParams, t0: KitTheme, shape: "story" | "post", info: CancelInfo) {
+  const t: KitTheme = { ...t0, c1: [128, 12, 32], c2: [236, 68, 52], ink: [74, 14, 22] };
   const full = cv(1080, 1920), x = full.getContext("2d")!, CX = 540;
   await paintGlass(x, storyBg(t), glassOf(t), t);
   glow(x, 540, 960, t.c2);
   if (t.decor !== "none") x.drawImage(await svgLayer(DECOR[t.decor](t.c1, t.c2)), 0, 0);
-  const off = shape === "story" ? 0 : 285;
-  const out = shape === "story" ? full : cv(1080, 1350);
-  const g = shape === "story" ? x : out.getContext("2d")!;
-  if (shape === "post") g.drawImage(full, 0, off, 1080, 1350, 0, 0, 1080, 1350);
-  const y0 = shape === "story" ? 210 : 70;
-  await drawLogo(g, CX, shape === "story" ? 165 : 120, shape === "story" ? 78 : 64);
-  /* the writing, laid out from the top to the bottom with fixed gaps */
-  let y = y0 + (shape === "story" ? 330 : 175);
-  g.font = "700 25px ManropeA"; kick(g, "SESSION UPDATE", CX, y, 8, rg(dim(t.c2, .72)));
-  y += 56;
-  const fs = fit(g, sz => `italic 600 ${sz}px Bodoni`, "CANCELED", 860, 190, -6), cap = capOf(g, fs, 600);
-  y += cap; gradTitle(g, "CANCELED", CX, y, fs, -6, 600, t.c1, t.c2);
-  y += 52;
-  const name = [p.top, p.word].filter(Boolean).join(" ");
-  const nfs = fit(g, sz => `700 ${sz}px ManropeA`, name, 880, 46, 6);
-  g.font = `700 ${nfs}px ManropeA`; spaced(g, name, CX, y + Math.floor(nfs * .72), 6, rg(t.ink));
-  y += Math.floor(nfs * .72) + 40;
-  g.fillStyle = grad(g, CX - 260, CX + 260, t.c1, t.c2); g.fillRect(CX - 260, y, 520, 3);
-  y += 62;
-  /* what was planned, crossed out */
-  g.font = "700 24px ManropeA"; spaced(g, "WAS PLANNED FOR", CX, y, 6, rg(t.ink, .6));
-  y += 54;
-  const was = [p.day, p.time].filter(Boolean).join("   |   ");
-  g.font = "700 38px ManropeA"; spaced(g, was, CX, y, 5, rg(t.ink, .85));
-  const ww = measure(g, was, 5); g.fillStyle = rg(t.c2, .9); g.fillRect(CX - ww / 2 - 10, y - 13, ww + 20, 4);
-  y += 88;
-  /* the reason in a soft glass card */
-  const reason = (info.reason || "").trim();
-  if (reason) {
-    g.font = "500 36px ManropeA";
-    const words = reason.split(/\s+/), lines: string[] = []; let cur = "";
-    for (const w of words) { const tryL = cur ? cur + " " + w : w; if (g.measureText(tryL).width > 740 && cur) { lines.push(cur); cur = w; } else cur = tryL; }
+  const story = shape === "story";
+  const out = story ? full : cv(1080, 1350);
+  const g = story ? x : out.getContext("2d")!;
+  if (!story) g.drawImage(full, 0, 285, 1080, 1350, 0, 0, 1080, 1350);
+  const redGrad = (a: number, b: number) => grad(g, a, b, t.c1, t.c2);
+  const wrap = (txt: string, maxW: number, font: string, maxLines: number) => {
+    g.font = font;
+    const lines: string[] = []; let cur = "";
+    for (const w of txt.trim().split(/\s+/).filter(Boolean)) { const tl = cur ? cur + " " + w : w; if (g.measureText(tl).width > maxW && cur) { lines.push(cur); cur = w; } else cur = tl; }
     if (cur) lines.push(cur);
-    const shown = lines.slice(0, 5); if (lines.length > 5) shown[4] = shown[4].replace(/\s*\S*$/, "") + "...";
-    const lh = 54, ch = shown.length * lh + 70, cw = 860, cx0 = CX - cw / 2;
-    g.save(); g.shadowColor = "rgba(40,30,60,.18)"; g.shadowBlur = 30; g.shadowOffsetY = 10; rr(g, cx0, y, cw, ch, 36); g.fillStyle = "rgba(255,255,255,.72)"; g.fill(); g.restore();
-    g.save(); rr(g, cx0, y, cw, ch, 36); g.lineWidth = 3; g.strokeStyle = grad(g, cx0, cx0 + cw, t.c1, t.c2); g.stroke(); g.restore();
-    g.textAlign = "center"; g.fillStyle = rg(t.ink); g.font = "500 36px ManropeA";
-    shown.forEach((l, i) => g.fillText(l, CX, y + 35 + 40 + i * lh - 6));
+    if (lines.length > maxLines) { lines.length = maxLines; lines[maxLines - 1] = lines[maxLines - 1].replace(/\s*\S*$/, "") + "..."; }
+    return lines;
+  };
+  /* the poster, grey-toned, with a red CANCELED ribbon across it */
+  const poster = (px: number, py: number, pw: number, ph: number) => {
+    g.save(); g.shadowColor = "rgba(60,10,20,.30)"; g.shadowBlur = 36; g.shadowOffsetY = 14; rr(g, px, py, pw, ph, 38); g.fillStyle = "#f6f3ee"; g.fill(); g.restore();
+    g.save(); rr(g, px, py, pw, ph, 38); g.clip();
+    if (p.im) { g.filter = "grayscale(.65) brightness(.96)"; fitCover(g, p.im, px, py, pw, ph); g.filter = "none"; } else { g.fillStyle = "#f6f3ee"; g.fillRect(px, py, pw, ph); }
+    g.fillStyle = "rgba(128,12,32,.16)"; g.fillRect(px, py, pw, ph);
+    g.translate(px + pw / 2, py + ph / 2); g.rotate(-Math.PI / 9);
+    const bw = pw * 1.5, bh = Math.max(64, pw * .15);
+    g.fillStyle = grad(g, -bw / 2, bw / 2, t.c1, t.c2); g.shadowColor = "rgba(0,0,0,.3)"; g.shadowBlur = 16; g.fillRect(-bw / 2, -bh / 2, bw, bh); g.shadowBlur = 0;
+    g.font = `700 ${Math.round(bh * .42)}px ManropeA`; spaced(g, "CANCELED", 0, Math.round(bh * .15), 9, "#ffffff");
+    g.restore();
+  };
+  const name = [p.top, p.word].filter(Boolean).join(" ");
+  const was = [p.day, p.time].filter(Boolean).join("   |   ");
+  await drawLogo(g, CX, story ? 165 : 110, story ? 78 : 60);
+  g.font = "700 25px ManropeA"; kick(g, "SESSION UPDATE", CX, story ? 300 : 195, 8, rg(dim(t.c2, .72)));
+  const fs = fit(g, sz => `italic 600 ${sz}px Bodoni`, "CANCELED", 860, story ? 180 : 160, -6), cap = capOf(g, fs, 600);
+  let y = (story ? 300 : 195) + 50 + cap;
+  gradTitle(g, "CANCELED", CX, y, fs, -6, 600, t.c1, t.c2);
+  y += 46;
+  const nfs = fit(g, sz => `700 ${sz}px ManropeA`, name, 880, story ? 44 : 40, 6);
+  g.font = `700 ${nfs}px ManropeA`; spaced(g, name, CX, y + Math.floor(nfs * .72), 6, rg(t.ink));
+  y += Math.floor(nfs * .72) + 34;
+  g.fillStyle = redGrad(CX - 260, CX + 260); g.fillRect(CX - 260, y, 520, 3);
+  y += 50;
+  const reasonCard = (cx: number, top: number, cw: number, maxLines: number, fsz: number) => {
+    const lines = wrap(info.reason || "", cw - 70, `500 ${fsz}px ManropeA`, maxLines);
+    if (!lines.length) return 0;
+    const lh = Math.round(fsz * 1.45), ch = lines.length * lh + 52, x0 = cx - cw / 2;
+    g.save(); g.shadowColor = "rgba(80,10,20,.16)"; g.shadowBlur = 28; g.shadowOffsetY = 8; rr(g, x0, top, cw, ch, 32); g.fillStyle = "rgba(255,255,255,.74)"; g.fill(); g.restore();
+    g.save(); rr(g, x0, top, cw, ch, 32); g.lineWidth = 3; g.strokeStyle = redGrad(x0, x0 + cw); g.stroke(); g.restore();
+    g.textAlign = "center"; g.fillStyle = rg(t.ink); g.font = `500 ${fsz}px ManropeA`;
+    lines.forEach((l, i) => g.fillText(l, cx, top + 26 + fsz + i * lh - 8));
     g.textAlign = "left";
-    y += ch + 64;
-  }
-  if (info.next) {
-    g.font = "700 24px ManropeA"; spaced(g, "SEE YOU", CX, y, 6, rg(t.ink, .6));
-    y += 52; g.font = "700 40px ManropeA"; spaced(g, info.next, CX, y, 5, grad(g, CX - 300, CX + 300, t.c1, t.c2));
+    return ch;
+  };
+  const nextText = info.next ? "SEE YOU " + info.next : "SEE YOU AT THE NEXT ONE";
+  if (story) {
+    const PH = 640, PW = Math.round(PH * .75);
+    poster(CX - PW / 2, y, PW, PH);
+    y += PH + 60;
+    g.font = "700 24px ManropeA"; spaced(g, "WAS PLANNED FOR", CX, y, 6, rg(t.ink, .6));
+    y += 50; g.font = "700 36px ManropeA"; spaced(g, was, CX, y, 5, rg(t.ink, .85));
+    const ww = measure(g, was, 5); g.fillStyle = rg(t.c2, .95); g.fillRect(CX - ww / 2 - 10, y - 12, ww + 20, 4);
+    y += 52;
+    const ch = reasonCard(CX, y, 860, 3, 32);
+    y += ch + (ch ? 56 : 0) + 24;
+    g.font = "700 30px ManropeA"; const nw = fit(g, sz => `700 ${sz}px ManropeA`, nextText, 900, 30, 5); g.font = `700 ${nw}px ManropeA`; spaced(g, nextText, CX, y, 5, redGrad(CX - 300, CX + 300));
+    await drawIcon(g, p.icon, CX, 1856, 56, t.c1, t.c2);
   } else {
-    g.font = "700 28px ManropeA"; spaced(g, "SEE YOU AT THE NEXT ONE", CX, y, 6, grad(g, CX - 300, CX + 300, t.c1, t.c2));
+    const PH = 600, PW = Math.round(PH * .75), px = 70;
+    poster(px, y, PW, PH);
+    const rcx = px + PW + (1080 - px - (px + PW)) / 2, colW = 1080 - 70 - (px + PW) - 30;
+    let ry = y + 26;
+    g.font = "700 22px ManropeA"; spaced(g, "WAS PLANNED FOR", rcx, ry, 5, rg(t.ink, .6));
+    ry += 48;
+    for (const part of [p.day, p.time].filter(Boolean)) {
+      g.font = "700 32px ManropeA"; spaced(g, part, rcx, ry, 4, rg(t.ink, .85));
+      const w = measure(g, part, 4); g.fillStyle = rg(t.c2, .95); g.fillRect(rcx - w / 2 - 8, ry - 11, w + 16, 4);
+      ry += 48;
+    }
+    ry += 14;
+    const ch = reasonCard(rcx, ry, colW, 5, 28);
+    ry += ch;
+    y += PH + 56;
+    g.font = "700 30px ManropeA"; const nw = fit(g, sz => `700 ${sz}px ManropeA`, nextText, 900, 30, 5); g.font = `700 ${nw}px ManropeA`; spaced(g, nextText, CX, y, 5, redGrad(CX - 300, CX + 300));
+    await drawIcon(g, p.icon, CX, Math.min(1290, y + 70), 52, t.c1, t.c2);
   }
-  await drawIcon(g, p.icon, CX, shape === "story" ? 1838 : Math.min(1290, y + 90), 64, t.c1, t.c2);
-  grain(g, 1080, shape === "story" ? 1920 : 1350);
+  grain(g, 1080, story ? 1920 : 1350);
   return out;
 }
 /* a rounded square with smooth corners (a superellipse), the outline WhatsApp gives a community icon */

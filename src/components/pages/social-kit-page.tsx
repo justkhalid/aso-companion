@@ -613,7 +613,7 @@ const shortPlaceholder = (name: string) => name.replace(/^American Space\s+/i, '
 const inputCls = 'w-full rounded-lg border border-border bg-background px-3 py-2 text-sm outline-none focus:border-primary'
 
 type Section = 'content' | 'look' | 'caption' | 'publish' | 'cancel'
-const SECTIONS: [Section, string][] = [['content', 'Poster and name'], ['look', 'Look'], ['caption', 'Caption'], ['publish', 'Publish'], ['cancel', 'Canceled?']]
+const SECTIONS: [Section, string][] = [['content', 'Poster and name'], ['look', 'Look'], ['caption', 'Caption'], ['publish', 'Share'], ['cancel', 'Canceled?']]
 
 function KitEditor({ kind, id, onBack, onManage, onEditSchedule }: { kind: Kind; id: string; onBack: () => void; onManage: () => void; onEditSchedule: (item: Club | EventEntry) => void }) {
   const list = useStore((s) => (kind === 'club' ? s.state.clubs : s.state.events)) as (Club | EventEntry)[]
@@ -745,6 +745,7 @@ function KitEditor({ kind, id, onBack, onManage, onEditSchedule }: { kind: Kind;
       setVideoBusy(null)
     }
   }
+  const dlPoster = async () => { if (R.poster) saveBlob((await posterBlobs(R.poster)).poster45, `${sl}-poster-4x5.jpg`) }
   const dlBoth = () => { dlStory(); if (out?.cover) setTimeout(dlCover, 600) }
 
   return (
@@ -755,15 +756,13 @@ function KitEditor({ kind, id, onBack, onManage, onEditSchedule }: { kind: Kind;
           <h1 className="truncate text-xl font-extrabold tracking-tight">{title}</h1>
           <p className="text-xs text-muted-foreground">{updating ? 'Updating the pictures...' : 'Changes are saved with the ' + kind + '.'}</p>
         </div>
-        <Button size="sm" variant="outline" disabled={!out} onClick={() => void dlKit()}><Download className="h-4 w-4" /> Full kit (zip)</Button>
-        <Button size="sm" disabled={!out} onClick={dlBoth}><Download className="h-4 w-4" /> {kind === 'club' ? 'Download both pictures' : 'Download story'}</Button>
       </div>
 
       <div className="grid gap-6 lg:grid-cols-[minmax(0,5fr)_minmax(0,6fr)] lg:items-start">
         {/* the pictures, always in view while settings change: the story, the poster and the WhatsApp picture under them */}
         <div className="flex min-w-0 flex-col gap-4 lg:sticky lg:top-20">
           <div className="grid grid-cols-2 items-start gap-3">
-            <PreviewCard title="Instagram story" note={live && R.motion !== 0 ? 'moving' : undefined} canvas={live ?? out?.story ?? null} onDownload={dlStory} extra={<Button type="button" variant="outline" size="sm" disabled={!live || videoBusy !== null} onClick={() => void dlVideo()}>{videoBusy !== null ? <><Loader2 className="h-4 w-4 animate-spin" /> {Math.round(videoBusy * 100)}%</> : <><Play className="h-4 w-4" /> Video</>}</Button>} />
+            <PreviewCard title="Instagram story" note={live && R.motion !== 0 ? 'moving' : undefined} canvas={live ?? out?.story ?? null} />
             <section className="flex flex-col gap-2.5 rounded-2xl border border-border bg-card p-3">
               <h3 className="flex items-baseline justify-between gap-2 text-xs font-extrabold">Poster <span className="text-[11px] font-medium text-muted-foreground">Instagram 4:5</span></h3>
               <div className="overflow-hidden rounded-lg border border-border bg-secondary" style={{ aspectRatio: '4 / 5' }}>
@@ -773,7 +772,7 @@ function KitEditor({ kind, id, onBack, onManage, onEditSchedule }: { kind: Kind;
           </div>
           {kind === 'club' && (
             <div className="mx-auto w-full max-w-[220px]">
-              <PreviewCard title="WhatsApp picture" note="shown round" canvas={out?.cover ?? null} round onDownload={dlCover} />
+              <PreviewCard title="WhatsApp picture" note="shown round" canvas={out?.cover ?? null} round />
             </div>
           )}
         </div>
@@ -986,6 +985,16 @@ function KitEditor({ kind, id, onBack, onManage, onEditSchedule }: { kind: Kind;
               </>
             )}
             {section === 'publish' && (
+              <>
+              <ShareFiles
+                items={[
+                  { label: 'Story picture', hint: 'PNG, 9:16', icon: Download, on: dlStory, off: !out },
+                  { label: videoBusy !== null ? `Recording ${Math.round(videoBusy * 100)}%` : 'Story video', hint: 'MP4, moving', icon: videoBusy !== null ? Loader2 : Play, on: () => void dlVideo(), off: !live || videoBusy !== null },
+                  { label: 'Poster', hint: 'JPG, 4:5', icon: Download, on: () => void dlPoster(), off: !R.poster },
+                  ...(kind === 'club' ? [{ label: 'WhatsApp picture', hint: 'PNG, round', icon: Download, on: dlCover, off: !out?.cover }] : []),
+                  { label: 'Everything', hint: 'ZIP of all files', icon: Download, on: () => void dlKit(), off: !out },
+                ]}
+              />
               <PublishPanel
                 storyCanvas={out?.story ?? null}
                 poster={R.poster}
@@ -1003,6 +1012,7 @@ function KitEditor({ kind, id, onBack, onManage, onEditSchedule }: { kind: Kind;
                   if (target) target.kit = { ...(target.kit || {}), posts: [...(target.kit?.posts || []), { t: new Date().toISOString(), to: done, sig: kitSig(kind, target) }] }
                 })}
               />
+              </>
             )}
             {section === 'cancel' && (
               <CancelPanel R={R} theme={theme} title={title} slug={sl} onManage={onManage} />
@@ -1019,7 +1029,7 @@ function KitEditor({ kind, id, onBack, onManage, onEditSchedule }: { kind: Kind;
   )
 }
 
-function PreviewCard({ title, note, canvas, round, crop, onDownload, extra }: { extra?: React.ReactNode; title: string; note?: string; canvas: HTMLCanvasElement | null; round?: boolean; crop?: boolean; onDownload: () => void }) {
+function PreviewCard({ title, note, canvas, round, crop, onDownload, extra }: { extra?: React.ReactNode; title: string; note?: string; canvas: HTMLCanvasElement | null; round?: boolean; crop?: boolean; onDownload?: () => void }) {
   return (
     <section className="flex flex-col gap-2.5 rounded-2xl border border-border bg-card p-3">
       <h3 className="flex items-baseline justify-between gap-2 text-xs font-extrabold">
@@ -1038,7 +1048,7 @@ function PreviewCard({ title, note, canvas, round, crop, onDownload, extra }: { 
           <div className={cn('w-full animate-pulse bg-secondary', round ? 'aspect-square rounded-full' : 'aspect-[9/16] rounded-[10px]')} />
         )}
       </div>
-      <Button type="button" variant="outline" size="sm" disabled={!canvas} onClick={onDownload}><Download className="h-4 w-4" /> Download</Button>
+      {onDownload && <Button type="button" variant="outline" size="sm" disabled={!canvas} onClick={onDownload}><Download className="h-4 w-4" /> Download</Button>}
       {extra}
     </section>
   )
@@ -1189,6 +1199,7 @@ function PublishPanel({ storyCanvas, poster, feedCanvas, caption, only, posts, o
 
   return (
     <>
+      <div className="grid gap-5 sm:grid-cols-2">
       <Block title="Connection">
         {status === null && <p className="text-xs text-muted-foreground">Checking...</p>}
         {status === 'signin' && <SignInAgain />}
@@ -1222,6 +1233,7 @@ function PublishPanel({ storyCanvas, poster, feedCanvas, caption, only, posts, o
           )}
         </Block>
       )}
+      </div>
 
       <Block title="Where to post">
         <div className="grid grid-cols-2 gap-2">
@@ -1243,7 +1255,7 @@ function PublishPanel({ storyCanvas, poster, feedCanvas, caption, only, posts, o
           </div>
         )}
         {needsPicture && <p className="flex items-center gap-1.5 text-xs font-semibold text-[var(--aso-gold)]"><CircleAlert className="h-3.5 w-3.5" /> The posts need a poster. Add one under Poster and name.</p>}
-        <Button type="button" className="self-start" disabled={!ready || busy || (!storyCanvas && !feedCanvas) || chosen.length === 0 || needsPicture || (later && !at)} onClick={() => setConfirm(true)}>
+        <Button type="button" className="w-full" disabled={!ready || busy || (!storyCanvas && !feedCanvas) || chosen.length === 0 || needsPicture || (later && !at)} onClick={() => setConfirm(true)}>
           {busy ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />} {rec !== null ? `Recording ${Math.round(rec * 100)}%` : busy ? (later ? 'Saving' : 'Posting') : later ? 'Schedule' : 'Post now'}
         </Button>
         {asVideo && (only === 'story' || !only) && <p className="text-[11px] text-muted-foreground">The animation is recorded first (about 16 seconds, keep this page open), then sent. Any song you chose is in it.</p>}
@@ -1683,5 +1695,24 @@ function CancelPanel({ R, theme, title, slug, onManage }: { R: KitRec; theme: Re
       </div>
       <PublishPanel storyCanvas={pics?.story ?? null} poster={null} feedCanvas={pics?.post ?? null} caption={caption} onManage={onManage} scheduleLabel={`${title}: canceled`} />
     </div>
+  )
+}
+
+
+function ShareFiles({ items }: { items: { label: string; hint: string; icon: React.ElementType; on: () => void; off?: boolean }[] }) {
+  return (
+    <Block title="Files to download">
+      <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
+        {items.map((it) => {
+          const Icon = it.icon
+          return (
+            <button key={it.label} type="button" disabled={it.off} onClick={it.on} className="flex h-full items-center gap-2.5 rounded-xl border border-border bg-card p-3 text-left transition hover:bg-secondary disabled:opacity-50">
+              <Icon className={cn('h-4 w-4 shrink-0 text-primary', it.icon === Loader2 && 'animate-spin')} />
+              <span className="min-w-0"><span className="block text-[13px] font-bold leading-tight">{it.label}</span><span className="block text-[11px] text-muted-foreground">{it.hint}</span></span>
+            </button>
+          )
+        })}
+      </div>
+    </Block>
   )
 }

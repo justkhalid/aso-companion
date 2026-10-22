@@ -49,7 +49,7 @@ export function SessionCard({
           {leads.length ? leads.map((n) => <span key={n} className="rounded-full bg-secondary px-2.5 py-0.5 text-[13px] font-semibold">{n}</span>) : <span className="text-[13px] font-semibold text-[var(--aso-gold)]">Needs a lead</span>}
         </div>
         <div className="mt-auto pt-4"><div className="flex flex-wrap items-center justify-between gap-2 border-t border-border pt-3">
-          {archived ? <span className="text-xs font-semibold text-muted-foreground">Archived</span> : <Button size="sm" onClick={onPost}><Send className="h-3.5 w-3.5" /> Poster and post</Button>}
+          {archived ? <span className="text-xs font-semibold text-muted-foreground">Archived</span> : <Button size="sm" onClick={onPost}><Send className="h-3.5 w-3.5" /> Share</Button>}
           <RowActions name={title} onEdit={onEdit} onDuplicate={onDuplicate} remove={remove} extra={extraMenu} deleteNote={deleteNote} />
         </div></div>
       </div>
