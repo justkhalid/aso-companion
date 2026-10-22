@@ -9,6 +9,7 @@ import { peopleOf, rolesOf, fmtAbsenceRange, isoOf, nextOccurrence, termStatus, 
 import { Button } from '@/components/ui/button'
 import { openQuickAdd } from '@/components/admin/quick-add'
 import { PostQueue } from '@/components/post-queue'
+import { isClubOver, isClassOver } from '@/lib/archive'
 import { UnifiedCalendar } from '@/components/unified-calendar'
 import type { CalTab } from '@/components/calendar-switch'
 import { postQueue } from '@/lib/post-queue'
@@ -32,6 +33,8 @@ export function DashboardPage() {
   const today = isoOf(now)
   const dayKey = DAY_KEYS[(now.getDay() + 6) % 7]
   const st = termStatus(state)
+  const clubs = state.clubs.filter((c) => !isClubOver(c))
+  const classes = state.classes.filter((c) => !isClassOver(c))
 
   const away = (state.absences || []).filter((a) => !a.moved && a.from <= today && a.to >= today)
   const awayName = (a: (typeof away)[number]) =>
@@ -39,17 +42,17 @@ export function DashboardPage() {
 
   /* everything on today, with its status */
   const sessions = [
-    ...state.classes.filter((c) => (c.days || []).includes(dayKey)).map((c) => ({ key: c.id, title: c.code, sub: `${c.level} · ${c.teacher || 'no teacher'}`, time: c.time, room: c.room, status: classStatusOn(state, c, today) })),
-    ...state.clubs.filter((c) => (c.days || []).includes(dayKey)).map((c) => ({ key: c.id, title: c.name, sub: `Club · ${c.lead || 'no lead'}`, time: clubWhere(state, c, today).time, room: clubWhere(state, c, today).place, status: clubStatusOn(state, c.id, today) })),
+    ...classes.filter((c) => (c.days || []).includes(dayKey)).map((c) => ({ key: c.id, title: c.code, sub: `${c.level} · ${c.teacher || 'no teacher'}`, time: c.time, room: c.room, status: classStatusOn(state, c, today) })),
+    ...clubs.filter((c) => (c.days || []).includes(dayKey)).map((c) => ({ key: c.id, title: c.name, sub: `Club · ${c.lead || 'no lead'}`, time: clubWhere(state, c, today).time, room: clubWhere(state, c, today).place, status: clubStatusOn(state, c.id, today) })),
     ...state.events.filter((e) => (isOnceEvent(e) ? e.date === today : e.day === dayKey && !!nextOccurrence(e) && isoOf(nextOccurrence(e)!) === today)).map((e) => ({ key: e.id, title: e.title, sub: e.lead ? `Event · ${e.lead}` : 'Event', time: eventWhere(state, e, today).time, room: eventWhere(state, e, today).place, status: eventStatusOn(state, e.id, today) })),
   ].sort((a, b) => parseSlot(a.time || '').mins - parseSlot(b.time || '').mins)
 
   /* things that are missing */
   const todo = [
-    ...state.clubs.filter((c) => !c.lead).map((c) => ({ text: `${c.name} has no lead`, view: 'intern-clubs' as View })),
-    ...state.classes.filter((c) => !c.teacher).map((c) => ({ text: `${c.code} has no teacher`, view: 'classes' as View })),
-    ...state.classes.filter((c) => !c.room).map((c) => ({ text: `${c.code} has no room`, view: 'classes' as View })),
-    ...state.clubs.filter((c) => !c.poster && !c.placeholder).map((c) => ({ text: `${c.name} has no poster`, view: 'intern-clubs' as View })),
+    ...clubs.filter((c) => !c.lead).map((c) => ({ text: `${c.name} has no lead`, view: 'intern-clubs' as View })),
+    ...classes.filter((c) => !c.teacher).map((c) => ({ text: `${c.code} has no teacher`, view: 'classes' as View })),
+    ...classes.filter((c) => !c.room).map((c) => ({ text: `${c.code} has no room`, view: 'classes' as View })),
+    ...clubs.filter((c) => !c.poster && !c.placeholder).map((c) => ({ text: `${c.name} has no poster`, view: 'intern-clubs' as View })),
   ]
 
   /* the main numbers, in three groups */
@@ -63,11 +66,11 @@ export function DashboardPage() {
     : [{ label: 'Members', value: '-', view: 'members' }]
   const stats: { title: string; icon: React.ElementType; items: { label: string; value: string | number; view: View }[]; note?: string }[] = [
     { title: 'Clubs and events', icon: Sparkles, items: [
-      { label: 'Clubs', value: state.clubs.length, view: 'intern-clubs' },
+      { label: 'Clubs', value: clubs.length, view: 'intern-clubs' },
       { label: 'Upcoming events', value: upcomingEvents, view: 'intern-events' },
     ] },
     { title: 'Classes', icon: GraduationCap, items: [
-      { label: 'Classes', value: state.classes.length, view: 'classes' },
+      { label: 'Classes', value: classes.length, view: 'classes' },
       { label: 'Teachers', value: people.filter((p) => rolesOf(p).includes('Teacher')).length, view: 'team' },
     ] },
     { title: 'ASO Library', icon: BookUser, items: libStats, note: !lib ? undefined : !lib.available ? "Members open only in the app on the director's computer." : !lib.connected ? 'The members sheet is not connected yet. Open Members to connect it.' : undefined },

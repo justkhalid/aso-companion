@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/button'
 import { DropdownMenuItem } from '@/components/ui/dropdown-menu'
 import { ClubDialog } from '@/components/dialogs/club-dialog'
 import { SessionCard, ArchiveGroup } from '@/components/session-card'
+import { isClubOver } from '@/lib/archive'
 import { uid, fmtTime, isoOf } from '@/lib/app-utils'
 import type { Club } from '@/lib/types'
 
@@ -24,9 +25,8 @@ export function InternClubsPage() {
   }
 
   /* a club whose series has an end date in the past is archived; everything else is current */
-  const today = isoOf(new Date())
-  const current = state.clubs.filter((c) => !(c.until && c.until < today))
-  const ended = state.clubs.filter((c) => c.until && c.until < today)
+  const current = state.clubs.filter((c) => !isClubOver(c))
+  const ended = state.clubs.filter((c) => isClubOver(c))
 
   const card = (c: Club, archived: boolean) => (
     <SessionCard

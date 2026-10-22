@@ -3,6 +3,7 @@
 import * as React from 'react'
 import { Plus, CalendarDays, Clock, MapPin, Repeat2 } from 'lucide-react'
 import { SessionCard, ArchiveGroup } from '@/components/session-card'
+import { isEventOver } from '@/lib/archive'
 import { useStore } from '@/lib/store'
 import { fmtEventWhen, nextOccurrence, fmtD, isOnceEvent, fmtTime, isoOf, parseISO } from '@/lib/app-utils'
 import { PageHead, EmptyState, Chip } from '@/components/ui-bits'
@@ -23,9 +24,7 @@ export function InternEventsPage() {
     setDialog({ open: true, event: copy })
   }
 
-  const todayIso = isoOf(new Date())
-  /* over = a one-off event whose date has passed, or a series that has ended */
-  const isOver = (e: EventEntry) => (isOnceEvent(e) ? !!e.date && e.date < todayIso : !!e.until && e.until < todayIso)
+  const isOver = (e: EventEntry) => isEventOver(e)
   const withDate = (state.events || []).map((e) => ({ e, d: nextOccurrence(e) }))
   const upcoming = withDate.filter((x) => !isOver(x.e)).sort((a, b) => (a.d ? a.d.getTime() : Infinity) - (b.d ? b.d.getTime() : Infinity))
   const past = withDate.filter((x) => isOver(x.e)).sort((a, b) => (b.e.date || b.e.until || '').localeCompare(a.e.date || a.e.until || ''))

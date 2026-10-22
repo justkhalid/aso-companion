@@ -16,6 +16,8 @@ import { posterThumb } from '@/lib/poster-url'
 import type { Club, EventEntry, KitOverrides } from '@/lib/types'
 import { DECOR, DECOR_NAMES, LOOKS, rg, type RGB } from '@/lib/kit/decor'
 import { KIT_ICONS } from '@/lib/kit/icons'
+import { ArchiveGroup } from '@/components/session-card'
+import { isOver } from '@/lib/archive'
 import { cv, fitCover, iconCanvas, loadImage, loadKitFonts, makeCancel, makeCover, makeHighlight, makeStory, makeStoryAnim, GROUNDS } from '@/lib/kit/engine'
 import { KICKERS, kitDiff, kitParams, kitRec, kitSlug, kitTheme, readableInk, type KitRec } from '@/lib/kit/derive'
 
@@ -116,7 +118,9 @@ export function SocialKitPage() {
     )
   }
 
-  const items: (Club | EventEntry)[] = tab === 'club' ? state.clubs : tab === 'event' ? state.events : []
+  const all: (Club | EventEntry)[] = tab === 'club' ? state.clubs : tab === 'event' ? state.events : []
+  const items = all.filter((x) => !isOver(tab as Kind, x))
+  const archived = all.filter((x) => isOver(tab as Kind, x))
 
   return (
     <div className="mx-auto max-w-6xl px-4 py-6 sm:py-8">
@@ -135,7 +139,7 @@ export function SocialKitPage() {
         }
       />
       <div className="mb-5 inline-flex rounded-full border border-border bg-card p-1" role="tablist" aria-label="Kind">
-        {([['todo', 'To post', null], ['club', 'Clubs', state.clubs.length], ['event', 'Events', state.events.length], ['post', 'New post', null], ['month', 'Calendar', null], ['scheduled', 'Scheduled', null], ['connection', 'Connection', null]] as const).map(([k, label, n]) => (
+        {([['todo', 'To post', null], ['club', 'Clubs', state.clubs.filter((c) => !isOver('club', c)).length], ['event', 'Events', state.events.filter((e) => !isOver('event', e)).length], ['post', 'New post', null], ['month', 'Calendar', null], ['scheduled', 'Scheduled', null], ['connection', 'Connection', null]] as const).map(([k, label, n]) => (
           <button
             key={k}
             role="tab"
@@ -164,14 +168,27 @@ export function SocialKitPage() {
         <ScheduledPanel />
       ) : tab === 'connection' ? (
         <ConnectionPanel />
-      ) : items.length === 0 ? (
+      ) : all.length === 0 ? (
         <EmptyState icon={<Sparkles className="h-5 w-5" />} title={tab === 'club' ? 'No clubs yet' : 'No events yet'} hint="Add one and its pictures appear here." />
       ) : (
-        <div className="grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-4">
-          {items.map((it) => (
-            <KitCard key={it.id} kind={tab as Kind} item={it} onOpen={() => setEditing({ kind: tab as Kind, id: it.id })} />
-          ))}
-        </div>
+        <>
+          {items.length === 0 ? (
+            <p className="rounded-2xl border border-dashed border-border p-6 text-center text-sm text-muted-foreground">Nothing current. Look in the archive.</p>
+          ) : (
+            <div className="grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-4">
+              {items.map((it) => (
+                <KitCard key={it.id} kind={tab as Kind} item={it} onOpen={() => setEditing({ kind: tab as Kind, id: it.id })} />
+              ))}
+            </div>
+          )}
+          <ArchiveGroup count={archived.length}>
+            <div className="grid grid-cols-2 gap-4 opacity-75 md:grid-cols-3 lg:grid-cols-4">
+              {archived.map((it) => (
+                <KitCard key={it.id} kind={tab as Kind} item={it} onOpen={() => setEditing({ kind: tab as Kind, id: it.id })} />
+              ))}
+            </div>
+          </ArchiveGroup>
+        </>
       )}
       <ClubDialog open={clubDlg.open} onOpenChange={(v) => setClubDlg((s) => ({ ...s, open: v }))} club={clubDlg.club} />
       <EventDialog open={eventDlg.open} onOpenChange={(v) => setEventDlg((s) => ({ ...s, open: v }))} event={eventDlg.event} />
