@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { isAdmin } from '@/lib/auth'
-import { connectMembers, disconnectMembers, loadMember, loadMembers, membersAvailable, membersConnected, summarize } from '@/lib/members'
+import { writeMember, connectMembers, disconnectMembers, loadMember, loadMembers, membersAvailable, membersConnected, summarize } from '@/lib/members'
 
 export const maxDuration = 60
 const no = () => NextResponse.json({ ok: false, msg: 'Sign in as admin' }, { status: 401 })
@@ -13,6 +13,7 @@ const headers = { 'Cache-Control': 'no-store' }
  * GET /api/members?nr=12      -> everything the sheet holds on that member
  * GET /api/members?fresh=1    -> the members, read again from the sheet
  * POST { url, key }           -> connect the sheet. DELETE -> forget it.
+ * POST { action: 'savePhoto', nr, dataUrl } or { action: 'markPrinted', nr, by } -> write to the sheet's own app tab
  * Admin only, and only in the app on the director's computer: the members are personal data and never go through the website.
  */
 export async function GET(req: NextRequest) {
@@ -34,7 +35,21 @@ export async function GET(req: NextRequest) {
 
 export async function POST(req: NextRequest) {
   if (!isAdmin(req)) return no()
-  const b = (await req.json().catch(() => ({}))) as { url?: string; key?: string }
+  const b = (await req.json().catch(() => ({}))) as { url?: string; key?: string; action?: string; nr?: number; dataUrl?: string; by?: string }
+  if (b.action === 'savePhoto' || b.action === 'markPrinted') {
+    if (!membersAvailable() || !(await membersConnected())) return NextResponse.json({ ok: false, msg: 'Not connected.' }, { headers })
+    const nr = Number(b.nr)
+    if (!nr) return NextResponse.json({ ok: false, msg: 'Bad member number.' }, { headers })
+    try {
+      if (b.action === 'savePhoto') {
+        if (!/^data:image\/\w+;base64,/.test(String(b.dataUrl || ''))) return NextResponse.json({ ok: false, msg: 'Bad photo.' }, { headers })
+        await writeMember('savePhoto', { nr, dataUrl: String(b.dataUrl) })
+      } else await writeMember('markPrinted', { nr, by: String(b.by || 'ASO Companion').slice(0, 120) })
+      return NextResponse.json({ ok: true, msg: 'Saved.' }, { headers })
+    } catch (e) {
+      return NextResponse.json({ ok: false, msg: e instanceof Error ? e.message : 'failed' }, { headers })
+    }
+  }
   return NextResponse.json(await connectMembers(String(b.url || ''), String(b.key || '')), { headers })
 }
 

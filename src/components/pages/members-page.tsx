@@ -1,13 +1,14 @@
 'use client'
 
 import * as React from 'react'
-import { AlertTriangle, ArrowDown, ArrowUp, ArrowUpDown, Check, CircleAlert, Copy, Loader2, RefreshCw, Search, Unplug, Users } from 'lucide-react'
+import { AlertTriangle, ArrowDown, ArrowUp, ArrowUpDown, Check, CircleAlert, Copy, IdCard, Loader2, RefreshCw, Search, Unplug, Users } from 'lucide-react'
 import { PageHead, EmptyState } from '@/components/ui-bits'
 import { Button } from '@/components/ui/button'
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog'
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { cn } from '@/lib/utils'
 import { useStore } from '@/lib/store'
+import { MemberCardDialog } from '@/components/dialogs/member-card-dialog'
 
 interface Member { all: Record<string, unknown>; nr: number; name: string; occupation: string; date: string; joined: string; q: unknown; cardPrinted: boolean; hasPhoto: boolean; banned: boolean; duplicates: number[] }
 interface Summary { total: number; thisMonth: number; thisYear: number; cardsToPrint: number; noPhoto: number; banned: number; withDuplicates: number }
@@ -61,6 +62,7 @@ export function MembersPage() {
   const [msg, setMsg] = React.useState<{ ok: boolean; text: string } | null>(null)
   const [confirmOff, setConfirmOff] = React.useState(false)
   const [open, setOpen] = React.useState<Member | null>(null)
+  const [making, setMaking] = React.useState<Member | null>(null)
   const [full, setFull] = React.useState<{ nr: number; data?: Record<string, unknown> | null; error?: string } | null>(null)
   const openMember = (m: Member) => {
     setOpen(m)
@@ -262,7 +264,7 @@ export function MembersPage() {
                       <td className="py-2 pr-3 font-semibold"><button type="button" onClick={() => openMember(m)} className="text-left hover:text-primary hover:underline">{m.name || '(no name)'}</button></td>
                       <td className="py-2 pr-3 capitalize text-muted-foreground">{m.occupation}</td>
                       <td className="py-2 pr-3 whitespace-nowrap text-muted-foreground">{day(m)}</td>
-                      <td className="py-2 pr-3">{m.cardPrinted ? <span className="text-[var(--aso-ok)]">Printed</span> : <span className="text-[var(--aso-gold)]">To print</span>}</td>
+                      <td className="py-2 pr-3">{m.cardPrinted ? <span className="text-[var(--aso-ok)]">Printed</span> : <button type="button" onClick={() => setMaking(m)} className="inline-flex items-center gap-1 font-semibold text-[var(--aso-gold)] hover:underline"><IdCard className="h-3.5 w-3.5" /> Make card</button>}</td>
                       <td className="py-2 pr-3">{m.hasPhoto ? 'Yes' : <span className="text-[var(--aso-gold)]">No</span>}</td>
                       <td className="py-2 text-xs">
                         {m.banned && <span className="font-bold text-destructive">Banned </span>}
@@ -306,12 +308,15 @@ export function MembersPage() {
                   </React.Fragment>
                 ))}
               </dl>
+              <Button size="sm" onClick={() => { setMaking(open); setOpen(null) }}><IdCard className="h-4 w-4" /> Make card</Button>
               {full?.nr !== open.nr && <p className="text-xs text-muted-foreground">Loading the full details...</p>}
               {full?.nr === open.nr && full.error && <p className="text-xs text-destructive">{full.error}</p>}
             </>
           )}
         </DialogContent>
       </Dialog>
+
+      <MemberCardDialog key={making?.nr ?? 0} member={making} onClose={() => setMaking(null)} onDone={() => void load(true)} />
 
       <AlertDialog open={confirmOff} onOpenChange={setConfirmOff}>
         <AlertDialogContent>

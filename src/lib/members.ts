@@ -146,6 +146,17 @@ export async function loadMember(nr: number): Promise<Record<string, unknown> | 
   return j.member || null
 }
 
+/** the two things the sheet link can write: a member's photo, and the date their card was printed */
+export async function writeMember(action: 'savePhoto' | 'markPrinted', params: Record<string, string | number>): Promise<void> {
+  const c = await conn()
+  if (!c) throw new Error('Not connected.')
+  const r = await fetch(c.url, { method: 'POST', body: JSON.stringify({ action, key: c.key, ...params }), cache: 'no-store', redirect: 'follow', signal: AbortSignal.timeout(45_000) })
+  const j = (await r.json().catch(() => null)) as { ok?: boolean; error?: string } | null
+  if (!j) throw new Error('The sheet did not answer properly.')
+  if (j.error) throw new Error(j.error)
+  cache = null
+}
+
 export interface MemberSummary { total: number; thisMonth: number; thisYear: number; cardsToPrint: number; noPhoto: number; banned: number; withDuplicates: number }
 export function summarize(members: Member[]): MemberSummary {
   const now = new Date()
