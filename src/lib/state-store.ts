@@ -88,6 +88,22 @@ function githubRawUrl(): string {
 }
 
 async function githubRead(): Promise<unknown | null> {
+  /* the repo is private: with the token, read through the GitHub API (the plain raw address answers 404 for a private repo) */
+  const token = process.env.GITHUB_PAT
+  if (token) {
+    const repo = process.env.GITHUB_REPO || 'justkhalid/aso-companion'
+    const branch = process.env.GITHUB_BRANCH || 'main'
+    const path = process.env.GITHUB_STATE_PATH || 'data/state.json'
+    try {
+      const res = await fetch(`https://api.github.com/repos/${repo}/contents/${path}?ref=${encodeURIComponent(branch)}`, {
+        cache: 'no-store',
+        headers: { Authorization: `Bearer ${token}`, Accept: 'application/vnd.github.raw+json', 'X-GitHub-Api-Version': '2022-11-28' },
+      })
+      if (res.ok) return await res.json()
+    } catch {
+      /* fall through to the public address */
+    }
+  }
   const res = await fetch(`${githubRawUrl()}?t=${Date.now()}`, {
     cache: 'no-store',
   })
