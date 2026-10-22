@@ -4,7 +4,7 @@ import * as React from 'react'
 import { Cairo, Montserrat } from 'next/font/google'
 
 const mont = Montserrat({ subsets: ['latin'], weight: ['700', '800'], display: 'swap' })
-const cairo = Cairo({ subsets: ['arabic', 'latin'], weight: ['700', '800'], display: 'swap' })
+const cairo = Cairo({ subsets: ['arabic', 'latin'], weight: ['600', '700', '800'], display: 'swap' })
 
 export type TypedKind = 'staff' | 'teacher' | 'volunteer'
 const NAVY = '#1B2A4E'
@@ -59,8 +59,8 @@ export function TypedBackground({ type, expires }: { type: TypedKind; expires: b
   return (
     <svg viewBox="0 0 1012 638" width="100%" height="100%" style={{ position: 'absolute', inset: 0 }}>
       <image href="/aso-logo.png" x="788" y="14" width="120" height="128" preserveAspectRatio="xMidYMid meet" />
-      <Fit max={560} x="692" y="74" textAnchor="end" fontSize="62" style={{ ...ar, fontWeight: 800 }} fill={RED}>الفضاء الأمريكي بوجدة</Fit>
-      <text x="692" y="132" textAnchor="end" fontSize="46" style={{ ...en, fontWeight: 800 }} fill={NAVY}>AMERICAN SPACE OUJDA</text>
+      <text x="692" y="74" textAnchor="end" fontSize="62" textLength="652" lengthAdjust="spacingAndGlyphs" style={{ ...ar, fontWeight: 800 }} fill={RED}>الفضاء الأمريكي بوجدة</text>
+      <text x="692" y="132" textAnchor="end" fontSize="46" textLength="652" lengthAdjust="spacingAndGlyphs" style={{ ...en, fontWeight: 800 }} fill={NAVY}>AMERICAN SPACE OUJDA</text>
       <rect x="40" y="154" width="650" height="4" fill={RED} />
       <rect x="726" y="154" width="246" height="4" fill={RED} />
       <rect x="40" y="162" width="650" height="2" fill={NAVY} />
@@ -70,7 +70,7 @@ export function TypedBackground({ type, expires }: { type: TypedKind; expires: b
         <g key={r.top}>
           {star8(48, r.top + 12, 0.78, RED)}
           <text x="70" y={r.top + 15} fontSize="18" letterSpacing="2.5" style={{ ...en, fontWeight: 700 }} fill={INK}>{r.en}</text>
-          <text x="692" y={r.top + 12} textAnchor="end" fontSize="21" style={ar} fill={RED}>{r.ar}</text>
+          <text x="692" y={r.top + 12} textAnchor="end" fontSize="21" style={{ ...ar, fontWeight: 600 }} fill={RED}>{r.ar}</text>
           <rect x="40" y={r.top + 79.5} width="652" height="2.5" fill={RULE} />
         </g>
       ))}
