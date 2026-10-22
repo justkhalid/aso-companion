@@ -8,13 +8,13 @@ export const KIT_ICONS: Record<string, { label: string; stroke: string; accent: 
  },
  "i-speaking": {
   "label": "Public speaking",
-  "stroke": "<circle cx=\"12\" cy=\"5.6\" r=\"2.6\" fill=\"none\"/><path d=\"M5 11h14l-1.6 10H6.6z\" fill=\"none\"/>",
-  "accent": "<path d=\"M17.6 3.4a4.6 4.6 0 0 1 0 4.4M20 2a7.2 7.2 0 0 1 0 7.2M6.4 3.4a4.6 4.6 0 0 0 0 4.4M4 2a7.2 7.2 0 0 0 0 7.2\" fill=\"none\"/>"
+  "stroke": "<circle cx=\"10\" cy=\"5\" r=\"2.4\" fill=\"none\"/><path d=\"M5.6 11.6a4.4 4.4 0 0 1 8.8 0M4.4 11.6h15.2l-1.2 3H5.6zM17.6 8.6v3\" fill=\"none\"/><rect x=\"16.4\" y=\"2.6\" width=\"2.4\" height=\"4.4\" rx=\"1.2\" fill=\"none\"/><path d=\"M15.4 5.4a2.2 2.2 0 0 0 4.4 0\" fill=\"none\"/><circle cx=\"4.9\" cy=\"18.6\" r=\"1.5\" fill=\"none\"/><circle cx=\"12\" cy=\"18.6\" r=\"1.5\" fill=\"none\"/><circle cx=\"19.1\" cy=\"18.6\" r=\"1.5\" fill=\"none\"/><path d=\"M2.2 23.2a2.7 2.7 0 0 1 5.4 0M9.3 23.2a2.7 2.7 0 0 1 5.4 0M16.4 23.2a2.7 2.7 0 0 1 5.4 0\" fill=\"none\"/>",
+  "accent": "<path d=\"M5.4 2.8a3.8 3.8 0 0 0 0 4.4M3 1.4a6.6 6.6 0 0 0 0 7.2M21.2 3.2a3 3 0 0 1 0 3.6\" fill=\"none\"/>"
  },
  "i-philo": {
   "label": "Philosophy",
-  "stroke": "<path d=\"M2.6 14.4L12 10.4l9.4 4zM5 14.6V19.6M9.7 14.6V19.6M14.3 14.6V19.6M19 14.6V19.6M3 21.4h18\" fill=\"none\"/>",
-  "accent": "<ellipse cx=\"12\" cy=\"5\" rx=\"5\" ry=\"1.9\" transform=\"rotate(60 12 5)\" fill=\"none\"/><ellipse cx=\"12\" cy=\"5\" rx=\"5\" ry=\"1.9\" transform=\"rotate(-60 12 5)\" fill=\"none\"/><circle cx=\"12\" cy=\"5\" r=\"1.1\" fill=\"#000\" stroke=\"none\"/>"
+  "stroke": "<path d=\"M8.4 5.6h7.2M9.6 5.6l.6 1.6h3.6l.6-1.6M10.2 7.2L10.6 20.2M13.8 7.2L13.4 20.2M8.6 20.2h6.8M7.6 21.8h8.8\" fill=\"none\"/><path d=\"M10.1 11.06A10 3 0 0 0 2 14A10 3 0 0 0 12 17A10 3 0 0 0 22 14A10 3 0 0 0 13.9 11.06\" fill=\"none\"/>",
+  "accent": "<path d=\"M12 0.4L12.7 1.7 14 2.4 12.7 3.1 12 4.4 11.3 3.1 10 2.4 11.3 1.7z\" fill=\"#000\" stroke=\"none\"/><circle cx=\"20.66\" cy=\"12.5\" r=\"0.95\" fill=\"#000\" stroke=\"none\"/><circle cx=\"3.34\" cy=\"15.5\" r=\"0.95\" fill=\"#000\" stroke=\"none\"/>"
  },
  "i-sports": {
   "label": "Sports ball",
