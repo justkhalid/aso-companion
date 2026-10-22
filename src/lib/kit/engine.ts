@@ -102,21 +102,19 @@ export function fitCover(ctx: Ctx, im: CanvasImageSource & { width: number; heig
 const dim = (c: RGB, k: number): RGB => c.map(v => Math.round(v * k)) as RGB;
 
 // ---------- the three outputs ----------
-/* a light wavy glass effect in two corners, for posters that came without the ASO frame */
-let waveCache: HTMLCanvasElement | null = null
-function waveLayer(w: number, h: number): HTMLCanvasElement {
-  if (waveCache) return waveCache
+/* light wavy glass lines in two corners of the whole story (top left, bottom right), in the colors of the look */
+function waveLayer(w: number, h: number, c1: RGB, c2: RGB): HTMLCanvasElement {
   const o = cv(w, h), g = o.getContext("2d")!
-  const cols = ["255,255,255", "140,180,255", "255,190,120", "255,255,255"]
+  const cols = [`rgba(${c1.join(",")},.34)`, "rgba(255,255,255,.85)", `rgba(${c2.join(",")},.32)`, "rgba(255,255,255,.7)"]
   const draw = () => {
     for (let k = 0; k < 18; k++) {
-      g.strokeStyle = `rgba(${cols[k % cols.length]},${0.52 + (k % 4) * 0.1})`
-      g.lineWidth = 3 + (k % 4) * 3
+      g.strokeStyle = cols[k % cols.length]
+      g.lineWidth = 2.5 + (k % 4) * 3
       g.beginPath()
-      const sx = k * 19 - 10, L = 340 + (k % 5) * 50
-      for (let i = 0; i <= 24; i++) {
-        const t = i / 24
-        const px = sx - t * L * 0.62 + Math.sin(t * 7 + k) * 9, py = t * L * 0.78 + Math.cos(t * 5 + k * 0.7) * 5
+      const sx = k * 24 - 10, L = 520 + (k % 5) * 70
+      for (let i = 0; i <= 30; i++) {
+        const t = i / 30
+        const px = sx - t * L * 0.62 + Math.sin(t * 7 + k) * 12, py = t * L * 0.78 + Math.cos(t * 5 + k * 0.7) * 7
         if (i) g.lineTo(px, py); else g.moveTo(px, py)
       }
       g.stroke()
@@ -126,13 +124,13 @@ function waveLayer(w: number, h: number): HTMLCanvasElement {
   g.save(); g.translate(w, h); g.rotate(Math.PI); draw(); g.restore()
   const m = cv(w, h), mg = m.getContext("2d")!
   for (const [cx, cy] of [[0, 0], [w, h]]) {
-    const gr = mg.createRadialGradient(cx, cy, 0, cx, cy, 470)
+    const gr = mg.createRadialGradient(cx, cy, 0, cx, cy, 620)
     gr.addColorStop(0, "rgba(0,0,0,1)"); gr.addColorStop(1, "rgba(0,0,0,0)")
     mg.fillStyle = gr; mg.fillRect(0, 0, w, h)
   }
   g.globalCompositeOperation = "destination-in"
   g.drawImage(m, 0, 0)
-  return (waveCache = o)
+  return o
 }
 
 export async function makeStory(p: KitParams, t: KitTheme) {
@@ -140,6 +138,7 @@ export async function makeStory(p: KitParams, t: KitTheme) {
   x.drawImage(await get(KIT_BG_BASE), 0, 0);
   glow(x, 540, 1300, t.c2);
   if (t.decor !== "none") x.drawImage(await svgLayer(DECOR[t.decor](t.c1, t.c2)), 0, 0);
+  x.drawImage(waveLayer(1080, 1920, t.c1, t.c2), 0, 0);
   await drawLogo(x, CX, 165, 78);
   const ev = p.mode === "event", single = !p.top, [g1, g2, g3, g4] = ev ? [40, 46, 46, 26] : single ? [62, 64, 66, 34] : [40, 46, 46, 26];
   const cap = (px: number, k = .72) => Math.floor(px * k);
@@ -162,7 +161,7 @@ export async function makeStory(p: KitParams, t: KitTheme) {
   const R = 44;
   x.save(); x.shadowColor = "rgba(40,30,60,.28)"; x.shadowBlur = 40; x.shadowOffsetY = 14; rr(x, 199, 857, 681, 906, R); x.fillStyle = "#f6f3ee"; x.fill(); x.restore();
   x.save(); rr(x, 199, 857, 681, 906, R); x.clip();
-  if (p.im) { fitCover(x, p.im, 199, 857, 681, 906); if (p.framed === false) { x.save(); x.filter = "blur(0.6px)"; x.globalAlpha = 1; x.drawImage(waveLayer(681, 906), 199, 857); x.restore() } } else { x.fillStyle = "#f6f3ee"; x.fillRect(199, 857, 681, 906); x.font = "700 23px ManropeA"; spaced(x, "POSTER 3:4", CX, 1318, 6, rg(t.ink, .45)); }
+  if (p.im) { fitCover(x, p.im, 199, 857, 681, 906); } else { x.fillStyle = "#f6f3ee"; x.fillRect(199, 857, 681, 906); x.font = "700 23px ManropeA"; spaced(x, "POSTER 3:4", CX, 1318, 6, rg(t.ink, .45)); }
   x.restore();
   // link pill
   if (ev) { await drawIcon(x, p.icon, CX, 1838, 64, t.c1, t.c2); grain(x, 1080, 1920); return c; }
