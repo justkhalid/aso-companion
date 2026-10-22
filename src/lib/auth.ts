@@ -88,6 +88,8 @@ export function verifySessionToken(token: string | undefined | null): boolean {
 
 export function rolesOf(req: NextRequest): Role[] {
   const roles = sessionRoles(req.cookies.get(sessionCookieName())?.value)
+  /* the director's computer: the app only answers to this computer (see the start files), so the admin needs no server session here */
+  if (isLocal() && !roles.includes('admin')) roles.push('admin')
   /* on the public website the admin is switched off: even a valid admin cookie counts for nothing */
   return publicOnly() ? roles.filter((r) => r !== 'admin') : roles
 }

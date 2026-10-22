@@ -23,7 +23,7 @@ if defined HEAD echo %HEAD%> ".next\aso-built.txt"
 
 :run
 echo [%date% %time%] starting >> aso.log
-call npx next start -p 3000 >> aso.log 2>&1
+call npx next start -H 127.0.0.1 -p 3000 >> aso.log 2>&1
 if %errorlevel%==3 goto prepare
 exit /b 0
 

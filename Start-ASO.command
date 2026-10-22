@@ -49,7 +49,7 @@ while true; do
   echo
   echo "ASO Companion is starting. Keep this window open while you use the app."
   (sleep 10; open http://localhost:3000/admin) &
-  npx next start -p 3000
+  npx next start -H 127.0.0.1 -p 3000
   code=$?
   # exit code 3 means "updated, start again"
   if [ "$code" -eq 3 ]; then continue; fi
