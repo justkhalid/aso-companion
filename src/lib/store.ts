@@ -173,6 +173,12 @@ async function gzipText(text: string): Promise<Blob | null> {
   }
 }
 
+/* the copy as it was at the last save: "Discard changes" puts it back without needing the network */
+let savedBase: State | null = null
+function noteBase(before: State, status: string) {
+  if (status === 'saved' || !savedBase) savedBase = before
+}
+
 /* saving: one save runs at a time, edits made while it runs trigger one more, and a failed save is retried */
 const DIRTY_KEY = 'aso-unsaved-rev'
 const UNSAVED_COPY_KEY = 'aso-unsaved-copy'
@@ -232,6 +238,17 @@ export const useStore = create<UIStore>((set, get) => ({
   navTick: 0,
   leavePrompt: null,
   discardChanges: async () => {
+    if (savedBase) {
+      const keep = get().state.settings
+      const back = savedBase
+      back.settings = { ...back.settings, ghToken: keep.ghToken || '', ghLastSync: keep.ghLastSync || '' }
+      set({ state: back })
+      saveLocal(JSON.stringify(back))
+      applyTheme(back.settings.theme)
+      lsDel(DIRTY_KEY)
+      set({ saveStatus: 'saved', saveError: '' })
+      return { ok: true, msg: 'Changes discarded' }
+    }
     const r = await get().loadFromCloud()
     if (r.ok) {
       lsDel(DIRTY_KEY)
@@ -376,6 +393,7 @@ export const useStore = create<UIStore>((set, get) => ({
 
   patch: (fn) => {
     const before = get().state
+    noteBase(before, get().saveStatus)
     const draft = deepClone(before)
     fn(draft)
     draft._rev = (draft._rev || 0) + 1
@@ -387,6 +405,7 @@ export const useStore = create<UIStore>((set, get) => ({
   },
 
   setSettings: (fn) => {
+    noteBase(get().state, get().saveStatus)
     const draft = deepClone(get().state)
     fn(draft.settings)
     draft._rev = (draft._rev || 0) + 1
@@ -660,6 +679,7 @@ export const useStore = create<UIStore>((set, get) => ({
     try {
       const s = JSON.parse(json) as State
       if (!s || s.v !== 1) return { ok: false, msg: 'Not a valid ASO Companion backup' }
+      noteBase(get().state, get().saveStatus)
       const draft = s
       draft._rev = (draft._rev || 0) + 1
       draft._updated = new Date().toISOString()
