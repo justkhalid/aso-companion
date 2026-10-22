@@ -248,7 +248,7 @@ export async function makeCover(p: KitParams, t: KitTheme) {
   glow(x, 540, 580, t.c2);
   if (t.decor !== "none" && t.decor !== "brain") { x.save(); x.translate(0, -420); x.drawImage(await svgLayer(DECOR[t.decor](t.c1, t.c2)), 0, 0); x.restore(); }
   await drawLogo(x, CX, 95, 62);
-  await drawIcon(x, p.icon, CX, 565, 570, t.c1, t.c2);
+  await drawIcon(x, p.icon, CX, 565, 660, t.c1, t.c2);
   grain(x, 1080, 1080); return c;
 }
 
