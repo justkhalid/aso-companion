@@ -327,8 +327,37 @@ function SaveStatus() {
   const restoreUnsaved = useStore((s) => s.restoreUnsaved)
   const dismissUnsaved = useStore((s) => s.dismissUnsaved)
   const toast = useStore((s) => s.toast)
+  const setView = useStore((s) => s.setView)
+  /* is a newer version of the app available? checked when the admin opens and then every half hour */
+  const [behind, setBehind] = React.useState(0)
+  React.useEffect(() => {
+    let on = true
+    const check = async () => {
+      try {
+        const r = await fetch('/api/update/status', { cache: 'no-store' })
+        if (!r.ok) return
+        const j = (await r.json()) as { behind: number | null }
+        if (on) setBehind(j.behind && j.behind > 0 ? j.behind : 0)
+      } catch { /* offline: no badge */ }
+    }
+    void check()
+    const id = setInterval(check, 30 * 60 * 1000)
+    return () => { on = false; clearInterval(id) }
+  }, [])
   return (
     <div className="flex items-center gap-2" role="status" aria-live="polite">
+      {behind > 0 && (
+        <button
+          type="button"
+          onClick={() => {
+            try { sessionStorage.setItem('aso-settings-tab', 'updates') } catch { /* not available */ }
+            setView('settings')
+          }}
+          className="inline-flex items-center gap-1.5 rounded-full bg-primary/10 px-2.5 py-1 text-xs font-bold text-primary hover:bg-primary/15"
+        >
+          <span className="h-2 w-2 rounded-full bg-primary" /> Update available
+        </button>
+      )}
       {unsavedCopy && (
         <span className="hidden items-center gap-1 rounded-full border border-amber-500/40 bg-amber-500/10 py-0.5 pl-3 pr-1 text-xs font-bold text-amber-700 dark:text-amber-300 sm:inline-flex">
           Unsaved changes from {new Date(unsavedCopy.at).toLocaleString('en-GB', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })} were found

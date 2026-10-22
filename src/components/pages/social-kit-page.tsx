@@ -16,7 +16,7 @@ import { posterThumb } from '@/lib/poster-url'
 import type { Club, EventEntry, KitOverrides } from '@/lib/types'
 import { DECOR_NAMES, LOOKS, rg } from '@/lib/kit/decor'
 import { KIT_ICONS } from '@/lib/kit/icons'
-import { cv, fitCover, iconCanvas, loadImage, loadKitFonts, makeCover, makeHighlight, makeStory } from '@/lib/kit/engine'
+import { cv, fitCover, iconCanvas, loadImage, loadKitFonts, makeCover, makeHighlight, makeStory, makeStoryAnim } from '@/lib/kit/engine'
 import { KICKERS, kitDiff, kitParams, kitRec, kitSlug, kitTheme, type KitRec } from '@/lib/kit/derive'
 
 type Kind = 'club' | 'event'
@@ -641,7 +641,7 @@ function KitEditor({ kind, id, onBack, onManage, onEditSchedule }: { kind: Kind;
   /* the pictures */
   const [out, setOut] = React.useState<{ story: HTMLCanvasElement; cover: HTMLCanvasElement | null; highlight: HTMLCanvasElement } | null>(null)
   const [updating, setUpdating] = React.useState(true)
-  const visual = R ? [R.kicker, R.top, R.word, R.look, R.palette, R.decor, R.icon, R.bg, R.day, R.time, R.venue, R.poster ?? ''].join('|') : ''
+  const visual = R ? [R.kicker, R.top, R.word, R.look, R.palette, R.decor, R.icon, R.bg, R.glass, R.motion, R.day, R.time, R.venue, R.poster ?? ''].join('|') : ''
   React.useEffect(() => {
     if (!R) return
     let live = true
@@ -652,6 +652,36 @@ function KitEditor({ kind, id, onBack, onManage, onEditSchedule }: { kind: Kind;
         .catch(() => { if (live) setUpdating(false) })
     }, 300)
     return () => { live = false; clearTimeout(t) }
+  }, [visual])
+
+  /* the story moves in the preview: a canvas redrawn about 24 times a second */
+  const [live, setLive] = React.useState<HTMLCanvasElement | null>(null)
+  const [videoBusy, setVideoBusy] = React.useState<number | null>(null)
+  React.useEffect(() => {
+    if (!R) return
+    let on = true
+    let raf = 0
+    const t = setTimeout(async () => {
+      try {
+        await loadKitFonts()
+        const anim = await makeStoryAnim(await kitParams(R), kitTheme(R))
+        if (!on) return
+        const c = cv(1080, 1920)
+        const g = c.getContext('2d')!
+        anim.draw(g, 0)
+        setLive(c)
+        if (R.motion === 0) return
+        const t0 = performance.now()
+        let last = 0
+        const tick = (now: number) => {
+          if (!on) return
+          if (now - last > 40) { last = now; anim.draw(g, ((now - t0) / 1000) % anim.loop) }
+          raf = requestAnimationFrame(tick)
+        }
+        raf = requestAnimationFrame(tick)
+      } catch { /* the still picture stays */ }
+    }, 400)
+    return () => { on = false; clearTimeout(t); cancelAnimationFrame(raf) }
   }, [visual])
 
   if (!item || !R) {
@@ -682,6 +712,18 @@ function KitEditor({ kind, id, onBack, onManage, onEditSchedule }: { kind: Kind;
     const { kitFiles } = await import('@/lib/kit/bundle')
     const { zipFiles } = await import('@/lib/kit/zip')
     saveBlob(await zipFiles(await kitFiles(R, sl)), `${sl}-kit.zip`)
+  }
+  const dlVideo = async () => {
+    setVideoBusy(0)
+    try {
+      const { storyVideo } = await import('@/lib/kit/story-video')
+      const v = await storyVideo(await kitParams(R), kitTheme(R), { onProgress: (x) => setVideoBusy(x) })
+      saveBlob(v.blob, `${sl}-story.${v.ext}`)
+    } catch (err) {
+      toast(err instanceof Error ? err.message : 'The video could not be made.', false)
+    } finally {
+      setVideoBusy(null)
+    }
   }
   const dlBoth = () => { dlStory(); if (out?.cover) setTimeout(dlCover, 600) }
 
@@ -816,6 +858,32 @@ function KitEditor({ kind, id, onBack, onManage, onEditSchedule }: { kind: Kind;
                   </div>
                 </Block>
 
+                <Block title="Background and glass">
+                  <div>
+                    <Lab hint="The waves behind the writing. Used by the story and the WhatsApp picture.">Background</Lab>
+                    <div className="grid grid-cols-4 gap-2">
+                      {Array.from({ length: 8 }, (_, i) => (
+                        <button key={i} type="button" onClick={() => set('bg', i)} aria-pressed={R.bg === i} className={cn('overflow-hidden rounded-lg border p-0', R.bg === i ? 'border-primary ring-2 ring-primary' : 'border-border')} aria-label={`Background ${i + 1}`}>
+                          <img src={`/kit/bg/story${i}.jpg`} alt="" className="block aspect-[9/12] w-full object-cover object-top" loading="lazy" />
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                  <div>
+                    <Lab hint="How much of the glass waves shows. 0 is a plain pearl ground, 100 is the full effect.">Glass strength: {R.glass}</Lab>
+                    <input type="range" min={0} max={100} step={5} value={R.glass} onChange={(e) => set('glass', +e.target.value)} className="w-full accent-[var(--primary)]" aria-label="Glass strength" />
+                    <div className="flex justify-between text-[11px] text-muted-foreground"><span>None</span><span>Full</span></div>
+                  </div>
+                  <div>
+                    <Lab hint="How the story moves in the preview and in the video.">Movement</Lab>
+                    <div className="flex flex-wrap gap-1.5">
+                      {([[0, 'Still'], [1, 'Gentle'], [2, 'Lively']] as const).map(([v, n]) => (
+                        <button key={v} type="button" className={chipCls(R.motion === v)} onClick={() => set('motion', v)}>{n}</button>
+                      ))}
+                    </div>
+                  </div>
+                </Block>
+
                 <Block title="Icon">
                   <IconPicker value={R.icon} c1={theme.c1} c2={theme.c2} onChange={(k) => set('icon', k)} />
                 </Block>
@@ -839,18 +907,6 @@ function KitEditor({ kind, id, onBack, onManage, onEditSchedule }: { kind: Kind;
                       ))}
                     </div>
                   </div>
-                  {kind === 'club' && (
-                  <div>
-                    <Lab hint="Only the WhatsApp group picture uses it.">WhatsApp picture background</Lab>
-                    <div className="grid grid-cols-4 gap-2">
-                      {Array.from({ length: 8 }, (_, i) => (
-                        <button key={i} type="button" onClick={() => set('bg', i)} aria-pressed={R.bg === i} className={cn('overflow-hidden rounded-lg border p-0', R.bg === i ? 'border-primary ring-2 ring-primary' : 'border-border')} aria-label={`Background ${i + 1}`}>
-                          <img src={`/kit/bg/cover${i}.jpg`} alt="" className="block w-full" loading="lazy" />
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-                  )}
                 </Block>
               </>
             )}
@@ -893,7 +949,7 @@ function KitEditor({ kind, id, onBack, onManage, onEditSchedule }: { kind: Kind;
         {/* the pictures, always in view while settings change */}
         <div className="flex min-w-0 flex-col gap-3 lg:sticky lg:top-20">
           <div className="grid grid-cols-2 items-stretch gap-3">
-            <PreviewCard title="Instagram story" canvas={out?.story ?? null} onDownload={dlStory} />
+            <PreviewCard title="Instagram story" note={live && R.motion !== 0 ? 'moving' : undefined} canvas={live ?? out?.story ?? null} onDownload={dlStory} extra={<Button type="button" variant="outline" size="sm" disabled={!live || videoBusy !== null} onClick={() => void dlVideo()}>{videoBusy !== null ? <><Loader2 className="h-4 w-4 animate-spin" /> Recording {Math.round(videoBusy * 100)}%</> : <><Play className="h-4 w-4" /> Download as video</>}</Button>} />
             {kind === 'club' && <PreviewCard title="WhatsApp picture" note="shown round" canvas={out?.cover ?? null} round onDownload={dlCover} />}
             <PreviewCard title="Highlight cover" note="shown round" canvas={out?.highlight ?? null} round crop onDownload={dlHighlight} />
           </div>
@@ -903,7 +959,7 @@ function KitEditor({ kind, id, onBack, onManage, onEditSchedule }: { kind: Kind;
   )
 }
 
-function PreviewCard({ title, note, canvas, round, crop, onDownload }: { title: string; note?: string; canvas: HTMLCanvasElement | null; round?: boolean; crop?: boolean; onDownload: () => void }) {
+function PreviewCard({ title, note, canvas, round, crop, onDownload, extra }: { extra?: React.ReactNode; title: string; note?: string; canvas: HTMLCanvasElement | null; round?: boolean; crop?: boolean; onDownload: () => void }) {
   return (
     <section className="flex flex-col gap-2.5 rounded-2xl border border-border bg-card p-3">
       <h3 className="flex items-baseline justify-between gap-2 text-xs font-extrabold">
@@ -923,6 +979,7 @@ function PreviewCard({ title, note, canvas, round, crop, onDownload }: { title: 
         )}
       </div>
       <Button type="button" variant="outline" size="sm" disabled={!canvas} onClick={onDownload}><Download className="h-4 w-4" /> Download</Button>
+      {extra}
     </section>
   )
 }
