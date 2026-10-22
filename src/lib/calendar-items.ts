@@ -59,12 +59,15 @@ function withHolidays(items: GridItem[], monday: Date): GridItem[] {
   })
 }
 
+/* classes are coloured by who they are for: kids orange, teens pink, adults blue */
+export const AUDIENCE_TONE = { Kids: 'tone-11', Teens: 'tone-12', Adults: PUBLIC_CLASS_TONE } as const
+
 function rawClassItems(state: State, monday: Date): GridItem[] {
   return (state.classes || [])
     .filter((c) => (c.days || []).length && c.time)
     .flatMap((c) => {
       const base = { slot: c.time, code: 'English class ' + publicGroupName(c.code, c.level), room: c.room, mark: classMark(state, c) || undefined }
-      const tone = PUBLIC_CLASS_TONE
+      const tone = base.mark ? AUDIENCE_TONE[base.mark.audience] : PUBLIC_CLASS_TONE
       const sp = splitDaysByStatus(c.days, monday, (iso) => classStatusOn(state, c, iso))
       const out: GridItem[] = []
       if (sp.normal.length) out.push({ ...base, id: c.id, days: sp.normal, lead: c.teacher, tone })
