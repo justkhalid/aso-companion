@@ -5,6 +5,7 @@ import dynamic from 'next/dynamic'
 import { useStore } from '@/lib/store'
 import { AppToaster } from './app-toaster'
 import { Logo } from './logo'
+import { LeaveGuard } from './leave-guard'
 import { LandingPage } from './landing-page'
 import { DirectorPage } from './pages/director-page'
 import { SiteFooter } from './site-footer'
@@ -193,6 +194,7 @@ export function AppShell({ initialView }: { initialView?: View }) {
     <div className="flex min-h-screen bg-background">
       <a href="#main" className="sr-only focus:not-sr-only focus:fixed focus:left-3 focus:top-3 focus:z-[200] focus:rounded-full focus:bg-primary focus:px-4 focus:py-2 focus:text-sm focus:font-bold focus:text-primary-foreground">Skip to content</a>
       <AdminSidebar mobileNavOpen={mobileNav} setMobileNavOpen={setMobileNav} />
+      <LeaveGuard />
       <div className="flex min-w-0 flex-1 flex-col">
         <AdminTopbar setMobileNavOpen={setMobileNav} />
         <main id="main" tabIndex={-1} className="flex-1 outline-none">
