@@ -22,6 +22,8 @@ if not exist ".env.local" (
 )
 
 :prepare
+rem get the newest version of the app (only a clean fast-forward; nothing of this computer is overwritten)
+where git >nul 2>nul && git pull --ff-only origin main >nul 2>nul
 set HEAD=
 where git >nul 2>nul && for /f %%i in ('git rev-parse HEAD 2^>nul') do set HEAD=%%i
 set BUILT=
