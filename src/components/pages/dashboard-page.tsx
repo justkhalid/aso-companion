@@ -20,7 +20,8 @@ export function DashboardPage() {
   const setView = useStore((s) => s.setView)
   const openSocial = useStore((s) => s.openSocial)
   const [calTab, setCalTab] = React.useState<CalTab>('cluev')
-  const [page, setPage] = React.useState<'overview' | 'calendar'>('overview')
+  const page = useStore((s) => s.homeTab)
+  const setPage = (k: 'overview' | 'calendar') => useStore.setState({ homeTab: k })
   const [lib, setLib] = React.useState<{ available: boolean; connected: boolean; summary?: { total: number; thisMonth: number; cardsToPrint: number; noPhoto: number } } | null>(null)
   React.useEffect(() => {
     fetch('/api/members?summary=1', { cache: 'no-store' }).then((r) => (r.ok ? r.json() : null)).then(setLib).catch(() => setLib(null))

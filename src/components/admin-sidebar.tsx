@@ -44,6 +44,7 @@ interface NavItem {
   view: View
   icon: React.ElementType
   tab?: 'todo' | 'club' | 'event' | 'post' | 'month' | 'scheduled' | 'connection' // opens the Posts page on this tab
+  home?: 'overview' | 'calendar' // opens Home on this tab
   tabs?: string[] // all the tabs that keep this item lit
   badge?: number
 }
@@ -58,7 +59,10 @@ function useNavGroups(): NavGroup[] {
   return [
     {
       label: 'Home',
-      items: [{ label: 'Home', view: 'dashboard', icon: LayoutDashboard }],
+      items: [
+        { label: 'Home', view: 'dashboard', icon: LayoutDashboard, home: 'overview' },
+        { label: 'Calendar', view: 'dashboard', icon: CalendarRange, home: 'calendar' },
+      ],
     },
     {
       label: 'Clubs and events',
@@ -135,10 +139,12 @@ function SidebarBody({ onNavigate }: { onNavigate?: () => void }) {
   const state = useStore((s) => s.state)
 
   const socialTab = useStore((s) => s.socialTab)
+  const homeTab = useStore((s) => s.homeTab)
   const openSocial = useStore((s) => s.openSocial)
   const guardedGo = useStore((s) => s.guardedGo)
   const handleNav = (it: NavItem) => guardedGo(() => {
     useStore.setState((s) => ({ navTick: s.navTick + 1 }))
+    if (it.home) useStore.setState({ homeTab: it.home })
     if (it.tab) openSocial(it.tab)
     else setView(it.view)
     onNavigate?.()
@@ -166,7 +172,7 @@ function SidebarBody({ onNavigate }: { onNavigate?: () => void }) {
               <div className="flex flex-col gap-0.5">
                 {g.items.map((it) => {
                   const Icon = it.icon
-                  const active = it.tab ? view === 'social' && (it.tabs || [it.tab]).includes(socialTab) : view === it.view || (it.view === 'eltaso' && view === 'level-detail')
+                  const active = it.home ? view === 'dashboard' && homeTab === it.home : it.tab ? view === 'social' && (it.tabs || [it.tab]).includes(socialTab) : view === it.view || (it.view === 'eltaso' && view === 'level-detail')
                   return (
                     <button
                       key={it.label}

@@ -49,6 +49,7 @@ interface UIStore {
   toasts: Toast[]
 
   /* where the Posts page opens: a tab, or straight into the pictures and posting of one club or event */
+  homeTab: 'overview' | 'calendar'
   socialTab: 'todo' | 'club' | 'event' | 'post' | 'month' | 'scheduled' | 'connection'
   socialTarget: { kind: 'club' | 'event'; id: string } | null
   leavePrompt: (() => void) | null // set while the "unsaved changes" question is on screen; calling it leaves the page
@@ -233,6 +234,7 @@ export const useStore = create<UIStore>((set, get) => ({
 
   toasts: [],
 
+  homeTab: 'overview',
   socialTab: 'todo',
   socialTarget: null,
   navTick: 0,
