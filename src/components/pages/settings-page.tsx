@@ -23,6 +23,7 @@ import { useStore } from '@/lib/store'
 import { useTheme } from 'next-themes'
 import { PageHead } from '@/components/ui-bits'
 import { UpdatesPanel } from '@/components/updates-panel'
+import { HolidaysPanel } from '@/components/holidays-panel'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -240,31 +241,9 @@ export function SettingsPage() {
         </div>
       </Section>
 
-      {/* special weeks notes */}
-      <Section title="Special weeks" icon={<CalendarDays className="h-4 w-4" />}>
-        <div className="flex flex-col gap-3">
-          <div className="grid gap-2 sm:grid-cols-[100px_1fr_auto]">
-            <Input type="number" min={1} max={40} placeholder="Week" value={newNoteWeek} onChange={(e) => setNewNoteWeek(e.target.value)} />
-            <Input placeholder="Note for this week" value={newNoteText} onChange={(e) => setNewNoteText(e.target.value)} />
-            <Button size="sm" onClick={addNote}><Plus className="h-3.5 w-3.5" /> Add</Button>
-          </div>
-          {state.notes.length > 0 && (
-            <div className="flex flex-col gap-1.5">
-              {state.notes
-                .slice()
-                .sort((a, b) => a.week - b.week)
-                .map((n) => (
-                  <div key={n.week} className="flex items-center gap-2 rounded-lg border border-border p-2.5">
-                    <span className="rounded-full bg-secondary px-2 py-0.5 text-xs font-bold">W{n.week}</span>
-                    <span className="flex-1 text-sm">{n.text}</span>
-                    <button onClick={() => removeNote(n.week)} className="text-destructive hover:bg-destructive/10 rounded p-1">
-                      <Trash2 className="h-3.5 w-3.5" />
-                    </button>
-                  </div>
-                ))}
-            </div>
-          )}
-        </div>
+      {/* holidays: the whole year, with the moon-based ones adjustable */}
+      <Section title="Holidays" icon={<CalendarDays className="h-4 w-4" />}>
+        <HolidaysPanel />
       </Section>
 
       {/* access */}
