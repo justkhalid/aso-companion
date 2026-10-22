@@ -13,8 +13,8 @@ export const KIT_ICONS: Record<string, { label: string; stroke: string; accent: 
  },
  "i-philo": {
   "label": "Philosophy",
-  "stroke": "<path d=\"M2.6 14.4L12 10.4l9.4 4zM5 14.6V19.6M9.7 14.6V19.6M14.3 14.6V19.6M19 14.6V19.6M3 21.4h18\" fill=\"none\"/>",
-  "accent": "<ellipse cx=\"12\" cy=\"5\" rx=\"5\" ry=\"1.9\" transform=\"rotate(60 12 5)\" fill=\"none\"/><ellipse cx=\"12\" cy=\"5\" rx=\"5\" ry=\"1.9\" transform=\"rotate(-60 12 5)\" fill=\"none\"/><circle cx=\"12\" cy=\"5\" r=\"1.1\" fill=\"#000\" stroke=\"none\"/>"
+  "stroke": "<path d=\"M11 5.4C8.4 4.4 5.6 5.6 5.2 8.4L4.9 9.6 3.4 11.8 4.6 12.4 4.5 13.2C3.7 14.4 3.6 16.4 5 18.2 6.2 19.4 8 19 9 17.8M11 5.4C11.8 7.8 11.4 10.8 10.4 13.2L10.2 17.4M5 13.8C6.2 14.8 7.6 14.8 8.8 13.8M2.6 22.4C3.4 20.8 5.2 19.8 7.4 19.2M10 18.6C10.6 20 11.4 21.2 12.3 22.4\" fill=\"none\"/><path d=\"M12.3 4.4V22.4\" fill=\"none\"/><ellipse cx=\"17.4\" cy=\"13.4\" rx=\"5\" ry=\"1.9\" fill=\"none\"/><ellipse cx=\"17.4\" cy=\"13.4\" rx=\"5\" ry=\"1.9\" transform=\"rotate(60 17.4 13.4)\" fill=\"none\"/><ellipse cx=\"17.4\" cy=\"13.4\" rx=\"5\" ry=\"1.9\" transform=\"rotate(120 17.4 13.4)\" fill=\"none\"/>",
+  "accent": "<path d=\"M12.3 0.8L13 1.9 14.1 2.6 13 3.3 12.3 4.4 11.6 3.3 10.5 2.6 11.6 1.9z\" fill=\"#000\" stroke=\"none\"/><circle cx=\"17.4\" cy=\"13.4\" r=\"1.3\" fill=\"#000\" stroke=\"none\"/><circle cx=\"19.9\" cy=\"17.7\" r=\"0.75\" fill=\"#000\" stroke=\"none\"/><circle cx=\"19.9\" cy=\"9.1\" r=\"0.75\" fill=\"#000\" stroke=\"none\"/><circle cx=\"6.1\" cy=\"9.9\" r=\"0.45\" fill=\"#000\" stroke=\"none\"/>"
  },
  "i-sports": {
   "label": "Sports ball",
