@@ -27,7 +27,7 @@ const FRAMED = new Set(['xmuzvr51m52js5', 'xmuzvsa0u3j4s1', 'xmv09rj4g74t8p', 'x
 /** the kit icon a club or event starts with, from the icon it has in the app */
 export function kitIconOf(appIcon?: string): string {
   const look = LOOK_BY_ICON[appIcon || ''] || 'aso'
-  return GEN_ICON[appIcon || ''] || LOOKS[look][5]
+  return GEN_ICON[appIcon || ''] || (appIcon && !LOOK_BY_ICON[appIcon] && KIT_ICONS['app-' + appIcon] ? 'app-' + appIcon : LOOKS[look][5])
 }
 
 export interface KitRec {
@@ -110,7 +110,8 @@ export function kitRec(kind: 'club' | 'event', item: Club | EventEntry): KitRec 
   const seed = KIT_NAMES[item.id]
   if (seed) { top = seed.top; word = seed.word }
   const look = LOOK_BY_ICON[c.icon || ''] || 'aso'
-  const icon = GEN_ICON[c.icon || ''] || LOOKS[look][5]
+  /* an icon with no look of its own (not one of the original clubs) keeps its own picture in the story */
+  const icon = GEN_ICON[c.icon || ''] || (c.icon && !LOOK_BY_ICON[c.icon] && KIT_ICONS['app-' + c.icon] ? 'app-' + c.icon : LOOKS[look][5])
   const k: KitOverrides = item.kit || {}
   const R: KitRec = {
     id: item.id,

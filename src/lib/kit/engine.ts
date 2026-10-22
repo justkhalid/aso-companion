@@ -91,7 +91,7 @@ export async function drawLogo(ctx: Ctx, cx: number, cy: number, h: number) {
 }
 export async function iconCanvas(key: string, size: number, c1: RGB, c2: RGB) {
   const ic = KIT_ICONS[key];
-  const layer = (inner: string) => get("data:image/svg+xml;charset=utf-8," + encodeURIComponent(`<svg xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size}" viewBox="0 0 24 24"><g stroke="#000" stroke-width="0.9" stroke-linecap="round" stroke-linejoin="round">${inner}</g></svg>`));
+  const layer = (inner: string) => get("data:image/svg+xml;charset=utf-8," + encodeURIComponent(`<svg xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size}" viewBox="0 0 24 24"><g stroke="#000" stroke-width="${ic.sw ?? 0.9}" stroke-linecap="round" stroke-linejoin="round">${inner}</g></svg>`));
   const c = cv(size, size), x = c.getContext("2d", { willReadFrequently: true })!, a = cv(size, size), ax = a.getContext("2d")!;
   x.drawImage(await layer(ic.stroke), 0, 0); x.globalCompositeOperation = "source-in"; x.fillStyle = grad(x, 0, size, c1, c2); x.fillRect(0, 0, size, size);
   ax.drawImage(await layer(ic.accent), 0, 0); ax.globalCompositeOperation = "source-in"; ax.fillStyle = rg(c2); ax.fillRect(0, 0, size, size);

@@ -1,6 +1,7 @@
 'use client'
 
-import type { ElementType } from 'react'
+import { createElement, type ElementType } from 'react'
+import { ICON_DATA } from './icons-data'
 import {
   Accessibility,
   Activity,
@@ -228,6 +229,7 @@ export interface IconChoice {
   name: string
   label: string
   Icon: ElementType
+  group?: string
 }
 
 /* Icon palette offered in the club / event editor. The chosen icon renders on
@@ -487,6 +489,22 @@ export const CLUB_ICONS: IconChoice[] = [
   { name: 'specialday', label: 'Special day', Icon: CalendarHeart },
   { name: 'booking', label: 'Booking', Icon: CalendarCheck },
 ]
+
+/* the larger set: icons that are only stored as markup (src/lib/kit/gen-icons.mjs), drawn the same way as the Lucide ones */
+function markupIcon(inner: string): ElementType {
+  return (p: { className?: string; size?: number | string; strokeWidth?: number | string }) =>
+    createElement('svg', {
+      xmlns: 'http://www.w3.org/2000/svg', width: p.size ?? 24, height: p.size ?? 24, viewBox: '0 0 24 24', fill: 'none', stroke: 'currentColor',
+      strokeWidth: p.strokeWidth ?? 2, strokeLinecap: 'round', strokeLinejoin: 'round', className: p.className, 'aria-hidden': true, dangerouslySetInnerHTML: { __html: inner },
+    })
+}
+{
+  const groupOf = new globalThis.Map<string, string>(ICON_DATA.map((d) => [d[0], d[2]]))
+  const have = new Set(CLUB_ICONS.map((i) => i.name))
+  for (const [name, label, group, inner] of ICON_DATA) if (!have.has(name)) CLUB_ICONS.push({ name, label, group, Icon: markupIcon(inner) })
+  for (const c of CLUB_ICONS) c.group = c.group || groupOf.get(c.name) || 'Other'
+}
+export const ICON_GROUPS: string[] = Array.from(new Set(CLUB_ICONS.map((i) => i.group || 'Other')))
 
 export function clubIcon(name?: string): IconChoice | null {
   if (!name) return null
