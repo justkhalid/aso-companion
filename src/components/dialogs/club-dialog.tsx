@@ -23,6 +23,7 @@ import {
   PickOrType,
 } from '@/components/forms/form-controls'
 import { useStore } from '@/lib/store'
+import { LeadsField } from '@/components/forms/leads-field'
 import { NotInPeople } from '@/components/forms/not-in-people'
 import { uid, peopleOf, roomOptionsFor, outsidePlacesOf } from '@/lib/app-utils'
 import type { Club } from '@/lib/types'
@@ -177,16 +178,8 @@ export function ClubDialog({
           <WhereField id="cl-room" label="Where" outside={outside} place={room} onChange={(p, o) => { setRoom(p); setOutside(o) }} rooms={roomOptions} outsidePlaces={outsidePlacesOf(state)} />
 
           <div className="flex flex-col gap-1.5">
-            <Label htmlFor="cl-lead">Lead</Label>
-            <PickOrType
-              id="cl-lead"
-              value={lead}
-              onChange={setLead}
-              options={leadNames}
-              placeholder="Pick a lead"
-              emptyLabel="No lead yet"
-            />
-            <NotInPeople name={lead} role="Volunteer" />
+            <Label htmlFor="cl-lead">Leads</Label>
+            <LeadsField id="cl-lead" value={lead} onChange={setLead} />
           </div>
 
           <div className="flex flex-col gap-1.5">

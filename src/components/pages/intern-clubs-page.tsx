@@ -1,14 +1,14 @@
 'use client'
 
 import * as React from 'react'
-import { Send, Plus, ExternalLink, Sparkles, Clock, MapPin, User, AlertTriangle, CircleDashed } from 'lucide-react'
+import { Plus, ExternalLink, Sparkles, Clock, MapPin, CircleDashed } from 'lucide-react'
 import { useStore } from '@/lib/store'
-import { PosterThumb } from '@/components/poster-thumb'
 import { PageHead, EmptyState, Chip } from '@/components/ui-bits'
 import { Button } from '@/components/ui/button'
+import { DropdownMenuItem } from '@/components/ui/dropdown-menu'
 import { ClubDialog } from '@/components/dialogs/club-dialog'
-import { RowActions } from '@/components/admin/row-actions'
-import { uid, fmtTime } from '@/lib/app-utils'
+import { SessionCard, ArchiveGroup } from '@/components/session-card'
+import { uid, fmtTime, isoOf } from '@/lib/app-utils'
 import type { Club } from '@/lib/types'
 
 export function InternClubsPage() {
@@ -23,11 +23,40 @@ export function InternClubsPage() {
     setDialog({ open: true, club: copy })
   }
 
+  /* a club whose series has an end date in the past is archived; everything else is current */
+  const today = isoOf(new Date())
+  const current = state.clubs.filter((c) => !(c.until && c.until < today))
+  const ended = state.clubs.filter((c) => c.until && c.until < today)
+
+  const card = (c: Club, archived: boolean) => (
+    <SessionCard
+      key={c.id}
+      kind="club"
+      title={c.name}
+      poster={c.poster}
+      icon={c.icon}
+      archived={archived}
+      badge={c.placeholder ? <Chip tone="gold" icon={CircleDashed}>placeholder</Chip> : undefined}
+      desc={c.desc}
+      meta={[
+        { icon: Sparkles, text: (c.days || []).join(' / ') || 'No day set' },
+        { icon: Clock, text: fmtTime(c.time) || '-' },
+        ...(c.room ? [{ icon: MapPin, text: (c.outside ? 'Outside: ' : '') + c.room }] : []),
+      ]}
+      lead={c.lead}
+      onPost={() => openSocial('club', { kind: 'club', id: c.id })}
+      onEdit={() => setDialog({ open: true, club: c })}
+      onDuplicate={() => duplicate(c)}
+      remove={(d) => { d.clubs = d.clubs.filter((x) => x.id !== c.id) }}
+      extraMenu={c.url ? <DropdownMenuItem asChild><a href={c.url} target="_blank" rel="noopener"><ExternalLink className="h-4 w-4" /> Open link</a></DropdownMenuItem> : undefined}
+    />
+  )
+
   return (
-    <div className="mx-auto max-w-4xl px-4 py-6 sm:py-8">
+    <div className="mx-auto max-w-3xl px-4 py-6 sm:py-8">
       <PageHead
         title="Clubs"
-        subtitle={`${state.clubs.length} clubs`}
+        subtitle={`${current.length} clubs${ended.length ? ` · ${ended.length} in the archive` : ''}`}
         right={
           <Button size="sm" onClick={() => setDialog({ open: true, club: null })}>
             <Plus className="h-4 w-4" /> Add club
@@ -37,50 +66,10 @@ export function InternClubsPage() {
       {state.clubs.length === 0 ? (
         <EmptyState icon={<Sparkles className="h-5 w-5" />} title="No clubs yet" hint="Add your first club." />
       ) : (
-        <div className="grid gap-3 sm:grid-cols-2">
-          {state.clubs.map((c) => (
-            <div key={c.id} className="flex gap-3 rounded-2xl border border-border bg-card p-4 shadow-sm">
-              <PosterThumb poster={c.poster} alt={`${c.name} poster`} icon={c.icon} kind="club" />
-              <div className="min-w-0 flex-1">
-              <div className="mb-2 flex items-center gap-2">
-                <div className="flex-1 font-bold">{c.name}</div>
-                {c.placeholder && <Chip tone="gold" icon={CircleDashed}>placeholder</Chip>}
-              </div>
-              <div className="flex flex-wrap gap-x-3 gap-y-1 text-xs font-semibold text-muted-foreground">
-                <span className="inline-flex items-center gap-1"><Sparkles className="h-3.5 w-3.5" /> {(c.days || []).join(' / ') || 'no day set'}</span>
-                <span className="inline-flex items-center gap-1"><Clock className="h-3.5 w-3.5" /> {fmtTime(c.time) || '-'}</span>
-                {c.room && <span className="inline-flex items-center gap-1"><MapPin className="h-3.5 w-3.5" /> {c.outside ? 'Outside: ' : ''}{c.room}</span>}
-              </div>
-              <div className="mt-1.5 text-xs">
-                {c.lead ? (
-                  <span className="inline-flex items-center gap-1 font-semibold text-foreground"><User className="h-3.5 w-3.5" /> Lead: {c.lead}</span>
-                ) : (
-                  <span className="inline-flex items-center gap-1 font-semibold text-[var(--aso-gold)]"><AlertTriangle className="h-3.5 w-3.5" /> Needs a lead</span>
-                )}
-              </div>
-              {(c.vol || []).length > 0 && (
-                <div className="mt-1 text-xs text-muted-foreground">Volunteers: {c.vol.join(', ')}</div>
-              )}
-              <div className="mt-2 flex flex-wrap items-center gap-1.5">
-                {c.url && (
-                  <a href={c.url} target="_blank" rel="noopener">
-                    <Button variant="outline" size="sm"><ExternalLink className="h-3.5 w-3.5" /> Link</Button>
-                  </a>
-                )}
-                <Button variant="outline" size="sm" onClick={() => openSocial('club', { kind: 'club', id: c.id })}><Send className="h-3.5 w-3.5" /> Poster and post</Button>
-                <div className="ml-auto">
-                  <RowActions
-                    name={c.name}
-                    onEdit={() => setDialog({ open: true, club: c })}
-                    onDuplicate={() => duplicate(c)}
-                    remove={(d) => { d.clubs = d.clubs.filter((x) => x.id !== c.id) }}
-                  />
-                </div>
-              </div>
-              </div>
-            </div>
-          ))}
-        </div>
+        <>
+          <div className="grid gap-3">{current.map((c) => card(c, false))}</div>
+          <ArchiveGroup count={ended.length}>{ended.map((c) => card(c, true))}</ArchiveGroup>
+        </>
       )}
       <ClubDialog open={dialog.open} onOpenChange={(v) => setDialog((s) => ({ ...s, open: v }))} club={dialog.club} />
     </div>

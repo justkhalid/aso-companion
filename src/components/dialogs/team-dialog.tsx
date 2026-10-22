@@ -90,7 +90,7 @@ export function TeamDialog({
     patch((draft) => {
       if (member) renamePerson(draft, member.name, entry.name)
       for (const k of looks) if (!before.includes(k)) setHolder(draft, k, entry.name)
-      for (const k of before) if (!looks.includes(k)) setHolder(draft, k, '')
+      for (const k of before) if (!looks.includes(k)) setHolder(draft, k, entry.name, true)
       if (isNew) draft.team.push(entry)
       else {
         const i = draft.team.findIndex((t) => t.id === entry.id)
@@ -159,7 +159,7 @@ export function TeamDialog({
                       <DropdownMenuLabel className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground">{g.label}</DropdownMenuLabel>
                       {g.items.map((it) => {
                         const now = holderOf(state, it.key)
-                        const other = now && now.trim().toLowerCase() !== name.trim().toLowerCase() && !looks.includes(it.key)
+                        const other = now && !now.toLowerCase().split(/\s*[,&]\s*/).includes(name.trim().toLowerCase()) && !looks.includes(it.key)
                         return (
                           <DropdownMenuCheckboxItem
                             key={it.key}

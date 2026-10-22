@@ -291,7 +291,6 @@ export type View =
   | 'intern-events'
   | 'social'
   | 'members'
-  | 'month-report'
   | 'inventory'
   | 'submissions'
 
