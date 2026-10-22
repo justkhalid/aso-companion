@@ -33,8 +33,8 @@ export const KIT_ICONS: Record<string, { label: string; stroke: string; accent: 
  },
  "i-reading": {
   "label": "Reading",
-  "stroke": "<path d=\"M12 6.6C10 5 6.4 4.7 3 5.6v12.6c3.4-.9 7-.6 9 .9 2-1.5 5.6-1.8 9-.9V5.6C17.6 4.7 14 5 12 6.6z\" fill=\"none\"/><path d=\"M12 6.6v12.5\" fill=\"none\"/>",
-  "accent": "<path d=\"M5.8 9.2h3.4M5.8 12.2h3.4M14.8 9.2h3.4M14.8 12.2h3.4\" fill=\"none\"/>"
+  "stroke": "<path d=\"M12 12.4C10 10.8 6.4 10.5 2.8 11.4v9c3.6-.9 7.2-.6 9.2.9 2-1.5 5.6-1.8 9.2-.9v-9C17.6 10.5 14 10.8 12 12.4z\" fill=\"none\"/><path d=\"M12 12.4v8.9M2.8 20.4l-.4 1.6c3.6-.9 7.4-.6 9.6.8 2.2-1.4 6-1.7 9.6-.8l-.4-1.6\" fill=\"none\"/>",
+  "accent": "<path d=\"M12 0.6L12.8 2.2 14.4 3 12.8 3.8 12 5.4 11.2 3.8 9.6 3 11.2 2.2z\" fill=\"#000\" stroke=\"none\"/><path d=\"M5 14.2h4M5 16.8h4M15 14.2h4M15 16.8h4\" fill=\"none\"/><circle cx=\"4.6\" cy=\"4.4\" r=\"0.7\" fill=\"#000\" stroke=\"none\"/><circle cx=\"19.4\" cy=\"4.4\" r=\"0.7\" fill=\"#000\" stroke=\"none\"/><circle cx=\"20.6\" cy=\"8.6\" r=\"0.5\" fill=\"#000\" stroke=\"none\"/><circle cx=\"3.4\" cy=\"8.6\" r=\"0.5\" fill=\"#000\" stroke=\"none\"/>"
  },
  "chess": {
   "label": "Chess",
