@@ -34,9 +34,9 @@ export const metadata: Metadata = {
   keywords: ["ASO", "American Space Oujda", "ELTASO", "English", "lesson plans", "clubs"],
   authors: [{ name: "American Space Oujda" }],
   icons: {
-    icon: "/aso-logo.png",
-    shortcut: "/aso-logo.png",
-    apple: "/aso-logo.png",
+    icon: "/aso-logo.png?v=3",
+    shortcut: "/aso-logo.png?v=3",
+    apple: "/aso-logo.png?v=3",
   },
   openGraph: {
     title: "ASO Companion",

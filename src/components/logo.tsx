@@ -17,7 +17,7 @@ export function Logo({
 }) {
   return (
     <img
-      src="/aso-logo.webp"
+      src="/aso-logo.webp?v=3"
       alt="ASO Companion logo"
       width={size}
       height={size}

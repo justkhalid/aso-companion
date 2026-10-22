@@ -336,7 +336,8 @@ function SaveStatus() {
     let on = true
     const check = async () => {
       try {
-        const r = await fetch('/api/update/status', { cache: 'no-store' })
+        let r = await fetch('/api/update/status', { cache: 'no-store' })
+        if (r.status === 401 && (await useStore.getState().ensureSession())) r = await fetch('/api/update/status', { cache: 'no-store' })
         if (!r.ok) return
         const j = (await r.json()) as { behind: number | null; changes?: number; latest?: { version?: string } | null }
         if (on) { setBehind(j.changes && j.changes > 0 ? j.changes : 0); setNewVersion(j.latest?.version || '') }

@@ -60,6 +60,8 @@ interface UIStore {
   openLevel: (key: string) => void
   login: (code: string, remember: boolean) => Promise<boolean>
   logout: () => void
+  /* the server session (cookie) behind the admin screen: true when it exists or could be set up again */
+  ensureSession: () => Promise<boolean>
   loginAs: (role: 'teacher' | 'intern', code: string, remember: boolean) => Promise<{ ok: boolean; msg: string }>
   signOutViewer: () => void
   refreshSecrets: () => Promise<void>
@@ -86,6 +88,8 @@ interface UIStore {
 }
 
 let toastSeq = 1
+/* the code of an admin who signed in while the server could not be reached; kept in memory only, to set up the real session as soon as the server answers */
+let pendingLogin: { code: string; remember: boolean } | null = null
 
 /* pages every visitor sees; they do not need the weekly plans or the library, which are most of the data */
 const LITE_VIEWS = new Set<View>(['landing', 'director', 'login'])
@@ -274,6 +278,7 @@ export const useStore = create<UIStore>((set, get) => ({
       const known = lsGet(ADMIN_SEEN_KEY) === '1'
       const local = get().state.settings.adminCode
       ok = known && !!local && typed === String(local)
+      if (ok) pendingLogin = { code: typed, remember }
     }
     if (!ok) return false
     set({ admin: true, pubView: false, rememberDevice: remember, view: 'dashboard', side: 'elt' })
@@ -284,7 +289,21 @@ export const useStore = create<UIStore>((set, get) => ({
     void get().loadFromCloud()
     return true
   },
+  ensureSession: async () => {
+    /* the admin screen is open: does the server agree? If not, sign in again quietly with the code typed a moment ago */
+    try {
+      const r = await fetch('/api/update/status', { cache: 'no-store' })
+      if (r.status !== 401) return true
+    } catch { return false }
+    if (!pendingLogin) return false
+    try {
+      const res = await fetch('/api/login', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(pendingLogin) })
+      if (res.ok) { pendingLogin = null; return true }
+    } catch { /* still offline */ }
+    return false
+  },
   logout: () => {
+    pendingLogin = null
     set({ admin: false, pubView: false, view: 'landing', side: 'elt', viewer: { teacher: false, intern: false } })
     lsDel(ROLE_KEY)
     syncViewUrl('landing', 'replace')
