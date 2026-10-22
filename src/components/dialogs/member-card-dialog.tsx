@@ -7,7 +7,7 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } f
 import { Button } from '@/components/ui/button'
 import { useStore } from '@/lib/store'
 import { cn } from '@/lib/utils'
-import { CARD_TYPES, MemberCard, titleCase, type CardType } from '@/components/member-card'
+import { CARD_TYPES, DEFAULT_ROLE, MemberCard, titleCase, type CardType } from '@/components/member-card'
 
 export interface CardMember { nr: number; name: string; occupation: string; banned: boolean; cardPrinted: boolean }
 
@@ -65,6 +65,7 @@ export function MemberCardDialog({ member, onClose, onDone }: { member: CardMemb
   const [busy, setBusy] = React.useState(false)
   /* teacher and volunteer cards show when they stop being valid; the end of the school year is proposed and can be changed */
   const [until, setUntil] = React.useState(() => { const n = new Date(); return `${n.getMonth() >= 8 ? n.getFullYear() + 1 : n.getFullYear()}-06-30` })
+  const [role, setRole] = React.useState('')
   const [off, setOff] = React.useState(() => (typeof window === 'undefined' ? { x: 0, y: 0 } : readOffset()))
   const video = React.useRef<HTMLVideoElement>(null)
   const stream = React.useRef<MediaStream | null>(null)
@@ -154,7 +155,7 @@ export function MemberCardDialog({ member, onClose, onDone }: { member: CardMemb
               </DialogHeader>
               <div className="grid gap-4 md:grid-cols-[minmax(0,1.3fr)_minmax(0,1fr)]">
                 <div>
-                  <div className="overflow-hidden rounded-xl border border-border shadow-sm"><MemberCard m={data} type={type} issued={issued} /></div>
+                  <div className="overflow-hidden rounded-xl border border-border shadow-sm"><MemberCard m={data} type={type} issued={issued} role={role || undefined} /></div>
                   <div className="mt-2 flex flex-wrap gap-1.5" role="group" aria-label="Card type">
                     {CARD_TYPES.map((t) => (
                       <button key={t.key} type="button" aria-pressed={type === t.key} onClick={() => setType(t.key)} className={cn('h-8 rounded-full border px-3 text-xs font-bold', type === t.key ? 'border-primary bg-primary text-primary-foreground' : 'border-border hover:bg-secondary')}>{t.label}</button>
@@ -183,6 +184,12 @@ export function MemberCardDialog({ member, onClose, onDone }: { member: CardMemb
                     {light && <p className="mt-1.5 text-xs text-[var(--aso-gold)]">{light}</p>}
                     <p className="mt-1.5 text-xs text-muted-foreground">Face centered, eyes level, plain background, good light.</p>
                   </div>
+
+                  {type !== 'member' && (
+                    <label className="grid gap-1 text-xs font-bold uppercase tracking-wider text-muted-foreground">Role on the card
+                      <input value={role} onChange={(e) => setRole(e.target.value)} placeholder={DEFAULT_ROLE[type]} className="rounded-md border border-border bg-background px-2 py-1.5 text-sm font-normal normal-case tracking-normal text-foreground" />
+                    </label>
+                  )}
 
                   {expires && (
                     <label className="grid gap-1 text-xs font-bold uppercase tracking-wider text-muted-foreground">Valid until
@@ -231,7 +238,7 @@ export function MemberCardDialog({ member, onClose, onDone }: { member: CardMemb
       {/* the page the printer receives: only the card, 85.6 x 54 mm */}
       {typeof document !== 'undefined' && member && data && createPortal(
         <div id="card-print" style={{ display: 'none', width: '85.6mm', height: '54mm', overflow: 'hidden' }}>
-          <div style={{ width: '85.6mm', transform: `translate(${off.x}mm, ${off.y}mm)` }}><MemberCard m={data} type={type} issued={issued} /></div>
+          <div style={{ width: '85.6mm', transform: `translate(${off.x}mm, ${off.y}mm)` }}><MemberCard m={data} type={type} issued={issued} role={role || undefined} /></div>
         </div>,
         document.body,
       )}
