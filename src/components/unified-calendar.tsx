@@ -1,17 +1,16 @@
 'use client'
 
 import * as React from 'react'
-import { CalendarDays, CalendarRange, ChevronLeft, ChevronRight, Download, GraduationCap, Pencil, Plus } from 'lucide-react'
+import { CalendarDays, CalendarRange, ChevronLeft, ChevronRight, Download, Pencil, Plus } from 'lucide-react'
 import { useStore } from '@/lib/store'
 import { addDays, isoOf, mondayOfWeek, parseISO } from '@/lib/app-utils'
 import { DAY_KEYS } from '@/lib/constants'
-import { markLabel } from '@/lib/class-marks'
 import { openQuickAdd } from '@/components/admin/quick-add'
 import { ClassDialog } from '@/components/dialogs/class-dialog'
 import { ClubDialog } from '@/components/dialogs/club-dialog'
 import { EventDialog } from '@/components/dialogs/event-dialog'
 import type { ClassEntry, Club, EventEntry } from '@/lib/types'
-import { AUDIENCE_TONE, PUBLIC_CLASS_TONE, PUBLIC_CLUB_TONE, PUBLIC_EVENT_TONE, PUBLIC_OUTSIDE_TONE, publicClassItems, publicClubItems, publicEventItems } from '@/lib/calendar-items'
+import { PUBLIC_CLASS_TONE, PUBLIC_CLUB_TONE, PUBLIC_EVENT_TONE, PUBLIC_OUTSIDE_TONE, publicClassItems, publicClubItems, publicEventItems } from '@/lib/calendar-items'
 import { CalendarSwitch, type CalTab } from './calendar-switch'
 import { MonthCalendarImage } from './month-calendar-image'
 import { RoomsPage } from './pages/rooms-page'
@@ -40,15 +39,7 @@ export function UnifiedCalendar({ tab, onTab, counts, animated = false }: { tab:
   const fmt = (d: Date, o: Intl.DateTimeFormatOptions) => d.toLocaleDateString('en-GB', o)
   const weekLabel = `${fmt(monday, { day: 'numeric', month: 'short' })} to ${fmt(sunday, { day: 'numeric', month: 'short' })}`
 
-  const [lvl, setLvl] = React.useState<0 | 1 | 2 | 3>(0)
-  /* a class chip says its level in words as well as in its icon */
-  const withLevel = (i: GridItem): GridItem => (i.mark?.step ? { ...i, lead: [markLabel(i.mark).split(' · ')[1], i.lead].filter(Boolean).join(' · ') } : i)
-  const items =
-    tab === 'classes'
-      ? publicClassItems(state, monday).filter((i) => !i.mark || !lvl || i.mark.step === lvl).map(withLevel)
-      : [...publicClubItems(state, monday), ...publicEventItems(state, monday)]
-  const kidsItems = items.filter((i) => i.mark?.audience === 'Kids')
-  const otherItems = items.filter((i) => i.mark?.audience !== 'Kids')
+  const items = tab === 'classes' ? publicClassItems(state, monday) : [...publicClubItems(state, monday), ...publicEventItems(state, monday)]
 
   /* edit from the calendar: tap a chip to open its form, drag it to another day or hour to move it */
   const patch = useStore((s) => s.patch)
@@ -113,10 +104,7 @@ export function UnifiedCalendar({ tab, onTab, counts, animated = false }: { tab:
     }
   }
   const legend: LegendEntry[] = [
-    ...(tab === 'classes'
-      ? (['Kids', 'Teens', 'Adults'] as const).filter((a) => items.some((i) => i.mark?.audience === a && i.tone !== 'tone-8')).map((a) => ({ label: a, tone: AUDIENCE_TONE[a] }))
-      : []),
-    ...(items.some((i) => i.tone === PUBLIC_CLASS_TONE && !i.mark) ? [{ label: 'English classes', tone: PUBLIC_CLASS_TONE }] : []),
+    ...(items.some((i) => i.tone === PUBLIC_CLASS_TONE) ? [{ label: 'English classes', tone: PUBLIC_CLASS_TONE }] : []),
     ...(items.some((i) => i.tone === PUBLIC_CLUB_TONE) ? [{ label: 'Clubs', tone: PUBLIC_CLUB_TONE }] : []),
     ...(items.some((i) => i.tone === PUBLIC_EVENT_TONE) ? [{ label: 'Events', tone: PUBLIC_EVENT_TONE }] : []),
     ...(items.some((i) => i.tone === PUBLIC_OUTSIDE_TONE) ? [{ label: 'Outside', tone: PUBLIC_OUTSIDE_TONE }] : []),
@@ -171,33 +159,12 @@ export function UnifiedCalendar({ tab, onTab, counts, animated = false }: { tab:
           </div>
           <div className="mb-3 flex flex-wrap items-center justify-center gap-x-4 gap-y-2">
             <span className="inline-flex items-center gap-1.5 text-xs font-semibold text-muted-foreground"><Pencil className="h-3.5 w-3.5" aria-hidden /> Tap a session to edit it, drag it to move it</span>
-            {tab === 'classes' && (
-              <div className="flex gap-1" role="group" aria-label="Filter by level">
-                {([[0, 'All levels'], [1, 'Beginner'], [2, 'Intermediate'], [3, 'Advanced']] as const).map(([v, l]) => (
-                  <button key={v} type="button" aria-pressed={lvl === v} onClick={() => setLvl(v)} className={cn('h-8 rounded-full border px-3 text-xs font-semibold', lvl === v ? 'border-primary bg-primary text-primary-foreground' : 'border-border hover:bg-secondary')}>{l}</button>
-                ))}
-              </div>
-            )}
             <button type="button" onClick={() => openQuickAdd(tab === 'classes' ? 'class' : 'event')} className="inline-flex h-8 items-center gap-1 rounded-full border border-border px-3 text-xs font-semibold hover:bg-secondary"><Plus className="h-3.5 w-3.5" aria-hidden /> {tab === 'classes' ? 'Add class' : 'Add event'}</button>
             {tab !== 'classes' && <button type="button" onClick={() => openQuickAdd('club')} className="inline-flex h-8 items-center gap-1 rounded-full border border-border px-3 text-xs font-semibold hover:bg-secondary"><Plus className="h-3.5 w-3.5" aria-hidden /> Add club</button>}
           </div>
-          {tab === 'classes' ? (
-            <div className="grid gap-5">
-              {([['Kids', GraduationCap, kidsItems], ['Teens and adults', GraduationCap, otherItems]] as const).map(([title, Icon, list]) =>
-                list.length ? (
-                  <section key={title} aria-label={title}>
-                    <h3 className="mb-2 flex items-center gap-2 text-sm font-extrabold tracking-tight"><Icon className="h-4 w-4 text-primary" aria-hidden /> {title} <span className="text-xs font-semibold text-muted-foreground">{new Set(list.map((i) => baseId(i.id))).size} classes</span></h3>
-                    <WeeklyGrid items={list} legend={legend.filter((l) => list.some((i) => i.tone === l.tone))} weekMonday={monday} onCellClick={edit} onMove={move} emptyMessage="Nothing scheduled this week" />
-                  </section>
-                ) : null,
-              )}
-              {!kidsItems.length && !otherItems.length && <WeeklyGrid items={[]} weekMonday={monday} emptyMessage="No classes match" />}
-            </div>
-          ) : (
-            <div className="rounded-2xl bg-card">
-              <WeeklyGrid items={items} legend={legend} weekMonday={monday} onCellClick={edit} onMove={move} emptyMessage="Nothing scheduled this week" />
-            </div>
-          )}
+          <div className="rounded-2xl bg-card">
+            <WeeklyGrid items={items} legend={legend} weekMonday={monday} onCellClick={edit} onMove={move} emptyMessage="Nothing scheduled this week" />
+          </div>
           <ClassDialog open={!!editing?.cls} onOpenChange={(v) => !v && setEditing(null)} cls={editing?.cls ?? null} />
           <ClubDialog open={!!editing?.club} onOpenChange={(v) => !v && setEditing(null)} club={editing?.club ?? null} />
           <EventDialog open={!!editing?.event} onOpenChange={(v) => !v && setEditing(null)} event={editing?.event ?? null} />

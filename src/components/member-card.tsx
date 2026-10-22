@@ -2,6 +2,7 @@
 
 import * as React from 'react'
 import { Montserrat } from 'next/font/google'
+import { TypedBackground } from '@/components/member-card-bg'
 
 const montserrat = Montserrat({ subsets: ['latin'], weight: ['700'], display: 'swap' })
 
@@ -39,18 +40,21 @@ export const titleCase = (s: string) => String(s || '').trim().replace(/\s+/g, '
 export const occupationEn = (s: string) => { const m = String(s || '').match(/[A-Za-z][A-Za-z .\-/]*$/); return m ? m[0].trim() : String(s || '').trim() }
 const fmtDate = (d: Date) => `${String(d.getDate()).padStart(2, '0')} / ${String(d.getMonth() + 1).padStart(2, '0')} / ${d.getFullYear()}`
 
+export const DEFAULT_ROLE = { staff: 'Staff', teacher: 'English Teacher', volunteer: 'Club Leader' } as const
+
 export interface CardData { nr: number; name: string; occupation: string; photo?: string }
 
-export function MemberCard({ m, type = 'member', issued }: { m: CardData; type?: CardType; issued?: Date }) {
+export function MemberCard({ m, type = 'member', issued, role }: { m: CardData; type?: CardType; issued?: Date; role?: string }) {
   const root = React.useRef<HTMLDivElement>(null)
+  const typed = type !== 'member'
   const bg = (CARD_TYPES.find((t) => t.key === type) || CARD_TYPES[0]).bg
   const date = fmtDate(issued || new Date())
   const name = titleCase(m.name)
-  const job = occupationEn(m.occupation)
+  const job = typed ? role || DEFAULT_ROLE[type as 'staff'] : occupationEn(m.occupation)
   /* a long name shrinks until it fits its line instead of being cut off */
   React.useEffect(() => {
     const fit = () => root.current?.querySelectorAll<HTMLElement>('.val').forEach((el) => {
-      el.style.fontSize = ''
+      el.style.fontSize = '3.36cqw'
       let size = parseFloat(getComputedStyle(el).fontSize)
       while (el.scrollWidth > el.clientWidth + 1 && size > 4) { size *= 0.95; el.style.fontSize = size + 'px' }
     })
@@ -60,7 +64,7 @@ export function MemberCard({ m, type = 'member', issued }: { m: CardData; type?:
   const val: React.CSSProperties = { display: 'flex', alignItems: 'center', whiteSpace: 'nowrap', overflow: 'hidden', fontSize: '3.36cqw', fontWeight: 700, lineHeight: 1.15, color: '#1B2A4E' }
   return (
     <div ref={root} className={montserrat.className} style={{ position: 'relative', width: '100%', aspectRatio: `${W} / ${H}`, containerType: 'inline-size', overflow: 'hidden', background: '#fff' }}>
-      <img src={bg} alt="" style={{ position: 'absolute', inset: 0, width: '100%', height: '100%' }} />
+      {typed ? <TypedBackground type={type as 'staff' | 'teacher' | 'volunteer'} expires={type !== 'staff'} /> : <img src={bg} alt="" style={{ position: 'absolute', inset: 0, width: '100%', height: '100%' }} />}
       <div className="val" style={{ ...box(70, 206, 622, 46), ...val }}>{name}</div>
       <div className="val" style={{ ...box(70, 294, 622, 46), ...val }}>{job}</div>
       <div className="val" style={{ ...box(70, 382, 622, 46), ...val }}>{m.nr}</div>

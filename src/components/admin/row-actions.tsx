@@ -55,13 +55,13 @@ export function RowActions({
   }
 
   return (
-    <div className="flex shrink-0 items-center gap-0.5">
-      <Button variant="ghost" size="icon" onClick={onEdit} aria-label={`Edit ${name}`} title="Edit">
-        <Pencil className="h-4 w-4" />
+    <div className="flex shrink-0 items-center gap-1.5">
+      <Button variant="outline" size="sm" onClick={onEdit} aria-label={`Edit ${name}`}>
+        <Pencil className="h-3.5 w-3.5" /> Edit
       </Button>
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
-          <Button variant="ghost" size="icon" aria-label={`More actions for ${name}`} title="More">
+          <Button variant="outline" size="icon" className="h-8 w-8 shrink-0" aria-label={`More actions for ${name}`} title="More">
             <MoreHorizontal className="h-4 w-4" />
           </Button>
         </DropdownMenuTrigger>
