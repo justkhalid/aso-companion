@@ -103,6 +103,15 @@ async function drawIcon(ctx: Ctx, key: string, cx: number, cy: number, size: num
   for (let y = 0; y < size; y++) for (let x = 0; x < size; x++) if (d[(y * size + x) * 4 + 3] > 40) { if (x < x0) x0 = x; if (x > x1) x1 = x; if (y < y0) y0 = y; if (y > y1) y1 = y; }
   ctx.save(); ctx.shadowColor = "rgba(40,30,60,.26)"; ctx.shadowBlur = 24; ctx.shadowOffsetY = 10; ctx.drawImage(c, cx - (x0 + x1) / 2, cy - (y0 + y1) / 2); ctx.restore();
 }
+/* draws an icon scaled so its drawn shape fills a box (maxW x maxH), whatever the icon's own padding or proportions */
+async function drawIconFit(ctx: Ctx, key: string, cx: number, cy: number, maxW: number, maxH: number, c1: RGB, c2: RGB) {
+  const N = 1000, c = await iconCanvas(key, N, c1, c2), d = c.getContext("2d", { willReadFrequently: true })!.getImageData(0, 0, N, N).data;
+  let x0 = N, x1 = 0, y0 = N, y1 = 0;
+  for (let y = 0; y < N; y++) for (let x = 0; x < N; x++) if (d[(y * N + x) * 4 + 3] > 40) { if (x < x0) x0 = x; if (x > x1) x1 = x; if (y < y0) y0 = y; if (y > y1) y1 = y; }
+  const bw = x1 - x0 + 1, bh = y1 - y0 + 1, k = Math.min(maxW / bw, maxH / bh);
+  ctx.save(); ctx.shadowColor = "rgba(40,30,60,.26)"; ctx.shadowBlur = 24; ctx.shadowOffsetY = 10;
+  ctx.drawImage(c, x0, y0, bw, bh, cx - bw * k / 2, cy - bh * k / 2, bw * k, bh * k); ctx.restore();
+}
 export function fitCover(ctx: Ctx, im: CanvasImageSource & { width: number; height: number }, x: number, y: number, w: number, h: number) { const s = Math.max(w / im.width, h / im.height), dw = im.width * s, dh = im.height * s; ctx.drawImage(im, x + (w - dw) / 2, y + (h - dh) / 2, dw, dh); }
 const dim = (c: RGB, k: number): RGB => c.map(v => Math.round(v * k)) as RGB;
 
@@ -248,7 +257,7 @@ export async function makeCover(p: KitParams, t: KitTheme) {
   glow(x, 540, 580, t.c2);
   if (t.decor !== "none" && t.decor !== "brain") { x.save(); x.translate(0, -420); x.drawImage(await svgLayer(DECOR[t.decor](t.c1, t.c2)), 0, 0); x.restore(); }
   await drawLogo(x, CX, 95, 62);
-  await drawIcon(x, p.icon, CX, 570, 740, t.c1, t.c2);
+  await drawIconFit(x, p.icon, CX, 580, 720, 660, t.c1, t.c2);
   grain(x, 1080, 1080); return c;
 }
 
