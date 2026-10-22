@@ -8,8 +8,8 @@ export const KIT_ICONS: Record<string, { label: string; stroke: string; accent: 
  },
  "i-speaking": {
   "label": "Public speaking",
-  "stroke": "<circle cx=\"12\" cy=\"5.6\" r=\"2.6\" fill=\"none\"/><path d=\"M5 11h14l-1.6 10H6.6z\" fill=\"none\"/>",
-  "accent": "<path d=\"M17.6 3.4a4.6 4.6 0 0 1 0 4.4M20 2a7.2 7.2 0 0 1 0 7.2M6.4 3.4a4.6 4.6 0 0 0 0 4.4M4 2a7.2 7.2 0 0 0 0 7.2\" fill=\"none\"/>"
+  "stroke": "<rect x=\"10.4\" y=\"2\" width=\"3.2\" height=\"5.4\" rx=\"1.6\" fill=\"none\"/><path d=\"M8.9 5.6a3.1 3.1 0 0 0 6.2 0M12 8.7V12M5 12h14l-1.6 3.6H6.6zM12 15.6v5M8.2 21h7.6\" fill=\"none\"/>",
+  "accent": "<path d=\"M17.6 3.8a4.4 4.4 0 0 1 0 4M20 2.2a7 7 0 0 1 0 7.2M6.4 3.8a4.4 4.4 0 0 0 0 4M4 2.2a7 7 0 0 0 0 7.2\" fill=\"none\"/>"
  },
  "i-philo": {
   "label": "Philosophy",
