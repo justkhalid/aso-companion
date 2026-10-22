@@ -46,34 +46,15 @@ export function DashboardPage() {
     ...state.clubs.filter((c) => !c.poster && !c.placeholder).map((c) => ({ text: `${c.name} has no poster`, view: 'intern-clubs' as View })),
   ]
 
-  /* the shortcuts, in two groups that each have a colour of their own */
-  type Job = { label: string; hint: string; icon: React.ElementType; go: () => void; badge?: number }
-  const posting: Job[] = [
-    { label: 'To post', hint: 'What is waiting to go out', icon: Send, go: () => openSocial('todo'), badge: toPost },
-    { label: 'Scheduled', hint: 'Posts set to go out later', icon: Clock, go: () => openSocial('scheduled') },
+  /* one row of buttons for the jobs done most */
+  type Job = { label: string; icon: React.ElementType; go: () => void; badge?: number }
+  const jobs: Job[] = [
+    { label: 'To post', icon: Send, go: () => openSocial('todo'), badge: toPost },
+    { label: 'Scheduled posts', icon: Clock, go: () => openSocial('scheduled') },
+    { label: 'Clubs', icon: Sparkles, go: () => setView('intern-clubs') },
+    { label: 'Events', icon: CalendarClock, go: () => setView('intern-events') },
+    { label: 'Report an absence', icon: UserX, go: () => openQuickAdd('absence') },
   ]
-  const managing: Job[] = [
-    { label: 'Clubs', hint: 'Edit clubs and their posters', icon: Sparkles, go: () => setView('intern-clubs') },
-    { label: 'Events', hint: 'Add or edit an event', icon: CalendarClock, go: () => setView('intern-events') },
-    { label: 'Report an absence', hint: 'Cancel or cover a session', icon: UserX, go: () => openQuickAdd('absence') },
-  ]
-  const group = (title: string, tint: string, jobs: Job[]) => (
-    <section aria-label={title} className={`rounded-2xl border border-border bg-card p-4 shadow-sm`}>
-      <h2 className="mb-3 text-sm font-extrabold tracking-tight">{title}</h2>
-      <div className="grid gap-2">
-        {jobs.map((j) => (
-          <button key={j.label} onClick={j.go} className="relative flex items-center gap-3 rounded-xl bg-secondary/50 p-3 text-left transition hover:bg-secondary">
-            <span className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-lg ${tint}`}><j.icon className="h-[18px] w-[18px]" aria-hidden /></span>
-            <span className="min-w-0 flex-1">
-              <span className="block text-[14.5px] font-extrabold leading-tight tracking-tight">{j.label}</span>
-              <span className="block text-xs font-medium text-muted-foreground">{j.hint}</span>
-            </span>
-            {!!j.badge && <span className="rounded-full bg-primary px-2 py-0.5 text-[11px] font-extrabold leading-none text-primary-foreground">{j.badge}</span>}
-          </button>
-        ))}
-      </div>
-    </section>
-  )
 
   const week = st.mode === 's1' || st.mode === 's2' ? `Week ${st.week}` : st.mode === 'before' ? `Year starts in ${st.daysTo} days` : st.mode === 'break' ? 'Winter break' : 'Year complete'
 
@@ -84,13 +65,8 @@ export function DashboardPage() {
         subtitle={`${now.toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long' })} · ${week}`}
       />
 
-      {/* 1. the calendar: clubs and events, classes or free rooms; as the designed month picture or as a week; each with its download */}
-      <section aria-label="Calendar" className="mb-4 rounded-2xl border border-border bg-card p-4 shadow-sm">
-        <UnifiedCalendar tab={calTab} onTab={setCalTab} />
-      </section>
-
-      <div className="grid gap-4 lg:grid-cols-[minmax(0,1.5fr)_minmax(0,1fr)]">
-        {/* 2. today: what is on, who is away, what needs her */}
+      {/* 1. today, and what needs her */}
+      <div className="mb-4 grid gap-4 lg:grid-cols-2">
         <section aria-label="Today" className="rounded-2xl border border-border bg-card p-4 shadow-sm">
           <h2 className="mb-3 flex items-center gap-2 text-sm font-extrabold tracking-tight"><Sun className="h-4 w-4 text-primary" aria-hidden /> Today</h2>
 
@@ -131,7 +107,10 @@ export function DashboardPage() {
             All absences <ArrowRight className="h-3.5 w-3.5" aria-hidden />
           </button>
 
-          <h3 className="mb-1.5 mt-5 text-[11px] font-bold uppercase tracking-wider text-muted-foreground">Needs you</h3>
+        </section>
+
+        <section aria-label="Needs you" className="rounded-2xl border border-border bg-card p-4 shadow-sm">
+          <h2 className="mb-3 flex items-center gap-2 text-sm font-extrabold tracking-tight"><AlertTriangle className="h-4 w-4 text-[var(--aso-gold)]" aria-hidden /> Needs you</h2>
           <PostQueue compact />
           {todo.length === 0 ? (
             <p className="mt-2 text-sm text-muted-foreground">Nothing is missing.</p>
@@ -150,13 +129,22 @@ export function DashboardPage() {
             </ul>
           )}
         </section>
-
-        {/* 3. shortcuts, in two groups of their own colour */}
-        <div className="grid content-start gap-4">
-          {group('Posting', 'bg-primary/10 text-primary', posting)}
-          {group('Manage', 'bg-[var(--aso-gold)]/15 text-[var(--aso-gold)]', managing)}
-        </div>
       </div>
+
+      {/* 2. the jobs done most, in one row */}
+      <nav aria-label="Shortcuts" className="mb-4 flex flex-wrap gap-2">
+        {jobs.map((j) => (
+          <button key={j.label} onClick={j.go} className="relative inline-flex h-10 items-center gap-2 rounded-full border border-border bg-card px-4 text-sm font-bold shadow-sm transition hover:border-primary/40 hover:bg-secondary">
+            <j.icon className="h-4 w-4 text-primary" aria-hidden /> {j.label}
+            {!!j.badge && <span className="rounded-full bg-primary px-2 py-0.5 text-[11px] font-extrabold leading-none text-primary-foreground">{j.badge}</span>}
+          </button>
+        ))}
+      </nav>
+
+      {/* 3. the calendar, editable: tap a session to edit it, drag it to move it */}
+      <section aria-label="Calendar" className="rounded-2xl border border-border bg-card p-4 shadow-sm">
+        <UnifiedCalendar tab={calTab} onTab={setCalTab} />
+      </section>
     </div>
   )
 }

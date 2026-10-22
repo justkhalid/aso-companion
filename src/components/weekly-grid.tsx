@@ -90,6 +90,8 @@ interface Props {
   legend?: LegendEntry[]
   weekMonday?: Date | null
   onCellClick?: (item: GridItem) => void
+  /* drag a chip to another day or hour: `delta` is the shift in minutes, snapped to 15 */
+  onMove?: (item: GridItem, fromDay: string, toDay: string, delta: number) => void
   emptyMessage?: string
   emptyHint?: string
 }
@@ -132,12 +134,19 @@ export function WeeklyGrid({
   legend,
   weekMonday,
   onCellClick,
+  onMove,
   emptyMessage = 'Nothing scheduled yet',
   emptyHint = 'Sessions appear here as soon as they are added.',
 }: Props) {
   const pad = (n: number) => String(n).padStart(2, '0')
   const tKey = todayKey()
   const tday = new Date().getDay() === 0 ? 6 : new Date().getDay() - 1
+
+  /* drag to move: a mouse or pen only (touch keeps scrolling; tap opens the editor) */
+  const rowRefs = React.useRef<Record<string, HTMLDivElement | null>>({})
+  const areaRef = React.useRef<HTMLDivElement | null>(null)
+  const justDragged = React.useRef(false)
+  const [drag, setDrag] = React.useState<{ key: string; dx: number; dy: number } | null>(null)
 
   const parsed: ParsedChip[] = []
   for (const it of items) {
@@ -165,6 +174,41 @@ export function WeeklyGrid({
     for (const d of p.item.days) {
       ;(byDay[d] ||= []).push(p)
     }
+  }
+
+  const beginDrag = (ev: React.PointerEvent, item: GridItem, day: string, hoursSpan: number) => {
+    if (!onMove || ev.button !== 0 || ev.pointerType === 'touch') return
+    const sx = ev.clientX
+    const sy = ev.clientY
+    const key = item.id + day
+    let moved = false
+    const mv = (e: PointerEvent) => {
+      const dx = e.clientX - sx
+      const dy = e.clientY - sy
+      if (!moved && Math.hypot(dx, dy) < 6) return
+      moved = true
+      setDrag({ key, dx, dy })
+    }
+    const up = (e: PointerEvent) => {
+      window.removeEventListener('pointermove', mv)
+      window.removeEventListener('pointerup', up)
+      window.removeEventListener('pointercancel', up)
+      setDrag(null)
+      if (!moved) return
+      justDragged.current = true
+      setTimeout(() => { justDragged.current = false }, 60)
+      const w = areaRef.current?.getBoundingClientRect().width || 1
+      const delta = Math.round(((e.clientX - sx) * ((hoursSpan * 60) / w)) / 15) * 15
+      const toDay = DAY_KEYS.find((d) => {
+        const r = rowRefs.current[d]?.getBoundingClientRect()
+        return !!r && e.clientY >= r.top && e.clientY < r.bottom
+      })
+      if (!toDay || (toDay === day && delta === 0)) return
+      onMove(item, day, toDay, delta)
+    }
+    window.addEventListener('pointermove', mv)
+    window.addEventListener('pointerup', up)
+    window.addEventListener('pointercancel', up)
   }
 
   /* the grid ends at the last hour and stretches to the width of the page; it only scrolls sideways
@@ -205,7 +249,7 @@ export function WeeklyGrid({
               : ROW_PAD * 2 + laneCount * CHIP_H + (laneCount - 1) * CHIP_GAP
 
             return (
-              <div key={d} className="flex border-b border-border/60" style={{ height: rowH, position: 'relative' }}>
+              <div key={d} ref={(el) => { rowRefs.current[d] = el }} className="flex border-b border-border/60" style={{ height: rowH, position: 'relative' }}>
                 {/* Day label */}
                 <div
                   className={`flex flex-col items-center justify-center shrink-0 border-r border-border ${
@@ -218,7 +262,7 @@ export function WeeklyGrid({
                 </div>
 
                 {/* Hour columns */}
-                <div className={`relative flex-1 ${isToday ? 'bg-primary/[0.03]' : ''}`}>
+                <div ref={di === 0 ? areaRef : undefined} className={`relative flex-1 ${isToday ? 'bg-primary/[0.03]' : ''}`}>
                   {/* Vertical hour grid lines */}
                   {hours.slice(0, -1).map((_, i) => (
                     <div key={i} className="absolute top-0 bottom-0 border-l border-border/40" style={{ left: `${(i / span) * 100}%` }} />
@@ -237,17 +281,19 @@ export function WeeklyGrid({
 
                     const Icon = !!e.item.mark || !!clubIcon(e.item.icon)
                     const Comp: React.ElementType = onCellClick ? 'button' : 'div'
+                    const dragging = drag?.key === e.item.id + d
                     return (
                       <div
                         key={e.item.id + p.lane + p.leftMin}
                         className="absolute"
-                        style={{ left: chipLeft, width: chipWidth, top: chipTop, height: CHIP_H, zIndex: 10 + p.lane }}
+                        style={{ left: chipLeft, width: chipWidth, top: chipTop, height: CHIP_H, zIndex: dragging ? 60 : 10 + p.lane, transform: dragging ? `translate(${drag!.dx}px, ${drag!.dy}px)` : undefined, opacity: dragging ? 0.85 : undefined, touchAction: onMove ? 'pan-y' : undefined }}
+                        onPointerDown={onMove ? (ev) => beginDrag(ev, e.item, d, span) : undefined}
                       >
                         <Comp
-                          onClick={onCellClick ? () => onCellClick(e.item) : undefined}
+                          onClick={onCellClick ? () => { if (!justDragged.current) onCellClick(e.item) } : undefined}
                           className={`relative flex h-full w-full flex-col justify-center gap-[3px] overflow-hidden rounded-lg border px-2 py-1 pl-[13px] text-left transition ${e.item.tone} ${
                             onCellClick ? 'hover:brightness-[1.04] hover:shadow-md' : ''
-                          }`}
+                          } ${onMove ? (dragging ? 'cursor-grabbing shadow-lg' : 'cursor-grab') : ''}`}
                           style={{
                             background: 'var(--tone-bg)',
                             borderColor: 'var(--tone-line)',
