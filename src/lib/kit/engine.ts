@@ -242,13 +242,12 @@ function ringFrame(x: Ctx, t: KitTheme, cx: number, cy: number, r: number, shape
   x.restore();
 }
 /* WhatsApp group picture: no text, only the glass picture, the ring and the club icon. WhatsApp crops it to a circle or rounded square, so everything sits in the middle. */
-export async function makeCover(p: KitParams, t: KitTheme, ring = false) {
+export async function makeCover(p: KitParams, t: KitTheme) {
   const c = cv(1080, 1080), x = c.getContext("2d")!, CX = 540;
   x.drawImage(await get(KIT_BG_COVERS[t.bg] || KIT_BG_COVERS[0]), 0, 0);
   glow(x, 540, 580, t.c2);
   if (t.decor !== "none" && t.decor !== "brain") { x.save(); x.translate(0, -420); x.drawImage(await svgLayer(DECOR[t.decor](t.c1, t.c2)), 0, 0); x.restore(); }
-  if (ring) ringFrame(x, t, CX, CX, 495, "squircle");
-  await drawLogo(x, CX, ring ? 135 : 95, 62);
+  await drawLogo(x, CX, 95, 62);
   await drawIcon(x, p.icon, CX, 455, 570, t.c1, t.c2);
   grain(x, 1080, 1080); return c;
 }

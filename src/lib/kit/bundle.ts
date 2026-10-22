@@ -32,7 +32,7 @@ export async function kitFiles(R: KitRec, folder: string): Promise<File[]> {
   const poster = await posterFile(R)
   if (poster) files.push({ name: `${folder}/poster.${poster.ext}`, blob: poster.blob })
   files.push({ name: `${folder}/story.jpg`, blob: await jpg(await makeStory(p, t)) })
-  if (R.type === 'club') files.push({ name: `${folder}/whatsapp-picture.jpg`, blob: await jpg(await makeCover(p, t)) }, { name: `${folder}/whatsapp-picture-ring.jpg`, blob: await jpg(await makeCover(p, t, true)) })
+  if (R.type === 'club') files.push({ name: `${folder}/whatsapp-picture.jpg`, blob: await jpg(await makeCover(p, t)) })
   files.push({ name: `${folder}/highlight-cover.jpg`, blob: await jpg(await makeHighlight(p, t)) })
   files.push({ name: `${folder}/icon.png`, blob: await png(await makeIconPng(p, t)) })
   const text = [R.name, [R.day, R.time, R.venue].filter(Boolean).join(' | '), '', R.cap, R.wa ? `\nWhatsApp group: ${R.wa}` : ''].join('\n').trim() + '\n'
