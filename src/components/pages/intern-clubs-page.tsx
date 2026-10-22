@@ -61,7 +61,7 @@ export function InternClubsPage() {
               {(c.vol || []).length > 0 && (
                 <div className="mt-1 text-xs text-muted-foreground">Volunteers: {c.vol.join(', ')}</div>
               )}
-              <div className="mt-2 flex items-center gap-1.5">
+              <div className="mt-2 flex flex-wrap items-center gap-1.5">
                 {c.url && (
                   <a href={c.url} target="_blank" rel="noopener">
                     <Button variant="outline" size="sm"><ExternalLink className="h-3.5 w-3.5" /> Link</Button>
