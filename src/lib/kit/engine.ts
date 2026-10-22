@@ -220,30 +220,45 @@ async function storyBody(p: KitParams, t: KitTheme, withBg: boolean, withDecor =
   x.font = "700 22px ManropeA"; spaced(x, "WHATSAPP GROUP LINK HERE", CX, py + 50, 5, rg(t.ink, .67));
   if (withBg) grain(x, 1080, 1920); return c;
 }
-/* the outer ring of a WhatsApp group or community picture: a bright ring and a thin one inside it, in the club colours */
-function ringFrame(x: Ctx, t: KitTheme, cx: number, cy: number, r: number) {
+/* a rounded square with smooth corners (a superellipse), the outline WhatsApp gives a community icon */
+function squirclePath(x: Ctx, cx: number, cy: number, a: number, n = 5) {
+  x.beginPath();
+  const steps = 360;
+  for (let i = 0; i <= steps; i++) {
+    const th = (i / steps) * Math.PI * 2, c = Math.cos(th), s = Math.sin(th);
+    const px = cx + a * Math.sign(c) * Math.pow(Math.abs(c), 2 / n), py = cy + a * Math.sign(s) * Math.pow(Math.abs(s), 2 / n);
+    if (i === 0) x.moveTo(px, py); else x.lineTo(px, py);
+  }
+  x.closePath();
+}
+/* the outer ring of a WhatsApp picture: a bright ring and a thin one inside it, in the club colours. A group is shown as a circle, a community as a rounded square, so the ring has both shapes. */
+function ringFrame(x: Ctx, t: KitTheme, cx: number, cy: number, r: number, shape: "circle" | "squircle" = "circle") {
+  const path = (a: number) => { if (shape === "circle") { x.beginPath(); x.arc(cx, cy, a, 0, Math.PI * 2); } else squirclePath(x, cx, cy, a); };
   x.save();
   x.lineWidth = 16; x.strokeStyle = grad(x, cx - r, cx + r, t.c1, t.c2);
-  x.beginPath(); x.arc(cx, cy, r, 0, Math.PI * 2); x.stroke();
+  path(r); x.stroke();
   x.lineWidth = 4; x.globalAlpha = 0.45;
-  x.beginPath(); x.arc(cx, cy, r - 26, 0, Math.PI * 2); x.stroke();
+  path(r - 26); x.stroke();
   x.restore();
 }
 /* WhatsApp group picture: no text, only the glass picture, the ring and the club icon. WhatsApp crops it to a circle or rounded square, so everything sits in the middle. */
-export async function makeCover(p: KitParams, t: KitTheme) {
+export async function makeCover(p: KitParams, t: KitTheme, ring = false) {
   const c = cv(1080, 1080), x = c.getContext("2d")!, CX = 540;
-  await paintGlass(x, KIT_BG_COVERS[t.bg] || KIT_BG_COVERS[0], glassOf(t), t);
-  glow(x, CX, CX, t.c2);
-  ringFrame(x, t, CX, CX, 470);
-  await drawIcon(x, p.icon, CX, CX, 580, t.c1, t.c2);
+  x.drawImage(await get(KIT_BG_COVERS[t.bg] || KIT_BG_COVERS[0]), 0, 0);
+  glow(x, 540, 580, t.c2);
+  if (t.decor !== "none" && t.decor !== "brain") { x.save(); x.translate(0, -420); x.drawImage(await svgLayer(DECOR[t.decor](t.c1, t.c2)), 0, 0); x.restore(); }
+  if (ring) ringFrame(x, t, CX, CX, 495, "squircle");
+  await drawLogo(x, CX, ring ? 135 : 95, 62);
+  await drawIcon(x, p.icon, CX, 455, 570, t.c1, t.c2);
   grain(x, 1080, 1080); return c;
 }
-/* the ASO logo in the same format as the club pictures (glass picture and ring), for the profile picture and the community icon */
-export async function makeProfilePicture(t: KitTheme) {
+
+/* the ASO logo in the same format as the club pictures (glass picture and ring), for the profile picture and the community icon (rounded-square ring) */
+export async function makeProfilePicture(t: KitTheme, shape: "circle" | "squircle" = "squircle") {
   const c = cv(1080, 1080), x = c.getContext("2d")!, CX = 540;
   await paintGlass(x, KIT_BG_COVERS[t.bg] || KIT_BG_COVERS[0], glassOf(t), t);
   glow(x, CX, CX, t.c2);
-  ringFrame(x, t, CX, CX, 470);
+  ringFrame(x, t, CX, CX, shape === "circle" ? 470 : 480, shape);
   await drawLogo(x, CX, CX, 560);
   grain(x, 1080, 1080); return c;
 }
