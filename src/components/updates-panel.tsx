@@ -7,6 +7,7 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 
 interface LogItem { sha: string; date: string; title: string; note: string }
 interface Status {
+  changes?: number
   local: boolean
   installed: { sha: string; date: string; version: string } | null
   latest: { sha: string; date: string; version: string } | null

@@ -16,6 +16,7 @@ export interface UpdateStatus {
   installed: { sha: string; date: string; version: string } | null
   latest: { sha: string; date: string; version: string } | null
   behind: number | null
+  changes: number // real changes to the app waiting (saves of the data do not count)
   dirty: boolean
   canUpdate: boolean
   log: LogItem[]
@@ -70,7 +71,7 @@ export async function updateStatus(): Promise<UpdateStatus> {
     }
   }
   const head = await gh<Commit>(`commits/${BRANCH()}`)
-  if (!head) return { local, installed, latest: null, behind: null, dirty, canUpdate: false, log: [], error: 'GitHub could not be reached.' }
+  if (!head) return { local, installed, latest: null, behind: null, changes: 0, dirty, canUpdate: false, log: [], error: 'GitHub could not be reached.' }
   const latest = { sha: head.sha, date: head.commit.committer?.date || '', version: await latestVersion() }
   let behind: number | null = null
   let commits: Commit[] = []
@@ -80,7 +81,8 @@ export async function updateStatus(): Promise<UpdateStatus> {
   } else if (installed) behind = 0
   /* no installed version to compare with (the website copy, or a copy that is not a git folder): show the latest changes */
   if (!commits.length && behind !== 0) commits = (await gh<Commit[]>(`commits?sha=${BRANCH()}&per_page=60`)) || []
-  return { local, installed, latest, behind, dirty, canUpdate: local && !!installed && !dirty, log: toLog(commits).slice(0, 40) }
+  const all = toLog(commits)
+  return { local, installed, latest, behind, changes: behind ? all.length : 0, dirty, canUpdate: local && !!installed && !dirty, log: all.slice(0, 40) }
 }
 
 /** pull the new code (fast-forward only, so nothing local is ever overwritten) */
