@@ -3,7 +3,7 @@
 import type { Club, EventEntry, KitOverrides } from '../types'
 import { LOOKS, type RGB } from './decor'
 import { KIT_ICONS } from './icons'
-import { loadImage, type KitParams, type KitTheme } from './engine'
+import { loadImage, GROUNDS, type KitParams, type KitTheme } from './engine'
 
 export const WEEK = ['MONDAY', 'TUESDAY', 'WEDNESDAY', 'THURSDAY', 'FRIDAY', 'SATURDAY', 'SUNDAY']
 const D3: Record<string, string> = { Mon: 'MONDAY', Tue: 'TUESDAY', Wed: 'WEDNESDAY', Thu: 'THURSDAY', Fri: 'FRIDAY', Sat: 'SATURDAY', Sun: 'SUNDAY' }
@@ -186,10 +186,29 @@ export function kitDiff(kind: 'club' | 'event', item: Club | EventEntry, form: K
   return out
 }
 
+/* the writing color must be readable on the ground: below a contrast of 4.5 the ink turns near-black or white */
+const lum = (c: number[]) => { const f = (v: number) => { const x = v / 255; return x <= .03928 ? x / 12.92 : ((x + .055) / 1.055) ** 2.4 }; return .2126 * f(c[0]) + .7152 * f(c[1]) + .0722 * f(c[2]) }
+const contrast = (a: number[], b: number[]) => { const x = lum(a), y = lum(b); return (Math.max(x, y) + .05) / (Math.min(x, y) + .05) }
+export function groundRgb(c1: RGB, c2: RGB, ground?: string): RGB {
+  const base = [244, 240, 232]
+  if (ground === 'look') return [0, 1, 2].map((i) => Math.round(base[i] * (1 - .9) + base[i] * (c1[i] * .35 + c2[i] * .15 + 127.5) / 255 * .9)) as RGB
+  const g = GROUNDS[ground || 'pearl']
+  if (!g || !g[1]) return base as RGB
+  const a = Math.min(1, g[2] + .1)
+  return [0, 1, 2].map((i) => Math.round(base[i] * (1 - a) + base[i] * g[1]![i] / 255 * a)) as RGB
+}
+export function readableInk(ink: RGB, c1: RGB, c2: RGB, ground?: string): { ink: RGB; changed: boolean } {
+  const g = groundRgb(c1, c2, ground)
+  if (contrast(ink, g) >= 4.5) return { ink, changed: false }
+  const dark: RGB = [16, 20, 40], light: RGB = [255, 255, 255]
+  return { ink: contrast(dark, g) >= contrast(light, g) ? dark : light, changed: true }
+}
+
 export function kitTheme(R: Pick<KitRec, 'look' | 'palette' | 'decor' | 'bg'> & Partial<Pick<KitRec, 'glass' | 'motion' | 'ground'>>): KitTheme {
   const L = LOOKS[R.look] || LOOKS.aso
   const pal = LOOKS[R.palette && R.palette !== 'same' ? R.palette : R.look] || L
-  return { c1: pal[1] as RGB, c2: pal[2] as RGB, ink: pal[3] as RGB, decor: R.decor && R.decor !== 'same' ? R.decor : L[4], bg: +R.bg || 0, glass: R.glass === undefined ? 100 : R.glass, motion: R.motion === undefined ? 1 : R.motion, ground: R.ground || 'pearl' }
+  const ink = readableInk(pal[3] as RGB, pal[1] as RGB, pal[2] as RGB, R.ground || 'pearl').ink
+  return { c1: pal[1] as RGB, c2: pal[2] as RGB, ink, decor: R.decor && R.decor !== 'same' ? R.decor : L[4], bg: +R.bg || 0, glass: R.glass === undefined ? 100 : R.glass, motion: R.motion === undefined ? 1 : R.motion, ground: R.ground || 'pearl' }
 }
 
 export async function kitParams(R: KitRec): Promise<KitParams> {

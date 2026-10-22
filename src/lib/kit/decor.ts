@@ -84,9 +84,46 @@ export const DECOR: Record<string, (c1: RGB, c2: RGB) => string> = {
     }
     for (const [x, y, s, a, col] of ([[80, 150, 30, 40, c2], [1000, 130, 34, -40, c1], [150, 230, 22, 20, c1], [940, 240, 24, -20, c2]] as [number, number, number, number, RGB][])) b += leaf(x, y, s, a, col, .85);
     return b;
+  },
+  dots: (c1, c2) => {
+    let b = "";
+    for (const [bx, by, sg] of [[0, 0, 1], [1080, 1920, -1]]) for (let r = 0; r < 7; r++) for (let k = 0; k < 7 - r; k++) b += `<circle cx="${bx + sg * (50 + k * 52)}" cy="${by + sg * (50 + r * 52)}" r="${14 - r * 1.3}" fill="${rg((r + k) % 2 ? c1 : c2, .8)}"/>`;
+    return b;
+  },
+  waves: (c1, c2) => {
+    let b = "";
+    for (let i = 0; i < 5; i++) {
+      const y = 1620 + i * 46, a = 28 - i * 3;
+      b += `<path d="M0 ${y} Q135 ${y - a} 270 ${y} T540 ${y} T810 ${y} T1080 ${y} V1920 H0Z" fill="${rg(i % 2 ? c2 : c1, .16 + i * .05)}"/>`;
+      b += `<path d="M0 ${150 - i * 26} Q135 ${130 - i * 26 - a} 270 ${150 - i * 26} T540 ${150 - i * 26} T810 ${150 - i * 26} T1080 ${150 - i * 26}" fill="none" stroke="${rg(i % 2 ? c1 : c2, .5)}" stroke-width="5"/>`;
+    }
+    return b;
+  },
+  stars: (c1, c2) => {
+    const star = (cx: number, cy: number, r: number, col: RGB, a: number) => { let d = ""; for (let i = 0; i < 10; i++) { const rr = i % 2 ? r * .45 : r, an = -Math.PI / 2 + i * Math.PI / 5; d += (i ? "L" : "M") + (cx + rr * Math.cos(an)).toFixed(1) + " " + (cy + rr * Math.sin(an)).toFixed(1); } return `<path d="${d}Z" fill="${rg(col, a)}"/>`; };
+    let b = "";
+    for (const [x, y, r, k] of [[90, 120, 46, 0], [980, 190, 30, 1], [170, 250, 22, 1], [930, 90, 20, 0], [60, 1780, 40, 1], [990, 1700, 52, 0], [160, 1650, 24, 0], [920, 1830, 26, 1], [1010, 1500, 18, 1], [70, 1560, 18, 0]] as number[][]) b += star(x, y, r, k ? c2 : c1, .85);
+    return b;
+  },
+  confetti: (c1, c2) => {
+    let b = "", n = 1;
+    const rnd = () => { n = (n * 16807) % 2147483647; return n / 2147483647; };
+    for (let i = 0; i < 46; i++) {
+      const top = i % 2 === 0, x = rnd() * 1080, y = top ? rnd() * 260 : 1640 + rnd() * 270, an = rnd() * 180;
+      b += i % 3 ? `<rect x="${x.toFixed(0)}" y="${y.toFixed(0)}" width="${12 + rnd() * 14}" height="${6 + rnd() * 6}" rx="2" transform="rotate(${an.toFixed(0)} ${x.toFixed(0)} ${y.toFixed(0)})" fill="${rg(i % 2 ? c1 : c2, .8)}"/>` : `<circle cx="${x.toFixed(0)}" cy="${y.toFixed(0)}" r="${6 + rnd() * 6}" fill="${rg(i % 2 ? c2 : c1, .8)}"/>`;
+    }
+    return b;
+  },
+  diamonds: (c1, c2) => {
+    let b = "";
+    for (let i = 0; i < 9; i++) for (const [y0, dir] of [[40, 1], [1880, -1]]) {
+      const x = 60 + i * 120, y = y0 + dir * ((i % 2) * 34), s = 36;
+      b += `<path d="M${x} ${y - s} L${x + s} ${y} L${x} ${y + s} L${x - s} ${y}Z" fill="${rg(i % 2 ? c1 : c2, .75)}"/>`;
+    }
+    return b;
   }
 };
-export const DECOR_NAMES: Record<string, string> = { none: "None", film: "Film strips", rings: "Sound rings", atoms: "Atoms and sparkles", stripes: "Corner stripes", triangles: "Triangle pattern", brain: "Brain and bulb", books: "Open books", leaves: "Leaves" };
+export const DECOR_NAMES: Record<string, string> = { none: "None", film: "Film strips", rings: "Sound rings", atoms: "Atoms and sparkles", stripes: "Corner stripes", triangles: "Triangle pattern", brain: "Brain and bulb", books: "Open books", leaves: "Leaves", dots: "Dot corners", waves: "Soft waves", stars: "Stars", confetti: "Confetti", diamonds: "Diamond rows" };
 // Looks used by the existing clubs: [label, c1, c2, ink, decor, icon]
 export const LOOKS: Record<string, Look> = {
   movie: ["Movie night: burgundy and gold, film strips", [96, 18, 40], [222, 158, 38], [58, 14, 28], "film", "i-movie"],
@@ -105,5 +142,16 @@ export const LOOKS: Record<string, Look> = {
   slate: ["Slate and amber", [50, 60, 80], [230, 150, 40], [30, 36, 50], "triangles", "chess"],
   aso: ["ASO classic: navy and red, rings", [14, 26, 74], [214, 34, 43], [14, 26, 74], "rings", "ai"],
   teal: ["Teal and blue: atoms", [8, 96, 112], [60, 90, 200], [6, 54, 70], "atoms", "ai"],
-  gold: ["Navy and gold: books", [18, 40, 110], [200, 150, 40], [12, 26, 74], "books", "ai"]
+  gold: ["Navy and gold: books", [18, 40, 110], [200, 150, 40], [12, 26, 74], "books", "ai"],
+  rose: ["Rose and plum: soft waves", [170, 40, 96], [100, 30, 120], [80, 20, 60], "waves", "art"],
+  forest: ["Forest and sand: leaves", [20, 70, 50], [210, 170, 100], [12, 44, 32], "leaves", "environment"],
+  citrus: ["Citrus: orange and teal, confetti", [236, 120, 20], [10, 140, 150], [110, 50, 10], "confetti", "i-sports"],
+  midnight: ["Midnight and silver: stars", [20, 24, 64], [150, 170, 210], [255, 255, 255], "stars", "science"],
+  coral: ["Coral and navy: dots", [240, 100, 90], [20, 50, 110], [120, 30, 30], "dots", "music"],
+  lavender: ["Lavender and mint: diamonds", [120, 90, 190], [60, 180, 150], [60, 40, 110], "diamonds", "art"],
+  graphite: ["Graphite and lime: stripes", [40, 44, 52], [150, 200, 30], [255, 255, 255], "stripes", "coding"],
+  ruby: ["Ruby and gold: diamonds", [140, 10, 50], [230, 180, 60], [255, 255, 255], "diamonds", "debate"],
+  azure: ["Azure and white: soft waves", [20, 100, 200], [120, 200, 240], [10, 50, 120], "waves", "science"],
+  olive: ["Olive and terracotta: triangles", [90, 100, 40], [200, 100, 60], [50, 56, 20], "triangles", "i-africa"],
+  berry: ["Berry and sky: dots", [130, 30, 100], [80, 170, 230], [255, 255, 255], "dots", "music"]
 };

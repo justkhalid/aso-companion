@@ -7,6 +7,8 @@ import { PageHead, EmptyState } from '@/components/ui-bits'
 import { Button } from '@/components/ui/button'
 import { ClassDialog } from '@/components/dialogs/class-dialog'
 import { RowActions } from '@/components/admin/row-actions'
+import { ArchiveGroup } from '@/components/session-card'
+import { cn } from '@/lib/utils'
 import { uid, fmtTime } from '@/lib/app-utils'
 import { classMark, type Audience } from '@/lib/class-marks'
 import { publicGroupName } from '@/lib/calendar-items'
@@ -33,8 +35,14 @@ export function ClassesPage() {
     setDialog({ open: true, cls: copy })
   }
 
-  const rows = state.classes.map((c) => ({ c, mark: classMark(state, c) }))
-  const sections = GROUPS.map((g) => ({
+  const today = new Date().toISOString().slice(0, 10)
+  const [filter, setFilter] = React.useState<'all' | Audience | 'Other'>('all')
+  const isOver = (c: ClassEntry) => !!c.until && c.until < today
+  const live = state.classes.filter((c) => !isOver(c))
+  const over = state.classes.filter(isOver)
+  const rows = live.map((c) => ({ c, mark: classMark(state, c) }))
+  const countOf = (k: string) => rows.filter((r) => (r.mark?.audience ?? 'Other') === k).length
+  const sections = GROUPS.filter((g) => filter === 'all' || g.key === filter).map((g) => ({
     ...g,
     list: rows
       .filter((r) => (r.mark?.audience ?? 'Other') === g.key)
@@ -45,7 +53,7 @@ export function ClassesPage() {
     const [from, to] = (fmtTime(c.time) || '').split(' - ')
     const days = (c.days || []).slice().sort((a, b) => DAY_ORDER.indexOf(a) - DAY_ORDER.indexOf(b))
     return (
-      <div key={c.id} className="flex gap-3 rounded-2xl border border-border bg-card p-3 shadow-sm">
+      <div key={c.id} className={cn('flex gap-3 rounded-2xl border border-border bg-card p-3 shadow-sm', isOver(c) && 'opacity-70')}>
         <div className={`${tone} flex w-[88px] shrink-0 flex-col items-center justify-center rounded-xl px-1 py-2 text-center`} style={{ background: 'var(--tone-bg)', color: 'var(--tone-txt)' }}>
           <span className="text-[11px] font-extrabold uppercase tracking-wide">{days.join(' · ') || 'No day'}</span>
           <span className="mt-0.5 text-[17px] font-extrabold leading-tight tabular-nums">{from || '-'}</span>
@@ -55,6 +63,7 @@ export function ClassesPage() {
           <div className="flex items-baseline gap-2">
             <h3 className="truncate text-[15px] font-extrabold tracking-tight">{publicGroupName(c.code, c.level)}</h3>
             <span className="shrink-0 text-xs font-semibold text-muted-foreground">{c.code}</span>
+            {isOver(c) && <span className="shrink-0 rounded-full bg-secondary px-2 py-0.5 text-[10px] font-bold text-muted-foreground">Ended</span>}
           </div>
           <div className="mt-1.5 grid gap-1 text-[13px]">
             <span className="inline-flex items-center gap-1.5 font-semibold"><Users className="h-3.5 w-3.5 text-muted-foreground" aria-hidden /> {c.teacher || <span className="inline-flex items-center gap-1 text-[var(--aso-gold)]"><AlertTriangle className="h-3.5 w-3.5" aria-hidden /> Needs a teacher</span>}</span>
@@ -90,6 +99,13 @@ export function ClassesPage() {
         <EmptyState icon={<Users className="h-5 w-5" />} title="No classes yet" hint="Add your first group." />
       ) : (
         <div className="grid gap-6">
+          <div className="flex flex-wrap gap-1.5" role="tablist" aria-label="Show">
+            {([['all', 'All', live.length], ...GROUPS.filter((g) => countOf(g.key) > 0).map((g) => [g.key, g.key === 'Other' ? 'Other' : g.key, countOf(g.key)])] as [string, string, number][]).map(([k, label, n]) => (
+              <button key={k} type="button" role="tab" aria-selected={filter === k} onClick={() => setFilter(k as typeof filter)} className={cn('rounded-full border px-3.5 py-1.5 text-[13px] font-bold transition', filter === k ? 'aso-nav-pill border-transparent' : 'border-border bg-card text-foreground/75 hover:bg-secondary')}>
+                {label} <span className="ml-1 text-[11px] opacity-70">{n}</span>
+              </button>
+            ))}
+          </div>
           {sections.map((g) => {
             const steps = Array.from(new Set(g.list.map((r) => r.mark?.step ?? 0)))
             return (
@@ -109,6 +125,9 @@ export function ClassesPage() {
               </section>
             )
           })}
+          <ArchiveGroup count={over.length}>
+            <div className="grid gap-3 sm:grid-cols-2">{over.map((c) => card(c, 'tone-8'))}</div>
+          </ArchiveGroup>
         </div>
       )}
 

@@ -1,14 +1,13 @@
 'use client'
 
 import * as React from 'react'
-import { Send, Plus, CalendarDays, Clock, MapPin, Repeat2, User } from 'lucide-react'
-import { PosterThumb } from '@/components/poster-thumb'
+import { Plus, CalendarDays, Clock, MapPin, Repeat2 } from 'lucide-react'
+import { SessionCard, ArchiveGroup } from '@/components/session-card'
 import { useStore } from '@/lib/store'
-import { fmtEventWhen, nextOccurrence, fmtD, isOnceEvent, fmtTime } from '@/lib/app-utils'
+import { fmtEventWhen, nextOccurrence, fmtD, isOnceEvent, fmtTime, isoOf, parseISO } from '@/lib/app-utils'
 import { PageHead, EmptyState, Chip } from '@/components/ui-bits'
 import { Button } from '@/components/ui/button'
 import { EventDialog } from '@/components/dialogs/event-dialog'
-import { RowActions } from '@/components/admin/row-actions'
 import { uid } from '@/lib/app-utils'
 import type { EventEntry } from '@/lib/types'
 
@@ -24,12 +23,38 @@ export function InternEventsPage() {
     setDialog({ open: true, event: copy })
   }
 
-  const list = (state.events || [])
-    .map((e) => ({ e, d: nextOccurrence(e) }))
-    .sort((a, b) => (a.d ? a.d.getTime() : 0) - (b.d ? b.d.getTime() : 0))
+  const todayIso = isoOf(new Date())
+  /* over = a one-off event whose date has passed, or a series that has ended */
+  const isOver = (e: EventEntry) => (isOnceEvent(e) ? !!e.date && e.date < todayIso : !!e.until && e.until < todayIso)
+  const withDate = (state.events || []).map((e) => ({ e, d: nextOccurrence(e) }))
+  const upcoming = withDate.filter((x) => !isOver(x.e)).sort((a, b) => (a.d ? a.d.getTime() : Infinity) - (b.d ? b.d.getTime() : Infinity))
+  const past = withDate.filter((x) => isOver(x.e)).sort((a, b) => (b.e.date || b.e.until || '').localeCompare(a.e.date || a.e.until || ''))
+
+  const card = ({ e, d }: { e: EventEntry; d: Date | null }, archived: boolean) => (
+    <SessionCard
+      key={e.id}
+      kind="event"
+      title={e.title}
+      poster={e.poster}
+      icon={e.icon}
+      desc={e.desc}
+      archived={archived}
+      badge={<Chip tone={isOnceEvent(e) ? 'primary' : 'gold'} icon={isOnceEvent(e) ? CalendarDays : Repeat2}>{fmtEventWhen(e)}</Chip>}
+      meta={[
+        ...(d ? [{ icon: CalendarDays, text: fmtD(d, { weekday: 'long', day: 'numeric', month: 'long' }) }] : e.date ? [{ icon: CalendarDays, text: fmtD(parseISO(e.date), { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' }) }] : []),
+        ...(e.time ? [{ icon: Clock, text: fmtTime(e.time) }] : []),
+        ...(e.place ? [{ icon: MapPin, text: (e.outside ? 'Outside: ' : '') + e.place }] : []),
+      ]}
+      lead={e.lead}
+      onPost={() => openSocial('event', { kind: 'event', id: e.id })}
+      onEdit={() => setDialog({ open: true, event: e })}
+      onDuplicate={() => duplicate(e)}
+      remove={(dr) => { dr.events = dr.events.filter((x) => x.id !== e.id) }}
+    />
+  )
 
   return (
-    <div className="mx-auto max-w-4xl px-4 py-6 sm:py-8">
+    <div className="mx-auto max-w-3xl px-4 py-6 sm:py-8">
       <PageHead
         title="Events"
         subtitle={`${state.events.length} events`}
@@ -39,38 +64,14 @@ export function InternEventsPage() {
           </Button>
         }
       />
-      {list.length === 0 ? (
+      {state.events.length === 0 ? (
         <EmptyState icon={<CalendarDays className="h-5 w-5" />} title="No events yet" hint="Add your first event." />
       ) : (
-        <div className="flex flex-col gap-2">
-          {list.map(({ e, d }) => (
-            <div key={e.id} className="flex gap-3 rounded-2xl border border-border bg-card p-4 shadow-sm">
-              <PosterThumb poster={e.poster} alt={`${e.title} poster`} icon={e.icon} kind="event" />
-              <div className="min-w-0 flex-1">
-              <div className="mb-1.5 flex items-center gap-2">
-                <div className="flex-1 font-bold" dir="auto">{e.title}</div>
-                <Chip tone={isOnceEvent(e) ? 'primary' : 'gold'} icon={isOnceEvent(e) ? CalendarDays : Repeat2}>{fmtEventWhen(e)}</Chip>
-              </div>
-              {e.desc && <div className="text-sm text-muted-foreground" dir="auto">{e.desc}</div>}
-              <div className="mt-1.5 flex flex-wrap gap-x-3 gap-y-1 text-xs font-semibold text-muted-foreground">
-                {d && <span className="inline-flex items-center gap-1"><CalendarDays className="h-3.5 w-3.5" /> {fmtD(d, { weekday: 'long', day: 'numeric', month: 'long' })}</span>}
-                {e.time && <span className="inline-flex items-center gap-1"><Clock className="h-3.5 w-3.5" /> {fmtTime(e.time)}</span>}
-                {e.place && <span className="inline-flex items-center gap-1"><MapPin className="h-3.5 w-3.5" /> {e.outside ? 'Outside: ' : ''}{e.place}</span>}
-              </div>
-              {e.lead && <div className="mt-1.5 inline-flex items-center gap-1 text-xs font-semibold"><User className="h-3.5 w-3.5" /> Lead: {e.lead}</div>}
-              <div className="mt-2 flex flex-wrap items-center justify-end gap-1.5">
-                <Button variant="outline" size="sm" onClick={() => openSocial('event', { kind: 'event', id: e.id })}><Send className="h-3.5 w-3.5" /> Poster and post</Button>
-                <RowActions
-                  name={e.title}
-                  onEdit={() => setDialog({ open: true, event: e })}
-                  onDuplicate={() => duplicate(e)}
-                  remove={(d) => { d.events = d.events.filter((x) => x.id !== e.id) }}
-                />
-              </div>
-              </div>
-            </div>
-          ))}
-        </div>
+        <>
+          <h2 className="mb-3 text-sm font-extrabold tracking-tight">Upcoming <span className="ml-1 text-xs font-bold text-muted-foreground">{upcoming.length}</span></h2>
+          {upcoming.length === 0 ? <p className="rounded-2xl border border-dashed border-border p-6 text-center text-sm text-muted-foreground">Nothing coming up. Add an event, or look in the archive.</p> : <div className="grid gap-3">{upcoming.map((x) => card(x, false))}</div>}
+          <ArchiveGroup count={past.length}>{past.map((x) => card(x, true))}</ArchiveGroup>
+        </>
       )}
       <EventDialog open={dialog.open} onOpenChange={(v) => setDialog((s) => ({ ...s, open: v }))} event={dialog.event} />
     </div>

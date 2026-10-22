@@ -20,6 +20,7 @@ export function DashboardPage() {
   const setView = useStore((s) => s.setView)
   const openSocial = useStore((s) => s.openSocial)
   const [calTab, setCalTab] = React.useState<CalTab>('cluev')
+  const [page, setPage] = React.useState<'overview' | 'calendar'>('overview')
   const [lib, setLib] = React.useState<{ available: boolean; connected: boolean; summary?: { total: number; thisMonth: number; cardsToPrint: number; noPhoto: number } } | null>(null)
   React.useEffect(() => {
     fetch('/api/members?summary=1', { cache: 'no-store' }).then((r) => (r.ok ? r.json() : null)).then(setLib).catch(() => setLib(null))
@@ -57,22 +58,16 @@ export function DashboardPage() {
     ? [
         { label: 'Members', value: lib.summary.total, view: 'members' },
         { label: 'Joined this month', value: lib.summary.thisMonth, view: 'members' },
-        { label: 'Cards to print', value: lib.summary.cardsToPrint, view: 'members' },
-        { label: 'No photo', value: lib.summary.noPhoto, view: 'members' },
       ]
     : [{ label: 'Members', value: '-', view: 'members' }]
   const stats: { title: string; icon: React.ElementType; items: { label: string; value: string | number; view: View }[]; note?: string }[] = [
     { title: 'Clubs and events', icon: Sparkles, items: [
       { label: 'Clubs', value: state.clubs.length, view: 'intern-clubs' },
       { label: 'Upcoming events', value: upcomingEvents, view: 'intern-events' },
-      { label: 'On the calendar', value: state.clubs.length + upcomingEvents, view: 'clubs' },
-      { label: 'Posters ready', value: state.clubs.filter((c) => !!c.poster).length + state.events.filter((e) => !!e.poster).length, view: 'social' },
     ] },
     { title: 'Classes', icon: GraduationCap, items: [
       { label: 'Classes', value: state.classes.length, view: 'classes' },
       { label: 'Teachers', value: people.filter((p) => rolesOf(p).includes('Teacher')).length, view: 'team' },
-      { label: 'Levels', value: state.levels.length, view: 'eltaso' },
-      { label: 'Rooms', value: 4, view: 'rooms' },
     ] },
     { title: 'ASO Library', icon: BookUser, items: libStats, note: !lib ? undefined : !lib.available ? "Members open only in the app on the director's computer." : !lib.connected ? 'The members sheet is not connected yet. Open Members to connect it.' : undefined },
   ]
@@ -96,6 +91,14 @@ export function DashboardPage() {
         subtitle={`${now.toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long' })} · ${week}`}
       />
 
+      <div className="mb-4 inline-flex rounded-full border border-border bg-secondary/70 p-0.5" role="tablist" aria-label="Home sections">
+        {([['overview', 'Overview'], ['calendar', 'Calendar']] as const).map(([k, l]) => (
+          <button key={k} role="tab" aria-selected={page === k} onClick={() => setPage(k)} className={`h-9 rounded-full px-5 text-sm font-bold transition ${page === k ? 'bg-card shadow-sm' : 'text-muted-foreground hover:text-foreground'}`}>{l}</button>
+        ))}
+      </div>
+
+      {page === 'overview' ? (
+        <>
       {/* 1. the main numbers */}
       <nav aria-label="Statistics" className="mb-4 grid gap-3 md:grid-cols-3">
         {stats.map((x) => (
@@ -190,10 +193,15 @@ export function DashboardPage() {
         ))}
       </nav>
 
+        </>
+      ) : (
+        <>
       {/* 4. the calendar, editable: tap a session to edit it, drag it to move it */}
       <section aria-label="Calendar" className="rounded-2xl border border-border bg-card p-4 shadow-sm">
         <UnifiedCalendar tab={calTab} onTab={setCalTab} />
       </section>
+        </>
+      )}
     </div>
   )
 }

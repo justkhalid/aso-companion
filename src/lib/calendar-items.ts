@@ -62,6 +62,7 @@ function withHolidays(items: GridItem[], monday: Date): GridItem[] {
 function rawClassItems(state: State, monday: Date): GridItem[] {
   return (state.classes || [])
     .filter((c) => (c.days || []).length && c.time)
+    .filter((c) => !c.until || c.until >= `${monday.getFullYear()}-${String(monday.getMonth() + 1).padStart(2, '0')}-${String(monday.getDate()).padStart(2, '0')}`)
     .flatMap((c) => {
       const base = { slot: c.time, code: 'English class ' + publicGroupName(c.code, c.level), room: c.room, mark: classMark(state, c) || undefined }
       const tone = PUBLIC_CLASS_TONE

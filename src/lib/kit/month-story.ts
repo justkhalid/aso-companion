@@ -211,7 +211,6 @@ export async function buildMonthStory(state: State, year: number, month: number)
   const oct = month === 9
   const INK: RGB = oct ? [58, 24, 30] : shade(T, -0.38)
   const EVC: RGB = oct ? [198, 40, 40] : A
-  const CLC: RGB = oct ? [22, 38, 100] : shade(T, -0.3)
   const stops: RGB[] = oct ? [[118, 20, 40], [196, 36, 40], [232, 104, 32], [240, 150, 38]] : [shade(T, -0.2), T, A, mix(A, [255, 255, 255], 0.25)]
   const DK = stops[0]
   const OR = oct ? ([232, 110, 32] as RGB) : stops[stops.length - 1]
@@ -331,7 +330,7 @@ export async function buildMonthStory(state: State, year: number, month: number)
       for (const o of list.slice(0, shown)) {
         const { club, event } = itemOf(o)
         const item = club || event
-        const colr = o.kind === 'club' ? CLC : EVC
+        const colr: RGB = o.kind === 'club' ? [22, 38, 100] : [198, 40, 40] /* fixed, as in the October story, whatever the month theme */
         const icon = await appIcon(item?.icon, hex(colr))
         g.globalAlpha = o.off ? 0.45 : 1
         if (icon) g.drawImage(icon, x0 + 10, yy, 20, 20)

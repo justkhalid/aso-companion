@@ -138,6 +138,14 @@ export const GROUNDS: Record<string, [label: string, tint: RGB | null, strength:
   sky: ["Sky", [184, 214, 246], .6],
   lilac: ["Lilac", [208, 196, 242], .55],
   sand: ["Sand", [232, 208, 172], .6],
+  peach: ["Peach", [250, 208, 180], .6],
+  butter: ["Butter", [250, 240, 170], .6],
+  sage: ["Sage", [200, 220, 188], .6],
+  rose: ["Rose", [238, 182, 200], .65],
+  ice: ["Ice", [200, 232, 244], .6],
+  steel: ["Steel grey", [150, 160, 176], .75],
+  dusk: ["Dusk", [96, 92, 140], .85],
+  night: ["Night", [28, 34, 70], .95],
   look: ["Colors of the look", null, 0],
 }
 export async function groundCanvas(_t: KitTheme, w: number, h: number) {
@@ -255,6 +263,66 @@ async function storyBody(p: KitParams, t: KitTheme, withBg: boolean, withDecor =
     x.font = "500 22px ManropeA"; spaced(x, "or find the link in our highlights", CX, 1881, 1, rg(t.ink, .6));
   } else await drawIcon(x, p.icon, CX, 1838, 64, t.c1, t.c2);
   if (withBg) grain(x, 1080, 1920); return c;
+}
+
+/* "this session is canceled": the same look as the kit, as a story (1080x1920) or a post (1080x1350, the middle of the same picture) */
+export interface CancelInfo { reason: string; next?: string }
+export async function makeCancel(p: KitParams, t: KitTheme, shape: "story" | "post", info: CancelInfo) {
+  const full = cv(1080, 1920), x = full.getContext("2d")!, CX = 540;
+  await paintGlass(x, storyBg(t), glassOf(t), t);
+  glow(x, 540, 960, t.c2);
+  if (t.decor !== "none") x.drawImage(await svgLayer(DECOR[t.decor](t.c1, t.c2)), 0, 0);
+  const off = shape === "story" ? 0 : 285;
+  const out = shape === "story" ? full : cv(1080, 1350);
+  const g = shape === "story" ? x : out.getContext("2d")!;
+  if (shape === "post") g.drawImage(full, 0, off, 1080, 1350, 0, 0, 1080, 1350);
+  const y0 = shape === "story" ? 210 : 70;
+  await drawLogo(g, CX, shape === "story" ? 165 : 120, shape === "story" ? 78 : 64);
+  /* the writing, laid out from the top to the bottom with fixed gaps */
+  let y = y0 + (shape === "story" ? 330 : 175);
+  g.font = "700 25px ManropeA"; kick(g, "SESSION UPDATE", CX, y, 8, rg(dim(t.c2, .72)));
+  y += 56;
+  const fs = fit(g, sz => `italic 600 ${sz}px Bodoni`, "CANCELED", 860, 190, -6), cap = capOf(g, fs, 600);
+  y += cap; gradTitle(g, "CANCELED", CX, y, fs, -6, 600, t.c1, t.c2);
+  y += 52;
+  const name = [p.top, p.word].filter(Boolean).join(" ");
+  const nfs = fit(g, sz => `700 ${sz}px ManropeA`, name, 880, 46, 6);
+  g.font = `700 ${nfs}px ManropeA`; spaced(g, name, CX, y + Math.floor(nfs * .72), 6, rg(t.ink));
+  y += Math.floor(nfs * .72) + 40;
+  g.fillStyle = grad(g, CX - 260, CX + 260, t.c1, t.c2); g.fillRect(CX - 260, y, 520, 3);
+  y += 62;
+  /* what was planned, crossed out */
+  g.font = "700 24px ManropeA"; spaced(g, "WAS PLANNED FOR", CX, y, 6, rg(t.ink, .6));
+  y += 54;
+  const was = [p.day, p.time].filter(Boolean).join("   |   ");
+  g.font = "700 38px ManropeA"; spaced(g, was, CX, y, 5, rg(t.ink, .85));
+  const ww = measure(g, was, 5); g.fillStyle = rg(t.c2, .9); g.fillRect(CX - ww / 2 - 10, y - 13, ww + 20, 4);
+  y += 88;
+  /* the reason in a soft glass card */
+  const reason = (info.reason || "").trim();
+  if (reason) {
+    g.font = "500 36px ManropeA";
+    const words = reason.split(/\s+/), lines: string[] = []; let cur = "";
+    for (const w of words) { const tryL = cur ? cur + " " + w : w; if (g.measureText(tryL).width > 740 && cur) { lines.push(cur); cur = w; } else cur = tryL; }
+    if (cur) lines.push(cur);
+    const shown = lines.slice(0, 5); if (lines.length > 5) shown[4] = shown[4].replace(/\s*\S*$/, "") + "...";
+    const lh = 54, ch = shown.length * lh + 70, cw = 860, cx0 = CX - cw / 2;
+    g.save(); g.shadowColor = "rgba(40,30,60,.18)"; g.shadowBlur = 30; g.shadowOffsetY = 10; rr(g, cx0, y, cw, ch, 36); g.fillStyle = "rgba(255,255,255,.72)"; g.fill(); g.restore();
+    g.save(); rr(g, cx0, y, cw, ch, 36); g.lineWidth = 3; g.strokeStyle = grad(g, cx0, cx0 + cw, t.c1, t.c2); g.stroke(); g.restore();
+    g.textAlign = "center"; g.fillStyle = rg(t.ink); g.font = "500 36px ManropeA";
+    shown.forEach((l, i) => g.fillText(l, CX, y + 35 + 40 + i * lh - 6));
+    g.textAlign = "left";
+    y += ch + 64;
+  }
+  if (info.next) {
+    g.font = "700 24px ManropeA"; spaced(g, "SEE YOU", CX, y, 6, rg(t.ink, .6));
+    y += 52; g.font = "700 40px ManropeA"; spaced(g, info.next, CX, y, 5, grad(g, CX - 300, CX + 300, t.c1, t.c2));
+  } else {
+    g.font = "700 28px ManropeA"; spaced(g, "SEE YOU AT THE NEXT ONE", CX, y, 6, grad(g, CX - 300, CX + 300, t.c1, t.c2));
+  }
+  await drawIcon(g, p.icon, CX, shape === "story" ? 1838 : Math.min(1290, y + 90), 64, t.c1, t.c2);
+  grain(g, 1080, shape === "story" ? 1920 : 1350);
+  return out;
 }
 /* a rounded square with smooth corners (a superellipse), the outline WhatsApp gives a community icon */
 function squirclePath(x: Ctx, cx: number, cy: number, a: number, n = 5) {

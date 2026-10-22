@@ -36,7 +36,6 @@ const InternEventsPage = dynamic(() => import('./pages/intern-events-page').then
 const SocialKitPage = dynamic(() => import('./pages/social-kit-page').then((m) => m.SocialKitPage), { ssr: false })
 const InventoryPage = dynamic(() => import('./pages/inventory-page').then((m) => m.InventoryPage), { ssr: false })
 const MembersPage = dynamic(() => import('./pages/members-page').then((m) => m.MembersPage), { ssr: false })
-const MonthReportPage = dynamic(() => import('./pages/month-report-page').then((m) => m.MonthReportPage), { ssr: false })
 const SheetPlaceholderPage = dynamic(() => import('./pages/sheet-placeholder-page').then((m) => m.SheetPlaceholderPage), { ssr: false })
 const PublicNav = dynamic(() => import('./public-nav').then((m) => m.PublicNav), { ssr: false })
 
@@ -280,8 +279,6 @@ function PageBody({ view, admin }: { view: View; admin: boolean }) {
       return admin ? <InventoryPage /> : <ClubsPage admin={false} />
     case 'submissions':
       return admin ? <SheetPlaceholderPage page={view} /> : <ClubsPage admin={false} />
-    case 'month-report':
-      return admin ? <MonthReportPage /> : <ClubsPage admin={false} />
     case 'members':
       return admin ? <MembersPage /> : <ClubsPage admin={false} />
     case 'social':

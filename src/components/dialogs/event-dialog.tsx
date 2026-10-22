@@ -23,6 +23,7 @@ import {
   PosterUploader,
 } from '@/components/forms/form-controls'
 import { useStore } from '@/lib/store'
+import { LeadsField } from '@/components/forms/leads-field'
 import { NotInPeople } from '@/components/forms/not-in-people'
 import { uid, peopleOf, roomOptionsFor, outsidePlacesOf } from '@/lib/app-utils'
 import type { EventEntry, EventRecur } from '@/lib/types'
@@ -189,9 +190,8 @@ export function EventDialog({
           <WhereField id="ev-place" label="Where" outside={outside} place={place} onChange={(p, o) => { setPlace(p); setOutside(o) }} rooms={roomOptions} outsidePlaces={outsidePlacesOf(state)} />
 
           <div className="flex flex-col gap-1.5">
-            <Label htmlFor="ev-lead">Lead</Label>
-            <PickOrType id="ev-lead" value={lead} onChange={setLead} options={leadNames} placeholder="Pick a lead" emptyLabel="No lead yet" />
-            <NotInPeople name={lead} role="Volunteer" />
+            <Label htmlFor="ev-lead">Leads</Label>
+            <LeadsField id="ev-lead" value={lead} onChange={setLead} />
           </div>
 
           <div className="flex flex-col gap-2">

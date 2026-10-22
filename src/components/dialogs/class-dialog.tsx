@@ -46,6 +46,7 @@ export function ClassDialog({
   const [room, setRoom] = React.useState('')
   const [days, setDays] = React.useState<string[]>([])
   const [time, setTime] = React.useState('')
+  const [until, setUntil] = React.useState('')
 
   /* remembers the level the code was loaded with, so the code only
      re-generates when the user actually switches level */
@@ -73,6 +74,7 @@ export function ClassDialog({
     setRoom(cls?.room || '')
     setDays(cls?.days || [])
     setTime(cls?.time || '')
+    setUntil(cls?.until || '')
     setCode(cls?.code || suggestClassCode(st.classes, lvl))
   }, [open, cls?.id])
 
@@ -105,6 +107,7 @@ export function ClassDialog({
       room: room.trim(),
       days,
       time: timeValue,
+      until: until || undefined,
     }
     patch((draft) => {
       if (isNew) draft.classes.push(entry)
@@ -180,6 +183,12 @@ export function ClassDialog({
           <div className="flex flex-col gap-1.5">
             <Label>Time slot</Label>
             <TimeRangeSelect value={time} onChange={setTime} />
+          </div>
+
+          <div className="flex flex-col gap-1.5">
+            <Label htmlFor="cls-until">Last day (optional)</Label>
+            <Input id="cls-until" type="date" value={until} onChange={(e) => setUntil(e.target.value)} />
+            <span className="text-[11px] leading-tight text-muted-foreground">After this day the class moves to the archive.</span>
           </div>
 
           <div className="flex flex-col gap-1.5">

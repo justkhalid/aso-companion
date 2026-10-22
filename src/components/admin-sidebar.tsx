@@ -63,7 +63,6 @@ function useNavGroups(): NavGroup[] {
     {
       label: 'Clubs and events',
       items: [
-        { label: 'Calendar', view: 'clubs', icon: CalendarDays },
         { label: 'Clubs', view: 'intern-clubs', icon: Sparkles },
         { label: 'Events', view: 'intern-events', icon: CalendarClock },
       ],
@@ -78,13 +77,11 @@ function useNavGroups(): NavGroup[] {
       ],
     },
     {
-      label: 'Classes and reports',
+      label: 'Classes and teaching',
       items: [
         { label: 'Classes', view: 'classes', icon: Users },
-        { label: 'Week schedule', view: 'home', icon: CalendarRange },
         { label: 'Levels and plans', view: 'eltaso', icon: GraduationCap },
         { label: 'Teaching resources', view: 'library', icon: FolderOpen },
-        { label: 'Monthly report', view: 'month-report', icon: ClipboardList },
         { label: 'Submissions', view: 'submissions', icon: ClipboardCheck },
         { label: 'Reporting guide', view: 'reports', icon: FileText },
       ],
@@ -94,7 +91,6 @@ function useNavGroups(): NavGroup[] {
       items: [
         { label: 'Members', view: 'members', icon: BookUser },
         { label: 'Inventory', view: 'inventory', icon: Boxes },
-        { label: 'Rooms', view: 'rooms', icon: DoorOpen },
         { label: 'People', view: 'team', icon: Users },
         { label: 'Absences', view: 'absences', icon: UserX },
       ],
@@ -122,7 +118,6 @@ export function pageTitle(view: View, selectedLevelKey: string, levelLabel?: str
     case 'inventory': return 'Inventory'
     case 'submissions': return 'Report submissions'
     case 'reports': return 'Reporting guide'
-    case 'month-report': return 'Monthly report'
     case 'intern-clubs': return 'Clubs'
     case 'intern-events': return 'Events'
     case 'social': return 'Posts'
