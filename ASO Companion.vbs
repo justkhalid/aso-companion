@@ -42,7 +42,7 @@ If Not Up() Then
   End If
 
   If fso.FileExists(here & "\aso-failed.txt") Then fso.DeleteFile here & "\aso-failed.txt"
-  sh.Popup "ASO Companion is getting ready. The first time this takes a few minutes. The app opens by itself." & vbCrLf & "You can close this note.", 8, "ASO Companion", 64
+  sh.Run "powershell -NoProfile -ExecutionPolicy Bypass -WindowStyle Hidden -File """ & here & "\ASO-Splash.ps1""", 0, False
   sh.Run "cmd /c """ & here & "\Run-ASO-Hidden.bat""", 0, False
 
   tries = 0
