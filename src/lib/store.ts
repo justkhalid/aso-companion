@@ -51,6 +51,8 @@ interface UIStore {
   /* where the Posts page opens: a tab, or straight into the pictures and posting of one club or event */
   socialTab: 'todo' | 'club' | 'event' | 'post' | 'month' | 'scheduled' | 'connection'
   socialTarget: { kind: 'club' | 'event'; id: string } | null
+  leavePrompt: (() => void) | null // set while the "unsaved changes" question is on screen; calling it leaves the page
+  guardedGo: (go: () => void) => void
   navTick: number // goes up each time a menu item is clicked, so a page that is open inside itself (an editor) can return to its list
   openSocial: (tab: UIStore['socialTab'], target?: { kind: 'club' | 'event'; id: string }) => void
 
@@ -227,6 +229,12 @@ export const useStore = create<UIStore>((set, get) => ({
   socialTab: 'todo',
   socialTarget: null,
   navTick: 0,
+  leavePrompt: null,
+  guardedGo: (go) => {
+    const st = get()
+    if (st.admin && st.saveStatus !== 'saved') set({ leavePrompt: go })
+    else go()
+  },
   openSocial: (tab, target) => {
     set({ socialTab: tab, socialTarget: target || null })
     get().setView('social')

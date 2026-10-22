@@ -106,7 +106,7 @@ export function SocialKitPage() {
           key={editing.kind + editing.id}
           kind={editing.kind}
           id={editing.id}
-          onBack={() => setEditing(null)}
+          onBack={() => useStore.getState().guardedGo(() => setEditing(null))}
           onManage={() => { setEditing(null); setTab('connection') }}
           onEditSchedule={(item) => (editing.kind === 'club' ? setClubDlg({ open: true, club: item as Club }) : setEventDlg({ open: true, event: item as EventEntry }))}
         />

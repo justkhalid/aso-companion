@@ -153,12 +153,13 @@ function SidebarBody({ onNavigate }: { onNavigate?: () => void }) {
 
   const socialTab = useStore((s) => s.socialTab)
   const openSocial = useStore((s) => s.openSocial)
-  const handleNav = (it: NavItem) => {
+  const guardedGo = useStore((s) => s.guardedGo)
+  const handleNav = (it: NavItem) => guardedGo(() => {
     useStore.setState((s) => ({ navTick: s.navTick + 1 }))
     if (it.tab) openSocial(it.tab)
     else setView(it.view)
     onNavigate?.()
-  }
+  })
 
   return (
     <div className="flex h-full flex-col">
