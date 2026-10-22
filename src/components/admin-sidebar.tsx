@@ -337,8 +337,8 @@ function SaveStatus() {
       try {
         const r = await fetch('/api/update/status', { cache: 'no-store' })
         if (!r.ok) return
-        const j = (await r.json()) as { behind: number | null; latest?: { version?: string } | null }
-        if (on) { setBehind(j.behind && j.behind > 0 ? j.behind : 0); setNewVersion(j.latest?.version || '') }
+        const j = (await r.json()) as { behind: number | null; changes?: number; latest?: { version?: string } | null }
+        if (on) { setBehind(j.changes && j.changes > 0 ? j.changes : 0); setNewVersion(j.latest?.version || '') }
       } catch { /* offline: no badge */ }
     }
     void check()
