@@ -278,30 +278,14 @@ function ringFrame(x: Ctx, t: KitTheme, cx: number, cy: number, r: number, shape
   x.restore();
 }
 /* WhatsApp group picture: no text, only the glass picture, the ring and the club icon. WhatsApp crops it to a circle or rounded square, so everything sits in the middle. */
-/* WhatsApp club picture: a deep background in the club's hue with glowing colour orbs, a frosted glass disc with a bright rim, a heavy white icon, and the ASO logo on a small glass chip */
+/* WhatsApp club picture: no logo and no writing. The pearl glass ground of the other pictures, the club icon exactly in the middle, and a round ring in the club colours round it. */
 export async function makeCover(p: KitParams, t: KitTheme) {
-  const c = cv(1080, 1080), x = c.getContext("2d")!, CX = 540, DY = 585, R = 345;
-  const lift = (col: RGB, k: number): RGB => col.map((v) => Math.min(255, Math.round(v + (255 - v) * k))) as RGB;
-  x.fillStyle = rg(dim(t.c1, .5)); x.fillRect(0, 0, 1080, 1080);
-  const orb = (cx: number, cy: number, r: number, col: RGB, a: number) => { const g = x.createRadialGradient(cx, cy, 0, cx, cy, r); g.addColorStop(0, rg(col, a)); g.addColorStop(1, rg(col, 0)); x.fillStyle = g; x.fillRect(0, 0, 1080, 1080); };
-  orb(250, 230, 620, lift(t.c1, .12), .95); orb(880, 900, 760, t.c2, .95); orb(120, 930, 420, t.c2, .55); orb(930, 140, 380, lift(t.c1, .35), .5);
-  /* the frosted glass disc: the background blurred inside it, a white veil, a bright rim, a glossy top */
-  x.save(); x.shadowColor = "rgba(5,5,30,.4)"; x.shadowBlur = 70; x.shadowOffsetY = 28; x.fillStyle = "rgba(255,255,255,.01)"; x.beginPath(); x.arc(CX, DY, R, 0, Math.PI * 2); x.fill(); x.restore();
-  const snap = cv(1080, 1080); snap.getContext("2d")!.drawImage(c, 0, 0);
-  x.save(); x.beginPath(); x.arc(CX, DY, R, 0, Math.PI * 2); x.clip();
-  x.filter = "blur(26px) saturate(1.25)"; x.drawImage(snap, -60, -60, 1200, 1200); x.filter = "none";
-  const veil = x.createLinearGradient(CX - R, DY - R, CX + R, DY + R); veil.addColorStop(0, "rgba(255,255,255,.34)"); veil.addColorStop(.5, "rgba(255,255,255,.12)"); veil.addColorStop(1, "rgba(255,255,255,.2)");
-  x.fillStyle = veil; x.fillRect(0, 0, 1080, 1080);
-  const gloss = x.createLinearGradient(0, DY - R, 0, DY - R * .1); gloss.addColorStop(0, "rgba(255,255,255,.42)"); gloss.addColorStop(1, "rgba(255,255,255,0)");
-  x.beginPath(); x.ellipse(CX, DY - R * .52, R * .86, R * .46, 0, 0, Math.PI * 2); x.fillStyle = gloss; x.fill();
-  x.restore();
-  const rim = x.createLinearGradient(CX - R, DY - R, CX + R, DY + R); rim.addColorStop(0, "rgba(255,255,255,.95)"); rim.addColorStop(.45, "rgba(255,255,255,.2)"); rim.addColorStop(.75, "rgba(255,255,255,.35)"); rim.addColorStop(1, "rgba(255,255,255,.85)");
-  x.strokeStyle = rim; x.lineWidth = 6; x.beginPath(); x.arc(CX, DY, R, 0, Math.PI * 2); x.stroke();
-  x.strokeStyle = "rgba(255,255,255,.14)"; x.lineWidth = 2; x.beginPath(); x.arc(CX, DY, R - 16, 0, Math.PI * 2); x.stroke();
-  await drawIconFit(x, p.icon, CX, DY + 2, 400, 360, [255, 255, 255], [255, 255, 255], 1.3, "rgba(0,0,30,.32)");
-  /* the logo on a small glass chip */
-  const chip = (cx: number, cy: number, w: number, h: number) => { x.save(); x.shadowColor = "rgba(0,0,30,.3)"; x.shadowBlur = 24; x.shadowOffsetY = 8; rr(x, cx - w / 2, cy - h / 2, w, h, h / 2); x.fillStyle = "rgba(255,255,255,.88)"; x.fill(); x.restore(); };
-  chip(CX, 104, 110, 100); await drawLogo(x, CX, 104, 70);
+  const c = cv(1080, 1080), x = c.getContext("2d")!, CX = 540;
+  x.drawImage(await get(KIT_BG_COVERS[t.bg] || KIT_BG_COVERS[0]), 0, 0);
+  glow(x, CX, CX, t.c2);
+  if (t.decor !== "none" && t.decor !== "brain") { x.save(); x.translate(0, -420); x.drawImage(await svgLayer(DECOR[t.decor](t.c1, t.c2)), 0, 0); x.restore(); }
+  ringFrame(x, t, CX, CX, 470, "circle");
+  await drawIconFit(x, p.icon, CX, CX, 520, 470, t.c1, t.c2);
   grain(x, 1080, 1080); return c;
 }
 
