@@ -4,7 +4,7 @@ import * as React from 'react'
 import { Clock, ImagePlus, List, Loader2, PenLine, Trash2 } from 'lucide-react'
 import { DAY_KEYS, TIME_OPTIONS } from '@/lib/constants'
 import { fmt12Min } from '@/lib/app-utils'
-import { CLUB_ICONS, clubIcon } from '@/lib/icons'
+import { CLUB_ICONS, ICON_GROUPS, clubIcon } from '@/lib/icons'
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -307,29 +307,46 @@ export function IconPicker({
   value?: string
   onChange: (icon?: string) => void
 }) {
+  const [q, setQ] = React.useState('')
+  const [group, setGroup] = React.useState('All')
+  const list = React.useMemo(() => {
+    const n = q.trim().toLowerCase()
+    return CLUB_ICONS.filter((i) => (n ? i.label.toLowerCase().includes(n) || i.name.includes(n) : group === 'All' || i.group === group))
+  }, [q, group])
   return (
-    <div className="grid max-h-64 grid-cols-8 gap-1.5 overflow-y-auto pr-1 sm:grid-cols-9">
-      {CLUB_ICONS.map(({ name, label, Icon }) => {
-        const on = value === name
-        return (
-          <button
-            key={name}
-            type="button"
-            title={label}
-            aria-label={label}
-            aria-pressed={on}
-            onClick={() => onChange(on ? undefined : name)}
-            className={cn(
-              'flex h-9 w-full items-center justify-center rounded-full border transition-all active:scale-90',
-              on
-                ? 'border-primary bg-primary text-primary-foreground shadow-sm'
-                : 'border-border bg-secondary text-muted-foreground hover:bg-secondary/70 hover:text-foreground',
-            )}
-          >
-            <Icon className="h-4 w-4" />
-          </button>
-        )
-      })}
+    <div className="flex flex-col gap-2">
+      <Input type="search" value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search icons" aria-label="Search icons" className="h-8" />
+      {!q.trim() && (
+        <div className="flex flex-wrap gap-1">
+          {['All', ...ICON_GROUPS].map((g) => (
+            <button key={g} type="button" onClick={() => setGroup(g)} className={cn('rounded-full border px-2 py-0.5 text-[11px] font-semibold', group === g ? 'border-primary bg-primary text-primary-foreground' : 'border-border bg-secondary text-muted-foreground hover:text-foreground')}>{g}</button>
+          ))}
+        </div>
+      )}
+      <div className="grid max-h-64 grid-cols-8 gap-1.5 overflow-y-auto pr-1 sm:grid-cols-9">
+        {list.map(({ name, label, Icon }) => {
+          const on = value === name
+          return (
+            <button
+              key={name}
+              type="button"
+              title={label}
+              aria-label={label}
+              aria-pressed={on}
+              onClick={() => onChange(on ? undefined : name)}
+              className={cn(
+                'flex h-9 w-full items-center justify-center rounded-full border transition-all active:scale-90',
+                on
+                  ? 'border-primary bg-primary text-primary-foreground shadow-sm'
+                  : 'border-border bg-secondary text-muted-foreground hover:bg-secondary/70 hover:text-foreground',
+              )}
+            >
+              <Icon className="h-4 w-4" />
+            </button>
+          )
+        })}
+        {!list.length && <p className="col-span-full py-3 text-center text-xs text-muted-foreground">No icon with that name.</p>}
+      </div>
     </div>
   )
 }

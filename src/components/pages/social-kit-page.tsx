@@ -1507,11 +1507,17 @@ const iconCache = new Map<string, string>()
 function IconPicker({ value, c1, c2, onChange }: { value: string; c1: number[]; c2: number[]; onChange: (k: string) => void }) {
   const [urls, setUrls] = React.useState<Record<string, string>>({})
   const sig = c1.join(',') + '|' + c2.join(',')
+  const groups = React.useMemo(() => Array.from(new Set(Object.values(KIT_ICONS).map((v) => v.group || 'Signature'))), [])
+  const [group, setGroup] = React.useState(() => KIT_ICONS[value]?.group || 'Signature')
+  const [q, setQ] = React.useState('')
+  const keys = React.useMemo(() => {
+    const n = q.trim().toLowerCase()
+    return Object.entries(KIT_ICONS).filter(([, v]) => (n ? v.label.toLowerCase().includes(n) : (v.group || 'Signature') === group)).map(([k]) => k).slice(0, 150)
+  }, [q, group])
   React.useEffect(() => {
     let live = true
     ;(async () => {
-      const acc: Record<string, string> = {}
-      for (const k of Object.keys(KIT_ICONS)) {
+      for (const k of keys) {
         const ck = k + '|' + sig
         let u = iconCache.get(ck)
         if (!u) {
@@ -1519,28 +1525,35 @@ function IconPicker({ value, c1, c2, onChange }: { value: string; c1: number[]; 
           u = c.toDataURL('image/png')
           iconCache.set(ck, u)
         }
-        acc[k] = u
         if (!live) return
+        setUrls((o) => (o[ck] === u ? o : { ...o, [ck]: u! }))
       }
-      if (live) setUrls(acc)
     })().catch(() => {})
     return () => { live = false }
-  }, [sig])
+  }, [sig, keys])
   return (
-    <div className="grid grid-cols-4 gap-1.5 sm:grid-cols-6">
-      {Object.entries(KIT_ICONS).map(([k, v]) => (
-        <button
-          key={k}
-          type="button"
-          onClick={() => onChange(k)}
-          className={cn('flex flex-col items-center gap-1 rounded-xl border px-1 py-1.5 transition', value === k ? 'border-2 border-primary bg-card' : 'border-border bg-secondary/40 hover:bg-secondary')}
-          aria-pressed={value === k}
-        >
-          {urls[k] ? <img src={urls[k]} alt="" className="h-[46px] w-[46px]" /> : <span className="h-[46px] w-[46px]" />}
-          <small className="text-center text-[10px] font-semibold leading-tight">{v.label}</small>
-          {value === k && <Check className="sr-only" />}
-        </button>
-      ))}
+    <div className="flex flex-col gap-2.5">
+      <input type="search" value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search icons (for example: book, ball, mic)" className={inputCls} aria-label="Search icons" />
+      {!q.trim() && (
+        <div className="flex flex-wrap gap-1.5">
+          {groups.map((g) => <button key={g} type="button" className={chipCls(group === g)} onClick={() => setGroup(g)}>{g}</button>)}
+        </div>
+      )}
+      <div className="grid max-h-[26rem] grid-cols-4 gap-1.5 overflow-y-auto pr-1 sm:grid-cols-6">
+        {keys.map((k) => (
+          <button
+            key={k}
+            type="button"
+            onClick={() => onChange(k)}
+            className={cn('flex flex-col items-center gap-1 rounded-xl border px-1 py-1.5 transition', value === k ? 'border-2 border-primary bg-card' : 'border-border bg-secondary/40 hover:bg-secondary')}
+            aria-pressed={value === k}
+          >
+            {urls[k + '|' + sig] ? <img src={urls[k + '|' + sig]} alt="" className="h-[46px] w-[46px]" /> : <span className="h-[46px] w-[46px]" />}
+            <small className="text-center text-[10px] font-semibold leading-tight">{KIT_ICONS[k].label}</small>
+          </button>
+        ))}
+        {!keys.length && <p className="col-span-full py-4 text-center text-xs text-muted-foreground">No icon with that name.</p>}
+      </div>
     </div>
   )
 }

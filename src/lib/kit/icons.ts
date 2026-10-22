@@ -1,5 +1,6 @@
 /* The line icons of the club kit (24 grid, stroke 0.9; the accent paths are filled). The first 34 come from the generator, the rest were added for the Social kit. */
-export const KIT_ICONS: Record<string, { label: string; stroke: string; accent: string }> = {
+import { ICON_DATA } from '../icons-data'
+export const KIT_ICONS: Record<string, { label: string; stroke: string; accent: string; sw?: number; group?: string }> = {
  "i-movie": {
   "label": "Movie night",
   "stroke": "<circle cx=\"12\" cy=\"12\" r=\"9.2\" fill=\"none\"/><circle cx=\"12\" cy=\"6.4\" r=\"1.9\" fill=\"none\"/><circle cx=\"17.6\" cy=\"12\" r=\"1.9\" fill=\"none\"/><circle cx=\"12\" cy=\"17.6\" r=\"1.9\" fill=\"none\"/><circle cx=\"6.4\" cy=\"12\" r=\"1.9\" fill=\"none\"/>",
@@ -300,4 +301,10 @@ export const KIT_ICONS: Record<string, { label: string; stroke: string; accent: 
   "stroke": "<circle cx=\"13\" cy=\"4.6\" r=\"2\" fill=\"none\"/><path d=\"M13 7.6c-.4 3-1.6 5-3.6 6.2l1.8 6.4M13 7.6c2 1 3.8 1 5.4.2M9.4 13.8c1.6.5 3 .6 4.6.1l2 5.6\" fill=\"none\"/>",
   "accent": "<path d=\"M9.4 9.6L5.6 7M4.2 4.4h.01M6.2 3.2h.01\" fill=\"none\"/>"
  }
+}
+
+/* every icon of the club and event picker is also a kit icon (key "app-<name>"), so the icon chosen for a chip can be used in the story too */
+for (const k of Object.keys(KIT_ICONS)) KIT_ICONS[k].group = 'Signature'
+for (const [name, label, group, inner] of ICON_DATA) {
+  KIT_ICONS['app-' + name] = { label, group, sw: 1.15, accent: '', stroke: inner.replace(/<(path|circle|rect|line|polyline|polygon|ellipse)\b/g, '<$1 fill="none"') }
 }
