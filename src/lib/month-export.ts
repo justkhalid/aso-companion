@@ -76,7 +76,7 @@ export function monthOccurrences(state: State, o: MonthOptions): Map<string, Occ
     }
     if (o.classes) {
       for (const c of state.classes || []) {
-        if (!c.time || !repeatsOn(d, c.days || [], undefined, undefined, undefined, anchor)) continue
+        if (!c.time || !repeatsOn(d, c.days || [], undefined, undefined, c.until, anchor)) continue
         const st = classStatusOn(state, c, iso)
         push(iso, { kind: 'class', title: publicGroupName(c.code, c.level), time: c.time, startMin: parseSlot(c.time).mins, place: c.room, mark: classMark(state, c) || undefined, off: st.kind === 'canceled' })
       }

@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/button'
 import { ClassDialog } from '@/components/dialogs/class-dialog'
 import { RowActions } from '@/components/admin/row-actions'
 import { ArchiveGroup } from '@/components/session-card'
+import { isClassOver } from '@/lib/archive'
 import { cn } from '@/lib/utils'
 import { uid, fmtTime } from '@/lib/app-utils'
 import { classMark, type Audience } from '@/lib/class-marks'
@@ -35,9 +36,8 @@ export function ClassesPage() {
     setDialog({ open: true, cls: copy })
   }
 
-  const today = new Date().toISOString().slice(0, 10)
   const [filter, setFilter] = React.useState<'all' | Audience | 'Other'>('all')
-  const isOver = (c: ClassEntry) => !!c.until && c.until < today
+  const isOver = (c: ClassEntry) => isClassOver(c)
   const live = state.classes.filter((c) => !isOver(c))
   const over = state.classes.filter(isOver)
   const rows = live.map((c) => ({ c, mark: classMark(state, c) }))
