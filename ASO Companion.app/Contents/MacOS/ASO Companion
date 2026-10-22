@@ -7,6 +7,39 @@ cd "$APP_DIR" || exit 1
 up() { curl -s -m 2 -o /dev/null -w "%{http_code}" http://localhost:3000/api/session 2>/dev/null | grep -q 200; }
 note() { osascript -e "display dialog \"$1\" buttons {\"OK\"} default button 1 with title \"ASO Companion\"" >/dev/null 2>&1; }
 
+# the newest version, pulled quietly with the GitHub token from .env.local (never a login popup)
+self_update() {
+  command -v git >/dev/null 2>&1 || return 0
+  export GIT_TERMINAL_PROMPT=0 GCM_INTERACTIVE=never
+  PAT=$(grep -m1 '^GITHUB_PAT=' .env.local 2>/dev/null | cut -d= -f2- | tr -d '\r')
+  if [ -n "$PAT" ]; then
+    B64=$(printf 'x-access-token:%s' "$PAT" | base64 | tr -d '\n')
+    git -c credential.helper= -c "http.https://github.com/.extraheader=AUTHORIZATION: basic $B64" pull --ff-only origin main >/dev/null 2>&1
+  else
+    git pull --ff-only origin main >/dev/null 2>&1
+  fi
+  return 0
+}
+
+# the loading window: a small Chrome window of its own; it closes when the app is ready
+start_splash() {
+  [ -d "/Applications/Google Chrome.app" ] || return 0
+  mkdir -p .aso
+  open -na "Google Chrome" --args --user-data-dir="$APP_DIR/.aso/splash-profile" --app="file://$APP_DIR/ASO-Splash.html" --window-size=340,330 --no-first-run --no-default-browser-check >/dev/null 2>&1
+}
+stop_splash() { pkill -f "\.aso/splash-profile" >/dev/null 2>&1; return 0; }
+
+# the icon in the menu bar (Open / Quit): built once, a second start does nothing
+start_tray() {
+  command -v swiftc >/dev/null 2>&1 || return 0
+  mkdir -p .aso
+  if [ ! -x ".aso/ASO Companion" ] || [ ASO-Tray.swift -nt ".aso/ASO Companion" ]; then
+    swiftc -O ASO-Tray.swift -o ".aso/ASO Companion" >> aso.log 2>&1 || return 0
+  fi
+  pgrep -f "\.aso/ASO Companion" >/dev/null 2>&1 || ( nohup ".aso/ASO Companion" >/dev/null 2>&1 & )
+  return 0
+}
+
 open_app() {
   if [ -d "/Applications/Google Chrome.app" ]; then
     open -na "Google Chrome" --args --app=http://localhost:3000/admin
@@ -36,9 +69,10 @@ META_APP_SECRET=
 ENV
   fi
   rm -f aso-failed.txt
-  osascript -e 'display notification "Getting ready. The first time takes a few minutes. The app opens by itself." with title "ASO Companion"' >/dev/null 2>&1
+  start_splash
   (
     while true; do
+      self_update
       HEAD=$(git rev-parse HEAD 2>/dev/null)
       BUILT=$(cat .next/aso-built.txt 2>/dev/null)
       if [ ! -d node_modules ] || [ ! -f .next/BUILD_ID ] || [ "$HEAD" != "$BUILT" ]; then
@@ -48,7 +82,7 @@ ENV
         [ -n "$HEAD" ] && echo "$HEAD" > .next/aso-built.txt
       fi
       echo "[$(date)] starting" >> aso.log
-      npx next start -p 3000 >> aso.log 2>&1
+      npx next start -H 127.0.0.1 -p 3000 >> aso.log 2>&1
       [ $? -eq 3 ] && continue
       exit 0
     done
@@ -58,10 +92,13 @@ ENV
   until up; do
     sleep 3
     tries=$((tries+1))
-    if [ -f aso-failed.txt ]; then note "The app could not start. The reason is in the file aso.log in the app folder. Send it to the developer."; exit 1; fi
-    if [ $tries -gt 600 ]; then note "The app is taking too long to start. Check the file aso.log in the app folder."; exit 1; fi
+    if [ -f aso-failed.txt ]; then stop_splash; note "The app could not start. The reason is in the file aso.log in the app folder. Send it to the developer."; exit 1; fi
+    if [ $tries -gt 600 ]; then stop_splash; note "The app is taking too long to start. Check the file aso.log in the app folder."; exit 1; fi
   done
 fi
+
+stop_splash
+start_tray
 
 # a Desktop icon, made once
 if [ ! -e "$HOME/Desktop/ASO Companion" ] && [ ! -e "$HOME/Desktop/ASO Companion.app" ]; then
