@@ -330,14 +330,15 @@ function SaveStatus() {
   const setView = useStore((s) => s.setView)
   /* is a newer version of the app available? checked when the admin opens and then every half hour */
   const [behind, setBehind] = React.useState(0)
+  const [newVersion, setNewVersion] = React.useState('')
   React.useEffect(() => {
     let on = true
     const check = async () => {
       try {
         const r = await fetch('/api/update/status', { cache: 'no-store' })
         if (!r.ok) return
-        const j = (await r.json()) as { behind: number | null }
-        if (on) setBehind(j.behind && j.behind > 0 ? j.behind : 0)
+        const j = (await r.json()) as { behind: number | null; latest?: { version?: string } | null }
+        if (on) { setBehind(j.behind && j.behind > 0 ? j.behind : 0); setNewVersion(j.latest?.version || '') }
       } catch { /* offline: no badge */ }
     }
     void check()
@@ -355,7 +356,7 @@ function SaveStatus() {
           }}
           className="inline-flex items-center gap-1.5 rounded-full bg-primary/10 px-2.5 py-1 text-xs font-bold text-primary hover:bg-primary/15"
         >
-          <span className="h-2 w-2 rounded-full bg-primary" /> Update available
+          <span className="h-2 w-2 rounded-full bg-primary" /> Update available{newVersion ? ` · v${newVersion}` : ''}
         </button>
       )}
       {unsavedCopy && (

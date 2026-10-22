@@ -8,8 +8,8 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 interface LogItem { sha: string; date: string; title: string; note: string }
 interface Status {
   local: boolean
-  installed: { sha: string; date: string } | null
-  latest: { sha: string; date: string } | null
+  installed: { sha: string; date: string; version: string } | null
+  latest: { sha: string; date: string; version: string } | null
   behind: number | null
   dirty: boolean
   canUpdate: boolean
@@ -94,15 +94,15 @@ export function UpdatesPanel() {
           <div className="rounded-xl bg-secondary/60 p-3 text-sm">
             {st.installed ? (
               <>
-                <div>Installed: <b>{st.installed.sha.slice(0, 7)}</b> <span className="text-muted-foreground">({day(st.installed.date)})</span></div>
-                <div>Latest: <b>{st.latest?.sha.slice(0, 7) || '?'}</b> <span className="text-muted-foreground">({day(st.latest?.date || '')})</span></div>
+                <div className="text-base">Version <b>{st.installed.version ? `v${st.installed.version}` : '?'}</b> installed <span className="text-muted-foreground">(build {st.installed.sha.slice(0, 7)}, {day(st.installed.date)})</span></div>
+                <div>Latest: <b>{st.latest?.version ? `v${st.latest.version}` : '?'}</b> <span className="text-muted-foreground">(build {st.latest?.sha.slice(0, 7) || '?'}, {day(st.latest?.date || '')})</span></div>
                 <div className="mt-1.5 flex items-center gap-1.5 text-xs font-semibold">
                   {st.behind === 0 ? <><Check className="h-4 w-4 text-[var(--aso-ok)]" /> You have the latest version.</> : <><CircleAlert className="h-4 w-4 text-[var(--aso-gold)]" /> {st.behind === null ? 'A newer version may be available.' : `${st.behind} newer change${st.behind === 1 ? '' : 's'} available.`}</>}
                 </div>
               </>
             ) : (
               <>
-                <div>Latest version: <b>{st.latest?.sha.slice(0, 7) || '?'}</b> <span className="text-muted-foreground">({day(st.latest?.date || '')})</span></div>
+                <div>Latest version: <b>{st.latest?.version ? `v${st.latest.version}` : '?'}</b> <span className="text-muted-foreground">(build {st.latest?.sha.slice(0, 7) || '?'}, {day(st.latest?.date || '')})</span></div>
                 <p className="mt-1 text-xs text-muted-foreground">{st.local ? 'This folder is not a git copy, so it cannot update itself. Install it with the Start file from the repository.' : 'This is the website. It updates when a new version is published. The admin app on the director\'s computer updates from here, in this same screen.'}</p>
               </>
             )}
