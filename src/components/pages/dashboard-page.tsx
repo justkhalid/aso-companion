@@ -1,27 +1,23 @@
 'use client'
 
 import * as React from 'react'
-import { Send, BookUser, AlertTriangle, GraduationCap, Sparkles, UserX, ArrowRight, Ban, UserCheck } from 'lucide-react'
+import { Send, BookUser, AlertTriangle, GraduationCap, Sparkles, UserX, ArrowRight, Ban, UserCheck, CalendarDays, CalendarClock, PenSquare, Boxes } from 'lucide-react'
 import { useStore } from '@/lib/store'
 import { DAY_KEYS } from '@/lib/constants'
 import { PageHead, Chip } from '@/components/ui-bits'
-import { peopleOf, rolesOf, fmtAbsenceRange, isoOf, nextOccurrence, termStatus, classStatusOn, clubStatusOn, clubWhere, eventStatusOn, eventWhere, isOnceEvent, fmtTime, parseSlot } from '@/lib/app-utils'
+import { fmtAbsenceRange, isoOf, nextOccurrence, termStatus, classStatusOn, clubStatusOn, clubWhere, eventStatusOn, eventWhere, isOnceEvent, fmtTime, parseSlot } from '@/lib/app-utils'
 import { Button } from '@/components/ui/button'
 import { openQuickAdd } from '@/components/admin/quick-add'
-import { CalendarSwitch, type CalTab } from '@/components/calendar-switch'
 import { PostQueue } from '@/components/post-queue'
-import { MonthCalendarImage } from '@/components/month-calendar-image'
+import { postQueue } from '@/lib/post-queue'
 import type { View } from '@/lib/types'
 
 /* the admin's landing page: what needs attention today, today's sessions, and the way to every list */
 export function DashboardPage() {
   const state = useStore((s) => s.state)
   const setView = useStore((s) => s.setView)
-  const [calTab, setCalTab] = React.useState<CalTab>('cluev')
-  const [lib, setLib] = React.useState<{ available: boolean; connected: boolean; summary?: { total: number; thisMonth: number; cardsToPrint: number; noPhoto: number } } | null>(null)
-  React.useEffect(() => {
-    fetch('/api/members?summary=1', { cache: 'no-store' }).then((r) => (r.ok ? r.json() : null)).then(setLib).catch(() => setLib(null))
-  }, [])
+  const openSocial = useStore((s) => s.openSocial)
+  const toPost = React.useMemo(() => postQueue(state).length, [state])
 
   const now = new Date()
   const today = isoOf(now)
@@ -47,43 +43,17 @@ export function DashboardPage() {
     ...state.clubs.filter((c) => !c.poster && !c.placeholder).map((c) => ({ text: `${c.name} has no poster`, view: 'intern-clubs' as View })),
   ]
 
-  const people = peopleOf(state)
-  const upcomingEvents = state.events.filter((e) => nextOccurrence(e)).length
-  const libStats = lib?.connected && lib.summary
-    ? [
-        { label: 'Members', value: lib.summary.total, view: 'members' as View },
-        { label: 'Joined this month', value: lib.summary.thisMonth, view: 'members' as View },
-        { label: 'Cards to print', value: lib.summary.cardsToPrint, view: 'members' as View },
-        { label: 'No photo', value: lib.summary.noPhoto, view: 'members' as View },
-      ]
-    : [{ label: 'Members', value: '-' as string | number, view: 'members' as View }]
-  const sections: { title: string; icon: React.ElementType; stats: { label: string; value: string | number; view: View }[]; note?: string }[] = [
-    {
-      title: 'Clubs and events',
-      icon: Sparkles,
-      stats: [
-        { label: 'Clubs', value: state.clubs.length, view: 'intern-clubs' },
-        { label: 'Upcoming events', value: upcomingEvents, view: 'intern-events' },
-        { label: 'On the calendar', value: state.clubs.length + upcomingEvents, view: 'clubs' },
-        { label: 'Posters ready', value: state.clubs.filter((c) => !!c.poster).length + state.events.filter((e) => !!e.poster).length, view: 'social' },
-      ],
-    },
-    {
-      title: 'Classes',
-      icon: GraduationCap,
-      stats: [
-        { label: 'Classes', value: state.classes.length, view: 'classes' },
-        { label: 'Teachers', value: people.filter((p) => rolesOf(p).includes('Teacher')).length, view: 'team' },
-        { label: 'Levels', value: state.levels.length, view: 'eltaso' },
-        { label: 'Rooms', value: 4, view: 'rooms' },
-      ],
-    },
-    {
-      title: 'ASO Library',
-      icon: BookUser,
-      stats: libStats,
-      note: !lib ? undefined : !lib.available ? 'Members open only in the app on the director\'s computer.' : !lib.connected ? 'The members sheet is not connected yet. Open Members to connect it.' : undefined,
-    },
+  /* the jobs she does most, as big buttons */
+  const jobs: { label: string; hint: string; icon: React.ElementType; go: () => void; badge?: number }[] = [
+    { label: 'Post to Instagram', hint: 'Make and publish a post', icon: PenSquare, go: () => openSocial('post') },
+    { label: 'To post', hint: 'What is waiting to go out', icon: Send, go: () => openSocial('todo'), badge: toPost },
+    { label: 'Calendar', hint: 'Clubs and events by month', icon: CalendarDays, go: () => setView('clubs') },
+    { label: 'Clubs', hint: 'Edit clubs and their posters', icon: Sparkles, go: () => setView('intern-clubs') },
+    { label: 'Events', hint: 'Add or edit an event', icon: CalendarClock, go: () => setView('intern-events') },
+    { label: 'Report an absence', hint: 'Cancel or cover a session', icon: UserX, go: () => openQuickAdd('absence') },
+    { label: 'Classes', hint: 'Classes, teachers, rooms', icon: GraduationCap, go: () => setView('classes') },
+    { label: 'Members', hint: 'Library members and cards', icon: BookUser, go: () => setView('members') },
+    { label: 'Inventory', hint: 'Equipment in the space', icon: Boxes, go: () => setView('inventory') },
   ]
 
   const week = st.mode === 's1' || st.mode === 's2' ? `Week ${st.week}` : st.mode === 'before' ? `Year starts in ${st.daysTo} days` : st.mode === 'break' ? 'Winter break' : 'Year complete'
@@ -91,36 +61,27 @@ export function DashboardPage() {
   return (
     <div className="mx-auto max-w-5xl px-4 py-6 sm:py-8">
       <PageHead
-        title="Dashboard"
+        title="Home"
         subtitle={`${now.toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long' })} · ${week}`}
-        right={
-          <Button size="sm" onClick={() => openQuickAdd('absence')}>
-            <UserX className="h-4 w-4" /> Report absence
-          </Button>
-        }
       />
+
+      <nav aria-label="Main jobs" className="mb-4 grid grid-cols-2 gap-3 md:grid-cols-3">
+        {jobs.map((j) => (
+          <button key={j.label} onClick={j.go} className="relative flex items-center gap-3 rounded-2xl border border-border bg-card p-4 text-left shadow-sm transition hover:border-primary/40 hover:bg-secondary/60">
+            <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary"><j.icon className="h-5 w-5" aria-hidden /></span>
+            <span className="min-w-0">
+              <span className="block text-[15px] font-extrabold leading-tight tracking-tight">{j.label}</span>
+              <span className="block text-xs font-medium text-muted-foreground">{j.hint}</span>
+            </span>
+            {!!j.badge && <span className="absolute right-3 top-3 rounded-full bg-primary px-2 py-0.5 text-[11px] font-extrabold leading-none text-primary-foreground">{j.badge}</span>}
+          </button>
+        ))}
+      </nav>
 
       <section aria-labelledby="dash-post" className="mb-4 rounded-2xl border border-border bg-card p-4 shadow-sm">
         <h2 id="dash-post" className="mb-2 flex items-center gap-2 text-sm font-extrabold tracking-tight"><Send className="h-4 w-4 text-primary" aria-hidden /> To post</h2>
         <PostQueue compact />
       </section>
-
-      <nav aria-label="Sections" className="mb-4 grid gap-3 md:grid-cols-3">
-        {sections.map((x) => (
-          <section key={x.title} className="flex flex-col rounded-2xl border border-border bg-card p-4 shadow-sm">
-            <h2 className="flex items-center gap-2 text-sm font-extrabold tracking-tight"><x.icon className="h-4 w-4 text-primary" aria-hidden /> {x.title}</h2>
-            <div className="mt-3 grid flex-1 grid-cols-2 gap-2">
-              {x.stats.map((t) => (
-                <button key={t.label} onClick={() => setView(t.view)} className="rounded-xl bg-secondary/60 p-2.5 text-left transition hover:bg-secondary">
-                  <span className="block text-xl font-extrabold leading-none tabular-nums">{t.value}</span>
-                  <span className="text-xs font-semibold text-muted-foreground">{t.label}</span>
-                </button>
-              ))}
-            </div>
-            {x.note && <p className="mt-3 text-xs text-muted-foreground">{x.note}</p>}
-          </section>
-        ))}
-      </nav>
 
       <div className="grid gap-4 lg:grid-cols-2">
         <section aria-labelledby="dash-away" className="rounded-2xl border border-border bg-card p-4 shadow-sm">
@@ -183,17 +144,6 @@ export function DashboardPage() {
             ))}
           </ul>
         )}
-      </section>
-
-      {/* the new designed calendar, as the public sees it, with month arrows and a download */}
-      <section className="mt-4 rounded-2xl border border-border bg-card p-4 shadow-sm">
-        <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
-          <h2 className="text-[15px] font-extrabold tracking-tight">Calendar</h2>
-          <CalendarSwitch tab={calTab} onChange={setCalTab} rooms />
-        </div>
-        <div key={calTab} className="aso-tab-in">
-          {calTab === 'cluev' ? <MonthCalendarImage clubs events classes={false} /> : calTab === 'rooms' ? <MonthCalendarImage rooms /> : <MonthCalendarImage clubs={false} events={false} classes />}
-        </div>
       </section>
 
     </div>

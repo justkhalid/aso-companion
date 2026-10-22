@@ -21,7 +21,6 @@ import {
   Loader2,
   CloudOff,
   RotateCcw,
-  Share2,
   BookUser,
   Send,
   Plus,
@@ -58,8 +57,8 @@ function useNavGroups(): NavGroup[] {
   const toPost = React.useMemo(() => postQueue(state).length, [state])
   return [
     {
-      label: 'Overview',
-      items: [{ label: 'Dashboard', view: 'dashboard', icon: LayoutDashboard }],
+      label: 'Home',
+      items: [{ label: 'Home', view: 'dashboard', icon: LayoutDashboard }],
     },
     {
       label: 'Clubs and events',
@@ -73,41 +72,30 @@ function useNavGroups(): NavGroup[] {
       label: 'Posts',
       items: [
         { label: 'To post', view: 'social', icon: Send, tab: 'todo', badge: toPost },
-        { label: 'Posters and kits', view: 'social', icon: Share2, tab: 'club', tabs: ['club', 'event'] },
         { label: 'New post', view: 'social', icon: Plus, tab: 'post' },
-        { label: 'Month calendar', view: 'social', icon: CalendarDays, tab: 'month' },
         { label: 'Scheduled', view: 'social', icon: Clock, tab: 'scheduled' },
+        { label: 'Month calendar', view: 'social', icon: CalendarDays, tab: 'month' },
       ],
     },
     {
-      label: 'Classes',
+      label: 'Classes and reports',
       items: [
         { label: 'Classes', view: 'classes', icon: Users },
         { label: 'Week schedule', view: 'home', icon: CalendarRange },
         { label: 'Levels and plans', view: 'eltaso', icon: GraduationCap },
         { label: 'Teaching resources', view: 'library', icon: FolderOpen },
-      ],
-    },
-    {
-      label: 'Reports',
-      items: [
         { label: 'Monthly report', view: 'month-report', icon: ClipboardList },
         { label: 'Submissions', view: 'submissions', icon: ClipboardCheck },
         { label: 'Reporting guide', view: 'reports', icon: FileText },
       ],
     },
     {
-      label: 'ASO Library',
+      label: 'Space',
       items: [
         { label: 'Members', view: 'members', icon: BookUser },
         { label: 'Inventory', view: 'inventory', icon: Boxes },
-      ],
-    },
-    {
-      label: 'Shared',
-      items: [
-        { label: 'People', view: 'team', icon: Users },
         { label: 'Rooms', view: 'rooms', icon: DoorOpen },
+        { label: 'People', view: 'team', icon: Users },
         { label: 'Absences', view: 'absences', icon: UserX },
       ],
     },
@@ -116,7 +104,7 @@ function useNavGroups(): NavGroup[] {
 
 export function pageTitle(view: View, selectedLevelKey: string, levelLabel?: string): string {
   switch (view) {
-    case 'dashboard': return 'Dashboard'
+    case 'dashboard': return 'Home'
     case 'home': return 'Week schedule'
     case 'eltaso': return 'Levels and plans'
     case 'level-detail': return levelLabel || 'Level'
@@ -124,7 +112,7 @@ export function pageTitle(view: View, selectedLevelKey: string, levelLabel?: str
     case 'resources': return 'Resources'
     case 'login': return 'Sign in'
     case 'settings': return 'Settings'
-    case 'intern': return 'Dashboard'
+    case 'intern': return 'Home'
     case 'classes': return 'Classes'
     case 'team': return 'People'
     case 'rooms': return 'Rooms'

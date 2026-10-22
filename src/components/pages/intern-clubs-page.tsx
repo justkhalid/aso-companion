@@ -67,7 +67,7 @@ export function InternClubsPage() {
                     <Button variant="outline" size="sm"><ExternalLink className="h-3.5 w-3.5" /> Link</Button>
                   </a>
                 )}
-                <Button variant="outline" size="sm" onClick={() => openSocial('club', { kind: 'club', id: c.id })}><Send className="h-3.5 w-3.5" /> Post update</Button>
+                <Button variant="outline" size="sm" onClick={() => openSocial('club', { kind: 'club', id: c.id })}><Send className="h-3.5 w-3.5" /> Poster and post</Button>
                 <div className="ml-auto">
                   <RowActions
                     name={c.name}
