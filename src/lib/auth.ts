@@ -86,10 +86,23 @@ export function verifySessionToken(token: string | undefined | null): boolean {
   return sessionRoles(token).includes('admin')
 }
 
+/* on the director's computer a request counts as admin only when it comes from the app's own page on this computer:
+   not from another web page open in the browser (Sec-Fetch-Site / Origin), and not through another host name (Host: protects against DNS rebinding) */
+function fromThisComputerPage(req: NextRequest): boolean {
+  const site = req.headers.get('sec-fetch-site')
+  if (site && site !== 'same-origin' && site !== 'none') return false
+  const local = (h: string) => h === 'localhost' || h === '127.0.0.1' || h === '[::1]'
+  const host = (req.headers.get('host') || '').replace(/:\d+$/, '').toLowerCase()
+  if (!local(host)) return false
+  const origin = req.headers.get('origin')
+  if (origin && origin !== 'null') { try { return local(new URL(origin).hostname) } catch { return false } }
+  return origin !== 'null'
+}
+
 export function rolesOf(req: NextRequest): Role[] {
   const roles = sessionRoles(req.cookies.get(sessionCookieName())?.value)
   /* the director's computer: the app only answers to this computer (see the start files), so the admin needs no server session here */
-  if (isLocal() && !roles.includes('admin')) roles.push('admin')
+  if (isLocal() && !roles.includes('admin') && fromThisComputerPage(req)) roles.push('admin')
   /* on the public website the admin is switched off: even a valid admin cookie counts for nothing */
   return publicOnly() ? roles.filter((r) => r !== 'admin') : roles
 }
