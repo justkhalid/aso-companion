@@ -1,5 +1,5 @@
 /* Posting to the Facebook Page and the Instagram account through the Meta Graph API.
-   Runs on the server only. The access token is kept encrypted on the server (Social kit > Connection) or, as a fallback, in Vercel variables;
+   Runs on the server only. The access token is kept encrypted on the server (Social media > Connection) or, as a fallback, in Vercel variables;
    it never reaches the browser.
 
    Vercel variables (all optional once the app is connected from inside):
@@ -315,7 +315,7 @@ export async function testConnection(): Promise<TestResult> {
     return { ok: true, lines }
   } catch (e) {
     lines.push('Failed: ' + (e instanceof Error ? e.message : 'unknown error'))
-    lines.push('If the token ran out, reconnect under Social kit > Connection.')
+    lines.push('If the token ran out, reconnect under Social media > Connection.')
     return { ok: false, lines }
   }
 }
@@ -407,7 +407,7 @@ export async function publish(input: PublishInput): Promise<{ ok: boolean; steps
       steps.push({ label, ok: false, msg: e instanceof Error ? e.message : 'failed' })
     }
   }
-  if (!c.token || !c.page) return { ok: false, steps: [{ label: 'Connection', ok: false, msg: 'Not connected yet. Connect under Social kit > Connection.' }] }
+  if (!c.token || !c.page) return { ok: false, steps: [{ label: 'Connection', ok: false, msg: 'Not connected yet. Connect under Social media > Connection.' }] }
   const t = input.targets
   if ((t.igFeed || t.igStory) && !c.ig) return { ok: false, steps: [{ label: 'Instagram', ok: false, msg: 'No Instagram account is linked to the Page.' }] }
 

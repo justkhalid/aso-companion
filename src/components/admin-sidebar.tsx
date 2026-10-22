@@ -72,9 +72,9 @@ function useNavGroups(): NavGroup[] {
       ],
     },
     {
-      label: 'Posts',
+      label: 'Social media',
       items: [
-        { label: 'To post', view: 'social', icon: Send, tab: 'todo', badge: toPost },
+        { label: 'Share', view: 'social', icon: Send, tab: 'todo', badge: toPost },
         { label: 'New post', view: 'social', icon: Plus, tab: 'post' },
         { label: 'Scheduled', view: 'social', icon: Clock, tab: 'scheduled' },
         { label: 'Month calendar', view: 'social', icon: CalendarDays, tab: 'month' },
@@ -124,7 +124,7 @@ export function pageTitle(view: View, selectedLevelKey: string, levelLabel?: str
     case 'reports': return 'Reporting guide'
     case 'intern-clubs': return 'Clubs'
     case 'intern-events': return 'Events'
-    case 'social': return 'Posts'
+    case 'social': return 'Social media'
     default: return 'ASO Companion'
   }
 }

@@ -125,7 +125,7 @@ export function SocialKitPage() {
   return (
     <div className="mx-auto max-w-6xl px-4 py-6 sm:py-8">
       <PageHead
-        title="Posts"
+        title="Social media"
         subtitle="What to post, the pictures of every club and event, the month calendars, and posting to Facebook and Instagram. All made from the data you already keep here."
         right={
           <div className="flex flex-wrap items-center gap-2">
@@ -139,7 +139,7 @@ export function SocialKitPage() {
         }
       />
       <div className="mb-5 inline-flex rounded-full border border-border bg-card p-1" role="tablist" aria-label="Kind">
-        {([['todo', 'To post', null], ['club', 'Clubs', state.clubs.filter((c) => !isOver('club', c)).length], ['event', 'Events', state.events.filter((e) => !isOver('event', e)).length], ['post', 'New post', null], ['month', 'Calendar', null], ['scheduled', 'Scheduled', null], ['connection', 'Connection', null]] as const).map(([k, label, n]) => (
+        {([['todo', 'Share', null], ['club', 'Clubs', state.clubs.filter((c) => !isOver('club', c)).length], ['event', 'Events', state.events.filter((e) => !isOver('event', e)).length], ['post', 'New post', null], ['month', 'Calendar', null], ['scheduled', 'Scheduled', null], ['connection', 'Connection', null]] as const).map(([k, label, n]) => (
           <button
             key={k}
             role="tab"
@@ -1178,7 +1178,7 @@ function PublishPanel({ storyCanvas, poster, feedCanvas, caption, only, posts, o
         f.append('kind', asVideo && videoMaker && (pick.igStory || pick.fbStory) ? 'animation' : 'picture')
         const r = await fetch('/api/social/schedule', { method: 'POST', body: f })
         const j = (await r.json().catch(() => ({}))) as { ok?: boolean; msg?: string }
-        setSteps([{ label: 'Scheduled', ok: !!j.ok, msg: j.ok ? `It will be posted around ${when.toLocaleString('en-GB', { weekday: 'short', day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })}. See it under Social kit > Scheduled.` : j.msg || `The server answered with an error (${r.status}).` }])
+        setSteps([{ label: 'Scheduled', ok: !!j.ok, msg: j.ok ? `It will be posted around ${when.toLocaleString('en-GB', { weekday: 'short', day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })}. See it under Social media > Scheduled.` : j.msg || `The server answered with an error (${r.status}).` }])
         return
       }
       const r = await fetch('/api/social/publish', { method: 'POST', body: f })
@@ -1291,7 +1291,7 @@ function PublishPanel({ storyCanvas, poster, feedCanvas, caption, only, posts, o
             <AlertDialogTitle>{later ? 'Schedule this post?' : 'Post now?'}</AlertDialogTitle>
             <AlertDialogDescription>
               {later
-                ? `It will go live on ${chosen.map(([, l]) => l).join(', ')} around ${at ? new Date(at).toLocaleString('en-GB', { weekday: 'long', day: 'numeric', month: 'long', hour: '2-digit', minute: '2-digit' }) : 'the time you chose'}. You can remove it from Social kit > Scheduled before then.`
+                ? `It will go live on ${chosen.map(([, l]) => l).join(', ')} around ${at ? new Date(at).toLocaleString('en-GB', { weekday: 'long', day: 'numeric', month: 'long', hour: '2-digit', minute: '2-digit' }) : 'the time you chose'}. You can remove it from Social media > Scheduled before then.`
                 : `This goes live on ${chosen.map(([, l]) => l).join(', ')}. A post cannot be taken back from here.`}
             </AlertDialogDescription>
           </AlertDialogHeader>
