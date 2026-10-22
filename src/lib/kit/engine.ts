@@ -91,9 +91,9 @@ export async function drawLogo(ctx: Ctx, cx: number, cy: number, h: number) {
   const l = await get(KIT_LOGO), w = h * l.width / l.height;
   ctx.save(); ctx.shadowColor = "rgba(40,30,60,.18)"; ctx.shadowBlur = 20; ctx.shadowOffsetY = 8; ctx.drawImage(l, cx - w / 2, cy - h / 2, w, h); ctx.restore();
 }
-export async function iconCanvas(key: string, size: number, c1: RGB, c2: RGB) {
+export async function iconCanvas(key: string, size: number, c1: RGB, c2: RGB, boost = 1) {
   const ic = KIT_ICONS[key];
-  const layer = (inner: string) => get("data:image/svg+xml;charset=utf-8," + encodeURIComponent(`<svg xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size}" viewBox="0 0 24 24"><g stroke="#000" stroke-width="${ic.sw ?? 0.9}" stroke-linecap="round" stroke-linejoin="round">${inner}</g></svg>`));
+  const layer = (inner: string) => get("data:image/svg+xml;charset=utf-8," + encodeURIComponent(`<svg xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size}" viewBox="0 0 24 24"><g stroke="#000" stroke-width="${(ic.sw ?? 0.9) * boost}" stroke-linecap="round" stroke-linejoin="round">${inner}</g></svg>`));
   const c = cv(size, size), x = c.getContext("2d", { willReadFrequently: true })!, a = cv(size, size), ax = a.getContext("2d")!;
   x.drawImage(await layer(ic.stroke), 0, 0); x.globalCompositeOperation = "source-in"; x.fillStyle = grad(x, 0, size, c1, c2); x.fillRect(0, 0, size, size);
   ax.drawImage(await layer(ic.accent), 0, 0); ax.globalCompositeOperation = "source-in"; ax.fillStyle = rg(c2); ax.fillRect(0, 0, size, size);
@@ -106,12 +106,12 @@ async function drawIcon(ctx: Ctx, key: string, cx: number, cy: number, size: num
   ctx.save(); ctx.shadowColor = "rgba(40,30,60,.26)"; ctx.shadowBlur = 24; ctx.shadowOffsetY = 10; ctx.drawImage(c, cx - (x0 + x1) / 2, cy - (y0 + y1) / 2); ctx.restore();
 }
 /* draws an icon scaled so its drawn shape fills a box (maxW x maxH), whatever the icon's own padding or proportions */
-async function drawIconFit(ctx: Ctx, key: string, cx: number, cy: number, maxW: number, maxH: number, c1: RGB, c2: RGB) {
-  const N = 1000, c = await iconCanvas(key, N, c1, c2), d = c.getContext("2d", { willReadFrequently: true })!.getImageData(0, 0, N, N).data;
+async function drawIconFit(ctx: Ctx, key: string, cx: number, cy: number, maxW: number, maxH: number, c1: RGB, c2: RGB, boost = 1, shadow = "rgba(40,30,60,.26)") {
+  const N = 1000, c = await iconCanvas(key, N, c1, c2, boost), d = c.getContext("2d", { willReadFrequently: true })!.getImageData(0, 0, N, N).data;
   let x0 = N, x1 = 0, y0 = N, y1 = 0;
   for (let y = 0; y < N; y++) for (let x = 0; x < N; x++) if (d[(y * N + x) * 4 + 3] > 40) { if (x < x0) x0 = x; if (x > x1) x1 = x; if (y < y0) y0 = y; if (y > y1) y1 = y; }
   const bw = x1 - x0 + 1, bh = y1 - y0 + 1, k = Math.min(maxW / bw, maxH / bh);
-  ctx.save(); ctx.shadowColor = "rgba(40,30,60,.26)"; ctx.shadowBlur = 24; ctx.shadowOffsetY = 10;
+  ctx.save(); ctx.shadowColor = shadow; ctx.shadowBlur = 24; ctx.shadowOffsetY = 10;
   ctx.drawImage(c, x0, y0, bw, bh, cx - bw * k / 2, cy - bh * k / 2, bw * k, bh * k); ctx.restore();
 }
 export function fitCover(ctx: Ctx, im: CanvasImageSource & { width: number; height: number }, x: number, y: number, w: number, h: number) { const s = Math.max(w / im.width, h / im.height), dw = im.width * s, dh = im.height * s; ctx.drawImage(im, x + (w - dw) / 2, y + (h - dh) / 2, dw, dh); }
@@ -278,28 +278,30 @@ function ringFrame(x: Ctx, t: KitTheme, cx: number, cy: number, r: number, shape
   x.restore();
 }
 /* WhatsApp group picture: no text, only the glass picture, the ring and the club icon. WhatsApp crops it to a circle or rounded square, so everything sits in the middle. */
-/* WhatsApp club picture: a bold colour background in the club's colours, laid over with the glass waves, a frosted glass disc and a solid cream icon */
+/* WhatsApp club picture: a deep background in the club's hue with glowing colour orbs, a frosted glass disc with a bright rim, a heavy white icon, and the ASO logo on a small glass chip */
 export async function makeCover(p: KitParams, t: KitTheme) {
-  const c = cv(1080, 1080), x = c.getContext("2d")!, CX = 540, cream: RGB = [252, 248, 240];
-  const g = x.createLinearGradient(0, 0, 1080, 1080); g.addColorStop(0, rg(dim(t.c1, .72))); g.addColorStop(1, rg(t.c2)); x.fillStyle = g; x.fillRect(0, 0, 1080, 1080);
-  /* glass waves over the colour */
-  x.save(); x.globalCompositeOperation = "soft-light"; x.globalAlpha = .38; x.drawImage(await get(KIT_BG_COVERS[t.bg] || KIT_BG_COVERS[0]), 0, 0); x.restore();
-  x.save(); x.globalCompositeOperation = "screen"; x.globalAlpha = .07; x.drawImage(await get(KIT_BG_COVERS[t.bg] || KIT_BG_COVERS[0]), 0, 0); x.restore();
-  /* light from the top left */
-  const lg = x.createRadialGradient(300, 240, 20, 300, 240, 760); lg.addColorStop(0, "rgba(255,255,255,.22)"); lg.addColorStop(1, "rgba(255,255,255,0)"); x.fillStyle = lg; x.fillRect(0, 0, 1080, 1080);
-  /* the frosted glass disc */
-  const R = 372, DY = 575;
-  x.save(); x.shadowColor = "rgba(10,10,40,.28)"; x.shadowBlur = 60; x.shadowOffsetY = 26;
-  const dg = x.createLinearGradient(CX - R, DY - R, CX + R, DY + R); dg.addColorStop(0, "rgba(255,255,255,.24)"); dg.addColorStop(.55, "rgba(255,255,255,.07)"); dg.addColorStop(1, "rgba(255,255,255,.02)");
-  x.fillStyle = dg; x.beginPath(); x.arc(CX, DY, R, 0, Math.PI * 2); x.fill(); x.restore();
-  const rim = x.createLinearGradient(CX - R, DY - R, CX + R, DY + R); rim.addColorStop(0, "rgba(255,255,255,.85)"); rim.addColorStop(.5, "rgba(255,255,255,.12)"); rim.addColorStop(1, "rgba(255,255,255,.55)");
-  x.strokeStyle = rim; x.lineWidth = 6; x.beginPath(); x.arc(CX, DY, R, 0, Math.PI * 2); x.stroke();
-  x.save(); x.beginPath(); x.arc(CX, DY, R - 3, 0, Math.PI * 2); x.clip();
-  const sp = x.createRadialGradient(CX - 150, DY - 210, 10, CX - 150, DY - 210, 330); sp.addColorStop(0, "rgba(255,255,255,.26)"); sp.addColorStop(1, "rgba(255,255,255,0)"); x.fillStyle = sp; x.fillRect(0, 0, 1080, 1080);
-  const sh = x.createLinearGradient(0, DY + R * .45, 0, DY + R); sh.addColorStop(0, "rgba(255,255,255,0)"); sh.addColorStop(1, "rgba(255,255,255,.22)"); x.fillStyle = sh; x.fillRect(0, DY + R * .45, 1080, R);
+  const c = cv(1080, 1080), x = c.getContext("2d")!, CX = 540, DY = 585, R = 345;
+  const lift = (col: RGB, k: number): RGB => col.map((v) => Math.min(255, Math.round(v + (255 - v) * k))) as RGB;
+  x.fillStyle = rg(dim(t.c1, .5)); x.fillRect(0, 0, 1080, 1080);
+  const orb = (cx: number, cy: number, r: number, col: RGB, a: number) => { const g = x.createRadialGradient(cx, cy, 0, cx, cy, r); g.addColorStop(0, rg(col, a)); g.addColorStop(1, rg(col, 0)); x.fillStyle = g; x.fillRect(0, 0, 1080, 1080); };
+  orb(250, 230, 620, lift(t.c1, .12), .95); orb(880, 900, 760, t.c2, .95); orb(120, 930, 420, t.c2, .55); orb(930, 140, 380, lift(t.c1, .35), .5);
+  /* the frosted glass disc: the background blurred inside it, a white veil, a bright rim, a glossy top */
+  x.save(); x.shadowColor = "rgba(5,5,30,.4)"; x.shadowBlur = 70; x.shadowOffsetY = 28; x.fillStyle = "rgba(255,255,255,.01)"; x.beginPath(); x.arc(CX, DY, R, 0, Math.PI * 2); x.fill(); x.restore();
+  const snap = cv(1080, 1080); snap.getContext("2d")!.drawImage(c, 0, 0);
+  x.save(); x.beginPath(); x.arc(CX, DY, R, 0, Math.PI * 2); x.clip();
+  x.filter = "blur(26px) saturate(1.25)"; x.drawImage(snap, -60, -60, 1200, 1200); x.filter = "none";
+  const veil = x.createLinearGradient(CX - R, DY - R, CX + R, DY + R); veil.addColorStop(0, "rgba(255,255,255,.34)"); veil.addColorStop(.5, "rgba(255,255,255,.12)"); veil.addColorStop(1, "rgba(255,255,255,.2)");
+  x.fillStyle = veil; x.fillRect(0, 0, 1080, 1080);
+  const gloss = x.createLinearGradient(0, DY - R, 0, DY - R * .1); gloss.addColorStop(0, "rgba(255,255,255,.42)"); gloss.addColorStop(1, "rgba(255,255,255,0)");
+  x.beginPath(); x.ellipse(CX, DY - R * .52, R * .86, R * .46, 0, 0, Math.PI * 2); x.fillStyle = gloss; x.fill();
   x.restore();
-  await drawIconFit(x, p.icon, CX, DY - 4, 400, 370, cream, cream);
-  await drawLogo(x, CX, 100, 64);
+  const rim = x.createLinearGradient(CX - R, DY - R, CX + R, DY + R); rim.addColorStop(0, "rgba(255,255,255,.95)"); rim.addColorStop(.45, "rgba(255,255,255,.2)"); rim.addColorStop(.75, "rgba(255,255,255,.35)"); rim.addColorStop(1, "rgba(255,255,255,.85)");
+  x.strokeStyle = rim; x.lineWidth = 6; x.beginPath(); x.arc(CX, DY, R, 0, Math.PI * 2); x.stroke();
+  x.strokeStyle = "rgba(255,255,255,.14)"; x.lineWidth = 2; x.beginPath(); x.arc(CX, DY, R - 16, 0, Math.PI * 2); x.stroke();
+  await drawIconFit(x, p.icon, CX, DY + 2, 400, 360, [255, 255, 255], [255, 255, 255], 1.3, "rgba(0,0,30,.32)");
+  /* the logo on a small glass chip */
+  const chip = (cx: number, cy: number, w: number, h: number) => { x.save(); x.shadowColor = "rgba(0,0,30,.3)"; x.shadowBlur = 24; x.shadowOffsetY = 8; rr(x, cx - w / 2, cy - h / 2, w, h, h / 2); x.fillStyle = "rgba(255,255,255,.88)"; x.fill(); x.restore(); };
+  chip(CX, 104, 110, 100); await drawLogo(x, CX, 104, 70);
   grain(x, 1080, 1080); return c;
 }
 
