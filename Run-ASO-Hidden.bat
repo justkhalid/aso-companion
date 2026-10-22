@@ -3,6 +3,7 @@ rem Starts the ASO Companion server with no window (used by "ASO Companion.vbs")
 cd /d "%~dp0"
 
 :prepare
+where git >nul 2>nul && git pull --ff-only origin main >nul 2>nul
 set HEAD=
 where git >nul 2>nul && for /f %%i in ('git rev-parse HEAD 2^>nul') do set HEAD=%%i
 set BUILT=
