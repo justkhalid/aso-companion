@@ -91,9 +91,9 @@ export async function drawLogo(ctx: Ctx, cx: number, cy: number, h: number) {
   const l = await get(KIT_LOGO), w = h * l.width / l.height;
   ctx.save(); ctx.shadowColor = "rgba(40,30,60,.18)"; ctx.shadowBlur = 20; ctx.shadowOffsetY = 8; ctx.drawImage(l, cx - w / 2, cy - h / 2, w, h); ctx.restore();
 }
-export async function iconCanvas(key: string, size: number, c1: RGB, c2: RGB) {
+export async function iconCanvas(key: string, size: number, c1: RGB, c2: RGB, boost = 1) {
   const ic = KIT_ICONS[key];
-  const layer = (inner: string) => get("data:image/svg+xml;charset=utf-8," + encodeURIComponent(`<svg xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size}" viewBox="0 0 24 24"><g stroke="#000" stroke-width="${ic.sw ?? 0.9}" stroke-linecap="round" stroke-linejoin="round">${inner}</g></svg>`));
+  const layer = (inner: string) => get("data:image/svg+xml;charset=utf-8," + encodeURIComponent(`<svg xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size}" viewBox="0 0 24 24"><g stroke="#000" stroke-width="${(ic.sw ?? 0.9) * boost}" stroke-linecap="round" stroke-linejoin="round">${inner}</g></svg>`));
   const c = cv(size, size), x = c.getContext("2d", { willReadFrequently: true })!, a = cv(size, size), ax = a.getContext("2d")!;
   x.drawImage(await layer(ic.stroke), 0, 0); x.globalCompositeOperation = "source-in"; x.fillStyle = grad(x, 0, size, c1, c2); x.fillRect(0, 0, size, size);
   ax.drawImage(await layer(ic.accent), 0, 0); ax.globalCompositeOperation = "source-in"; ax.fillStyle = rg(c2); ax.fillRect(0, 0, size, size);
@@ -106,12 +106,12 @@ async function drawIcon(ctx: Ctx, key: string, cx: number, cy: number, size: num
   ctx.save(); ctx.shadowColor = "rgba(40,30,60,.26)"; ctx.shadowBlur = 24; ctx.shadowOffsetY = 10; ctx.drawImage(c, cx - (x0 + x1) / 2, cy - (y0 + y1) / 2); ctx.restore();
 }
 /* draws an icon scaled so its drawn shape fills a box (maxW x maxH), whatever the icon's own padding or proportions */
-async function drawIconFit(ctx: Ctx, key: string, cx: number, cy: number, maxW: number, maxH: number, c1: RGB, c2: RGB) {
-  const N = 1000, c = await iconCanvas(key, N, c1, c2), d = c.getContext("2d", { willReadFrequently: true })!.getImageData(0, 0, N, N).data;
+async function drawIconFit(ctx: Ctx, key: string, cx: number, cy: number, maxW: number, maxH: number, c1: RGB, c2: RGB, boost = 1, shadow = "rgba(40,30,60,.26)") {
+  const N = 1000, c = await iconCanvas(key, N, c1, c2, boost), d = c.getContext("2d", { willReadFrequently: true })!.getImageData(0, 0, N, N).data;
   let x0 = N, x1 = 0, y0 = N, y1 = 0;
   for (let y = 0; y < N; y++) for (let x = 0; x < N; x++) if (d[(y * N + x) * 4 + 3] > 40) { if (x < x0) x0 = x; if (x > x1) x1 = x; if (y < y0) y0 = y; if (y > y1) y1 = y; }
   const bw = x1 - x0 + 1, bh = y1 - y0 + 1, k = Math.min(maxW / bw, maxH / bh);
-  ctx.save(); ctx.shadowColor = "rgba(40,30,60,.26)"; ctx.shadowBlur = 24; ctx.shadowOffsetY = 10;
+  ctx.save(); ctx.shadowColor = shadow; ctx.shadowBlur = 24; ctx.shadowOffsetY = 10;
   ctx.drawImage(c, x0, y0, bw, bh, cx - bw * k / 2, cy - bh * k / 2, bw * k, bh * k); ctx.restore();
 }
 export function fitCover(ctx: Ctx, im: CanvasImageSource & { width: number; height: number }, x: number, y: number, w: number, h: number) { const s = Math.max(w / im.width, h / im.height), dw = im.width * s, dh = im.height * s; ctx.drawImage(im, x + (w - dw) / 2, y + (h - dh) / 2, dw, dh); }
@@ -193,14 +193,24 @@ export async function makeStoryAnim(p: KitParams, t: KitTheme, loop = 10) {
   }
 }
 
-/* a QR code of a link on a white rounded card: the card is size x size, the code sits inside with a quiet margin */
-function drawQR(x: Ctx, url: string, left: number, top: number, size: number) {
+/* a QR code of a link in the theme colours: square modules in a gradient, four corner brackets round it, no card behind it.
+   The colours are darkened enough for the code to stay easy to scan. */
+function drawQR(x: Ctx, url: string, cx: number, cy: number, size: number, c1: RGB, c2: RGB) {
   const q = qrcode(0, "M"); q.addData(url); q.make();
-  const n = q.getModuleCount(), pad = Math.round(size * 0.09), cell = (size - pad * 2) / n;
-  x.save(); x.shadowColor = "rgba(40,30,60,.22)"; x.shadowBlur = 26; x.shadowOffsetY = 10;
-  rr(x, left, top, size, size, Math.round(size * 0.12)); x.fillStyle = "#ffffff"; x.fill(); x.restore();
-  x.fillStyle = "#17142b";
-  for (let r = 0; r < n; r++) for (let c = 0; c < n; c++) if (q.isDark(r, c)) x.fillRect(Math.floor(left + pad + c * cell), Math.floor(top + pad + r * cell), Math.ceil(cell), Math.ceil(cell));
+  const n = q.getModuleCount(), cell = size / n, left = cx - size / 2, top = cy - size / 2;
+  const lum = (c: RGB) => 0.299 * c[0] + 0.587 * c[1] + 0.114 * c[2], safe = (c: RGB): RGB => { const k = lum(c) > 105 ? 105 / lum(c) : 1; return c.map((v) => Math.round(v * k)) as RGB; };
+  const g = grad(x, left, left + size, safe(c1), safe(c2));
+  x.save(); x.fillStyle = g;
+  for (let r = 0; r < n; r++) for (let c = 0; c < n; c++) if (q.isDark(r, c)) x.fillRect(Math.floor(left + c * cell), Math.floor(top + r * cell), Math.ceil(cell), Math.ceil(cell));
+  const m = Math.round(size * 0.1), L = Math.round(size * 0.16), lw = Math.max(4, Math.round(size * 0.022));
+  x.strokeStyle = grad(x, left - m, left + size + m, c1, c2); x.lineWidth = lw; x.lineCap = "butt";
+  const l = left - m, t = top - m, rr_ = left + size + m, bb = top + size + m;
+  x.beginPath();
+  x.moveTo(l, t + L); x.lineTo(l, t); x.lineTo(l + L, t);
+  x.moveTo(rr_ - L, t); x.lineTo(rr_, t); x.lineTo(rr_, t + L);
+  x.moveTo(rr_, bb - L); x.lineTo(rr_, bb); x.lineTo(rr_ - L, bb);
+  x.moveTo(l + L, bb); x.lineTo(l, bb); x.lineTo(l, bb - L);
+  x.stroke(); x.restore();
 }
 /* writing set from a left edge (spaced() centres its text) */
 function spacedLeft(x: Ctx, t: string, left: number, base: number, tr: number, fill: string | CanvasGradient) { spaced(x, t, left + measure(x, t, tr) / 2, base, tr, fill); }
@@ -219,7 +229,7 @@ async function storyBody(p: KitParams, t: KitTheme, withBg: boolean, withDecor =
   const dsz = ev ? 40 : 42, dtr = ev ? 7 : 8;
   const B = cap(25) + g1 + inkH + g2 + g3 + cap(dsz) + g4 + cap(30);
   /* even spacing: logo to writing, writing to poster, poster to the bottom button (or the small icon) are the same distance */
-  const withQR = !ev && !!p.wa, PH = withQR ? 700 : 906, PW = Math.round(PH * 0.75), PX = Math.round((1080 - PW) / 2), bottom = withQR ? 1560 : 1800, space = Math.floor((bottom - 204 - B - PH) / 3)
+  const withQR = !ev && !!p.wa, PH = withQR ? 640 : 906, PW = Math.round(PH * 0.75), PX = Math.round((1080 - PW) / 2), bottom = withQR ? 1490 : 1800, space = Math.floor((bottom - 204 - B - PH) / 3)
   const y = 204 + space, PY = bottom - space - PH;
   x.font = "700 25px ManropeA"; kick(x, p.kicker, CX, y + cap(25), 7, rg(dim(t.c2, .72)));
   const ty = y + cap(25) + g1, base = ty + inkH;
@@ -238,10 +248,11 @@ async function storyBody(p: KitParams, t: KitTheme, withBg: boolean, withDecor =
   x.restore();
   // bottom: a QR code of the WhatsApp group (a story cannot carry a tappable link from the app), or the small club icon
   if (withQR) {
-    const QS = 190, top = 1590;
-    drawQR(x, p.wa!, CX - QS / 2, top, QS);
-    x.font = "700 28px ManropeA"; spaced(x, "SCAN TO JOIN THE WHATSAPP GROUP", CX, top + QS + 52, 5, grad(x, CX - 400, CX + 400, t.c1, t.c2));
-    x.font = "500 23px ManropeA"; spaced(x, "or find the link in our highlights", CX, top + QS + 92, 1, rg(t.ink, .6));
+    const QS = 204, qcy = 1628;
+    drawQR(x, p.wa!, CX, qcy, QS, t.c1, t.c2);
+    x.font = "700 27px ManropeA"; spaced(x, "SCAN TO JOIN THE", CX, 1800, 5, rg(t.ink, .92));
+    x.font = "700 27px ManropeA"; spaced(x, "WHATSAPP GROUP", CX, 1840, 5, grad(x, CX - 300, CX + 300, t.c1, t.c2));
+    x.font = "500 22px ManropeA"; spaced(x, "or find the link in our highlights", CX, 1881, 1, rg(t.ink, .6));
   } else await drawIcon(x, p.icon, CX, 1838, 64, t.c1, t.c2);
   if (withBg) grain(x, 1080, 1920); return c;
 }
@@ -267,17 +278,35 @@ function ringFrame(x: Ctx, t: KitTheme, cx: number, cy: number, r: number, shape
   x.restore();
 }
 /* WhatsApp group picture: no text, only the glass picture, the ring and the club icon. WhatsApp crops it to a circle or rounded square, so everything sits in the middle. */
+/* WhatsApp club picture: a deep background in the club's hue with glowing colour orbs, a frosted glass disc with a bright rim, a heavy white icon, and the ASO logo on a small glass chip */
 export async function makeCover(p: KitParams, t: KitTheme) {
-  const c = cv(1080, 1080), x = c.getContext("2d")!, CX = 540;
-  x.drawImage(await get(KIT_BG_COVERS[t.bg] || KIT_BG_COVERS[0]), 0, 0);
-  glow(x, 540, 580, t.c2);
-  if (t.decor !== "none" && t.decor !== "brain") { x.save(); x.translate(0, -420); x.drawImage(await svgLayer(DECOR[t.decor](t.c1, t.c2)), 0, 0); x.restore(); }
-  await drawLogo(x, CX, 95, 62);
-  await drawIconFit(x, p.icon, CX, 580, 720, 660, t.c1, t.c2);
+  const c = cv(1080, 1080), x = c.getContext("2d")!, CX = 540, DY = 585, R = 345;
+  const lift = (col: RGB, k: number): RGB => col.map((v) => Math.min(255, Math.round(v + (255 - v) * k))) as RGB;
+  x.fillStyle = rg(dim(t.c1, .5)); x.fillRect(0, 0, 1080, 1080);
+  const orb = (cx: number, cy: number, r: number, col: RGB, a: number) => { const g = x.createRadialGradient(cx, cy, 0, cx, cy, r); g.addColorStop(0, rg(col, a)); g.addColorStop(1, rg(col, 0)); x.fillStyle = g; x.fillRect(0, 0, 1080, 1080); };
+  orb(250, 230, 620, lift(t.c1, .12), .95); orb(880, 900, 760, t.c2, .95); orb(120, 930, 420, t.c2, .55); orb(930, 140, 380, lift(t.c1, .35), .5);
+  /* the frosted glass disc: the background blurred inside it, a white veil, a bright rim, a glossy top */
+  x.save(); x.shadowColor = "rgba(5,5,30,.4)"; x.shadowBlur = 70; x.shadowOffsetY = 28; x.fillStyle = "rgba(255,255,255,.01)"; x.beginPath(); x.arc(CX, DY, R, 0, Math.PI * 2); x.fill(); x.restore();
+  const snap = cv(1080, 1080); snap.getContext("2d")!.drawImage(c, 0, 0);
+  x.save(); x.beginPath(); x.arc(CX, DY, R, 0, Math.PI * 2); x.clip();
+  x.filter = "blur(26px) saturate(1.25)"; x.drawImage(snap, -60, -60, 1200, 1200); x.filter = "none";
+  const veil = x.createLinearGradient(CX - R, DY - R, CX + R, DY + R); veil.addColorStop(0, "rgba(255,255,255,.34)"); veil.addColorStop(.5, "rgba(255,255,255,.12)"); veil.addColorStop(1, "rgba(255,255,255,.2)");
+  x.fillStyle = veil; x.fillRect(0, 0, 1080, 1080);
+  const gloss = x.createLinearGradient(0, DY - R, 0, DY - R * .1); gloss.addColorStop(0, "rgba(255,255,255,.42)"); gloss.addColorStop(1, "rgba(255,255,255,0)");
+  x.beginPath(); x.ellipse(CX, DY - R * .52, R * .86, R * .46, 0, 0, Math.PI * 2); x.fillStyle = gloss; x.fill();
+  x.restore();
+  const rim = x.createLinearGradient(CX - R, DY - R, CX + R, DY + R); rim.addColorStop(0, "rgba(255,255,255,.95)"); rim.addColorStop(.45, "rgba(255,255,255,.2)"); rim.addColorStop(.75, "rgba(255,255,255,.35)"); rim.addColorStop(1, "rgba(255,255,255,.85)");
+  x.strokeStyle = rim; x.lineWidth = 6; x.beginPath(); x.arc(CX, DY, R, 0, Math.PI * 2); x.stroke();
+  x.strokeStyle = "rgba(255,255,255,.14)"; x.lineWidth = 2; x.beginPath(); x.arc(CX, DY, R - 16, 0, Math.PI * 2); x.stroke();
+  await drawIconFit(x, p.icon, CX, DY + 2, 400, 360, [255, 255, 255], [255, 255, 255], 1.3, "rgba(0,0,30,.32)");
+  /* the logo on a small glass chip */
+  const chip = (cx: number, cy: number, w: number, h: number) => { x.save(); x.shadowColor = "rgba(0,0,30,.3)"; x.shadowBlur = 24; x.shadowOffsetY = 8; rr(x, cx - w / 2, cy - h / 2, w, h, h / 2); x.fillStyle = "rgba(255,255,255,.88)"; x.fill(); x.restore(); };
+  chip(CX, 104, 110, 100); await drawLogo(x, CX, 104, 70);
   grain(x, 1080, 1080); return c;
 }
 
 /* the ASO logo in the same format as the club pictures (glass picture and ring), for the profile picture and the community icon (rounded-square ring) */
+
 export async function makeProfilePicture(t: KitTheme, shape: "circle" | "squircle" = "squircle") {
   const c = cv(1080, 1080), x = c.getContext("2d")!, CX = 540;
   await paintGlass(x, KIT_BG_COVERS[t.bg] || KIT_BG_COVERS[0], glassOf(t), t);
@@ -296,6 +325,7 @@ export async function makeHighlight(p: KitParams, t: KitTheme) {
   grain(x, 1080, 1920); return c;
 }
 
+const WA_GREEN: [RGB, RGB] = [[37, 211, 102], [14, 140, 110]]
 /* the "Links" highlight story: the ASO community with the WhatsApp icon and a big QR code, all on the centre line */
 export async function makeLinksStory(url: string, t: KitTheme) {
   const c = cv(1080, 1920), x = c.getContext("2d")!, CX = 540;
@@ -306,12 +336,13 @@ export async function makeLinksStory(url: string, t: KitTheme) {
   const fw = fit(x, s => `italic 600 ${s}px Bodoni`, "ASO Community", 820, 170, -5), cw = capOf(x, fw, 600);
   gradTitle(x, "ASO Community", CX, 372 + cw, fw, -5, 600, t.c1, t.c2);
   const hl = 372 + cw + 52; x.fillStyle = grad(x, CX - 260, CX + 260, t.c1, t.c2); x.fillRect(CX - 260, hl, 520, 3);
-  await drawIconFit(x, "i-whatsapp", CX, hl + 170, 190, 190, t.c1, t.c2);
-  const QS = 540, qt = hl + 320;
-  drawQR(x, url, CX - QS / 2, qt, QS);
-  x.font = "700 30px ManropeA"; spaced(x, "SCAN TO JOIN THE", CX, qt + QS + 74, 6, rg(t.ink, .92));
-  x.font = "700 30px ManropeA"; spaced(x, "WHATSAPP COMMUNITY", CX, qt + QS + 120, 6, grad(x, CX - 300, CX + 300, t.c1, t.c2));
-  x.font = "500 24px ManropeA"; spaced(x, "or tap the link below", CX, qt + QS + 176, 1, rg(t.ink, .6));
+  await drawIconFit(x, "i-whatsapp", CX, hl + 165, 190, 190, WA_GREEN[0], WA_GREEN[1]);
+  const QS = 480, qcy = hl + 165 + 95 + 70 + QS / 2 + 30;
+  drawQR(x, url, CX, qcy, QS, WA_GREEN[0], WA_GREEN[1]);
+  const ty = qcy + QS / 2 + 30 + 80;
+  x.font = "700 30px ManropeA"; spaced(x, "SCAN TO JOIN THE", CX, ty, 6, rg(t.ink, .92));
+  x.font = "700 30px ManropeA"; spaced(x, "WHATSAPP COMMUNITY", CX, ty + 46, 6, grad(x, CX - 300, CX + 300, WA_GREEN[0], WA_GREEN[1]));
+  x.font = "500 24px ManropeA"; spaced(x, "or tap the link below", CX, ty + 102, 1, rg(t.ink, .6));
   grain(x, 1080, 1920); return c;
 }
 /* the round cover of the "Links" highlight: the WhatsApp icon on the same ground as the club covers */
@@ -319,7 +350,7 @@ export async function makeLinksCover(t: KitTheme) {
   const c = cv(1080, 1920), x = c.getContext("2d")!;
   x.drawImage(await groundCanvas(t, 1080, 1920), 0, 0); wash(x, t, 1080, 1920);
   glow(x, 540, 960, t.c2);
-  await drawIconFit(x, "i-whatsapp", 540, 960, 640, 640, t.c1, t.c2);
+  await drawIconFit(x, "i-whatsapp", 540, 960, 640, 640, WA_GREEN[0], WA_GREEN[1]);
   grain(x, 1080, 1920); return c;
 }
 /* the club icon alone, on a transparent background */
