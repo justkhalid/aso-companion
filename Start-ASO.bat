@@ -23,7 +23,7 @@ if not exist ".env.local" (
 
 :prepare
 rem get the newest version of the app (only a clean fast-forward; nothing of this computer is overwritten)
-where git >nul 2>nul && git pull --ff-only origin main >nul 2>nul
+call :selfupdate
 set HEAD=
 where git >nul 2>nul && for /f %%i in ('git rev-parse HEAD 2^>nul') do set HEAD=%%i
 set BUILT=
@@ -58,3 +58,19 @@ echo.
 echo Something went wrong. Take a photo of this window and send it to the developer.
 pause
 exit /b 1
+
+:selfupdate
+rem pull the newest version quietly: with the GitHub token from .env.local, and never ask for a login
+where git >nul 2>nul || exit /b 0
+set "GIT_TERMINAL_PROMPT=0"
+set "GCM_INTERACTIVE=never"
+set "PAT="
+if exist ".env.local" for /f "tokens=1,* delims==" %%a in ('findstr /b /c:"GITHUB_PAT=" ".env.local"') do set "PAT=%%b"
+if not defined PAT goto su_plain
+set "B64="
+for /f %%b in ('powershell -NoProfile -Command "[Convert]::ToBase64String([Text.Encoding]::ASCII.GetBytes('x-access-token:%PAT%'))"') do set "B64=%%b"
+git -c credential.helper= -c "http.https://github.com/.extraheader=AUTHORIZATION: basic %B64%" pull --ff-only origin main >nul 2>nul
+exit /b 0
+:su_plain
+git pull --ff-only origin main >nul 2>nul
+exit /b 0
