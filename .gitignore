@@ -98,3 +98,7 @@ data/members.enc.json
 
 # the renamed Node copy made by the Windows start file
 .aso/
+
+data/inventory.enc.json
+data/inventory.local.json
+data/inventory-photos/
