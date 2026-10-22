@@ -5,9 +5,9 @@ import { readFile } from 'node:fs/promises'
 import path from 'node:path'
 import { isLocal } from './mode'
 
-const run = (cmd: string, args: string[]) =>
+const run = (cmd: string, args: string[], noShell = false) =>
   new Promise<{ ok: boolean; out: string }>((resolve) => {
-    execFile(cmd, args, { cwd: process.cwd(), timeout: 120_000, windowsHide: true, shell: process.platform === 'win32' }, (err, stdout, stderr) => resolve({ ok: !err, out: (String(stdout) + String(stderr)).trim() }))
+    execFile(cmd, args, { cwd: process.cwd(), timeout: 120_000, windowsHide: true, shell: !noShell && process.platform === 'win32', env: { ...process.env, GIT_TERMINAL_PROMPT: '0', GCM_INTERACTIVE: 'never' } }, (err, stdout, stderr) => resolve({ ok: !err, out: (String(stdout) + String(stderr)).trim() }))
   })
 
 export interface LogItem { sha: string; date: string; title: string; note: string }
@@ -90,5 +90,9 @@ export async function pullUpdate(): Promise<{ ok: boolean; out: string }> {
   if (!isLocal()) return { ok: false, out: 'Updating only works on the director\'s computer.' }
   const st = await run('git', ['status', '--porcelain', '--untracked-files=no'])
   if (st.out) return { ok: false, out: 'This copy has changes of its own, so it was not updated:\n' + st.out }
-  return run('git', ['pull', '--ff-only', 'origin', BRANCH()])
+  /* with the saved GitHub token the pull never asks for a login */
+  const pat = process.env.GITHUB_PAT
+  const auth = pat ? ['-c', 'credential.helper=', '-c', 'http.https://github.com/.extraheader=AUTHORIZATION: basic ' + Buffer.from('x-access-token:' + pat).toString('base64')] : []
+  const r = await run('git', [...auth, 'pull', '--ff-only', 'origin', BRANCH()], true)
+  return pat ? { ok: r.ok, out: r.out.split(Buffer.from('x-access-token:' + pat).toString('base64')).join('***') } : r
 }
