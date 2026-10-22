@@ -2,7 +2,15 @@
 
 The admin (sign-in, saving, Facebook and Instagram posting) runs only on this computer. The public website on Vercel only shows the data.
 
-## One-time setup
+## Easy install (recommended)
+
+Make the GitHub token first (step 3 below). Then double-click one file:
+- **Windows:** `setup/ASO-Setup-Windows.bat`. If Windows shows a blue box, press **More info** then **Run anyway**.
+- **Mac:** `setup/ASO-Setup-Mac.command`. The first time, right-click it, choose **Open**, then **Open**.
+
+It asks for the token once, installs Node.js and Git if they are missing, downloads and builds the app, puts the icon on the Desktop and opens the app. These two files are meant to be passed around on their own (the repository is private, so they cannot be downloaded from it without the token).
+
+## One-time setup by hand
 
 1. Install **Node.js** (the LTS version) from nodejs.org. On Windows also install **Git** from git-scm.com. A Mac already offers Git: the first time you use it, say yes to the "command line developer tools" window.
 2. Download the app once. On Windows: open a folder, right-click > **Open in Terminal**. On a Mac: open the **Terminal** app. Then run `git clone https://github.com/justkhalid/aso-companion.git`. Open the new `aso-companion` folder.
