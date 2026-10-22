@@ -13,18 +13,18 @@ export const KIT_ICONS: Record<string, { label: string; stroke: string; accent: 
  },
  "i-speaking": {
   "label": "Public speaking",
-  "stroke": "<circle cx=\"10\" cy=\"5\" r=\"2.4\" fill=\"none\"/><path d=\"M5.6 11.6a4.4 4.4 0 0 1 8.8 0M4.4 11.6h15.2l-1.2 3H5.6zM17.6 8.6v3\" fill=\"none\"/><rect x=\"16.4\" y=\"2.6\" width=\"2.4\" height=\"4.4\" rx=\"1.2\" fill=\"none\"/><path d=\"M15.4 5.4a2.2 2.2 0 0 0 4.4 0\" fill=\"none\"/><circle cx=\"4.9\" cy=\"18.6\" r=\"1.5\" fill=\"none\"/><circle cx=\"12\" cy=\"18.6\" r=\"1.5\" fill=\"none\"/><circle cx=\"19.1\" cy=\"18.6\" r=\"1.5\" fill=\"none\"/><path d=\"M2.2 23.2a2.7 2.7 0 0 1 5.4 0M9.3 23.2a2.7 2.7 0 0 1 5.4 0M16.4 23.2a2.7 2.7 0 0 1 5.4 0\" fill=\"none\"/>",
-  "accent": "<path d=\"M5.4 2.8a3.8 3.8 0 0 0 0 4.4M3 1.4a6.6 6.6 0 0 0 0 7.2M21.2 3.2a3 3 0 0 1 0 3.6\" fill=\"none\"/>"
+  "stroke": "<circle cx=\"12\" cy=\"5.6\" r=\"2.6\" fill=\"none\"/><path d=\"M5 11h14l-1.6 10H6.6z\" fill=\"none\"/>",
+  "accent": "<path d=\"M17.6 3.4a4.6 4.6 0 0 1 0 4.4M20 2a7.2 7.2 0 0 1 0 7.2M6.4 3.4a4.6 4.6 0 0 0 0 4.4M4 2a7.2 7.2 0 0 0 0 7.2\" fill=\"none\"/>"
  },
  "i-philo": {
   "label": "Philosophy",
-  "stroke": "<path d=\"M8.4 5.6h7.2M9.6 5.6l.6 1.6h3.6l.6-1.6M10.2 7.2L10.6 20.2M13.8 7.2L13.4 20.2M8.6 20.2h6.8M7.6 21.8h8.8\" fill=\"none\"/><path d=\"M10.1 11.06A10 3 0 0 0 2 14A10 3 0 0 0 12 17A10 3 0 0 0 22 14A10 3 0 0 0 13.9 11.06\" fill=\"none\"/>",
-  "accent": "<path d=\"M12 0.4L12.7 1.7 14 2.4 12.7 3.1 12 4.4 11.3 3.1 10 2.4 11.3 1.7z\" fill=\"#000\" stroke=\"none\"/><circle cx=\"20.66\" cy=\"12.5\" r=\"0.95\" fill=\"#000\" stroke=\"none\"/><circle cx=\"3.34\" cy=\"15.5\" r=\"0.95\" fill=\"#000\" stroke=\"none\"/>"
+  "stroke": "<path d=\"M2.6 14.4L12 10.4l9.4 4zM5 14.6V19.6M9.7 14.6V19.6M14.3 14.6V19.6M19 14.6V19.6M3 21.4h18\" fill=\"none\"/>",
+  "accent": "<ellipse cx=\"12\" cy=\"5\" rx=\"5\" ry=\"1.9\" transform=\"rotate(60 12 5)\" fill=\"none\"/><ellipse cx=\"12\" cy=\"5\" rx=\"5\" ry=\"1.9\" transform=\"rotate(-60 12 5)\" fill=\"none\"/><circle cx=\"12\" cy=\"5\" r=\"1.1\" fill=\"#000\" stroke=\"none\"/>"
  },
  "i-sports": {
   "label": "Sports ball",
-  "stroke": "<circle cx=\"14\" cy=\"12\" r=\"8.4\" fill=\"none\"/><path d=\"M14.00 9.50L14.00 7.30M14.00 7.30L16.04 6.11M14.00 7.30L11.96 6.11M16.38 11.23L18.47 10.55M18.47 10.55L20.23 12.12M18.47 10.55L18.97 8.24M15.47 14.02L16.76 15.81M16.76 15.81L15.81 17.96M16.76 15.81L19.11 15.56M12.53 14.02L11.24 15.81M11.24 15.81L8.89 15.56M11.24 15.81L12.19 17.96M11.62 11.23L9.53 10.55M9.53 10.55L9.03 8.24M9.53 10.55L7.77 12.12\" fill=\"none\"/><path d=\"M1 8.4h3.4M0.4 12h4M1 15.6h3.4\" fill=\"none\"/>",
-  "accent": "<path d=\"M14.00 9.50 L16.38 11.23 L15.47 14.02 L12.53 14.02 L11.62 11.23z\" fill=\"#000\" stroke=\"none\"/><path d=\"M16.73 8.24 L16.04 6.11 L17.85 4.80 L19.66 6.11 L18.97 8.24z\" fill=\"#000\" stroke=\"none\"/><path d=\"M18.42 13.44 L20.23 12.12 L22.04 13.44 L21.35 15.56 L19.11 15.56z\" fill=\"#000\" stroke=\"none\"/><path d=\"M14.00 16.65 L15.81 17.96 L15.12 20.09 L12.88 20.09 L12.19 17.96z\" fill=\"#000\" stroke=\"none\"/><path d=\"M9.58 13.44 L8.89 15.56 L6.65 15.56 L5.96 13.44 L7.77 12.12z\" fill=\"#000\" stroke=\"none\"/><path d=\"M11.27 8.24 L9.03 8.24 L8.34 6.11 L10.15 4.80 L11.96 6.11z\" fill=\"#000\" stroke=\"none\"/>"
+  "stroke": "<circle cx=\"12\" cy=\"12\" r=\"9\" fill=\"none\"/><path d=\"M3 12h18M12 3v18\" fill=\"none\"/>",
+  "accent": "<path d=\"M5.5 5.6c3.1 3.2 3.1 9.6 0 12.8M18.5 5.6c-3.1 3.2-3.1 9.6 0 12.8\" fill=\"none\"/>"
  },
  "i-africa": {
   "label": "Africa map",
@@ -38,8 +38,8 @@ export const KIT_ICONS: Record<string, { label: string; stroke: string; accent: 
  },
  "i-reading": {
   "label": "Reading",
-  "stroke": "<path d=\"M12 12.4C10 10.8 6.4 10.5 2.8 11.4v9c3.6-.9 7.2-.6 9.2.9 2-1.5 5.6-1.8 9.2-.9v-9C17.6 10.5 14 10.8 12 12.4z\" fill=\"none\"/><path d=\"M12 12.4v8.9M2.8 20.4l-.4 1.6c3.6-.9 7.4-.6 9.6.8 2.2-1.4 6-1.7 9.6-.8l-.4-1.6\" fill=\"none\"/>",
-  "accent": "<path d=\"M12 0.6L12.8 2.2 14.4 3 12.8 3.8 12 5.4 11.2 3.8 9.6 3 11.2 2.2z\" fill=\"#000\" stroke=\"none\"/><path d=\"M5 14.2h4M5 16.8h4M15 14.2h4M15 16.8h4\" fill=\"none\"/><circle cx=\"4.6\" cy=\"4.4\" r=\"0.7\" fill=\"#000\" stroke=\"none\"/><circle cx=\"19.4\" cy=\"4.4\" r=\"0.7\" fill=\"#000\" stroke=\"none\"/><circle cx=\"20.6\" cy=\"8.6\" r=\"0.5\" fill=\"#000\" stroke=\"none\"/><circle cx=\"3.4\" cy=\"8.6\" r=\"0.5\" fill=\"#000\" stroke=\"none\"/>"
+  "stroke": "<path d=\"M12 6.6C10 5 6.4 4.7 3 5.6v12.6c3.4-.9 7-.6 9 .9 2-1.5 5.6-1.8 9-.9V5.6C17.6 4.7 14 5 12 6.6z\" fill=\"none\"/><path d=\"M12 6.6v12.5\" fill=\"none\"/>",
+  "accent": "<path d=\"M5.8 9.2h3.4M5.8 12.2h3.4M14.8 9.2h3.4M14.8 12.2h3.4\" fill=\"none\"/>"
  },
  "chess": {
   "label": "Chess",

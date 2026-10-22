@@ -4,7 +4,7 @@ import * as React from 'react'
 import { CalendarDays, CalendarRange, ChevronLeft, ChevronRight, Download } from 'lucide-react'
 import { useStore } from '@/lib/store'
 import { isoOf, mondayOfWeek } from '@/lib/app-utils'
-import { PUBLIC_CLASS_TONE, PUBLIC_CLUB_TONE, PUBLIC_EVENT_TONE, PUBLIC_OUTSIDE_TONE, publicClassItems, publicClubItems, publicEventItems } from '@/lib/calendar-items'
+import { AUDIENCE_TONE, PUBLIC_CLASS_TONE, PUBLIC_CLUB_TONE, PUBLIC_EVENT_TONE, PUBLIC_OUTSIDE_TONE, publicClassItems, publicClubItems, publicEventItems } from '@/lib/calendar-items'
 import { CalendarSwitch, type CalTab } from './calendar-switch'
 import { MonthCalendarImage } from './month-calendar-image'
 import { RoomsPage } from './pages/rooms-page'
@@ -33,9 +33,14 @@ export function UnifiedCalendar({ tab, onTab, counts, animated = false }: { tab:
   const fmt = (d: Date, o: Intl.DateTimeFormatOptions) => d.toLocaleDateString('en-GB', o)
   const weekLabel = `${fmt(monday, { day: 'numeric', month: 'short' })} to ${fmt(sunday, { day: 'numeric', month: 'short' })}`
 
-  const items = tab === 'classes' ? publicClassItems(state, monday) : [...publicClubItems(state, monday), ...publicEventItems(state, monday)]
+  const [aud, setAud] = React.useState<'all' | 'kids' | 'non'>('all')
+  const [lvl, setLvl] = React.useState<0 | 1 | 2 | 3>(0)
+  const items = tab === 'classes' ? publicClassItems(state, monday).filter((i) => !i.mark || ((aud === 'all' || (aud === 'kids') === (i.mark.audience === 'Kids')) && (!lvl || i.mark.step === lvl))) : [...publicClubItems(state, monday), ...publicEventItems(state, monday)]
   const legend: LegendEntry[] = [
-    ...(items.some((i) => i.tone === PUBLIC_CLASS_TONE) ? [{ label: 'English classes', tone: PUBLIC_CLASS_TONE }] : []),
+    ...(tab === 'classes'
+      ? (['Kids', 'Teens', 'Adults'] as const).filter((a) => items.some((i) => i.mark?.audience === a && i.tone !== 'tone-8')).map((a) => ({ label: a, tone: AUDIENCE_TONE[a] }))
+      : []),
+    ...(items.some((i) => i.tone === PUBLIC_CLASS_TONE && !i.mark) ? [{ label: 'English classes', tone: PUBLIC_CLASS_TONE }] : []),
     ...(items.some((i) => i.tone === PUBLIC_CLUB_TONE) ? [{ label: 'Clubs', tone: PUBLIC_CLUB_TONE }] : []),
     ...(items.some((i) => i.tone === PUBLIC_EVENT_TONE) ? [{ label: 'Events', tone: PUBLIC_EVENT_TONE }] : []),
     ...(items.some((i) => i.tone === PUBLIC_OUTSIDE_TONE) ? [{ label: 'Outside', tone: PUBLIC_OUTSIDE_TONE }] : []),
@@ -88,6 +93,20 @@ export function UnifiedCalendar({ tab, onTab, counts, animated = false }: { tab:
             <button type="button" onClick={() => setOffset((o) => o + 1)} aria-label="Next week" className="flex h-9 w-9 items-center justify-center rounded-full border border-border hover:bg-secondary"><ChevronRight className="h-4 w-4" /></button>
             <button type="button" onClick={() => void downloadWeek()} className="ml-1 inline-flex h-9 items-center gap-1.5 rounded-full border border-border px-3.5 text-sm font-semibold hover:bg-secondary"><Download className="h-4 w-4" aria-hidden /> Download week</button>
           </div>
+          {tab === 'classes' && (
+            <div className="mb-3 flex flex-wrap items-center justify-center gap-x-4 gap-y-2" role="group" aria-label="Filter classes">
+              <div className="flex gap-1">
+                {([['all', 'All'], ['kids', 'Kids'], ['non', 'Non-kids']] as const).map(([v, l]) => (
+                  <button key={v} type="button" aria-pressed={aud === v} onClick={() => setAud(v)} className={cn('h-8 rounded-full border px-3 text-xs font-semibold', aud === v ? 'border-primary bg-primary text-primary-foreground' : 'border-border hover:bg-secondary')}>{l}</button>
+                ))}
+              </div>
+              <div className="flex gap-1">
+                {([[0, 'All levels'], [1, 'Beginner'], [2, 'Intermediate'], [3, 'Advanced']] as const).map(([v, l]) => (
+                  <button key={v} type="button" aria-pressed={lvl === v} onClick={() => setLvl(v)} className={cn('h-8 rounded-full border px-3 text-xs font-semibold', lvl === v ? 'border-primary bg-primary text-primary-foreground' : 'border-border hover:bg-secondary')}>{l}</button>
+                ))}
+              </div>
+            </div>
+          )}
           <div className="rounded-2xl bg-card">
             <WeeklyGrid items={items} legend={legend} weekMonday={monday} emptyMessage="Nothing scheduled this week" />
           </div>
