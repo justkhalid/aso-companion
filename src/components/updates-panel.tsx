@@ -3,6 +3,7 @@
 import * as React from 'react'
 import { Check, CircleAlert, Download, Loader2, RefreshCw } from 'lucide-react'
 import { Button } from '@/components/ui/button'
+import { useStore } from '@/lib/store'
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog'
 
 interface LogItem { sha: string; date: string; title: string; note: string }
@@ -33,7 +34,8 @@ export function UpdatesPanel() {
   const load = React.useCallback(async () => {
     setBusy(true)
     try {
-      const r = await fetch('/api/update/status', { cache: 'no-store' })
+      let r = await fetch('/api/update/status', { cache: 'no-store' })
+      if (r.status === 401 && useStore.getState().admin && (await useStore.getState().ensureSession())) r = await fetch('/api/update/status', { cache: 'no-store' })
       if (r.status === 401) { setState('signin'); return }
       if (!r.ok) { setState('error'); return }
       setState('ok')
@@ -77,7 +79,14 @@ export function UpdatesPanel() {
     }
   }
 
-  if (state === 'signin') return <p className="text-sm text-muted-foreground">Sign in as admin to see updates.</p>
+  if (state === 'signin') {
+    return (
+      <div className="flex flex-col items-start gap-2 text-sm text-muted-foreground">
+        <p>This device is not signed in to the server, so updates cannot be checked. Sign in again to fix it.</p>
+        <Button size="sm" onClick={() => useStore.getState().logout()}>Sign in again</Button>
+      </div>
+    )
+  }
   return (
     <div className="mb-4 flex flex-col gap-4 rounded-2xl border border-border bg-card p-5 shadow-sm">
       <div className="flex items-center gap-2">
