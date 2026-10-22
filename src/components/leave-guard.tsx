@@ -43,14 +43,15 @@ export function LeaveGuard() {
           </Button>
           <Button
             disabled={busy}
-            onClick={async () => {
-              setBusy(true)
-              const r = await useStore.getState().saveToCloud().catch(() => ({ ok: false, msg: 'Could not save.' }))
-              setBusy(false)
-              if (r.ok) { const g = go; close(); g?.() } else setErr(r.msg || 'Could not save.')
+            onClick={() => {
+              /* leave at once; the save runs in the background and the badge at the top shows how it went */
+              void useStore.getState().saveToCloud().catch(() => {})
+              const g = go
+              close()
+              g?.()
             }}
           >
-            {busy ? 'Saving...' : 'Save and leave'}
+            Save and leave
           </Button>
         </AlertDialogFooter>
       </AlertDialogContent>
