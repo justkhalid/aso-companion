@@ -330,7 +330,7 @@ function SaveStatus() {
   const dismissUnsaved = useStore((s) => s.dismissUnsaved)
   const toast = useStore((s) => s.toast)
   const setView = useStore((s) => s.setView)
-  /* is a newer version of the app available? checked when the admin opens and then every half hour */
+  /* is a newer version of the app available? checked when the admin opens, every 5 minutes, and whenever the window comes back to the front */
   const [behind, setBehind] = React.useState(0)
   const [newVersion, setNewVersion] = React.useState('')
   React.useEffect(() => {
@@ -345,8 +345,11 @@ function SaveStatus() {
       } catch { /* offline: no badge */ }
     }
     void check()
-    const id = setInterval(check, 30 * 60 * 1000)
-    return () => { on = false; clearInterval(id) }
+    const id = setInterval(check, 5 * 60 * 1000)
+    const onShow = () => { if (document.visibilityState === 'visible') void check() }
+    document.addEventListener('visibilitychange', onShow)
+    window.addEventListener('focus', onShow)
+    return () => { on = false; clearInterval(id); document.removeEventListener('visibilitychange', onShow); window.removeEventListener('focus', onShow) }
   }, [])
   return (
     <div className="flex items-center gap-2" role="status" aria-live="polite">
