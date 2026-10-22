@@ -45,4 +45,4 @@ Admin > Members reads the members Google Sheet. Open it in the app on this compu
 
 ## Trying the next version before it goes live
 
-Double-click **Test-Next-Version.bat** (Windows) or **Test-Next-Version.command** (Mac). It pulls the newest work branch, installs what is missing and opens a test copy at http://localhost:3100 next to the real app. The test copy saves to a separate `sandbox` branch on GitHub, so the real data on `main` is not touched, and it hot-reloads when the code changes. When it looks right, merge the pull request. To reset the test data: `git push -f origin main:sandbox`.
+Double-click **Test-Next-Version.bat** (Windows) or **Test-Next-Version.command** (Mac). It pulls the newest work branch, installs what is missing and opens a test copy at http://localhost:3100 next to the real app. The test copy keeps its own data in `.test-state.json` on this computer, so nothing reaches GitHub, and it reloads when the code changes. When it looks right, merge the pull request. To reset the test data, delete `.test-state.json`.

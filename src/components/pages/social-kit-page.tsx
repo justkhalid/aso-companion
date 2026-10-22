@@ -603,8 +603,8 @@ const Lab = ({ children, hint }: { children: React.ReactNode; hint?: string }) =
     {hint && <div className="mt-0.5 text-[11px] text-muted-foreground">{hint}</div>}
   </div>
 )
-const Block = ({ title, children }: { title: string; children: React.ReactNode }) => (
-  <div className="flex flex-col gap-4 border-t border-border pt-5 first:border-t-0 first:pt-0">
+const Block = ({ title, children, bare }: { title: string; children: React.ReactNode; bare?: boolean }) => (
+  <div className={cn('flex flex-col gap-4', !bare && 'border-t border-border pt-5 first:border-t-0 first:pt-0')}>
     <h2 className="text-[11px] font-extrabold uppercase tracking-[0.14em] text-muted-foreground">{title}</h2>
     {children}
   </div>
@@ -761,11 +761,11 @@ function KitEditor({ kind, id, onBack, onManage, onEditSchedule }: { kind: Kind;
       <div className="grid gap-6 lg:grid-cols-[minmax(0,5fr)_minmax(0,6fr)] lg:items-start">
         {/* the pictures, always in view while settings change: the story, the poster and the WhatsApp picture under them */}
         <div className="flex min-w-0 flex-col gap-4 lg:sticky lg:top-20">
-          <div className="grid grid-cols-2 items-start gap-3">
+          <div className="grid grid-cols-2 items-stretch gap-3">
             <PreviewCard title="Instagram story" note={live && R.motion !== 0 ? 'moving' : undefined} canvas={live ?? out?.story ?? null} />
             <section className="flex flex-col gap-2.5 rounded-2xl border border-border bg-card p-3">
               <h3 className="flex items-baseline justify-between gap-2 text-xs font-extrabold">Poster <span className="text-[11px] font-medium text-muted-foreground">Instagram 3:4</span></h3>
-              <div className="overflow-hidden border border-border bg-secondary" style={{ aspectRatio: '3 / 4' }}>
+              <div className="my-auto overflow-hidden border border-border bg-secondary" style={{ aspectRatio: '3 / 4' }}>
                 {R.poster ? <img src={R.poster} alt="" className="h-full w-full object-cover" /> : <div className="grid h-full place-items-center px-2 text-center text-[11px] font-bold text-muted-foreground">No poster yet</div>}
               </div>
             </section>
@@ -1199,8 +1199,8 @@ function PublishPanel({ storyCanvas, poster, feedCanvas, caption, only, posts, o
 
   return (
     <>
-      <div className="grid gap-5 sm:grid-cols-2">
-      <Block title="Connection">
+      <div className="grid gap-5 border-t border-border pt-5 sm:grid-cols-2">
+      <Block bare title="Connection">
         {status === null && <p className="text-xs text-muted-foreground">Checking...</p>}
         {status === 'signin' && <SignInAgain />}
         {status === 'error' && <p className="text-xs text-muted-foreground">The server did not answer. Reload the page and try again.</p>}
@@ -1219,7 +1219,7 @@ function PublishPanel({ storyCanvas, poster, feedCanvas, caption, only, posts, o
       </Block>
 
       {scheduleLabel && (
-        <Block title="When">
+        <Block bare title="When">
           <div className="grid grid-cols-2 gap-1 rounded-full border border-border bg-background p-1" role="tablist" aria-label="When to post">
             {([[false, 'Now'], [true, 'Later']] as const).map(([v, label]) => (
               <button key={label} type="button" role="tab" aria-selected={later === v} onClick={() => setLater(v)} className={cn('rounded-full px-3 py-1.5 text-[13px] font-bold transition', later === v ? 'aso-nav-pill' : 'text-foreground/70 hover:bg-secondary')}>{label}</button>
@@ -1683,11 +1683,13 @@ function CancelPanel({ R, theme, title, slug, onManage }: { R: KitRec; theme: Re
           <input className={inputCls} value={next} placeholder="e.g. Thursday 30 October" onChange={(e) => setNext(e.target.value)} />
         </div>
       </Block>
-      <div className="grid grid-cols-2 items-start gap-3">
+      <div className="grid grid-cols-2 items-stretch gap-3">
         {([['story', 'Story'], ['post', 'Post 3:4']] as const).map(([k, label]) => (
           <div key={k} className="flex flex-col gap-2">
-            <div className="overflow-hidden rounded-lg border border-border bg-secondary" style={{ aspectRatio: k === 'story' ? '9 / 16' : '3 / 4' }}>
-              {pics ? <CanvasHost canvas={pics[k]} className="h-full w-full" /> : null}
+            <div className="flex flex-1 items-center">
+              <div className="w-full overflow-hidden border border-border bg-secondary" style={{ aspectRatio: k === 'story' ? '9 / 16' : '3 / 4' }}>
+                {pics ? <CanvasHost canvas={pics[k]} className="h-full w-full" /> : null}
+              </div>
             </div>
             <Button type="button" variant="outline" size="sm" disabled={!pics || busy} onClick={() => pics && void toBlob(pics[k]).then((b) => saveBlob(b, `${slug}-canceled-${k}.png`))}><Download className="h-4 w-4" /> {label}</Button>
           </div>
@@ -1702,11 +1704,11 @@ function CancelPanel({ R, theme, title, slug, onManage }: { R: KitRec; theme: Re
 function ShareFiles({ items }: { items: { label: string; hint: string; icon: React.ElementType; on: () => void; off?: boolean }[] }) {
   return (
     <Block title="Files to download">
-      <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
-        {items.map((it) => {
+      <div className={cn("grid grid-cols-2 gap-2", items.length % 3 === 0 ? "sm:grid-cols-3" : "sm:grid-cols-2")}>
+        {items.map((it, i) => {
           const Icon = it.icon
           return (
-            <button key={it.label} type="button" disabled={it.off} onClick={it.on} className="flex h-full items-center gap-2.5 rounded-xl border border-border bg-card p-3 text-left transition hover:bg-secondary disabled:opacity-50">
+            <button key={it.label} type="button" disabled={it.off} onClick={it.on} className={cn(items.length % 2 === 1 && items.length % 3 !== 0 && i === items.length - 1 && 'col-span-2', 'flex h-full items-center gap-2.5 rounded-xl border border-border bg-card p-3 text-left transition hover:bg-secondary disabled:opacity-50')}>
               <Icon className={cn('h-4 w-4 shrink-0 text-primary', it.icon === Loader2 && 'animate-spin')} />
               <span className="min-w-0"><span className="block text-[13px] font-bold leading-tight">{it.label}</span><span className="block text-[11px] text-muted-foreground">{it.hint}</span></span>
             </button>

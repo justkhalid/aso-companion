@@ -102,3 +102,4 @@ data/members.enc.json
 data/inventory.enc.json
 data/inventory.local.json
 data/inventory-photos/
+.test-state.json

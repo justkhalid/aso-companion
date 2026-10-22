@@ -88,6 +88,10 @@ function githubRawUrl(): string {
 }
 
 async function githubRead(): Promise<unknown | null> {
+  /* a test copy of the app keeps its data in a local file instead of GitHub (ASO_STATE_FILE) */
+  if (process.env.ASO_STATE_FILE) {
+    try { return JSON.parse(await (await import('node:fs/promises')).readFile(process.env.ASO_STATE_FILE, 'utf-8')) } catch { return null }
+  }
   /* the repo is private: with the token, read through the GitHub API (the plain raw address answers 404 for a private repo) */
   const token = process.env.GITHUB_PAT
   if (token) {
@@ -119,6 +123,10 @@ async function githubWrite(
   content: string,
   message?: string,
 ): Promise<{ ok: boolean; msg: string }> {
+  if (process.env.ASO_STATE_FILE) {
+    await (await import('node:fs/promises')).writeFile(process.env.ASO_STATE_FILE, content, 'utf-8')
+    return { ok: true, msg: 'Saved to the local test file' }
+  }
   const token = process.env.GITHUB_PAT
   const repo = process.env.GITHUB_REPO || 'justkhalid/aso-companion'
   const branch = process.env.GITHUB_BRANCH || 'main'
