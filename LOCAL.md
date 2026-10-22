@@ -42,3 +42,7 @@ Close the window, double-click **Start-ASO.bat** again, and if it fails take a p
 ## ASO Library members
 
 Admin > Members reads the members Google Sheet. Open it in the app on this computer, paste the Apps Script link and key once, and press Connect. They are kept encrypted in `data/members.enc.json` (never uploaded) and the list never goes through the website.
+
+## Trying the next version before it goes live
+
+Double-click **Test-Next-Version.bat** (Windows) or **Test-Next-Version.command** (Mac). It pulls the newest work branch, installs what is missing and opens a test copy at http://localhost:3100 next to the real app. The test copy keeps its own data in `.test-state.json` on this computer, so nothing reaches GitHub, and it reloads when the code changes. When it looks right, merge the pull request. To reset the test data, delete `.test-state.json`.

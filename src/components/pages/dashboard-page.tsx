@@ -79,7 +79,7 @@ export function DashboardPage() {
   /* one row of buttons for the jobs done most */
   type Job = { label: string; icon: React.ElementType; go: () => void; badge?: number }
   const jobs: Job[] = [
-    { label: 'To post', icon: Send, go: () => openSocial('todo'), badge: toPost },
+    { label: 'Share', icon: Send, go: () => openSocial('todo'), badge: toPost },
     { label: 'Scheduled posts', icon: Clock, go: () => openSocial('scheduled') },
     { label: 'Clubs', icon: Sparkles, go: () => setView('intern-clubs') },
     { label: 'Events', icon: CalendarClock, go: () => setView('intern-events') },
