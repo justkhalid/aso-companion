@@ -109,11 +109,11 @@ function waveLayer(w: number, h: number): HTMLCanvasElement {
   const o = cv(w, h), g = o.getContext("2d")!
   const cols = ["255,255,255", "140,180,255", "255,190,120", "255,255,255"]
   const draw = () => {
-    for (let k = 0; k < 16; k++) {
-      g.strokeStyle = `rgba(${cols[k % cols.length]},${0.4 + (k % 4) * 0.1})`
-      g.lineWidth = 2 + (k % 4) * 2.5
+    for (let k = 0; k < 18; k++) {
+      g.strokeStyle = `rgba(${cols[k % cols.length]},${0.52 + (k % 4) * 0.1})`
+      g.lineWidth = 3 + (k % 4) * 3
       g.beginPath()
-      const sx = k * 15 - 10, L = 260 + (k % 5) * 40
+      const sx = k * 19 - 10, L = 340 + (k % 5) * 50
       for (let i = 0; i <= 24; i++) {
         const t = i / 24
         const px = sx - t * L * 0.62 + Math.sin(t * 7 + k) * 9, py = t * L * 0.78 + Math.cos(t * 5 + k * 0.7) * 5
@@ -126,7 +126,7 @@ function waveLayer(w: number, h: number): HTMLCanvasElement {
   g.save(); g.translate(w, h); g.rotate(Math.PI); draw(); g.restore()
   const m = cv(w, h), mg = m.getContext("2d")!
   for (const [cx, cy] of [[0, 0], [w, h]]) {
-    const gr = mg.createRadialGradient(cx, cy, 0, cx, cy, 380)
+    const gr = mg.createRadialGradient(cx, cy, 0, cx, cy, 470)
     gr.addColorStop(0, "rgba(0,0,0,1)"); gr.addColorStop(1, "rgba(0,0,0,0)")
     mg.fillStyle = gr; mg.fillRect(0, 0, w, h)
   }
@@ -162,7 +162,7 @@ export async function makeStory(p: KitParams, t: KitTheme) {
   const R = 44;
   x.save(); x.shadowColor = "rgba(40,30,60,.28)"; x.shadowBlur = 40; x.shadowOffsetY = 14; rr(x, 199, 857, 681, 906, R); x.fillStyle = "#f6f3ee"; x.fill(); x.restore();
   x.save(); rr(x, 199, 857, 681, 906, R); x.clip();
-  if (p.im) { fitCover(x, p.im, 199, 857, 681, 906); if (p.framed === false) { x.save(); x.filter = "blur(1px)"; x.globalAlpha = 0.95; x.drawImage(waveLayer(681, 906), 199, 857); x.restore() } } else { x.fillStyle = "#f6f3ee"; x.fillRect(199, 857, 681, 906); x.font = "700 23px ManropeA"; spaced(x, "POSTER 3:4", CX, 1318, 6, rg(t.ink, .45)); }
+  if (p.im) { fitCover(x, p.im, 199, 857, 681, 906); if (p.framed === false) { x.save(); x.filter = "blur(0.6px)"; x.globalAlpha = 1; x.drawImage(waveLayer(681, 906), 199, 857); x.restore() } } else { x.fillStyle = "#f6f3ee"; x.fillRect(199, 857, 681, 906); x.font = "700 23px ManropeA"; spaced(x, "POSTER 3:4", CX, 1318, 6, rg(t.ink, .45)); }
   x.restore();
   // link pill
   if (ev) { await drawIcon(x, p.icon, CX, 1838, 64, t.c1, t.c2); grain(x, 1080, 1920); return c; }
