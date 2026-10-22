@@ -4,7 +4,7 @@ import * as React from 'react'
 import { kitSig } from '@/lib/post-queue'
 import { PostQueue } from '@/components/post-queue'
 import { FullKitButton, LinksKitButton } from '@/components/full-kit-button'
-import { ArrowLeft, Check, Clock4, ChevronLeft, Music, Play, Square, ChevronRight, CircleAlert, Clock, Loader2, Send, X, Copy, Download, ImagePlus, MapPin, Pencil, Plus, Share2, Sparkles, Trash2, CalendarClock, AlertTriangle, CalendarDays } from 'lucide-react'
+import { ArrowLeft, ArrowRight, Check, Clock4, ChevronLeft, Music, Play, Square, ChevronRight, CircleAlert, Clock, Loader2, Send, X, Copy, Download, ImagePlus, MapPin, Pencil, Plus, Share2, Sparkles, Trash2, CalendarClock, AlertTriangle, CalendarDays } from 'lucide-react'
 import { useStore } from '@/lib/store'
 import { PageHead, EmptyState } from '@/components/ui-bits'
 import { Button } from '@/components/ui/button'
@@ -14,10 +14,10 @@ import { EventDialog } from '@/components/dialogs/event-dialog'
 import { cn } from '@/lib/utils'
 import { posterThumb } from '@/lib/poster-url'
 import type { Club, EventEntry, KitOverrides } from '@/lib/types'
-import { DECOR_NAMES, LOOKS, rg } from '@/lib/kit/decor'
+import { DECOR, DECOR_NAMES, LOOKS, rg, type RGB } from '@/lib/kit/decor'
 import { KIT_ICONS } from '@/lib/kit/icons'
-import { cv, fitCover, iconCanvas, loadImage, loadKitFonts, makeCover, makeHighlight, makeStory, makeStoryAnim, GROUNDS } from '@/lib/kit/engine'
-import { KICKERS, kitDiff, kitParams, kitRec, kitSlug, kitTheme, type KitRec } from '@/lib/kit/derive'
+import { cv, fitCover, iconCanvas, loadImage, loadKitFonts, makeCancel, makeCover, makeHighlight, makeStory, makeStoryAnim, GROUNDS } from '@/lib/kit/engine'
+import { KICKERS, kitDiff, kitParams, kitRec, kitSlug, kitTheme, readableInk, type KitRec } from '@/lib/kit/derive'
 
 type Kind = 'club' | 'event'
 
@@ -595,8 +595,8 @@ const Block = ({ title, children }: { title: string; children: React.ReactNode }
 const shortPlaceholder = (name: string) => name.replace(/^American Space\s+/i, '').replace(/\s+(Club|Activity)$/i, '')
 const inputCls = 'w-full rounded-lg border border-border bg-background px-3 py-2 text-sm outline-none focus:border-primary'
 
-type Section = 'content' | 'look' | 'caption' | 'publish'
-const SECTIONS: [Section, string][] = [['content', 'Poster and name'], ['look', 'Look'], ['caption', 'Caption and link'], ['publish', 'Publish']]
+type Section = 'content' | 'look' | 'caption' | 'publish' | 'cancel'
+const SECTIONS: [Section, string][] = [['content', 'Poster and name'], ['look', 'Look'], ['caption', 'Caption'], ['publish', 'Publish'], ['cancel', 'Canceled?']]
 
 function KitEditor({ kind, id, onBack, onManage, onEditSchedule }: { kind: Kind; id: string; onBack: () => void; onManage: () => void; onEditSchedule: (item: Club | EventEntry) => void }) {
   const list = useStore((s) => (kind === 'club' ? s.state.clubs : s.state.events)) as (Club | EventEntry)[]
@@ -711,7 +711,6 @@ function KitEditor({ kind, id, onBack, onManage, onEditSchedule }: { kind: Kind;
   const sl = kitSlug(R)
   const dlStory = () => out && void toBlob(out.story).then((b) => saveBlob(b, `${sl}-story.png`))
   const dlCover = () => out?.cover && void toBlob(out.cover).then((b) => saveBlob(b, `${sl}-whatsapp.png`))
-  const dlHighlight = () => out && void toBlob(out.highlight).then((b) => saveBlob(b, `${sl}-highlight-cover.png`))
   const dlKit = async () => {
     const { kitFiles } = await import('@/lib/kit/bundle')
     const { zipFiles } = await import('@/lib/kit/zip')
@@ -743,22 +742,45 @@ function KitEditor({ kind, id, onBack, onManage, onEditSchedule }: { kind: Kind;
         <Button size="sm" disabled={!out} onClick={dlBoth}><Download className="h-4 w-4" /> {kind === 'club' ? 'Download both pictures' : 'Download story'}</Button>
       </div>
 
-      <div className="grid gap-6 lg:grid-cols-2 lg:items-start">
+      <div className="grid gap-6 lg:grid-cols-[minmax(0,5fr)_minmax(0,6fr)] lg:items-start">
+        {/* the pictures, always in view while settings change: the story, the poster and the WhatsApp picture under them */}
+        <div className="flex min-w-0 flex-col gap-4 lg:sticky lg:top-20">
+          <div className="grid grid-cols-2 items-start gap-3">
+            <PreviewCard title="Instagram story" note={live && R.motion !== 0 ? 'moving' : undefined} canvas={live ?? out?.story ?? null} onDownload={dlStory} extra={<Button type="button" variant="outline" size="sm" disabled={!live || videoBusy !== null} onClick={() => void dlVideo()}>{videoBusy !== null ? <><Loader2 className="h-4 w-4 animate-spin" /> {Math.round(videoBusy * 100)}%</> : <><Play className="h-4 w-4" /> Video</>}</Button>} />
+            <section className="flex flex-col gap-2.5 rounded-2xl border border-border bg-card p-3">
+              <h3 className="flex items-baseline justify-between gap-2 text-xs font-extrabold">Poster <span className="text-[11px] font-medium text-muted-foreground">Instagram 4:5</span></h3>
+              <div className="overflow-hidden rounded-lg border border-border bg-secondary" style={{ aspectRatio: '4 / 5' }}>
+                {R.poster ? <img src={R.poster} alt="" className="h-full w-full object-cover" /> : <div className="grid h-full place-items-center px-2 text-center text-[11px] font-bold text-muted-foreground">No poster yet</div>}
+              </div>
+            </section>
+          </div>
+          {kind === 'club' && (
+            <div className="mx-auto w-full max-w-[220px]">
+              <PreviewCard title="WhatsApp picture" note="shown round" canvas={out?.cover ?? null} round onDownload={dlCover} />
+            </div>
+          )}
+        </div>
+
         {/* settings */}
         <div className="flex min-w-0 flex-col gap-3">
-          <div className="grid grid-cols-4 gap-1 rounded-full border border-border bg-card p-1" role="tablist" aria-label="Settings">
-            {SECTIONS.map(([k, label]) => (
-              <button
-                key={k}
-                role="tab"
-                aria-selected={section === k}
-                onClick={() => setSection(k)}
-                className={cn('rounded-full px-2 py-2 text-[13px] font-bold transition', section === k ? 'aso-nav-pill' : 'text-foreground/70 hover:bg-secondary')}
-              >
-                {label}
-              </button>
-            ))}
-          </div>
+          <ol className="grid grid-cols-5 gap-1.5" aria-label="Steps">
+            {SECTIONS.map(([k, label], i) => {
+              const cur = SECTIONS.findIndex(([x]) => x === section)
+              return (
+                <li key={k}>
+                  <button
+                    type="button"
+                    aria-current={section === k ? 'step' : undefined}
+                    onClick={() => setSection(k)}
+                    className={cn('flex w-full flex-col items-start gap-1 rounded-xl border px-2.5 py-2 text-left transition', section === k ? 'border-primary bg-primary/5 ring-1 ring-primary' : 'border-border bg-card hover:bg-secondary')}
+                  >
+                    <span className={cn('grid h-5 w-5 place-items-center rounded-full text-[11px] font-extrabold', i < cur ? 'bg-primary text-primary-foreground' : section === k ? 'bg-primary text-primary-foreground' : 'bg-secondary text-muted-foreground')}>{i < cur ? <Check className="h-3 w-3" /> : i + 1}</span>
+                    <span className="text-[12px] font-bold leading-tight">{label}</span>
+                  </button>
+                </li>
+              )
+            })}
+          </ol>
 
           <div className="flex flex-col gap-5 rounded-2xl border border-border bg-card p-5">
             {section === 'content' && (
@@ -812,10 +834,6 @@ function KitEditor({ kind, id, onBack, onManage, onEditSchedule }: { kind: Kind;
                       <Lab>Name (big)</Lab>
                       <input className={inputCls} value={R.word} placeholder="e.g. PHYSICS" onChange={(e) => set('word', e.target.value.toUpperCase())} />
                     </div>
-                  </div>
-                  <div>
-                    <Lab hint="Used inside the calendar pictures. Leave empty and it is worked out from the name.">Short name for calendars</Lab>
-                    <input className={inputCls} value={R.short} placeholder={shortPlaceholder(R.name)} onChange={(e) => set('short', e.target.value)} />
                   </div>
                   {R.nameNeeded && (
                     <p className="flex items-center gap-1.5 text-xs font-semibold text-[var(--aso-gold)]">
@@ -876,13 +894,16 @@ function KitEditor({ kind, id, onBack, onManage, onEditSchedule }: { kind: Kind;
                         )
                       })}
                     </div>
+                    {readableInk(LOOKS[R.palette && R.palette !== 'same' ? R.palette : R.look]?.[3] as [number, number, number] || theme.ink, theme.c1, theme.c2, R.ground).changed && (
+                      <p className="mt-2 flex items-center gap-1.5 text-[11.5px] font-semibold text-muted-foreground"><Check className="h-3.5 w-3.5 text-primary" /> The writing color was changed so it stays readable on this background.</p>
+                    )}
                   </div>
                   <div>
                     <Lab hint="The glass waves picture behind the writing. Used by the story and the WhatsApp picture.">Wave picture</Lab>
-                    <div className="grid grid-cols-4 gap-2">
+                    <div className="-mx-1 flex snap-x gap-2 overflow-x-auto px-1 pb-2">
                       {Array.from({ length: 8 }, (_, i) => (
-                        <button key={i} type="button" onClick={() => set('bg', i)} aria-pressed={R.bg === i} className={cn('overflow-hidden rounded-lg border p-0', R.bg === i ? 'border-primary ring-2 ring-primary' : 'border-border')} aria-label={`Background ${i + 1}`}>
-                          <img src={`/kit/bg/story${i}.jpg`} alt="" className="block aspect-[9/12] w-full object-cover object-top" loading="lazy" />
+                        <button key={i} type="button" onClick={() => set('bg', i)} aria-pressed={R.bg === i} className={cn('w-20 shrink-0 snap-start overflow-hidden rounded-lg border p-0', R.bg === i ? 'border-primary ring-2 ring-primary' : 'border-border')} aria-label={`Background ${i + 1}`}>
+                          <img src={`/kit/bg/story${i}.jpg`} alt="" className="block aspect-[9/14] w-full object-cover object-top" loading="lazy" />
                         </button>
                       ))}
                     </div>
@@ -903,7 +924,7 @@ function KitEditor({ kind, id, onBack, onManage, onEditSchedule }: { kind: Kind;
                 </Block>
 
                 <Block title="Icon">
-                  <IconPicker value={R.icon} c1={theme.c1} c2={theme.c2} onChange={(k) => set('icon', k)} />
+                  <IconBlock value={R.icon} c1={theme.c1} c2={theme.c2} onChange={(k) => set('icon', k)} />
                 </Block>
 
                 <Block title="Fine tuning">
@@ -918,10 +939,10 @@ function KitEditor({ kind, id, onBack, onManage, onEditSchedule }: { kind: Kind;
                   </div>
                   <div>
                     <Lab hint="Use the decoration of another look, keeping these colors.">Edge decoration only</Lab>
-                    <div className="flex flex-wrap gap-1.5">
-                      <button type="button" className={chipCls(R.decor === 'same')} onClick={() => set('decor', 'same')}>Same as look</button>
+                    <div className="-mx-1 flex gap-2 overflow-x-auto px-1 pb-2">
+                      <DecorThumb k="same" label="Same as look" on={R.decor === 'same'} c1={theme.c1} c2={theme.c2} onPick={() => set('decor', 'same')} />
                       {Object.entries(DECOR_NAMES).map(([k, n]) => (
-                        <button key={k} type="button" className={chipCls(R.decor === k)} onClick={() => set('decor', k)}>{n}</button>
+                        <DecorThumb key={k} k={k} label={n} on={R.decor === k} c1={theme.c1} c2={theme.c2} onPick={() => set('decor', k)} />
                       ))}
                     </div>
                   </div>
@@ -966,15 +987,14 @@ function KitEditor({ kind, id, onBack, onManage, onEditSchedule }: { kind: Kind;
                 })}
               />
             )}
-          </div>
-        </div>
-
-        {/* the pictures, always in view while settings change */}
-        <div className="flex min-w-0 flex-col gap-3 lg:sticky lg:top-20">
-          <div className="grid grid-cols-2 items-stretch gap-3">
-            <PreviewCard title="Instagram story" note={live && R.motion !== 0 ? 'moving' : undefined} canvas={live ?? out?.story ?? null} onDownload={dlStory} extra={<Button type="button" variant="outline" size="sm" disabled={!live || videoBusy !== null} onClick={() => void dlVideo()}>{videoBusy !== null ? <><Loader2 className="h-4 w-4 animate-spin" /> Recording {Math.round(videoBusy * 100)}%</> : <><Play className="h-4 w-4" /> Download as video</>}</Button>} />
-            {kind === 'club' && <PreviewCard title="WhatsApp picture" note="shown round" canvas={out?.cover ?? null} round onDownload={dlCover} />}
-            <PreviewCard title="Highlight cover" note="shown round" canvas={out?.highlight ?? null} round crop onDownload={dlHighlight} />
+            {section === 'cancel' && (
+              <CancelPanel R={R} theme={theme} title={title} slug={sl} onManage={onManage} />
+            )}
+            <div className="flex items-center justify-between border-t border-border pt-4">
+              <Button type="button" variant="outline" size="sm" disabled={section === SECTIONS[0][0]} onClick={() => setSection(SECTIONS[Math.max(0, SECTIONS.findIndex(([x]) => x === section) - 1)][0])}><ArrowLeft className="h-4 w-4" /> Back</Button>
+              <span className="text-[11px] font-semibold text-muted-foreground">Step {SECTIONS.findIndex(([x]) => x === section) + 1} of {SECTIONS.length}</span>
+              <Button type="button" size="sm" disabled={section === SECTIONS[SECTIONS.length - 1][0]} onClick={() => setSection(SECTIONS[Math.min(SECTIONS.length - 1, SECTIONS.findIndex(([x]) => x === section) + 1)][0])}>Next <ArrowRight className="h-4 w-4" /></Button>
+            </div>
           </div>
         </div>
       </div>
@@ -1559,6 +1579,92 @@ function IconPicker({ value, c1, c2, onChange }: { value: string; c1: number[]; 
         ))}
         {!keys.length && <p className="col-span-full py-4 text-center text-xs text-muted-foreground">No icon with that name.</p>}
       </div>
+    </div>
+  )
+}
+
+
+function DecorThumb({ k, label, on, c1, c2, onPick }: { k: string; label: string; on: boolean; c1: RGB; c2: RGB; onPick: () => void }) {
+  const body = k === 'same' ? '' : (DECOR[k] ? DECOR[k](c1, c2) : '')
+  return (
+    <button type="button" onClick={onPick} aria-pressed={on} className={cn('flex w-[72px] shrink-0 flex-col gap-1 rounded-xl border p-1.5 text-left transition', on ? 'border-primary bg-primary/5 ring-2 ring-primary' : 'border-border bg-card hover:bg-secondary')}>
+      <span className="block overflow-hidden rounded-md border border-black/10" style={{ aspectRatio: '9 / 14' }}>
+        {k === 'same'
+          ? <span className="grid h-full place-items-center bg-secondary text-[10px] font-bold text-muted-foreground">Look</span>
+          : <svg viewBox="0 0 1080 1680" className="block h-full w-full" preserveAspectRatio="xMidYMid slice" dangerouslySetInnerHTML={{ __html: `<rect width="1080" height="1920" fill="rgb(244,240,232)"/>${body}` }} />}
+      </span>
+      <span className="text-[10.5px] font-bold leading-tight">{label}</span>
+    </button>
+  )
+}
+
+function IconBlock({ value, c1, c2, onChange }: { value: string; c1: number[]; c2: number[]; onChange: (k: string) => void }) {
+  const [open, setOpen] = React.useState(false)
+  const [url, setUrl] = React.useState('')
+  const sig = c1.join(',') + '|' + c2.join(',')
+  React.useEffect(() => {
+    let live = true
+    iconCanvas(value, 96, c1 as [number, number, number], c2 as [number, number, number]).then((c) => { if (live) setUrl(c.toDataURL('image/png')) }).catch(() => {})
+    return () => { live = false }
+  }, [value, sig])
+  return (
+    <div className="flex flex-col gap-3">
+      <div className="flex items-center gap-3 rounded-xl bg-secondary/60 p-3">
+        {url ? <img src={url} alt="" className="h-14 w-14" /> : <span className="h-14 w-14" />}
+        <div className="min-w-0 flex-1 text-sm font-bold">{KIT_ICONS[value]?.label || 'Icon'}<div className="text-[11px] font-medium text-muted-foreground">Shown on the story and the WhatsApp picture</div></div>
+        <Button type="button" variant="outline" size="sm" onClick={() => setOpen((v) => !v)}>{open ? 'Done' : 'Change'}</Button>
+      </div>
+      {open && <IconPicker value={value} c1={c1} c2={c2} onChange={(k) => { onChange(k); setOpen(false) }} />}
+    </div>
+  )
+}
+
+
+function CancelPanel({ R, theme, title, slug, onManage }: { R: KitRec; theme: ReturnType<typeof kitTheme>; title: string; slug: string; onManage: () => void }) {
+  const [reason, setReason] = React.useState('')
+  const [next, setNext] = React.useState('')
+  const [pics, setPics] = React.useState<{ story: HTMLCanvasElement; post: HTMLCanvasElement } | null>(null)
+  const [busy, setBusy] = React.useState(false)
+  const key = [reason, next, R.top, R.word, R.day, R.time, R.look, R.palette, R.decor, R.bg, R.glass, R.ground, R.icon].join('|')
+  React.useEffect(() => {
+    let live = true
+    setBusy(true)
+    const t = setTimeout(async () => {
+      try {
+        await loadKitFonts()
+        const p = await kitParams(R)
+        const info = { reason, next: next.trim().toUpperCase() || undefined }
+        const [story, post] = [await makeCancel(p, theme, 'story', info), await makeCancel(p, theme, 'post', info)]
+        if (live) setPics({ story, post })
+      } catch { /* keep the last pictures */ } finally { if (live) setBusy(false) }
+    }, 350)
+    return () => { live = false; clearTimeout(t) }
+  }, [key])
+  const caption = `${title}: today's session is canceled.${reason.trim() ? ' ' + reason.trim() : ''}${next.trim() ? ` See you ${next.trim()}.` : ' See you at the next one.'}`
+  return (
+    <div className="flex flex-col gap-4">
+      <Block title="Cancel notice">
+        <p className="text-xs text-muted-foreground">Makes a story and a post, in the same look, for when this session does not happen. Nothing here changes the {R.type === 'club' ? 'club' : 'event'} itself.</p>
+        <div>
+          <Lab>Reason (short)</Lab>
+          <textarea className={cn(inputCls, 'min-h-[84px] resize-y')} value={reason} maxLength={220} placeholder="e.g. The teacher is unwell today." onChange={(e) => setReason(e.target.value)} />
+        </div>
+        <div>
+          <Lab hint="Leave empty for a general line.">Next session (optional)</Lab>
+          <input className={inputCls} value={next} placeholder="e.g. Thursday 30 October" onChange={(e) => setNext(e.target.value)} />
+        </div>
+      </Block>
+      <div className="grid grid-cols-2 items-start gap-3">
+        {([['story', 'Story'], ['post', 'Post 4:5']] as const).map(([k, label]) => (
+          <div key={k} className="flex flex-col gap-2">
+            <div className="overflow-hidden rounded-lg border border-border bg-secondary" style={{ aspectRatio: k === 'story' ? '9 / 16' : '4 / 5' }}>
+              {pics ? <CanvasHost canvas={pics[k]} className="h-full w-full" /> : null}
+            </div>
+            <Button type="button" variant="outline" size="sm" disabled={!pics || busy} onClick={() => pics && void toBlob(pics[k]).then((b) => saveBlob(b, `${slug}-canceled-${k}.png`))}><Download className="h-4 w-4" /> {label}</Button>
+          </div>
+        ))}
+      </div>
+      <PublishPanel storyCanvas={pics?.story ?? null} poster={null} feedCanvas={pics?.post ?? null} caption={caption} onManage={onManage} scheduleLabel={`${title}: canceled`} />
     </div>
   )
 }

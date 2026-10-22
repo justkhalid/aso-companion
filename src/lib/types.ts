@@ -105,6 +105,7 @@ export interface ClassEntry {
   room: string
   days: string[] // ['Mon', 'Wed']
   time: string // '14:00-16:00'
+  until?: string // last day (YYYY-MM-DD); after it the class sits in the archive
 }
 
 /* Social kit: what the club kit remembers about one club or event (only what differs from what the kit works out itself) */
