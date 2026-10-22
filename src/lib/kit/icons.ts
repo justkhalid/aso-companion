@@ -6,6 +6,11 @@ export const KIT_ICONS: Record<string, { label: string; stroke: string; accent: 
   "stroke": "<circle cx=\"12\" cy=\"12\" r=\"9.2\" fill=\"none\"/><circle cx=\"12\" cy=\"6.4\" r=\"1.9\" fill=\"none\"/><circle cx=\"17.6\" cy=\"12\" r=\"1.9\" fill=\"none\"/><circle cx=\"12\" cy=\"17.6\" r=\"1.9\" fill=\"none\"/><circle cx=\"6.4\" cy=\"12\" r=\"1.9\" fill=\"none\"/>",
   "accent": "<circle cx=\"12\" cy=\"12\" r=\"1.7\" fill=\"#000\" stroke=\"none\"/>"
  },
+ "i-links": {
+  "label": "Links",
+  "stroke": "<path d=\"M10 13.4a4.4 4.4 0 0 0 6.6.5l3-3a4.4 4.4 0 0 0-6.2-6.2l-1.7 1.7\" fill=\"none\"/><path d=\"M14 10.6a4.4 4.4 0 0 0-6.6-.5l-3 3a4.4 4.4 0 0 0 6.2 6.2l1.7-1.7\" fill=\"none\"/>",
+  "accent": "<circle cx=\"20.4\" cy=\"19.8\" r=\"0.9\" fill=\"#000\" stroke=\"none\"/><circle cx=\"3.6\" cy=\"4.2\" r=\"0.9\" fill=\"#000\" stroke=\"none\"/>"
+ },
  "i-speaking": {
   "label": "Public speaking",
   "stroke": "<circle cx=\"10\" cy=\"5\" r=\"2.4\" fill=\"none\"/><path d=\"M5.6 11.6a4.4 4.4 0 0 1 8.8 0M4.4 11.6h15.2l-1.2 3H5.6zM17.6 8.6v3\" fill=\"none\"/><rect x=\"16.4\" y=\"2.6\" width=\"2.4\" height=\"4.4\" rx=\"1.2\" fill=\"none\"/><path d=\"M15.4 5.4a2.2 2.2 0 0 0 4.4 0\" fill=\"none\"/><circle cx=\"4.9\" cy=\"18.6\" r=\"1.5\" fill=\"none\"/><circle cx=\"12\" cy=\"18.6\" r=\"1.5\" fill=\"none\"/><circle cx=\"19.1\" cy=\"18.6\" r=\"1.5\" fill=\"none\"/><path d=\"M2.2 23.2a2.7 2.7 0 0 1 5.4 0M9.3 23.2a2.7 2.7 0 0 1 5.4 0M16.4 23.2a2.7 2.7 0 0 1 5.4 0\" fill=\"none\"/>",

@@ -3,7 +3,7 @@
 import * as React from 'react'
 import { kitSig } from '@/lib/post-queue'
 import { PostQueue } from '@/components/post-queue'
-import { FullKitButton } from '@/components/full-kit-button'
+import { FullKitButton, LinksKitButton } from '@/components/full-kit-button'
 import { ArrowLeft, Check, Clock4, ChevronLeft, Music, Play, Square, ChevronRight, CircleAlert, Clock, Loader2, Send, X, Copy, Download, ImagePlus, MapPin, Pencil, Plus, Share2, Sparkles, Trash2, CalendarClock, AlertTriangle, CalendarDays } from 'lucide-react'
 import { useStore } from '@/lib/store'
 import { PageHead, EmptyState } from '@/components/ui-bits'
@@ -125,7 +125,7 @@ export function SocialKitPage() {
         subtitle="What to post, the pictures of every club and event, the month calendars, and posting to Facebook and Instagram. All made from the data you already keep here."
         right={
           <div className="flex flex-wrap items-center gap-2">
-            {tab !== 'connection' && <FullKitButton />}
+            {tab !== 'connection' && <><LinksKitButton /><FullKitButton /></>}
             {(tab === 'club' || tab === 'event') && (
               <Button size="sm" onClick={() => (tab === 'club' ? setClubDlg({ open: true, club: null }) : setEventDlg({ open: true, event: null }))}>
                 <Plus className="h-4 w-4" /> {tab === 'club' ? 'New club' : 'New event'}

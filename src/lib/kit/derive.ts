@@ -195,7 +195,7 @@ export function kitTheme(R: Pick<KitRec, 'look' | 'palette' | 'decor' | 'bg'> & 
 export async function kitParams(R: KitRec): Promise<KitParams> {
   let im: HTMLImageElement | null = null
   if (R.poster) { try { im = await loadImage(R.poster) } catch { im = null } }
-  return { im, framed: R.framed, kicker: R.kicker, top: R.top, word: R.word || 'CLUB NAME', day: R.day, time: R.time, venue: R.venue, icon: R.icon, mode: R.type }
+  return { im, framed: R.framed, kicker: R.kicker, top: R.top, word: R.word || 'CLUB NAME', day: R.day, time: R.time, venue: R.venue, icon: R.icon, mode: R.type, wa: R.type === 'club' ? R.wa : '' }
 }
 
 export const kitSlug = (R: Pick<KitRec, 'top' | 'word' | 'name'>) =>
