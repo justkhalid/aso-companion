@@ -360,11 +360,6 @@ export function SettingsPage() {
 
         <div className="mt-3 flex flex-col gap-2">
           <ToggleRow
-            label="Auto-save on every change"
-            checked={!!s.ghAutoSave}
-            onChange={(v) => setSettings((x) => { x.ghAutoSave = v })}
-          />
-          <ToggleRow
             label="Auto-load from cloud on boot"
             checked={!!s.ghAutoLoad}
             onChange={(v) => setSettings((x) => { x.ghAutoLoad = v })}
