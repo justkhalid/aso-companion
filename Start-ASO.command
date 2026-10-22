@@ -36,7 +36,21 @@ ENV
   read -p "When the token is saved, press Enter here. "
 fi
 
+self_update() {
+  command -v git >/dev/null 2>&1 || return 0
+  export GIT_TERMINAL_PROMPT=0 GCM_INTERACTIVE=never
+  PAT=$(grep -m1 '^GITHUB_PAT=' .env.local 2>/dev/null | cut -d= -f2- | tr -d '\r')
+  if [ -n "$PAT" ]; then
+    B64=$(printf 'x-access-token:%s' "$PAT" | base64 | tr -d '\n')
+    git -c credential.helper= -c "http.https://github.com/.extraheader=AUTHORIZATION: basic $B64" pull --ff-only origin main >/dev/null 2>&1
+  else
+    git pull --ff-only origin main >/dev/null 2>&1
+  fi
+  return 0
+}
+
 while true; do
+  self_update
   HEAD=$(git rev-parse HEAD 2>/dev/null)
   BUILT=$(cat .next/aso-built.txt 2>/dev/null)
   if [ ! -d node_modules ] || [ ! -f .next/BUILD_ID ] || [ "$HEAD" != "$BUILT" ]; then
