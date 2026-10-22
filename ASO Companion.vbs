@@ -72,6 +72,9 @@ If Not fso.FileExists(desk & "\ASO Companion.lnk") Then
   lnk.Save
 End If
 
+' the icon next to the clock (Open / Quit); a second start does nothing
+sh.Run "powershell -NoProfile -ExecutionPolicy Bypass -WindowStyle Hidden -File """ & here & "\ASO-Tray.ps1""", 0, False
+
 ' open it in its own window (Edge or Chrome without the browser bars), else in the normal browser
 edge = ""
 chrome = ""
