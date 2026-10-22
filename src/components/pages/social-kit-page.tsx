@@ -201,7 +201,7 @@ function KitCard({ kind, item, onOpen }: { kind: Kind; item: Club | EventEntry; 
   const [busy, setBusy] = React.useState(false)
   return (
     <div className="flex flex-col overflow-hidden rounded-2xl border border-border bg-card shadow-sm">
-      <button onClick={onOpen} className="relative block aspect-[848/1200] w-full overflow-hidden bg-secondary" aria-label={`Open ${R.name}`}>
+      <button onClick={onOpen} className="relative block aspect-[3/4] w-full overflow-hidden bg-secondary" aria-label={`Open ${R.name}`}>
         {R.sitePoster || R.poster ? (
           <img src={R.sitePoster ? posterThumb(R.sitePoster, 480) : R.poster || ''} alt={`${R.name} poster`} className="h-full w-full object-cover" loading="lazy" />
         ) : (
@@ -243,20 +243,20 @@ function KitCard({ kind, item, onOpen }: { kind: Kind; item: Club | EventEntry; 
 async function newPostCanvases(src: string) {
   const im = await loadImage(src)
   const ratio = im.width / im.height
-  /* feed: 4:5 up to 1.91:1 is allowed; anything else is placed on a soft background in 4:5 */
+  /* feed: 3:4 up to 1.91:1 is allowed; anything else is placed on a soft background in 3:4 */
   let feed: HTMLCanvasElement
-  if (ratio >= 0.8 && ratio <= 1.91) {
+  if (ratio >= 0.75 && ratio <= 1.91) {
     const k = Math.min(1, 1440 / im.width)
     feed = cv(Math.round(im.width * k), Math.round(im.height * k))
     feed.getContext('2d')!.drawImage(im, 0, 0, feed.width, feed.height)
   } else {
-    feed = cv(1080, 1350)
+    feed = cv(1080, 1440)
     const g = feed.getContext('2d')!
     g.filter = 'blur(40px)'
-    fitCover(g, im, -60, -60, 1200, 1470)
+    fitCover(g, im, -60, -60, 1200, 1560)
     g.filter = 'none'
-    const k = Math.min(1080 / im.width, 1350 / im.height)
-    g.drawImage(im, (1080 - im.width * k) / 2, (1350 - im.height * k) / 2, im.width * k, im.height * k)
+    const k = Math.min(1080 / im.width, 1440 / im.height)
+    g.drawImage(im, (1080 - im.width * k) / 2, (1440 - im.height * k) / 2, im.width * k, im.height * k)
   }
   /* story: 1080x1920 */
   const story = cv(1080, 1920)
@@ -745,7 +745,7 @@ function KitEditor({ kind, id, onBack, onManage, onEditSchedule }: { kind: Kind;
       setVideoBusy(null)
     }
   }
-  const dlPoster = async () => { if (R.poster) saveBlob((await posterBlobs(R.poster)).poster45, `${sl}-poster-4x5.jpg`) }
+  const dlPoster = async () => { if (R.poster) saveBlob((await posterBlobs(R.poster)).poster, `${sl}-poster-3x4.jpg`) }
   const dlBoth = () => { dlStory(); if (out?.cover) setTimeout(dlCover, 600) }
 
   return (
@@ -764,8 +764,8 @@ function KitEditor({ kind, id, onBack, onManage, onEditSchedule }: { kind: Kind;
           <div className="grid grid-cols-2 items-start gap-3">
             <PreviewCard title="Instagram story" note={live && R.motion !== 0 ? 'moving' : undefined} canvas={live ?? out?.story ?? null} />
             <section className="flex flex-col gap-2.5 rounded-2xl border border-border bg-card p-3">
-              <h3 className="flex items-baseline justify-between gap-2 text-xs font-extrabold">Poster <span className="text-[11px] font-medium text-muted-foreground">Instagram 4:5</span></h3>
-              <div className="overflow-hidden rounded-lg border border-border bg-secondary" style={{ aspectRatio: '4 / 5' }}>
+              <h3 className="flex items-baseline justify-between gap-2 text-xs font-extrabold">Poster <span className="text-[11px] font-medium text-muted-foreground">Instagram 3:4</span></h3>
+              <div className="overflow-hidden border border-border bg-secondary" style={{ aspectRatio: '3 / 4' }}>
                 {R.poster ? <img src={R.poster} alt="" className="h-full w-full object-cover" /> : <div className="grid h-full place-items-center px-2 text-center text-[11px] font-bold text-muted-foreground">No poster yet</div>}
               </div>
             </section>
@@ -803,7 +803,7 @@ function KitEditor({ kind, id, onBack, onManage, onEditSchedule }: { kind: Kind;
               <>
                 <Block title="Poster">
                   <div className="flex items-center gap-4">
-                    <div className="w-24 shrink-0 overflow-hidden rounded-xl border border-border bg-secondary" style={{ aspectRatio: '3 / 4' }}>
+                    <div className="w-24 shrink-0 overflow-hidden border border-border bg-secondary" style={{ aspectRatio: '3 / 4' }}>
                       {R.poster ? <img src={R.poster} alt="" className="h-full w-full object-cover" /> : <div className="grid h-full place-items-center text-[10px] font-bold text-muted-foreground">NO POSTER</div>}
                     </div>
                     <div className="flex min-w-0 flex-1 flex-col items-start gap-2">
@@ -990,7 +990,7 @@ function KitEditor({ kind, id, onBack, onManage, onEditSchedule }: { kind: Kind;
                 items={[
                   { label: 'Story picture', hint: 'PNG, 9:16', icon: Download, on: dlStory, off: !out },
                   { label: videoBusy !== null ? `Recording ${Math.round(videoBusy * 100)}%` : 'Story video', hint: 'MP4, moving', icon: videoBusy !== null ? Loader2 : Play, on: () => void dlVideo(), off: !live || videoBusy !== null },
-                  { label: 'Poster', hint: 'JPG, 4:5', icon: Download, on: () => void dlPoster(), off: !R.poster },
+                  { label: 'Poster', hint: 'JPG, 3:4', icon: Download, on: () => void dlPoster(), off: !R.poster },
                   ...(kind === 'club' ? [{ label: 'WhatsApp picture', hint: 'PNG, round', icon: Download, on: dlCover, off: !out?.cover }] : []),
                   { label: 'Everything', hint: 'ZIP of all files', icon: Download, on: () => void dlKit(), off: !out },
                 ]}
@@ -1058,7 +1058,7 @@ function PreviewCard({ title, note, canvas, round, crop, onDownload, extra }: { 
 
 const blobOf = (c: HTMLCanvasElement, q = 0.92) => new Promise<Blob>((res, rej) => c.toBlob((b) => (b ? res(b) : rej(new Error('picture failed'))), 'image/jpeg', q))
 
-/* the poster as 3:4 (1080x1440) and as 4:5 (1080x1350, with soft side bars) for Instagram feeds that refuse 3:4 */
+/* the poster in the ASO frame, 3:4 (1080x1440), and a 4:5 copy (1080x1350, soft side bars) kept for Instagram feeds that refuse 3:4 */
 async function posterBlobs(src: string) {
   const im = await loadImage(src)
   const a = cv(1080, 1440)
@@ -1684,9 +1684,9 @@ function CancelPanel({ R, theme, title, slug, onManage }: { R: KitRec; theme: Re
         </div>
       </Block>
       <div className="grid grid-cols-2 items-start gap-3">
-        {([['story', 'Story'], ['post', 'Post 4:5']] as const).map(([k, label]) => (
+        {([['story', 'Story'], ['post', 'Post 3:4']] as const).map(([k, label]) => (
           <div key={k} className="flex flex-col gap-2">
-            <div className="overflow-hidden rounded-lg border border-border bg-secondary" style={{ aspectRatio: k === 'story' ? '9 / 16' : '4 / 5' }}>
+            <div className="overflow-hidden rounded-lg border border-border bg-secondary" style={{ aspectRatio: k === 'story' ? '9 / 16' : '3 / 4' }}>
               {pics ? <CanvasHost canvas={pics[k]} className="h-full w-full" /> : null}
             </div>
             <Button type="button" variant="outline" size="sm" disabled={!pics || busy} onClick={() => pics && void toBlob(pics[k]).then((b) => saveBlob(b, `${slug}-canceled-${k}.png`))}><Download className="h-4 w-4" /> {label}</Button>

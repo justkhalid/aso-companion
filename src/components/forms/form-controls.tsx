@@ -352,8 +352,8 @@ export function IconPicker({
 }
 
 /* ---------- poster upload: compress + crop to A4 portrait, store base64 ---------- */
-const POSTER_W = 848
-const POSTER_H = 1200 // 848x1200 = A4 portrait ratio
+const POSTER_W = 864
+const POSTER_H = 1152 // 864x1152 = 3:4, the ASO poster frame (Instagram's grid ratio)
 
 export function PosterUploader({
   value,
@@ -405,8 +405,8 @@ export function PosterUploader({
   if (value) {
     return (
       <div className="flex items-start gap-3">
-        <div className="relative w-24 shrink-0 overflow-hidden rounded-lg border border-border shadow-sm">
-          <img src={value} alt="Club poster preview" className="block h-auto w-full object-contain" />
+        <div className="relative aspect-[3/4] w-24 shrink-0 overflow-hidden border border-border shadow-sm">
+          <img src={value} alt="Club poster preview" className="block h-full w-full object-cover" />
         </div>
         <div className="flex flex-col gap-1.5">
           <Button

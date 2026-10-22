@@ -16,9 +16,9 @@ export async function externalizePosters(state: { clubs?: Item[]; events?: Item[
   for (const [kind, list] of lists) {
     for (const it of list || []) {
       if (!it.id) continue
-      /* the website poster (A4) and the framed poster of the Social kit (3:4, kept larger for posting) */
+      /* the website poster (3:4) and the framed poster of the Social kit (3:4, kept larger for posting) */
       const targets: [string, string | undefined, (url: string) => void, number, number, number][] = [
-        [`${kind}:${it.id}`, it.poster, (u) => { it.poster = u }, 848, 1200, 78],
+        [`${kind}:${it.id}`, it.poster, (u) => { it.poster = u }, 864, 1152, 78],
         [`kit-${kind}:${it.id}`, it.kit?.poster, (u) => { if (it.kit) it.kit.poster = u }, 1080, 1440, 85],
       ]
       for (const [key, p, setUrl, w, h, q] of targets) {
