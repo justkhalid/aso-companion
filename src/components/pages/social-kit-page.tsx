@@ -955,6 +955,11 @@ function KitEditor({ kind, id, onBack, onManage, onEditSchedule }: { kind: Kind;
                 posts={item.kit?.posts}
                 onManage={onManage}
                 scheduleLabel={`${title}: story and posts`}
+                videoMaker={out?.story ? async (onProgress) => {
+                  const { storyVideo } = await import('@/lib/kit/story-video')
+                  const v = await storyVideo(await kitParams(R), kitTheme(R), { onProgress, forPost: true })
+                  return { blob: v.blob, ext: v.ext }
+                } : undefined}
                 onPosted={(done) => patch((d) => {
                   const target = (kind === 'club' ? d.clubs : d.events).find((x) => x.id === id) as Club | EventEntry | undefined
                   if (target) target.kit = { ...(target.kit || {}), posts: [...(target.kit?.posts || []), { t: new Date().toISOString(), to: done, sig: kitSig(kind, target) }] }
@@ -1188,12 +1193,12 @@ function PublishPanel({ storyCanvas, poster, feedCanvas, caption, only, posts, o
               <input type="checkbox" className="mt-0.5 h-4 w-4 accent-[var(--primary)]" checked={pick[k]} onChange={(e) => setPick((p) => ({ ...p, [k]: e.target.checked }))} />
               <span className="min-w-0">
                 <span className="block text-[13px] font-bold leading-tight">{label}</span>
-                <span className="block text-[11px] text-muted-foreground">{asVideo && only === 'story' ? 'The animation' : hint}</span>
+                <span className="block text-[11px] text-muted-foreground">{asVideo && (k === 'igStory' || k === 'fbStory') ? 'The animation' : hint}</span>
               </span>
             </label>
           ))}
         </div>
-        {videoMaker && only === 'story' && (
+        {videoMaker && (only === 'story' || !only) && (
           <div className="grid grid-cols-2 gap-1 rounded-full border border-border bg-background p-1" role="tablist" aria-label="Story kind">
             {([[false, 'Picture'], [true, 'Animation']] as const).map(([v, label]) => (
               <button key={label} type="button" role="tab" aria-selected={asVideo === v} onClick={() => setAsVideo(v)} className={cn('rounded-full px-3 py-1.5 text-[13px] font-bold transition', asVideo === v ? 'aso-nav-pill' : 'text-foreground/70 hover:bg-secondary')}>{label}</button>
@@ -1204,7 +1209,7 @@ function PublishPanel({ storyCanvas, poster, feedCanvas, caption, only, posts, o
         <Button type="button" className="self-start" disabled={!ready || busy || (!storyCanvas && !feedCanvas) || chosen.length === 0 || needsPicture || (later && !at)} onClick={() => setConfirm(true)}>
           {busy ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />} {rec !== null ? `Recording ${Math.round(rec * 100)}%` : busy ? (later ? 'Saving' : 'Posting') : later ? 'Schedule' : 'Post now'}
         </Button>
-        {asVideo && only === 'story' && <p className="text-[11px] text-muted-foreground">The animation is recorded first (about 16 seconds, keep this page open), then sent. Any song you chose is in it.</p>}
+        {asVideo && (only === 'story' || !only) && <p className="text-[11px] text-muted-foreground">The animation is recorded first (about 16 seconds, keep this page open), then sent. Any song you chose is in it.</p>}
       </Block>
 
       {steps && (
