@@ -95,3 +95,6 @@ aso-failed.txt
 
 # member sheet connection (encrypted, stays on the director's computer)
 data/members.enc.json
+
+# the renamed Node copy made by the Windows start file
+.aso/
