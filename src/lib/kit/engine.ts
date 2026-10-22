@@ -211,7 +211,7 @@ async function storyBody(p: KitParams, t: KitTheme, withBg: boolean, withDecor =
   const R = 44;
   x.save(); x.shadowColor = "rgba(40,30,60,.28)"; x.shadowBlur = 40; x.shadowOffsetY = 14; rr(x, 199, PY, 681, PH, R); x.fillStyle = "#f6f3ee"; x.fill(); x.restore();
   x.save(); rr(x, 199, PY, 681, PH, R); x.clip();
-  if (p.im) { fitCover(x, p.im, 199, PY, 681, PH); if (p.framed === false) { x.globalAlpha = glassOf(t); fitCover(x, await get(KIT_WAVE), 199, PY, 681, PH); x.globalAlpha = 1 } } else { x.fillStyle = "#f6f3ee"; x.fillRect(199, PY, 681, PH); x.font = "700 23px ManropeA"; spaced(x, "POSTER 3:4", CX, PY + PH / 2 + 8, 6, rg(t.ink, .45)); }
+  if (p.im) { fitCover(x, p.im, 199, PY, 681, PH) } else { x.fillStyle = "#f6f3ee"; x.fillRect(199, PY, 681, PH); x.font = "700 23px ManropeA"; spaced(x, "POSTER 3:4", CX, PY + PH / 2 + 8, 6, rg(t.ink, .45)); }
   x.restore();
   // link pill
   if (ev) { await drawIcon(x, p.icon, CX, 1838, 64, t.c1, t.c2); if (withBg) grain(x, 1080, 1920); return c; }

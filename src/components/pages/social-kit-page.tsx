@@ -86,6 +86,10 @@ export function SocialKitPage() {
     window.history.replaceState({}, '', window.location.pathname)
   }, [])
   const [editing, setEditing] = React.useState<{ kind: Kind; id: string } | null>(null)
+  /* a click on the menu on the left leads back to the list, also from inside a club or an event */
+  const navTick = useStore((s) => s.navTick)
+  const firstTick = React.useRef(navTick)
+  React.useEffect(() => { if (navTick !== firstTick.current) { firstTick.current = navTick; setEditing(null) } }, [navTick])
   /* a "Post" button elsewhere (To post, a club page) opens straight into that club or event */
   React.useEffect(() => {
     if (!target) return

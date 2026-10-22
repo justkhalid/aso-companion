@@ -50,6 +50,7 @@ interface UIStore {
   /* where the Posts page opens: a tab, or straight into the pictures and posting of one club or event */
   socialTab: 'todo' | 'club' | 'event' | 'post' | 'month' | 'scheduled' | 'connection'
   socialTarget: { kind: 'club' | 'event'; id: string } | null
+  navTick: number // goes up each time a menu item is clicked, so a page that is open inside itself (an editor) can return to its list
   openSocial: (tab: UIStore['socialTab'], target?: { kind: 'club' | 'event'; id: string }) => void
 
   /* actions */
@@ -232,6 +233,7 @@ export const useStore = create<UIStore>((set, get) => ({
 
   socialTab: 'todo',
   socialTarget: null,
+  navTick: 0,
   openSocial: (tab, target) => {
     set({ socialTab: tab, socialTarget: target || null })
     get().setView('social')

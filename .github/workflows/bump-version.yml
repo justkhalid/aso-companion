@@ -1,0 +1,39 @@
+# Raises the version number (package.json, the last digit) every time a change is merged into main.
+# Saves of the data (commits starting with "aso-companion:") and this workflow's own commits do not count.
+# For a bigger step (0.3.x to 0.4.0), change the number in package.json by hand in the pull request: the workflow then leaves it alone.
+name: Bump version
+
+on:
+  push:
+    branches: [main]
+
+permissions:
+  contents: write
+
+concurrency:
+  group: bump-version
+  cancel-in-progress: false
+
+jobs:
+  bump:
+    if: ${{ !startsWith(github.event.head_commit.message, 'aso-companion:') && !startsWith(github.event.head_commit.message, 'chore(version)') }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
+      - name: Raise the last digit unless the change already moved the version
+        run: |
+          set -e
+          before=$(git show HEAD~1:package.json 2>/dev/null | node -e "let s='';process.stdin.on('data',d=>s+=d).on('end',()=>{try{console.log(JSON.parse(s).version)}catch{console.log('')}})")
+          now=$(node -p "require('./package.json').version")
+          if [ "$before" != "$now" ] && [ -n "$before" ]; then echo "version already changed by hand ($before -> $now)"; exit 0; fi
+          next=$(node -e "const [a,b,c]=process.argv[1].split('.').map(Number);console.log([a,b,(c||0)+1].join('.'))" "$now")
+          node -e "const fs=require('fs');const p=JSON.parse(fs.readFileSync('package.json','utf8'));p.version='$next';fs.writeFileSync('package.json',JSON.stringify(p,null,2)+'\n')"
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add package.json
+          git commit -m "chore(version): $next"
+          git pull --rebase origin main
+          git push origin HEAD:main
