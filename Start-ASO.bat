@@ -46,7 +46,7 @@ if defined HEAD echo %HEAD%> ".next\aso-built.txt"
 echo.
 echo ASO Companion is starting. Keep this window open while you use the app.
 start "" /min cmd /c "timeout /t 10 >nul & start http://localhost:3000/admin"
-call npx next start -p 3000
+call npx next start -H 127.0.0.1 -p 3000
 if %errorlevel%==3 goto prepare
 echo.
 echo The app stopped. Close this window, or press a key to start it again.
