@@ -10,6 +10,8 @@ import type { NextRequest } from 'next/server'
 import { isLocal, publicOnly } from './mode'
 
 export const SESSION_COOKIE = 'aso_session'
+/* the director's computer uses a cookie of its own name: an old sign-in cookie left on localhost from earlier versions (some browsers refuse to replace or delete it) can then never get in the way */
+export const sessionCookieName = () => (isLocal() ? 'aso_local_session' : SESSION_COOKIE)
 export const SESSION_DAYS = 30
 const DEV_SECRET = 'aso-companion-dev-secret-not-for-production'
 
@@ -85,7 +87,7 @@ export function verifySessionToken(token: string | undefined | null): boolean {
 }
 
 export function rolesOf(req: NextRequest): Role[] {
-  const roles = sessionRoles(req.cookies.get(SESSION_COOKIE)?.value)
+  const roles = sessionRoles(req.cookies.get(sessionCookieName())?.value)
   /* on the public website the admin is switched off: even a valid admin cookie counts for nothing */
   return publicOnly() ? roles.filter((r) => r !== 'admin') : roles
 }
@@ -96,7 +98,7 @@ export function isAdmin(req: NextRequest): boolean {
 
 export function sessionCookie(token: string, persistent: boolean) {
   return {
-    name: SESSION_COOKIE,
+    name: sessionCookieName(),
     value: token,
     httpOnly: true,
     sameSite: 'lax' as const,

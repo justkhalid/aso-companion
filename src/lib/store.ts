@@ -281,6 +281,17 @@ export const useStore = create<UIStore>((set, get) => ({
       if (ok) pendingLogin = { code: typed, remember }
     }
     if (!ok) return false
+    /* does the server really hold the session now? If the browser dropped the cookie, say so instead of failing quietly later */
+    if (!pendingLogin) {
+      try {
+        const sr = await fetch('/api/session', { cache: 'no-store' })
+        const j = sr.ok ? ((await sr.json()) as { roles?: string[] }) : null
+        if (j && !(j.roles || []).includes('admin')) {
+          pendingLogin = { code: typed, remember }
+          get().toast('Signed in on this screen, but the browser did not keep the sign-in for the server. Close the app window and open it again, then sign in once more.', false)
+        }
+      } catch { /* offline */ }
+    }
     set({ admin: true, pubView: false, rememberDevice: remember, view: 'dashboard', side: 'elt' })
     lsSet(ADMIN_SEEN_KEY, '1')
     if (remember) lsSet(ROLE_KEY, 'admin')
