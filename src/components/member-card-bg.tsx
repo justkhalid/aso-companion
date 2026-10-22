@@ -54,23 +54,9 @@ export function TypedBackground({ type, expires }: { type: TypedKind; expires: b
     { top: 354, en: 'ID NUMBER', ar: 'رقم التعريف' },
     { top: 442, en: expires ? 'VALID UNTIL' : 'DATE ISSUED', ar: expires ? 'صالحة إلى غاية' : 'تاريخ الإصدار' },
   ]
-  /* side bands: 26 px, mirrored left and right */
-  const band = (side: 'l' | 'r') => {
-    const x = side === 'l' ? 0 : 1012 - 26
-    const inner = side === 'l' ? 26 : 1012 - 26
-    const dir = side === 'l' ? 1 : -1
-    return (
-      <g key={side}>
-        <rect x={x} y="0" width="26" height="638" fill={c} />
-        {type === 'teacher' && Array.from({ length: 9 }, (_, i) => <g key={i}>{star8(x + 13, 40 + i * 69, 1.05, '#fff')}</g>)}
-        {type === 'volunteer' && Array.from({ length: 17 }, (_, i) => <circle key={i} cx={inner} cy={19 + i * 37.5} r="8" fill={c} />)}
-      </g>
-    )
-  }
+  const bar = type === 'teacher'
   return (
     <svg viewBox="0 0 1012 638" width="100%" height="100%" style={{ position: 'absolute', inset: 0 }}>
-      {band('l')}
-      {band('r')}
       <image href="/aso-logo.png" x="788" y="14" width="120" height="128" preserveAspectRatio="xMidYMid meet" />
       <Fit max={560} x="692" y="74" textAnchor="end" fontSize="62" style={{ ...ar, fontWeight: 800 }} fill={RED}>الفضاء الأمريكي بوجدة</Fit>
       <text x="692" y="132" textAnchor="end" fontSize="46" style={{ ...en, fontWeight: 800 }} fill={NAVY}>AMERICAN SPACE OUJDA</text>
@@ -87,12 +73,19 @@ export function TypedBackground({ type, expires }: { type: TypedKind; expires: b
           <rect x="40" y={r.top + 79.5} width="652" height="2.5" fill={RULE} />
         </g>
       ))}
+      {bar && (
+        <g>
+          <rect x="0" y="522" width="1012" height="116" fill={c} />
+          <rect x="0" y="522" width="1012" height="4" fill={RED} />
+          <rect x="40" y="536" width="360" height="88" rx="6" fill="#fff" />
+        </g>
+      )}
       <rect x="725.5" y="181.5" width="245" height="327" fill="#fff" stroke={c} strokeWidth="3" />
-      <g stroke={c} strokeWidth="3.5" fill="none">
+      {!bar && <g stroke={c} strokeWidth="3.5" fill="none">
         <path d="M41.75 558 V537.75 H62" /><path d="M378 537.75 H398.25 V558" /><path d="M41.75 602 V622.25 H62" /><path d="M378 622.25 H398.25 V602" />
-      </g>
-      <Fit max={330} x="972" y="579" textAnchor="end" fontSize="56" style={{ ...ar, fontWeight: 800 }} fill={c}>{t.ar}</Fit>
-      <text x="972" y="619" textAnchor="end" fontSize="32" style={{ ...en, fontWeight: 800 }} fill={NAVY}>{t.en}</text>
+      </g>}
+      <Fit max={330} x="972" y="579" textAnchor="end" fontSize="56" style={{ ...ar, fontWeight: 800 }} fill={bar ? '#fff' : c}>{t.ar}</Fit>
+      <text x="972" y="619" textAnchor="end" fontSize="32" style={{ ...en, fontWeight: 800 }} fill={bar ? '#fff' : NAVY}>{t.en}</text>
     </svg>
   )
 }

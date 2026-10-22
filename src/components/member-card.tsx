@@ -54,7 +54,7 @@ export function MemberCard({ m, type = 'member', issued, role }: { m: CardData; 
   /* a long name shrinks until it fits its line instead of being cut off */
   React.useEffect(() => {
     const fit = () => root.current?.querySelectorAll<HTMLElement>('.val').forEach((el) => {
-      el.style.fontSize = ''
+      el.style.fontSize = '3.36cqw'
       let size = parseFloat(getComputedStyle(el).fontSize)
       while (el.scrollWidth > el.clientWidth + 1 && size > 4) { size *= 0.95; el.style.fontSize = size + 'px' }
     })
