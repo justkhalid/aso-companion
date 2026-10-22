@@ -54,7 +54,8 @@ export function TypedBackground({ type, expires }: { type: TypedKind; expires: b
     { top: 354, en: 'ID NUMBER', ar: 'رقم التعريف' },
     { top: 442, en: expires ? 'VALID UNTIL' : 'DATE ISSUED', ar: expires ? 'صالحة إلى غاية' : 'تاريخ الإصدار' },
   ]
-  const bar = type === 'teacher'
+  const bar = true
+  const edge = type === 'volunteer' ? NAVY : RED
   return (
     <svg viewBox="0 0 1012 638" width="100%" height="100%" style={{ position: 'absolute', inset: 0 }}>
       <image href="/aso-logo.png" x="788" y="14" width="120" height="128" preserveAspectRatio="xMidYMid meet" />
@@ -76,7 +77,7 @@ export function TypedBackground({ type, expires }: { type: TypedKind; expires: b
       {bar && (
         <g>
           <rect x="0" y="522" width="1012" height="116" fill={c} />
-          <rect x="0" y="522" width="1012" height="4" fill={RED} />
+          <rect x="0" y="522" width="1012" height="4" fill={edge} />
           <rect x="40" y="536" width="360" height="88" rx="6" fill="#fff" />
         </g>
       )}
