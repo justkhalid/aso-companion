@@ -237,7 +237,7 @@ async function storyBody(p: KitParams, t: KitTheme, withBg: boolean, withDecor =
   const dsz = ev ? 40 : 42, dtr = ev ? 7 : 8;
   const B = cap(25) + g1 + inkH + g2 + g3 + cap(dsz) + g4 + cap(30);
   /* even spacing: logo to writing, writing to poster, poster to the bottom button (or the small icon) are the same distance */
-  const withQR = !ev && !!p.wa, PH = withQR ? 640 : 906, PW = Math.round(PH * 0.75), PX = Math.round((1080 - PW) / 2), bottom = withQR ? 1490 : 1800, space = Math.floor((bottom - 204 - B - PH) / 3)
+  const withQR = !ev && !!p.wa, PH = withQR ? 640 : 906, PW = Math.round(PH * 0.8), PX = Math.round((1080 - PW) / 2), bottom = withQR ? 1490 : 1800, space = Math.floor((bottom - 204 - B - PH) / 3)
   const y = 204 + space, PY = bottom - space - PH;
   x.font = "700 25px ManropeA"; kick(x, p.kicker, CX, y + cap(25), 7, rg(dim(t.c2, .72)));
   const ty = y + cap(25) + g1, base = ty + inkH;
@@ -249,10 +249,10 @@ async function storyBody(p: KitParams, t: KitTheme, withBg: boolean, withDecor =
   const yb2 = yb + g4 + cap(30);
   x.font = "500 30px ManropeA"; spaced(x, [p.time, p.venue].filter(Boolean).join("   |   "), CX, yb2, 3, rg(t.ink, .92));
   // poster slot: soft shadow and the poster with rounded corners (no border around it)
-  const R = 44;
+  const R = 0;
   x.save(); x.shadowColor = "rgba(40,30,60,.28)"; x.shadowBlur = 40; x.shadowOffsetY = 14; rr(x, PX, PY, PW, PH, R); x.fillStyle = "#f6f3ee"; x.fill(); x.restore();
   x.save(); rr(x, PX, PY, PW, PH, R); x.clip();
-  if (p.im) { fitCover(x, p.im, PX, PY, PW, PH) } else { x.fillStyle = "#f6f3ee"; x.fillRect(PX, PY, PW, PH); x.font = "700 23px ManropeA"; spaced(x, "POSTER 3:4", CX, PY + PH / 2 + 8, 6, rg(t.ink, .45)); }
+  if (p.im) { fitCover(x, p.im, PX, PY, PW, PH) } else { x.fillStyle = "#f6f3ee"; x.fillRect(PX, PY, PW, PH); x.font = "700 23px ManropeA"; spaced(x, "POSTER 4:5", CX, PY + PH / 2 + 8, 6, rg(t.ink, .45)); }
   x.restore();
   // bottom: a QR code of the WhatsApp group (a story cannot carry a tappable link from the app), or the small club icon
   if (withQR) {
@@ -288,8 +288,8 @@ export async function makeCancel(p: KitParams, t0: KitTheme, shape: "story" | "p
   };
   /* the poster, grey-toned, with a red CANCELED ribbon across it */
   const poster = (px: number, py: number, pw: number, ph: number) => {
-    g.save(); g.shadowColor = "rgba(60,10,20,.30)"; g.shadowBlur = 36; g.shadowOffsetY = 14; rr(g, px, py, pw, ph, 38); g.fillStyle = "#f6f3ee"; g.fill(); g.restore();
-    g.save(); rr(g, px, py, pw, ph, 38); g.clip();
+    g.save(); g.shadowColor = "rgba(60,10,20,.30)"; g.shadowBlur = 36; g.shadowOffsetY = 14; rr(g, px, py, pw, ph, 0); g.fillStyle = "#f6f3ee"; g.fill(); g.restore();
+    g.save(); rr(g, px, py, pw, ph, 0); g.clip();
     if (p.im) { g.filter = "grayscale(.65) brightness(.96)"; fitCover(g, p.im, px, py, pw, ph); g.filter = "none"; } else { g.fillStyle = "#f6f3ee"; g.fillRect(px, py, pw, ph); }
     g.fillStyle = "rgba(128,12,32,.16)"; g.fillRect(px, py, pw, ph);
     g.translate(px + pw / 2, py + ph / 2); g.rotate(-Math.PI / 9);
@@ -324,7 +324,7 @@ export async function makeCancel(p: KitParams, t0: KitTheme, shape: "story" | "p
   };
   const nextText = info.next ? "SEE YOU " + info.next : "SEE YOU AT THE NEXT ONE";
   if (story) {
-    const PH = 640, PW = Math.round(PH * .75);
+    const PH = 640, PW = Math.round(PH * .8);
     poster(CX - PW / 2, y, PW, PH);
     y += PH + 60;
     g.font = "700 24px ManropeA"; spaced(g, "WAS PLANNED FOR", CX, y, 6, rg(t.ink, .6));
@@ -336,9 +336,9 @@ export async function makeCancel(p: KitParams, t0: KitTheme, shape: "story" | "p
     g.font = "700 30px ManropeA"; const nw = fit(g, sz => `700 ${sz}px ManropeA`, nextText, 900, 30, 5); g.font = `700 ${nw}px ManropeA`; spaced(g, nextText, CX, y, 5, redGrad(CX - 300, CX + 300));
     await drawIcon(g, p.icon, CX, 1856, 56, t.c1, t.c2);
   } else {
-    const PH = 600, PW = Math.round(PH * .75), px = 70;
+    const PH = 600, PW = Math.round(PH * .8), px = 70;
     poster(px, y, PW, PH);
-    const rcx = px + PW + (1080 - px - (px + PW)) / 2, colW = 1080 - 70 - (px + PW) - 30;
+    const rcx = px + PW + (1080 - px - (px + PW)) / 2, colW = 1080 - 70 - (px + PW) - 50;
     let ry = y + 26;
     g.font = "700 22px ManropeA"; spaced(g, "WAS PLANNED FOR", rcx, ry, 5, rg(t.ink, .6));
     ry += 48;

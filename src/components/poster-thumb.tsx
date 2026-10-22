@@ -6,7 +6,7 @@ import { CalendarDays, Sparkles } from 'lucide-react'
 export function PosterThumb({ poster, alt, icon, kind }: { poster?: string; alt: string; icon?: string; kind: 'club' | 'event' }) {
   const Icon = clubIcon(icon)?.Icon || (kind === 'club' ? Sparkles : CalendarDays)
   return (
-    <div className="aspect-[4/5] w-[124px] shrink-0 self-start overflow-hidden rounded-xl border border-border bg-secondary shadow-sm sm:w-[168px]">
+    <div className="aspect-[4/5] w-[124px] shrink-0 self-start overflow-hidden border border-border bg-secondary shadow-sm sm:w-[168px]">
       {poster ? (
         <img loading="lazy" decoding="async" src={posterThumb(poster, 480)} alt={alt} className="h-full w-full object-cover" />
       ) : (

@@ -123,7 +123,7 @@ export interface KitOverrides {
   motion?: number // movement of the story video: 0 still, 1 gentle (default), 2 lively
   cap?: string // caption for the post
   wa?: string // WhatsApp group link
-  poster?: string // the framed 3:4 poster used in the story
+  poster?: string // the framed 4:5 poster used in the story
   short?: string // short name for the calendar pictures (default: the name without Club or Activity)
   posts?: { t: string; to: string[]; sig?: string }[] // when it was posted to Instagram or Facebook, newest last (sig: what the post showed)
 }

@@ -426,10 +426,10 @@ function ClubListCard({
       onClick={onExpand}
     >
       <div className="flex">
-        {/* poster: natural A4 ratio, stretches to fill taller rows */}
+        {/* poster in the 4:5 frame, stretches to fill taller rows */}
         <div className="relative overflow-hidden flex w-[96px] shrink-0 bg-secondary sm:w-[144px]">
           {club.poster ? (
-            <img loading="lazy" decoding="async" src={posterThumb(club.poster, 320)} alt={`${club.name} poster`} className="aspect-[848/1200] min-h-full w-full object-cover" />
+            <img loading="lazy" decoding="async" src={posterThumb(club.poster, 320)} alt={`${club.name} poster`} className="aspect-[4/5] min-h-full w-full object-cover" />
           ) : (
             <PosterFallback club={club} compact />
           )}
@@ -541,8 +541,8 @@ export function ClubGridCard({
       className="flex h-full cursor-pointer flex-col overflow-hidden rounded-2xl border border-border bg-card shadow-sm transition hover:border-primary/30 hover:shadow-md"
       onClick={onExpand}
     >
-      {/* poster at its true A4 ratio, zero crop */}
-      <div className="relative overflow-hidden aspect-[848/1200] w-full bg-secondary">
+      {/* poster in the Instagram frame, 4:5 */}
+      <div className="relative overflow-hidden aspect-[4/5] w-full bg-secondary">
         {club.poster ? (
           <img loading="lazy" decoding="async" src={posterThumb(club.poster, 480)} alt={`${club.name} poster`} className="h-full w-full object-cover" />
         ) : (
@@ -601,7 +601,7 @@ export function EventGridCard({ event }: { event: EventEntry }) {
   const Icon = clubIcon(event.icon)?.Icon || Sparkles
   return (
     <div className="flex h-full flex-col overflow-hidden rounded-2xl border border-border bg-card shadow-sm">
-      <div className="relative overflow-hidden aspect-[848/1200] w-full bg-secondary">
+      <div className="relative overflow-hidden aspect-[4/5] w-full bg-secondary">
         {event.poster ? (
           <img loading="lazy" decoding="async" src={posterThumb(event.poster, 480)} alt={`${event.title} poster`} className="h-full w-full object-cover" />
         ) : (
@@ -670,7 +670,7 @@ export function ClubExpandOverlay({
         onClick={(e) => e.stopPropagation()}
       >
         {/* LEFT — the poster, full height, the visual anchor of the card */}
-        <div className="relative aspect-[848/1200] w-full shrink-0 overflow-hidden md:aspect-auto md:w-[300px] md:min-h-[424px]" style={{ containerType: 'inline-size' }}>
+        <div className="relative aspect-[4/5] w-full shrink-0 overflow-hidden md:aspect-auto md:w-[300px] md:min-h-[424px]" style={{ containerType: 'inline-size' }}>
           {club.poster ? (
             <img loading="lazy" decoding="async" src={club.poster} alt={`${club.name} poster`} className="absolute inset-0 h-full w-full object-cover" />
           ) : (
@@ -938,11 +938,11 @@ export function EventCard({
       <div className="flex flex-col sm:flex-row">
         {/* poster area: the real poster when there is one, the gold badge otherwise */}
         {event.poster ? (
-          /* the poster is shown whole, at its own proportions: never cropped, tap to open the original */
+          /* the poster in the 4:5 frame, tap to open the original */
           <div className="flex w-full shrink-0 items-start justify-center bg-secondary p-3 sm:w-[210px]">
             <a href={event.poster} target="_blank" rel="noopener" className="block w-full max-w-[260px]" title="Open the full poster">
-              <div className="relative overflow-hidden rounded-lg shadow-sm">
-                <img loading="lazy" decoding="async" src={posterThumb(event.poster, 480)} alt={`${event.title} poster`} className="block h-auto w-full object-contain" />
+              <div className="relative aspect-[4/5] overflow-hidden shadow-sm">
+                <img loading="lazy" decoding="async" src={posterThumb(event.poster, 480)} alt={`${event.title} poster`} className="block h-full w-full object-cover" />
               </div>
             </a>
           </div>

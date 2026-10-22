@@ -201,7 +201,7 @@ function KitCard({ kind, item, onOpen }: { kind: Kind; item: Club | EventEntry; 
   const [busy, setBusy] = React.useState(false)
   return (
     <div className="flex flex-col overflow-hidden rounded-2xl border border-border bg-card shadow-sm">
-      <button onClick={onOpen} className="relative block aspect-[848/1200] w-full overflow-hidden bg-secondary" aria-label={`Open ${R.name}`}>
+      <button onClick={onOpen} className="relative block aspect-[4/5] w-full overflow-hidden bg-secondary" aria-label={`Open ${R.name}`}>
         {R.sitePoster || R.poster ? (
           <img src={R.sitePoster ? posterThumb(R.sitePoster, 480) : R.poster || ''} alt={`${R.name} poster`} className="h-full w-full object-cover" loading="lazy" />
         ) : (
@@ -719,8 +719,8 @@ function KitEditor({ kind, id, onBack, onManage, onEditSchedule }: { kind: Kind;
   const pickLook = (k: string) => change((e) => { const n = { ...e, look: k }; delete n.icon; return n })
   const setPoster = async (file: File) => {
     const im = await loadImage(URL.createObjectURL(file))
-    const c = cv(1080, 1440)
-    fitCover(c.getContext('2d')!, im, 0, 0, 1080, 1440)
+    const c = cv(1080, 1350)
+    fitCover(c.getContext('2d')!, im, 0, 0, 1080, 1350)
     const webp = c.toDataURL('image/webp', 0.88)
     set('poster', webp.startsWith('data:image/webp') ? webp : c.toDataURL('image/jpeg', 0.88))
   }
@@ -765,7 +765,7 @@ function KitEditor({ kind, id, onBack, onManage, onEditSchedule }: { kind: Kind;
             <PreviewCard title="Instagram story" note={live && R.motion !== 0 ? 'moving' : undefined} canvas={live ?? out?.story ?? null} />
             <section className="flex flex-col gap-2.5 rounded-2xl border border-border bg-card p-3">
               <h3 className="flex items-baseline justify-between gap-2 text-xs font-extrabold">Poster <span className="text-[11px] font-medium text-muted-foreground">Instagram 4:5</span></h3>
-              <div className="overflow-hidden rounded-lg border border-border bg-secondary" style={{ aspectRatio: '4 / 5' }}>
+              <div className="overflow-hidden border border-border bg-secondary" style={{ aspectRatio: '4 / 5' }}>
                 {R.poster ? <img src={R.poster} alt="" className="h-full w-full object-cover" /> : <div className="grid h-full place-items-center px-2 text-center text-[11px] font-bold text-muted-foreground">No poster yet</div>}
               </div>
             </section>
@@ -803,7 +803,7 @@ function KitEditor({ kind, id, onBack, onManage, onEditSchedule }: { kind: Kind;
               <>
                 <Block title="Poster">
                   <div className="flex items-center gap-4">
-                    <div className="w-24 shrink-0 overflow-hidden rounded-xl border border-border bg-secondary" style={{ aspectRatio: '3 / 4' }}>
+                    <div className="w-24 shrink-0 overflow-hidden border border-border bg-secondary" style={{ aspectRatio: '4 / 5' }}>
                       {R.poster ? <img src={R.poster} alt="" className="h-full w-full object-cover" /> : <div className="grid h-full place-items-center text-[10px] font-bold text-muted-foreground">NO POSTER</div>}
                     </div>
                     <div className="flex min-w-0 flex-1 flex-col items-start gap-2">
@@ -1058,19 +1058,13 @@ function PreviewCard({ title, note, canvas, round, crop, onDownload, extra }: { 
 
 const blobOf = (c: HTMLCanvasElement, q = 0.92) => new Promise<Blob>((res, rej) => c.toBlob((b) => (b ? res(b) : rej(new Error('picture failed'))), 'image/jpeg', q))
 
-/* the poster as 3:4 (1080x1440) and as 4:5 (1080x1350, with soft side bars) for Instagram feeds that refuse 3:4 */
+/* the poster in the Instagram frame, 4:5 (1080x1350), cut from the middle of the picture; the same file goes to the feed and to the download */
 async function posterBlobs(src: string) {
   const im = await loadImage(src)
-  const a = cv(1080, 1440)
-  fitCover(a.getContext('2d')!, im, 0, 0, 1080, 1440)
-  const b = cv(1080, 1350)
-  const g = b.getContext('2d')!
-  g.filter = 'blur(40px)'
-  fitCover(g, im, -60, -60, 1200, 1470)
-  g.filter = 'none'
-  const w = Math.round((1350 * 3) / 4)
-  g.drawImage(im, (1080 - w) / 2, 0, w, 1350)
-  return { poster: await blobOf(a), poster45: await blobOf(b) }
+  const a = cv(1080, 1350)
+  fitCover(a.getContext('2d')!, im, 0, 0, 1080, 1350)
+  const blob = await blobOf(a)
+  return { poster: blob, poster45: blob }
 }
 
 type Dest = 'igFeed' | 'igStory' | 'fbFeed' | 'fbStory'
