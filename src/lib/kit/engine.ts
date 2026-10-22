@@ -220,25 +220,47 @@ async function storyBody(p: KitParams, t: KitTheme, withBg: boolean, withDecor =
   x.font = "700 22px ManropeA"; spaced(x, "WHATSAPP GROUP LINK HERE", CX, py + 50, 5, rg(t.ink, .67));
   if (withBg) grain(x, 1080, 1920); return c;
 }
+/* a rounded square with smooth corners (a superellipse), the outline WhatsApp gives a community icon */
+function squirclePath(x: Ctx, cx: number, cy: number, a: number, n = 5) {
+  x.beginPath();
+  const steps = 360;
+  for (let i = 0; i <= steps; i++) {
+    const th = (i / steps) * Math.PI * 2, c = Math.cos(th), s = Math.sin(th);
+    const px = cx + a * Math.sign(c) * Math.pow(Math.abs(c), 2 / n), py = cy + a * Math.sign(s) * Math.pow(Math.abs(s), 2 / n);
+    if (i === 0) x.moveTo(px, py); else x.lineTo(px, py);
+  }
+  x.closePath();
+}
+/* the outer ring of a WhatsApp picture: a bright ring and a thin one inside it, in the club colours. A group is shown as a circle, a community as a rounded square, so the ring has both shapes. */
+function ringFrame(x: Ctx, t: KitTheme, cx: number, cy: number, r: number, shape: "circle" | "squircle" = "circle") {
+  const path = (a: number) => { if (shape === "circle") { x.beginPath(); x.arc(cx, cy, a, 0, Math.PI * 2); } else squirclePath(x, cx, cy, a); };
+  x.save();
+  x.lineWidth = 16; x.strokeStyle = grad(x, cx - r, cx + r, t.c1, t.c2);
+  path(r); x.stroke();
+  x.lineWidth = 4; x.globalAlpha = 0.45;
+  path(r - 26); x.stroke();
+  x.restore();
+}
+/* WhatsApp group picture: no text, only the glass picture, the ring and the club icon. WhatsApp crops it to a circle or rounded square, so everything sits in the middle. */
 export async function makeCover(p: KitParams, t: KitTheme) {
   const c = cv(1080, 1080), x = c.getContext("2d")!, CX = 540;
-  await paintGlass(x, KIT_BG_COVERS[t.bg] || KIT_BG_COVERS[0], glassOf(t), t);
+  x.drawImage(await get(KIT_BG_COVERS[t.bg] || KIT_BG_COVERS[0]), 0, 0);
   glow(x, 540, 580, t.c2);
   if (t.decor !== "none" && t.decor !== "brain") { x.save(); x.translate(0, -420); x.drawImage(await svgLayer(DECOR[t.decor](t.c1, t.c2)), 0, 0); x.restore(); }
   await drawLogo(x, CX, 95, 62);
   await drawIcon(x, p.icon, CX, 455, 570, t.c1, t.c2);
-  const cap = (px: number, k = .72) => Math.floor(px * k), single = !p.top;
-  const fw = fit(x, s => `italic 600 ${s}px Bodoni`, p.word, 800, 86, -6), cw = capOf(x, fw, 600), gap = cw + 46;
-  let ft = 0, inkH = cw; if (!single) { ft = fit(x, s => `italic 500 ${s}px Bodoni`, p.top, 740, 44, -2); inkH = gap + capOf(x, ft, 500); }
-  x.font = "700 27px ManropeA"; spaced(x, p.kicker, CX, 765 + cap(22), 8, rg(dim(t.c2, .72)));
-  const ty = 765 + cap(22) + 56, base = ty + inkH;
-  if (!single) gradTitle(x, p.top, CX, base - gap, ft, -2, 500, t.c1, t.c2);
-  gradTitle(x, p.word, CX, base, fw, -6, 600, t.c1, t.c2);
-  x.fillStyle = grad(x, CX - 230, CX + 230, t.c1, t.c2); x.fillRect(CX - 230, base + 26, 460, 3);
   grain(x, 1080, 1080); return c;
 }
 
-
+/* the ASO logo in the same format as the club pictures (glass picture and ring), for the profile picture and the community icon (rounded-square ring) */
+export async function makeProfilePicture(t: KitTheme, shape: "circle" | "squircle" = "squircle") {
+  const c = cv(1080, 1080), x = c.getContext("2d")!, CX = 540;
+  await paintGlass(x, KIT_BG_COVERS[t.bg] || KIT_BG_COVERS[0], glassOf(t), t);
+  glow(x, CX, CX, t.c2);
+  ringFrame(x, t, CX, CX, shape === "circle" ? 470 : 480, shape);
+  await drawLogo(x, CX, CX, 560);
+  grain(x, 1080, 1080); return c;
+}
 /* Instagram highlight cover: shown as a circle cut from the middle of a 9:16 picture, so the icon sits in the center */
 export async function makeHighlight(p: KitParams, t: KitTheme) {
   const c = cv(1080, 1920), x = c.getContext("2d")!
