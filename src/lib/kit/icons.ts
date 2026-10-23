@@ -308,8 +308,184 @@ export const KIT_ICONS: Record<string, { label: string; stroke: string; accent: 
  }
 }
 
-/* every icon of the club and event picker is also a kit icon (key "app-<name>"), so the icon chosen for a chip can be used in the story too */
-for (const k of Object.keys(KIT_ICONS)) KIT_ICONS[k].group = 'Signature'
+/* ---------------------------------------------------------------------------
+   Groups
+
+   These 61 icons used to be pushed into one bucket called "Signature", so the
+   picker showed them as a single wall and everything else in thirteen groups.
+   They now use the same vocabulary as the club and event picker
+   (src/lib/icons.ts), so the chip on the calendar and the icon on the story
+   come from one mental model.
+   --------------------------------------------------------------------------- */
+const SIGNATURE_GROUPS: Record<string, string> = {
+  /* learning and words */
+  'i-speaking': 'Learning & words',
+  'i-reading': 'Learning & words',
+  debate: 'Learning & words',
+  math: 'Learning & words',
+  history: 'Learning & words',
+  language: 'Learning & words',
+  writing: 'Learning & words',
+  graduation: 'Learning & words',
+  news: 'Learning & words',
+  calendar: 'Learning & words',
+  library: 'Learning & words',
+  quiz: 'Learning & words',
+  /* ideas and work */
+  'i-philo': 'Ideas & work',
+  'i-psy': 'Ideas & work',
+  ideas: 'Ideas & work',
+  entrepreneurship: 'Ideas & work',
+  /* stage and film */
+  'i-movie': 'Stage & film',
+  theatre: 'Stage & film',
+  clapper: 'Stage & film',
+  talent: 'Stage & film',
+  video: 'Stage & film',
+  dance: 'Stage & film',
+  /* art and music */
+  music: 'Art & music',
+  microphone: 'Art & music',
+  piano: 'Art & music',
+  art: 'Art & music',
+  photography: 'Art & music',
+  /* science and tech */
+  coding: 'Science & tech',
+  robotics: 'Science & tech',
+  science: 'Science & tech',
+  cybersecurity: 'Science & tech',
+  ai: 'Science & tech',
+  astronomy: 'Science & tech',
+  rocket: 'Science & tech',
+  energy: 'Science & tech',
+  /* sport and movement */
+  'i-sports': 'Sport & movement',
+  football: 'Sport & movement',
+  basketball: 'Sport & movement',
+  pingpong: 'Sport & movement',
+  cycling: 'Sport & movement',
+  swimming: 'Sport & movement',
+  fitness: 'Sport & movement',
+  trophy: 'Sport & movement',
+  /* games and fun */
+  chess: 'Games & fun',
+  gaming: 'Games & fun',
+  dice: 'Games & fun',
+  /* nature and outdoors */
+  environment: 'Nature & outdoors',
+  hiking: 'Nature & outdoors',
+  nature: 'Nature & outdoors',
+  /* food and drink */
+  cooking: 'Food & drink',
+  coffee: 'Food & drink',
+  /* people and community */
+  'i-whatsapp': 'People & community',
+  volunteering: 'People & community',
+  community: 'People & community',
+  kids: 'People & community',
+  conversation: 'People & community',
+  /* places and travel */
+  'i-africa': 'Places & travel',
+  geography: 'Places & travel',
+  travel: 'Places & travel',
+  /* wellness and care */
+  health: 'Wellness & care',
+  yoga: 'Wellness & care',
+}
+
+export const KIT_ICON_GROUPS: string[] = [
+  'Learning & words',
+  'Art & music',
+  'Stage & film',
+  'Science & tech',
+  'Sport & movement',
+  'Games & fun',
+  'Nature & outdoors',
+  'Food & drink',
+  'People & community',
+  'Places & travel',
+  'Time & planning',
+  'Ideas & work',
+  'Symbols & shapes',
+  'Wellness & care',
+  'Signatures',
+  'Other',
+]
+
+const CANONICAL_GROUPS = new Set(KIT_ICON_GROUPS)
+
+/* The picker icons were generated in three waves, and each wave named its groups its own
+   way: "Sport and fitness", "Sport & Movement", "Sport & movement" and "Sport & Health"
+   were four separate groups for one idea, and the picker showed all four. This folds the
+   old names into the list above. New names are used as they are, and anything unknown
+   falls to "Other" below, so adding icons never hides them. */
+const LEGACY_GROUPS: Record<string, string> = {
+  'Original Set': 'Signatures',
+  'School and study': 'Learning & words',
+  'Learning & Words': 'Learning & words',
+  'Art and music': 'Art & music',
+  'Music & Stage': 'Art & music',
+  'Arts & Crafts': 'Art & music',
+  'Media & Arts': 'Art & music',
+  'Technology and science': 'Science & tech',
+  'Science & Making': 'Science & tech',
+  'Tech, Space & Money': 'Science & tech',
+  'Sport and fitness': 'Sport & movement',
+  'Sport & Movement': 'Sport & movement',
+  'Sport & Health': 'Sport & movement',
+  'Games & Imagination': 'Games & fun',
+  'Nature and animals': 'Nature & outdoors',
+  'Animals & Nature': 'Nature & outdoors',
+  'Outdoors & Nature': 'Nature & outdoors',
+  'Food and drink': 'Food & drink',
+  Food: 'Food & drink',
+  'More Food': 'Food & drink',
+  'People and community': 'People & community',
+  'Events and celebration': 'People & community',
+  'Community & Celebration': 'People & community',
+  'People & Life': 'People & community',
+  'Travel and places': 'Places & travel',
+  'Travel & Places': 'Places & travel',
+  'Money and work': 'Ideas & work',
+  'Time & Dates': 'Time & planning',
+  'Time and planning': 'Time & planning',
+  'Symbols and shapes': 'Symbols & shapes',
+}
+
+for (const [key, group] of Object.entries(SIGNATURE_GROUPS)) {
+  const icon = KIT_ICONS[key]
+  if (icon) icon.group = group
+}
+
+/* every icon of the club and event picker is also a kit icon (key "app-<name>"), so the icon chosen for a chip can be used in the story too
+   (no per-icon stroke width any more: they are drawn at ICON_STROKE like the rest, see engine.ts) */
 for (const [name, label, group, inner] of ICON_DATA) {
-  KIT_ICONS['app-' + name] = { label, group, sw: 1.15, accent: '', stroke: inner.replace(/<(path|circle|rect|line|polyline|polygon|ellipse)\b/g, '<$1 fill="none"') }
+  KIT_ICONS['app-' + name] = { label, group: LEGACY_GROUPS[group] || group, accent: '', stroke: inner.replace(/<(path|circle|rect|line|polyline|polygon|ellipse)\b/g, '<$1 fill="none"') }
+}
+
+/* anything left under a name that is not in KIT_ICON_GROUPS keeps a home, so no icon can
+   silently drop out of the picker (that is exactly what an ordered list would have done) */
+for (const icon of Object.values(KIT_ICONS)) {
+  if (!icon.group || !CANONICAL_GROUPS.has(icon.group)) icon.group = 'Other'
+}
+
+/* The icon a name suggests: "Public speaking club" gives i-speaking, "Chess" gives chess.
+   Only the hand-drawn set takes part (the "app-" ones are the same ideas under another
+   name, and they would crowd the answer out). Cheap on purpose: one pass over 61 labels. */
+export function suggestKitIcons(text: string | undefined, limit = 6): string[] {
+  const words = (text || '')
+    .toLowerCase()
+    .replace(/[^a-z0-9\s]/g, ' ')
+    .split(/\s+/)
+    .filter((w) => w.length > 2 && w !== 'club' && w !== 'the' && w !== 'and')
+  if (!words.length) return []
+  const hits: { key: string; score: number }[] = []
+  for (const [key, icon] of Object.entries(KIT_ICONS)) {
+    if (key.startsWith('app-')) continue
+    const hay = (icon.label + ' ' + key.replace(/^i-/, '')).toLowerCase()
+    let score = 0
+    for (const w of words) if (hay.includes(w)) score += w.length
+    if (score) hits.push({ key, score })
+  }
+  return hits.sort((a, b) => b.score - a.score).slice(0, limit).map((h) => h.key)
 }

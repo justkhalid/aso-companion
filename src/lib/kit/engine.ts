@@ -91,9 +91,16 @@ export async function drawLogo(ctx: Ctx, cx: number, cy: number, h: number) {
   const l = await get(KIT_LOGO), w = h * l.width / l.height;
   ctx.save(); ctx.shadowColor = "rgba(40,30,60,.18)"; ctx.shadowBlur = 20; ctx.shadowOffsetY = 8; ctx.drawImage(l, cx - w / 2, cy - h / 2, w, h); ctx.restore();
 }
+/* Every icon is drawn at this stroke weight on the 24 grid. It used to be 0.9 for the
+   hand-drawn kit icons and 1.15 for the ones that come from the club picker, which made
+   the two sets look like two different families next to the lucide icons in the same panel.
+   One number now, and the picker looks like the rest of the app. */
+export const ICON_STROKE = 1
 export async function iconCanvas(key: string, size: number, c1: RGB, c2: RGB, boost = 1) {
   const ic = KIT_ICONS[key];
-  const layer = (inner: string) => get("data:image/svg+xml;charset=utf-8," + encodeURIComponent(`<svg xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size}" viewBox="0 0 24 24"><g stroke="#000" stroke-width="${(ic.sw ?? 0.9) * boost}" stroke-linecap="round" stroke-linejoin="round">${inner}</g></svg>`));
+  /* a club saved with an icon that no longer exists draws nothing instead of throwing */
+  if (!ic) return cv(size, size);
+  const layer = (inner: string) => get("data:image/svg+xml;charset=utf-8," + encodeURIComponent(`<svg xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size}" viewBox="0 0 24 24"><g stroke="#000" stroke-width="${(ic.sw ?? ICON_STROKE) * boost}" stroke-linecap="round" stroke-linejoin="round">${inner}</g></svg>`));
   const c = cv(size, size), x = c.getContext("2d", { willReadFrequently: true })!, a = cv(size, size), ax = a.getContext("2d")!;
   x.drawImage(await layer(ic.stroke), 0, 0); x.globalCompositeOperation = "source-in"; x.fillStyle = grad(x, 0, size, c1, c2); x.fillRect(0, 0, size, size);
   ax.drawImage(await layer(ic.accent), 0, 0); ax.globalCompositeOperation = "source-in"; ax.fillStyle = rg(c2); ax.fillRect(0, 0, size, size);
@@ -103,6 +110,7 @@ async function drawIcon(ctx: Ctx, key: string, cx: number, cy: number, size: num
   const c = await iconCanvas(key, size, c1, c2), d = c.getContext("2d", { willReadFrequently: true })!.getImageData(0, 0, size, size).data;
   let x0 = size, x1 = 0, y0 = size, y1 = 0;
   for (let y = 0; y < size; y++) for (let x = 0; x < size; x++) if (d[(y * size + x) * 4 + 3] > 40) { if (x < x0) x0 = x; if (x > x1) x1 = x; if (y < y0) y0 = y; if (y > y1) y1 = y; }
+  if (x1 < x0) return; /* nothing was drawn (unknown icon) */
   ctx.save(); ctx.shadowColor = "rgba(40,30,60,.26)"; ctx.shadowBlur = 24; ctx.shadowOffsetY = 10; ctx.drawImage(c, cx - (x0 + x1) / 2, cy - (y0 + y1) / 2); ctx.restore();
 }
 /* draws an icon scaled so its drawn shape fills a box (maxW x maxH), whatever the icon's own padding or proportions */
@@ -110,6 +118,7 @@ async function drawIconFit(ctx: Ctx, key: string, cx: number, cy: number, maxW: 
   const N = 1000, c = await iconCanvas(key, N, c1, c2, boost), d = c.getContext("2d", { willReadFrequently: true })!.getImageData(0, 0, N, N).data;
   let x0 = N, x1 = 0, y0 = N, y1 = 0;
   for (let y = 0; y < N; y++) for (let x = 0; x < N; x++) if (d[(y * N + x) * 4 + 3] > 40) { if (x < x0) x0 = x; if (x > x1) x1 = x; if (y < y0) y0 = y; if (y > y1) y1 = y; }
+  if (x1 < x0 || y1 < y0) return; /* nothing was drawn (unknown icon) */
   const bw = x1 - x0 + 1, bh = y1 - y0 + 1, k = Math.min(maxW / bw, maxH / bh);
   ctx.save(); ctx.shadowColor = shadow; ctx.shadowBlur = 24; ctx.shadowOffsetY = 10;
   ctx.drawImage(c, x0, y0, bw, bh, cx - bw * k / 2, cy - bh * k / 2, bw * k, bh * k); ctx.restore();

@@ -4,7 +4,7 @@ import * as React from 'react'
 import { kitSig } from '@/lib/post-queue'
 import { PostQueue } from '@/components/post-queue'
 import { FullKitButton, LinksKitButton } from '@/components/full-kit-button'
-import { ArrowLeft, ArrowRight, Check, Clock4, ChevronLeft, Music, Play, Square, ChevronRight, CircleAlert, Clock, Loader2, Send, X, Copy, Download, ImagePlus, MapPin, Pencil, Plus, Share2, Sparkles, Trash2, CalendarClock, AlertTriangle, CalendarDays } from 'lucide-react'
+import { ArrowLeft, ArrowRight, Check, Clock4, ChevronLeft, Music, Play, Square, ChevronRight, CircleAlert, Clock, Loader2, Send, X, Copy, Download, ImagePlus, MapPin, Pencil, Plus, Share2, Sparkles, Trash2, CalendarClock, AlertTriangle, CalendarDays, RotateCcw } from 'lucide-react'
 import { useStore } from '@/lib/store'
 import { PageHead, EmptyState } from '@/components/ui-bits'
 import { Button } from '@/components/ui/button'
@@ -15,7 +15,7 @@ import { cn } from '@/lib/utils'
 import { posterThumb } from '@/lib/poster-url'
 import type { Club, EventEntry, KitOverrides } from '@/lib/types'
 import { DECOR, DECOR_NAMES, LOOKS, rg, type RGB } from '@/lib/kit/decor'
-import { KIT_ICONS } from '@/lib/kit/icons'
+import { KIT_ICONS, KIT_ICON_GROUPS, suggestKitIcons } from '@/lib/kit/icons'
 import { ArchiveGroup } from '@/components/session-card'
 import { isOver } from '@/lib/archive'
 import { cv, fitCover, iconCanvas, loadImage, loadKitFonts, makeCancel, makeCover, makeHighlight, makeStory, makeStoryAnim, GROUNDS } from '@/lib/kit/engine'
@@ -63,7 +63,7 @@ function CanvasHost({ canvas, className }: { canvas: HTMLCanvasElement | null; c
 
 const chipCls = (on: boolean) =>
   cn(
-    'rounded-full border px-3 py-1.5 text-[12.5px] font-bold transition',
+    'rounded-full border px-3 py-1.5 text-[12.5px] font-bold transition outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1 focus-visible:ring-offset-background',
     on ? 'border-primary bg-primary/10 text-foreground' : 'border-border bg-card text-foreground/80 hover:bg-secondary',
   )
 
@@ -878,32 +878,44 @@ function KitEditor({ kind, id, onBack, onManage, onEditSchedule }: { kind: Kind;
 
             {section === 'look' && (
               <>
-                <Block title="Colors and decoration">
-                  <div className="grid grid-cols-3 gap-2 sm:grid-cols-4">
-                    {Object.entries(LOOKS).map(([k, v]) => (
-                      <button
-                        key={k}
-                        type="button"
-                        onClick={() => pickLook(k)}
-                        aria-pressed={R.look === k}
-                        className={cn('flex flex-col gap-1 rounded-xl border p-2 text-left text-xs font-bold transition', R.look === k ? 'border-primary bg-primary/5 ring-2 ring-primary' : 'border-border bg-card hover:bg-secondary')}
-                      >
-                        <span className="h-6 rounded-md" style={{ background: `linear-gradient(90deg,${rg(v[1])},${rg(v[2])})` }} />
-                        <span className="leading-tight">{v[0].split(':')[0]}</span>
-                        <small className="text-[11px] font-medium text-muted-foreground">{DECOR_NAMES[v[4]]}</small>
-                      </button>
-                    ))}
+                <Block title="Look">
+                  <p className="text-xs text-muted-foreground">One choice sets the two colors and the edge decoration together. Anything you change further down is an addition to this look.</p>
+                  <div className="grid max-h-[23rem] grid-cols-2 gap-2 overflow-y-auto pr-1 sm:grid-cols-3">
+                    {Object.entries(LOOKS).map(([k, v]) => {
+                      const on = R.look === k
+                      return (
+                        <button
+                          key={k}
+                          type="button"
+                          onClick={() => pickLook(k)}
+                          aria-pressed={on}
+                          title={v[0]}
+                          className={cn(
+                            'flex flex-col gap-1.5 rounded-xl border p-2 text-left transition outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1 focus-visible:ring-offset-background',
+                            on ? 'border-primary bg-primary/5 ring-2 ring-primary' : 'border-border bg-card hover:bg-secondary',
+                          )}
+                        >
+                          {/* both colors, side by side, so the two words of the name make sense */}
+                          <span className="flex h-7 overflow-hidden rounded-md border border-black/5">
+                            <span className="flex-1" style={{ background: rg(v[1]) }} />
+                            <span className="flex-1" style={{ background: rg(v[2]) }} />
+                          </span>
+                          <span className="text-xs font-bold leading-tight">{v[0].split(':')[0]}</span>
+                          <small className="text-[11px] font-medium leading-tight text-muted-foreground">{DECOR_NAMES[v[4]]}</small>
+                        </button>
+                      )
+                    })}
                   </div>
                 </Block>
 
-                <Block title="Background and glass">
+                <Block title="Background">
                   <div>
-                    <Lab hint="The color of the background picture itself, under the waves. Used by the story, the WhatsApp picture and the highlight cover.">Background color</Lab>
+                    <Lab hint="The color of the background picture itself, under the waves. Used by the story, the WhatsApp picture and the highlight cover.">Ground color</Lab>
                     <div className="grid grid-cols-3 gap-2 sm:grid-cols-5">
                       {Object.entries(GROUNDS).map(([k, [label, tint]]) => {
                         const sw = k === 'look' ? `linear-gradient(135deg,${rg(theme.c1, .35)},${rg(theme.c2, .35)})` : tint ? rg(tint, .7) : 'rgb(244,240,232)'
                         return (
-                          <button key={k} type="button" onClick={() => set('ground', k)} aria-pressed={R.ground === k} className={cn('flex flex-col gap-1 rounded-xl border p-1.5 text-left text-[11px] font-bold transition', R.ground === k ? 'border-primary bg-primary/5 ring-2 ring-primary' : 'border-border bg-card hover:bg-secondary')}>
+                          <button key={k} type="button" onClick={() => set('ground', k)} aria-pressed={R.ground === k} className={cn('flex flex-col gap-1 rounded-xl border p-1.5 text-left text-[11px] font-bold transition outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1 focus-visible:ring-offset-background', R.ground === k ? 'border-primary bg-primary/5 ring-2 ring-primary' : 'border-border bg-card hover:bg-secondary')}>
                             <span className="h-7 rounded-md border border-black/5" style={{ background: sw }} />
                             <span className="leading-tight">{label}</span>
                           </button>
@@ -918,7 +930,7 @@ function KitEditor({ kind, id, onBack, onManage, onEditSchedule }: { kind: Kind;
                     <Lab hint="The glass waves picture behind the writing. Used by the story and the WhatsApp picture.">Wave picture</Lab>
                     <div className="-mx-1 flex snap-x gap-2 overflow-x-auto px-1 pb-2">
                       {Array.from({ length: 8 }, (_, i) => (
-                        <button key={i} type="button" onClick={() => set('bg', i)} aria-pressed={R.bg === i} className={cn('w-20 shrink-0 snap-start overflow-hidden rounded-lg border p-0', R.bg === i ? 'border-primary ring-2 ring-primary' : 'border-border')} aria-label={`Background ${i + 1}`}>
+                        <button key={i} type="button" onClick={() => set('bg', i)} aria-pressed={R.bg === i} className={cn('w-20 shrink-0 snap-start overflow-hidden rounded-lg border p-0 outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1 focus-visible:ring-offset-background', R.bg === i ? 'border-primary ring-2 ring-primary' : 'border-border')} aria-label={`Background ${i + 1}`}>
                           <img src={`/kit/bg/story${i}.jpg`} alt="" className="block aspect-[9/14] w-full object-cover object-top" loading="lazy" />
                         </button>
                       ))}
@@ -929,6 +941,9 @@ function KitEditor({ kind, id, onBack, onManage, onEditSchedule }: { kind: Kind;
                     <input type="range" min={0} max={100} step={5} value={R.glass} onChange={(e) => set('glass', +e.target.value)} className="w-full accent-[var(--primary)]" aria-label="Glass strength" />
                     <div className="flex justify-between text-[11px] text-muted-foreground"><span>None</span><span>Full</span></div>
                   </div>
+                </Block>
+
+                <Block title="Motion">
                   <div>
                     <Lab hint="How the story moves in the preview and in the video.">Movement</Lab>
                     <div className="flex flex-wrap gap-1.5">
@@ -940,10 +955,22 @@ function KitEditor({ kind, id, onBack, onManage, onEditSchedule }: { kind: Kind;
                 </Block>
 
                 <Block title="Icon">
-                  <IconBlock value={R.icon} c1={theme.c1} c2={theme.c2} onChange={(k) => set('icon', k)} />
+                  <IconBlock value={R.icon} c1={theme.c1} c2={theme.c2} onChange={(k) => set('icon', k)} suggestFor={[R.word, R.top, R.name].filter(Boolean).join(' ')} />
                 </Block>
 
-                <Block title="Fine tuning">
+                <Block title="Optional overrides">
+                  <p className="text-xs text-muted-foreground">Only if the look above is almost right. Both stay empty until you pick something.</p>
+                  {(edits.palette !== undefined || edits.decor !== undefined) && (
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      className="self-start text-destructive"
+                      onClick={() => change((e) => { const n = { ...e }; delete n.palette; delete n.decor; return n })}
+                    >
+                      <RotateCcw className="h-4 w-4" /> Back to the look as it is
+                    </Button>
+                  )}
                   <div>
                     <Lab hint="Use the colors of another look, keeping this decoration.">Colors only</Lab>
                     <div className="flex flex-wrap gap-1.5">
@@ -1556,41 +1583,109 @@ function KickerPicker({ value, onChange }: { value: string; onChange: (v: string
   )
 }
 
+/* The icon picker: the whole library, grouped.
+   Icons are drawn once per colour pair and remembered; the visible group is drawn in small
+   batches so opening the picker never blocks the page. Before, it awaited up to 150 canvases
+   one after another and silently stopped at 150, so most of the library needed a search. */
 const iconCache = new Map<string, string>()
+const ICON_CACHE_MAX = 600
 
-function IconPicker({ value, c1, c2, onChange }: { value: string; c1: number[]; c2: number[]; onChange: (k: string) => void }) {
-  const [urls, setUrls] = React.useState<Record<string, string>>({})
+function IconPicker({ value, c1, c2, onChange, suggestFor }: { value: string; c1: number[]; c2: number[]; onChange: (k: string) => void; suggestFor?: string }) {
   const sig = c1.join(',') + '|' + c2.join(',')
-  const groups = React.useMemo(() => Array.from(new Set(Object.values(KIT_ICONS).map((v) => v.group || 'Signature'))), [])
-  const [group, setGroup] = React.useState(() => KIT_ICONS[value]?.group || 'Signature')
+  /* the colours arrive as fresh arrays on every render. The ref is refreshed in its own
+     effect (declared first, so it runs before the generator below), and the generator
+     depends on the signature, the query and the group only. */
+  const colors = React.useRef({ c1, c2 })
+  React.useEffect(() => { colors.current = { c1, c2 } }, [c1, c2])
+
+  const counts = React.useMemo(() => {
+    const m: Record<string, number> = {}
+    for (const ic of Object.values(KIT_ICONS)) { const g = ic.group || 'Other'; m[g] = (m[g] || 0) + 1 }
+    return m
+  }, [])
+  const groups = React.useMemo(() => KIT_ICON_GROUPS.filter((g) => counts[g]), [counts])
+  const [group, setGroup] = React.useState(() => KIT_ICONS[value]?.group || groups[0] || 'Other')
   const [q, setQ] = React.useState('')
+  const [urls, setUrls] = React.useState<Record<string, string>>({})
+  const suggested = React.useMemo(() => suggestKitIcons(suggestFor), [suggestFor])
+
   const keys = React.useMemo(() => {
     const n = q.trim().toLowerCase()
-    return Object.entries(KIT_ICONS).filter(([, v]) => (n ? v.label.toLowerCase().includes(n) : (v.group || 'Signature') === group)).map(([k]) => k).slice(0, 150)
+    const all = Object.entries(KIT_ICONS)
+    const hit = n ? all.filter(([, v]) => v.label.toLowerCase().includes(n)) : all.filter(([, v]) => (v.group || 'Other') === group)
+    return hit.map(([k]) => k)
   }, [q, group])
+
   React.useEffect(() => {
     let live = true
+    const missing = keys.filter((k) => !iconCache.has(k + '|' + sig))
+    if (missing.length && iconCache.size > ICON_CACHE_MAX) iconCache.clear()
     ;(async () => {
-      for (const k of keys) {
-        const ck = k + '|' + sig
-        let u = iconCache.get(ck)
-        if (!u) {
-          const c = await iconCanvas(k, 96, c1 as [number, number, number], c2 as [number, number, number])
-          u = c.toDataURL('image/png')
-          iconCache.set(ck, u)
+      if (!missing.length) {
+        /* everything is already drawn (this colour pair, another group): just read the cache */
+        const ready: Record<string, string> = {}
+        for (const k of keys) {
+          const u = iconCache.get(k + '|' + sig)
+          if (u) ready[k + '|' + sig] = u
         }
         if (!live) return
-        setUrls((o) => (o[ck] === u ? o : { ...o, [ck]: u! }))
+        setUrls((o) => {
+          const merged = { ...o }
+          let changed = false
+          for (const [ck, u] of Object.entries(ready)) if (merged[ck] !== u) { merged[ck] = u; changed = true }
+          return changed ? merged : o
+        })
+        return
+      }
+      for (let i = 0; i < missing.length; i += 8) {
+        const batch = missing.slice(i, i + 8)
+        const { c1: a, c2: b } = colors.current
+        const made = await Promise.all(batch.map(async (k) => {
+          const ck = k + '|' + sig
+          const hit = iconCache.get(ck)
+          if (hit) return [ck, hit] as const
+          const c = await iconCanvas(k, 96, a as [number, number, number], b as [number, number, number])
+          const u = c.toDataURL('image/png')
+          iconCache.set(ck, u)
+          return [ck, u] as const
+        }))
+        if (!live) return
+        setUrls((o) => { const next = { ...o }; for (const [ck, u] of made) next[ck] = u; return next })
+        /* one frame between batches, so typing and scrolling stay smooth */
+        await new Promise((r) => setTimeout(r, 0))
       }
     })().catch(() => {})
     return () => { live = false }
   }, [sig, keys])
+
   return (
     <div className="flex flex-col gap-2.5">
       <input type="search" value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search icons (for example: book, ball, mic)" className={inputCls} aria-label="Search icons" />
       {!q.trim() && (
         <div className="flex flex-wrap gap-1.5">
-          {groups.map((g) => <button key={g} type="button" className={chipCls(group === g)} onClick={() => setGroup(g)}>{g}</button>)}
+          {groups.map((g) => (
+            <button key={g} type="button" className={chipCls(group === g)} onClick={() => setGroup(g)} aria-pressed={group === g}>
+              {g}<span className="ml-1 text-[10px] font-bold opacity-60">{counts[g]}</span>
+            </button>
+          ))}
+        </div>
+      )}
+      {!q.trim() && suggested.length > 0 && (
+        <div className="flex flex-col gap-1.5 rounded-xl bg-secondary/50 p-2">
+          <span className="text-[11px] font-bold text-muted-foreground">Suggested for this name</span>
+          <div className="flex flex-wrap gap-1.5">
+            {suggested.map((k) => (
+              <button
+                key={k}
+                type="button"
+                onClick={() => onChange(k)}
+                aria-pressed={value === k}
+                className={cn('rounded-full border px-2.5 py-1 text-[11px] font-bold outline-none transition focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1 focus-visible:ring-offset-background', value === k ? 'border-primary bg-primary/10' : 'border-border bg-card hover:bg-secondary')}
+              >
+                {KIT_ICONS[k].label}
+              </button>
+            ))}
+          </div>
         </div>
       )}
       <div className="grid max-h-[26rem] grid-cols-4 gap-1.5 overflow-y-auto pr-1 sm:grid-cols-6">
@@ -1599,7 +1694,7 @@ function IconPicker({ value, c1, c2, onChange }: { value: string; c1: number[]; 
             key={k}
             type="button"
             onClick={() => onChange(k)}
-            className={cn('flex flex-col items-center gap-1 rounded-xl border px-1 py-1.5 transition', value === k ? 'border-2 border-primary bg-card' : 'border-border bg-secondary/40 hover:bg-secondary')}
+            className={cn('flex flex-col items-center gap-1 rounded-xl border px-1 py-1.5 transition outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1 focus-visible:ring-offset-background', value === k ? 'border-2 border-primary bg-card' : 'border-border bg-secondary/40 hover:bg-secondary')}
             aria-pressed={value === k}
           >
             {urls[k + '|' + sig] ? <img src={urls[k + '|' + sig]} alt="" className="h-[46px] w-[46px]" /> : <span className="h-[46px] w-[46px]" />}
@@ -1608,6 +1703,7 @@ function IconPicker({ value, c1, c2, onChange }: { value: string; c1: number[]; 
         ))}
         {!keys.length && <p className="col-span-full py-4 text-center text-xs text-muted-foreground">No icon with that name.</p>}
       </div>
+      <p className="text-[11px] text-muted-foreground">{keys.length} {keys.length === 1 ? 'icon' : 'icons'}{q.trim() ? '' : ` in ${group}`}</p>
     </div>
   )
 }
@@ -1627,7 +1723,7 @@ function DecorThumb({ k, label, on, c1, c2, onPick }: { k: string; label: string
   )
 }
 
-function IconBlock({ value, c1, c2, onChange }: { value: string; c1: number[]; c2: number[]; onChange: (k: string) => void }) {
+function IconBlock({ value, c1, c2, onChange, suggestFor }: { value: string; c1: number[]; c2: number[]; onChange: (k: string) => void; suggestFor?: string }) {
   const [open, setOpen] = React.useState(false)
   const [url, setUrl] = React.useState('')
   const sig = c1.join(',') + '|' + c2.join(',')
@@ -1641,9 +1737,9 @@ function IconBlock({ value, c1, c2, onChange }: { value: string; c1: number[]; c
       <div className="flex items-center gap-3 rounded-xl bg-secondary/60 p-3">
         {url ? <img src={url} alt="" className="h-14 w-14" /> : <span className="h-14 w-14" />}
         <div className="min-w-0 flex-1 text-sm font-bold">{KIT_ICONS[value]?.label || 'Icon'}<div className="text-[11px] font-medium text-muted-foreground">Shown on the story and the WhatsApp picture</div></div>
-        <Button type="button" variant="outline" size="sm" onClick={() => setOpen((v) => !v)}>{open ? 'Done' : 'Change'}</Button>
+        <Button type="button" variant="outline" size="sm" aria-expanded={open} onClick={() => setOpen((v) => !v)}>{open ? 'Done' : 'Change'}</Button>
       </div>
-      {open && <IconPicker value={value} c1={c1} c2={c2} onChange={(k) => { onChange(k); setOpen(false) }} />}
+      {open && <IconPicker value={value} c1={c1} c2={c2} onChange={(k) => { onChange(k); setOpen(false) }} suggestFor={suggestFor} />}
     </div>
   )
 }
