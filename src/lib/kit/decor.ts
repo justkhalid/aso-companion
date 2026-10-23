@@ -121,9 +121,82 @@ export const DECOR: Record<string, (c1: RGB, c2: RGB) => string> = {
       b += `<path d="M${x} ${y - s} L${x + s} ${y} L${x} ${y + s} L${x - s} ${y}Z" fill="${rg(i % 2 ? c1 : c2, .75)}"/>`;
     }
     return b;
+  },
+
+  /* ---- added: six more edges, same drawing rules as the ones above ---- */
+  hexagons: (c1, c2) => {
+    let b = "";
+    const hex = (cx: number, cy: number, r: number, col: RGB, a: number) => {
+      let d = "";
+      for (let i = 0; i < 6; i++) {
+        const an = (Math.PI / 3) * i + Math.PI / 6;
+        d += (i ? "L" : "M") + (cx + r * Math.cos(an)).toFixed(1) + " " + (cy + r * Math.sin(an)).toFixed(1);
+      }
+      return `<path d="${d}Z" fill="none" stroke="${rg(col, a)}" stroke-width="6"/>`;
+    };
+    for (let i = 0; i < 9; i++) {
+      const x = 60 + i * 120, y = 92 + (i % 2) * 50, r = 34 - (i % 3) * 5;
+      b += hex(x, y, r, i % 2 ? c1 : c2, .7);
+      b += hex(x, 1828 - (i % 2) * 50, r, i % 2 ? c2 : c1, .7);
+    }
+    return b;
+  },
+  chevrons: (c1, c2) => {
+    let b = "";
+    for (let i = 0; i < 4; i++) {
+      const a = .55 - i * .09, y = 120 + i * 52, y2 = 1800 - i * 52;
+      b += `<path d="M0 ${y} L135 ${y + 58} L270 ${y}" fill="none" stroke="${rg(i % 2 ? c2 : c1, a)}" stroke-width="10"/>`;
+      b += `<path d="M810 ${y2} L945 ${y2 - 58} L1080 ${y2}" fill="none" stroke="${rg(i % 2 ? c1 : c2, a)}" stroke-width="10"/>`;
+    }
+    return b;
+  },
+  petals: (c1, c2) => {
+    let b = "";
+    const flower = (cx: number, cy: number, r: number, n: number, col: RGB, a: number) => {
+      let s = "";
+      for (let i = 0; i < n; i++) {
+        const an = (360 / n) * i;
+        s += `<ellipse cx="${cx}" cy="${cy - r * 0.55}" rx="${(r * 0.3).toFixed(1)}" ry="${(r * 0.62).toFixed(1)}" transform="rotate(${an} ${cx} ${cy})" fill="${rg(col, a)}"/>`;
+      }
+      return s;
+    };
+    b += flower(92, 150, 64, 7, c2, .5) + flower(988, 1776, 80, 7, c1, .45);
+    b += flower(1002, 208, 34, 6, c1, .38) + flower(72, 1706, 40, 6, c2, .38);
+    return b;
+  },
+  arcs: (c1, c2) => {
+    let b = "";
+    for (const [cx, cy] of [[0, 0], [1080, 1920]]) {
+      for (let i = 0; i < 5; i++) {
+        const r = 190 + i * 78;
+        b += `<circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="${rg(i % 2 ? c2 : c1, .5 - i * .07)}" stroke-width="${9 - i}"/>`;
+      }
+    }
+    return b;
+  },
+  grid: (c1, c2) => {
+    let b = "";
+    for (let x = 40; x < 1080; x += 62) {
+      b += `<rect x="${x}" y="0" width="2" height="230" fill="${rg(c1, .35)}"/>`;
+      b += `<rect x="${x}" y="1690" width="2" height="230" fill="${rg(c2, .35)}"/>`;
+    }
+    for (let y = 40; y < 230; y += 62) {
+      b += `<rect x="0" y="${y}" width="1080" height="2" fill="${rg(c1, .2)}"/>`;
+      b += `<rect x="0" y="${1690 + y}" width="1080" height="2" fill="${rg(c2, .2)}"/>`;
+    }
+    return b;
+  },
+  bubbles: (c1, c2) => {
+    let b = "", n = 7;
+    const rnd = () => { n = (n * 16807) % 2147483647; return n / 2147483647; };
+    for (let i = 0; i < 18; i++) {
+      const r = 12 + rnd() * 46, x = rnd() * 1080, y = 1920 - rnd() * 430;
+      b += `<circle cx="${x.toFixed(0)}" cy="${y.toFixed(0)}" r="${r.toFixed(0)}" fill="none" stroke="${rg(i % 2 ? c1 : c2, .35 + rnd() * .35)}" stroke-width="4"/>`;
+    }
+    return b;
   }
 };
-export const DECOR_NAMES: Record<string, string> = { none: "None", film: "Film strips", rings: "Sound rings", atoms: "Atoms and sparkles", stripes: "Corner stripes", triangles: "Triangle pattern", brain: "Brain and bulb", books: "Open books", leaves: "Leaves", dots: "Dot corners", waves: "Soft waves", stars: "Stars", confetti: "Confetti", diamonds: "Diamond rows" };
+export const DECOR_NAMES: Record<string, string> = { none: "None", film: "Film strips", rings: "Sound rings", atoms: "Atoms and sparkles", stripes: "Corner stripes", triangles: "Triangle pattern", brain: "Brain and bulb", books: "Open books", leaves: "Leaves", dots: "Dot corners", waves: "Soft waves", stars: "Stars", confetti: "Confetti", diamonds: "Diamond rows", hexagons: "Honeycomb", chevrons: "Chevrons", petals: "Petals", arcs: "Arc rings", grid: "Fine grid", bubbles: "Bubbles" };
 // Looks used by the existing clubs: [label, c1, c2, ink, decor, icon]
 export const LOOKS: Record<string, Look> = {
   movie: ["Movie night: burgundy and gold, film strips", [96, 18, 40], [222, 158, 38], [58, 14, 28], "film", "i-movie"],
@@ -153,5 +226,19 @@ export const LOOKS: Record<string, Look> = {
   ruby: ["Ruby and gold: diamonds", [140, 10, 50], [230, 180, 60], [255, 255, 255], "diamonds", "debate"],
   azure: ["Azure and white: soft waves", [20, 100, 200], [120, 200, 240], [10, 50, 120], "waves", "science"],
   olive: ["Olive and terracotta: triangles", [90, 100, 40], [200, 100, 60], [50, 56, 20], "triangles", "i-africa"],
-  berry: ["Berry and sky: dots", [130, 30, 100], [80, 170, 230], [255, 255, 255], "dots", "music"]
+  berry: ["Berry and sky: dots", [130, 30, 100], [80, 170, 230], [255, 255, 255], "dots", "music"],
+
+  /* ---- added: twelve more styles, so there is a colour pair for most clubs ---- */
+  ember: ["Ember: copper and charcoal, dots", [156, 66, 30], [58, 56, 54], [255, 240, 226], "dots", "cooking"],
+  jade: ["Jade and cream: leaves", [18, 112, 92], [236, 226, 192], [10, 58, 46], "leaves", "environment"],
+  cobalt: ["Cobalt and lemon: honeycomb", [28, 60, 182], [242, 206, 62], [12, 26, 92], "hexagons", "coding"],
+  plum: ["Plum and apricot: confetti", [94, 36, 92], [242, 162, 112], [58, 20, 58], "confetti", "art"],
+  seaglass: ["Sea glass and sand: bubbles", [56, 140, 138], [226, 206, 172], [26, 78, 78], "bubbles", "swimming"],
+  orchid: ["Orchid and mint: diamonds", [152, 82, 182], [120, 220, 190], [70, 30, 90], "diamonds", "dance"],
+  rust: ["Rust and sky: triangles", [162, 72, 42], [142, 190, 230], [80, 34, 18], "triangles", "travel"],
+  ink: ["Ink and paper: fine grid", [32, 36, 46], [240, 238, 230], [250, 250, 250], "grid", "news"],
+  lime: ["Lime and ink: chevrons", [162, 200, 44], [30, 34, 44], [20, 30, 10], "chevrons", "fitness"],
+  quartz: ["Quartz and rose: petals", [200, 190, 216], [230, 150, 162], [60, 50, 80], "petals", "yoga"],
+  copper: ["Copper and navy: arc rings", [190, 112, 62], [26, 40, 92], [255, 240, 222], "arcs", "music"],
+  moss: ["Moss and stone: soft waves", [92, 112, 62], [190, 186, 172], [40, 50, 26], "waves", "nature"]
 };

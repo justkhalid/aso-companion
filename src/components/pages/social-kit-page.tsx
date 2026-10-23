@@ -615,11 +615,27 @@ const inputCls = 'w-full rounded-lg border border-border bg-background px-3 py-2
 type Artefact = 'story' | 'post' | 'whatsapp' | 'highlight'
 const ARTEFACTS: [Artefact, string][] = [['story', 'Story'], ['post', 'Post'], ['whatsapp', 'WhatsApp'], ['highlight', 'Highlight']]
 
+type Pane = 'content' | 'design' | 'caption' | 'publish'
+const PANES: [Pane, string][] = [['content', 'Content'], ['design', 'Design'], ['caption', 'Caption'], ['publish', 'Publish']]
+
+/* The eight wave pictures are the same soft glass ribbon, only moved to another corner,
+   so a name says more than a 40px thumbnail ever did. */
+const WAVES: [number, string][] = [
+  [0, 'Top right'],
+  [1, 'Top left'],
+  [2, 'Twin ribbon'],
+  [3, 'Bottom right'],
+  [4, 'Right edge'],
+  [5, 'Left edge'],
+  [6, 'Arch'],
+  [7, 'Bare'],
+]
+
 /* A card is the whole navigation of this screen: no steps, no Next button, nothing hidden
    behind a counter. Each card is one question, and the picture on the left follows. */
-function Card({ title, hint, id, children }: { title: string; hint?: string; id?: string; children: React.ReactNode }) {
+function Card({ title, hint, id, className, children }: { title: string; hint?: string; id?: string; className?: string; children: React.ReactNode }) {
   return (
-    <section id={id} className="rounded-2xl border border-border bg-card p-5">
+    <section id={id} className={cn('rounded-2xl border border-border bg-card p-5', className)}>
       <h2 className="text-[15px] font-extrabold tracking-tight">{title}</h2>
       {hint && <p className="mt-0.5 text-[11.5px] leading-snug text-muted-foreground">{hint}</p>}
       <div className="mt-4 flex flex-col gap-5">{children}</div>
@@ -683,6 +699,8 @@ function KitEditor({ kind, id, onBack, onManage, onEditSchedule }: { kind: Kind;
   const [artefact, setArtefact] = React.useState<Artefact>('story')
   /* which layer of the design is open, one at a time, so the card stays short */
   const [openLayer, setOpenLayer] = React.useState<'colors' | 'decor' | 'icon' | null>(null)
+  /* one card at a time: any order you like, no Next button, and the picture never moves */
+  const [pane, setPane] = React.useState<Pane>('content')
   const [typeOpen, setTypeOpen] = React.useState(false)
 
   const [edits, setEdits] = React.useState<KitOverrides>(() => ({ ...(item?.kit || {}) }))
@@ -855,7 +873,7 @@ function KitEditor({ kind, id, onBack, onManage, onEditSchedule }: { kind: Kind;
         <Button size="sm" variant="ghost" onClick={() => setMode('cancel')}>
           <CalendarClock className="h-4 w-4" /> Cancellation notice
         </Button>
-        <Button size="sm" onClick={() => document.getElementById('publish-card')?.scrollIntoView({ behavior: 'smooth', block: 'start' })}>
+        <Button size="sm" onClick={() => setPane('publish')}>
           <Send className="h-4 w-4" /> Publish
         </Button>
       </div>
@@ -921,7 +939,24 @@ function KitEditor({ kind, id, onBack, onManage, onEditSchedule }: { kind: Kind;
 
         {/* ---- everything that goes into the picture, in four plain cards ---- */}
         <div className="order-2 flex min-w-0 flex-col gap-3 lg:order-1">
-          <Card title="Content" hint="What it says. The day, the time and the place come from the club or event, so they are changed there.">
+          {/* Section nav. One card at a time, in any order, with no Next button: this is a
+              switcher, not a wizard. Toggle buttons with aria-pressed rather than a
+              hand-rolled tablist, so nothing has to pretend to be a tab panel. */}
+          <div className="-mx-1 flex gap-1 overflow-x-auto rounded-full border border-border bg-card p-1" role="group" aria-label="Sections">
+            {PANES.map(([id, label]) => (
+              <button
+                key={id}
+                type="button"
+                onClick={() => setPane(id)}
+                aria-pressed={pane === id}
+                className={cn('flex-1 whitespace-nowrap rounded-full px-3 py-1.5 text-[12.5px] font-bold transition outline-none focus-visible:ring-2 focus-visible:ring-ring', pane === id ? 'aso-nav-pill' : 'text-foreground/70 hover:bg-secondary')}
+              >
+                {label}
+              </button>
+            ))}
+          </div>
+
+          <Card title="Content" className={pane === 'content' ? undefined : 'hidden'} hint="What it says. The day, the time and the place come from the club or event, so they are changed there.">
                 <Block title="Poster">
                   <div className="flex items-center gap-4">
                     <div className="w-24 shrink-0 overflow-hidden border border-border bg-secondary" style={{ aspectRatio: '3 / 4' }}>
@@ -996,7 +1031,7 @@ function KitEditor({ kind, id, onBack, onManage, onEditSchedule }: { kind: Kind;
                 </Block>
           </Card>
 
-          <Card title="Design" hint="A style sets the colours, the decoration and the icon at once. Open a layer only to change one of the three.">
+          <Card title="Design" className={pane === 'design' ? undefined : 'hidden'} hint="A style sets the colours, the decoration and the icon at once. Open a layer only to change one of the three.">
                 <Block title="Style">
                   <div className="grid max-h-[19rem] grid-cols-2 gap-2 overflow-y-auto pr-1 sm:grid-cols-3">
                     {Object.entries(LOOKS).map(([k, v]) => {
@@ -1125,11 +1160,11 @@ function KitEditor({ kind, id, onBack, onManage, onEditSchedule }: { kind: Kind;
                     )}
                   </div>
                   <div>
-                    <Lab hint="The wave picture behind the writing. Used by the story and the WhatsApp picture.">Waves</Lab>
-                    <div className="-mx-1 flex snap-x gap-2 overflow-x-auto px-1 pb-2">
-                      {Array.from({ length: 8 }, (_, i) => (
-                        <button key={i} type="button" onClick={() => set('bg', i)} aria-pressed={R.bg === i} className={cn('w-20 shrink-0 snap-start overflow-hidden rounded-lg border p-0 outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1 focus-visible:ring-offset-background', R.bg === i ? 'border-primary ring-2 ring-primary' : 'border-border')} aria-label={`Wave picture ${i + 1}`}>
-                          <img src={`/kit/bg/story${i}.jpg`} alt="" className="block aspect-[9/14] w-full object-cover object-top" loading="lazy" />
+                    <Lab hint="Where the glass highlight sits. Used by the story and the WhatsApp picture.">Waves</Lab>
+                    <div className="flex flex-wrap gap-1.5">
+                      {WAVES.map(([i, label]) => (
+                        <button key={i} type="button" onClick={() => set('bg', i)} aria-pressed={R.bg === i} className={chipCls(R.bg === i)}>
+                          {label}
                         </button>
                       ))}
                     </div>
@@ -1153,7 +1188,7 @@ function KitEditor({ kind, id, onBack, onManage, onEditSchedule }: { kind: Kind;
                 </Block>
           </Card>
 
-          <Card title="Caption" hint="The words that go under the post. Copy it, or paste it straight into the app.">
+          <Card title="Caption" className={pane === 'caption' ? undefined : 'hidden'} hint="The words that go under the post. Copy it, or paste it straight into the app.">
                 <Block title="Caption for the post">
                   <textarea className={cn(inputCls, 'min-h-[180px] resize-y')} value={R.cap} placeholder="Paste the caption here" onChange={(e) => set('cap', e.target.value)} />
                   <Button type="button" variant="outline" size="sm" className="self-start" onClick={() => { void navigator.clipboard.writeText(R.cap).then(() => toast('Caption copied')) }}>
@@ -1170,7 +1205,7 @@ function KitEditor({ kind, id, onBack, onManage, onEditSchedule }: { kind: Kind;
                 )}
           </Card>
 
-          <Card id="publish-card" title="Publish" hint="Send it now, or pick a time. The files above are yours to download whatever you choose here.">
+          <Card id="publish-card" title="Publish" className={pane === 'publish' ? undefined : 'hidden'} hint="Send it now, or pick a time. The files above are yours to download whatever you choose here.">
               <PublishPanel
                 storyCanvas={out?.story ?? null}
                 poster={R.poster}
