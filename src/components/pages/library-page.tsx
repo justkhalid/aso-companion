@@ -23,9 +23,9 @@ export function LibraryPage() {
   }
 
   return (
-    <div className="mx-auto max-w-4xl px-4 py-6 sm:py-8">
+    <div className="mx-auto max-w-5xl px-4 py-6 sm:py-8">
       <PageHead
-        title="Library"
+        title="Teaching resources"
         subtitle="Every Drive folder, grouped by what a teacher needs. Filter by age and skill, browse subfolders, or search files."
         right={
           <div className="flex gap-2">

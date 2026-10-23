@@ -154,7 +154,7 @@ export function MembersPage() {
       )}
 
       {data?.available && !data.connected && (
-        <div className="mx-auto flex max-w-xl flex-col gap-3 rounded-2xl border border-border bg-card p-5">
+        <div className="flex max-w-xl flex-col gap-3 rounded-2xl border border-border bg-card p-5">
           <h2 className="text-sm font-extrabold">Connect the members sheet</h2>
           <p className="text-xs text-muted-foreground">Paste the link of the Google Apps Script and its key. They are checked, then kept encrypted on this computer only. They are not saved on the website or on GitHub, and not shown again.</p>
           <div>

@@ -1,11 +1,13 @@
 'use client'
 
 import * as React from 'react'
-import { ArrowRight, CalendarDays, CheckCircle2, Send } from 'lucide-react'
+import { ArrowRight, CalendarDays, CheckCircle2, ImagePlus, Send } from 'lucide-react'
 import { useStore } from '@/lib/store'
 import { postQueue, reasonText, type QueueItem } from '@/lib/post-queue'
 import { Chip } from '@/components/ui-bits'
 import { Button } from '@/components/ui/button'
+import { kitRec } from '@/lib/kit/derive'
+import { posterThumb } from '@/lib/poster-url'
 
 const whenText = (q: QueueItem) => (q.daysAway === 0 ? 'Today' : q.daysAway === 1 ? 'Tomorrow' : q.when.toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'short' }))
 
@@ -15,6 +17,13 @@ export function PostQueue({ compact }: { compact?: boolean }) {
   const openSocial = useStore((s) => s.openSocial)
   const queue = React.useMemo(() => postQueue(state), [state])
   const shown = compact ? queue.slice(0, 5) : queue
+  /* the poster of a queue entry, so the list shows what is about to be posted */
+  const posterOf = (q: QueueItem) => {
+    const item = q.kind === 'club' ? state.clubs.find((c) => c.id === q.id) : state.events.find((e) => e.id === q.id)
+    if (!item) return ''
+    const R = kitRec(q.kind, item)
+    return R.sitePoster ? posterThumb(R.sitePoster, 160) : R.poster || ''
+  }
 
   if (queue.length === 0) {
     return (
@@ -27,6 +36,11 @@ export function PostQueue({ compact }: { compact?: boolean }) {
     <ul className="grid gap-1.5">
       {shown.map((q) => (
         <li key={q.kind + q.id} className="flex flex-wrap items-center gap-x-3 gap-y-1 rounded-xl border border-border bg-card px-3 py-2">
+          {!compact && (
+            <span className="grid aspect-[3/4] w-11 shrink-0 place-items-center overflow-hidden bg-secondary">
+              {posterOf(q) ? <img src={posterOf(q)} alt="" className="h-full w-full object-contain" loading="lazy" /> : <ImagePlus className="h-4 w-4 text-muted-foreground" aria-hidden />}
+            </span>
+          )}
           <span className="min-w-0 flex-1">
             <span className="block truncate text-sm font-bold">{q.name}</span>
             <span className="text-xs text-muted-foreground">{whenText(q)} · {reasonText[q.reason]}</span>

@@ -9,12 +9,13 @@ import { Button } from '@/components/ui/button'
 
 export function ReportsPage({ embedded = false }: { embedded?: boolean }) {
   const toast = useStore((s) => s.toast)
+  const asAdmin = useStore((s) => s.admin && !s.pubView)
   return (
-    <div className={embedded ? '' : 'mx-auto max-w-3xl px-4 py-6 sm:py-8'}>
+    <div className={embedded ? '' : 'mx-auto max-w-5xl px-4 py-6 sm:py-8'}>
       {embedded ? (
         <h2 className="mb-1 text-xl font-extrabold tracking-tight">Submit report</h2>
       ) : (
-        <PageHead title="Submit report" subtitle="After every session: take attendance and send your report. Here is the link and a quick guide." />
+        <PageHead title={asAdmin ? 'Reporting guide' : 'Submit report'} subtitle="After every session: take attendance and send your report. Here is the link and a quick guide." />
       )}
 
       {/* the one thing to do */}

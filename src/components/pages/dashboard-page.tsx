@@ -392,7 +392,10 @@ export function DashboardPage() {
                     const isNext = s.key === sessions[nextIdx]?.key
                     return (
                       <li key={s.key} className={cn('group flex gap-3', past && !isNext && 'opacity-55')}>
-                        <span className="w-11 shrink-0 pt-0.5 text-right text-[11px] font-bold tabular-nums text-muted-foreground">{fmtTime(s.time) || '—'}</span>
+                        <span className="w-[4.25rem] shrink-0 whitespace-nowrap pt-0.5 text-right text-[11px] font-bold leading-tight tabular-nums text-muted-foreground">
+                          {(fmtTime(s.time) || '—').split(' - ')[0]}
+                          {(fmtTime(s.time) || '').includes(' - ') && <span className="block text-[10px] font-semibold opacity-70">to {(fmtTime(s.time) || '').split(' - ')[1]}</span>}
+                        </span>
                         <span className="relative flex w-3 shrink-0 justify-center pt-1.5">
                           <span className={cn('z-10 h-2.5 w-2.5 rounded-full ring-2 ring-card', isNext ? 'bg-primary' : past ? 'bg-border' : 'bg-foreground/25')} />
                           {s.key !== shown[shown.length - 1].key && <span className="absolute top-3.5 h-full w-px bg-border" aria-hidden />}

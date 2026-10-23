@@ -159,7 +159,7 @@ export function SettingsPage() {
   }
 
   return (
-    <div className="mx-auto max-w-2xl px-4 py-6 sm:py-8">
+    <div className="mx-auto max-w-5xl px-4 py-6 sm:py-8 [&>*:not(:first-child)]:max-w-2xl">
       <PageHead title="Settings" subtitle="Appearance, profile, academic year, access and cloud storage." />
 
       <div role="tablist" aria-label="Settings sections" className="mb-4 flex gap-1 rounded-full bg-secondary p-1">
