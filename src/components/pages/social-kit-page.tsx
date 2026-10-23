@@ -627,6 +627,53 @@ function Card({ title, hint, id, children }: { title: string; hint?: string; id?
   )
 }
 
+/* One side of the design: what it is, what it currently looks like, and (when opened) the
+   choices for it. The small square on the left is the whole point - you can see what each
+   layer contributes before you change it. */
+function LayerRow({ label, value, preview, open, onToggle, children }: {
+  label: string
+  value: string
+  preview: React.ReactNode
+  open: boolean
+  onToggle: () => void
+  children: React.ReactNode
+}) {
+  return (
+    <div className={cn('overflow-hidden rounded-xl border transition', open ? 'border-primary' : 'border-border')}>
+      <button
+        type="button"
+        onClick={onToggle}
+        aria-expanded={open}
+        className="flex w-full items-center gap-3 p-2.5 text-left outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-inset"
+      >
+        <span className="grid h-10 w-10 shrink-0 place-items-center overflow-hidden rounded-lg border border-black/10 bg-secondary">
+          {preview}
+        </span>
+        <span className="min-w-0 flex-1">
+          <span className="block text-[10.5px] font-bold uppercase tracking-wider text-muted-foreground">{label}</span>
+          <span className="block truncate text-[13px] font-bold">{value}</span>
+        </span>
+        <ChevronRight className={cn('h-4 w-4 shrink-0 text-muted-foreground transition', open && 'rotate-90')} />
+      </button>
+      {open && <div className="border-t border-border p-2.5">{children}</div>}
+    </div>
+  )
+}
+
+/* the icon of a club, at 24-40px, in the colours of the current style */
+function IconDot({ name, c1, c2, size = 40 }: { name: string; c1: number[]; c2: number[]; size?: number }) {
+  const [url, setUrl] = React.useState('')
+  const sig = c1.join(',') + '|' + c2.join(',')
+  React.useEffect(() => {
+    let live = true
+    iconCanvas(name, size * 2, c1 as [number, number, number], c2 as [number, number, number])
+      .then((c) => { if (live) setUrl(c.toDataURL('image/png')) })
+      .catch(() => {})
+    return () => { live = false }
+  }, [name, sig, size])
+  return url ? <img src={url} alt="" className="h-full w-full object-contain p-1" /> : <span className="block h-full w-full" />
+}
+
 function KitEditor({ kind, id, onBack, onManage, onEditSchedule }: { kind: Kind; id: string; onBack: () => void; onManage: () => void; onEditSchedule: (item: Club | EventEntry) => void }) {
   const list = useStore((s) => (kind === 'club' ? s.state.clubs : s.state.events)) as (Club | EventEntry)[]
   const patch = useStore((s) => s.patch)
@@ -634,6 +681,8 @@ function KitEditor({ kind, id, onBack, onManage, onEditSchedule }: { kind: Kind;
   const item = list.find((x) => x.id === id)
   const [mode, setMode] = React.useState<'studio' | 'cancel'>('studio')
   const [artefact, setArtefact] = React.useState<Artefact>('story')
+  /* which layer of the design is open, one at a time, so the card stays short */
+  const [openLayer, setOpenLayer] = React.useState<'colors' | 'decor' | 'icon' | null>(null)
   const [typeOpen, setTypeOpen] = React.useState(false)
 
   const [edits, setEdits] = React.useState<KitOverrides>(() => ({ ...(item?.kit || {}) }))
@@ -729,7 +778,10 @@ function KitEditor({ kind, id, onBack, onManage, onEditSchedule }: { kind: Kind;
 
   const theme = kitTheme(R)
   const set = (k: keyof KitOverrides, v: string | number | undefined) => change((e) => ({ ...e, [k]: v }))
-  const pickLook = (k: string) => change((e) => { const n = { ...e, look: k }; delete n.icon; return n })
+  /* Changing the style keeps a hand-picked icon: it is a layer of its own now, and losing it
+     because you tried another colour scheme is exactly the surprise this screen is meant to
+     avoid. "Back to the style" clears all three layers when you do want the style's own. */
+  const pickLook = (k: string) => change((e) => ({ ...e, look: k }))
   const setPoster = async (file: File) => {
     const im = await loadImage(URL.createObjectURL(file))
     const c = cv(1080, 1440)
@@ -784,6 +836,12 @@ function KitEditor({ kind, id, onBack, onManage, onEditSchedule }: { kind: Kind;
     !R.cap.trim() ? 'No caption yet: write one under Caption.' : '',
   ].filter(Boolean)
 
+  /* what each layer of the design is set to, said in words rather than as a key */
+  const paletteName = R.palette && R.palette !== 'same' ? (LOOKS[R.palette]?.[0].split(':')[0] ?? 'Another style') : 'From the style'
+  const decorName = R.decor && R.decor !== 'same' ? (DECOR_NAMES[R.decor] ?? 'Another style') : 'From the style'
+  const iconName = KIT_ICONS[R.icon]?.label || 'Icon'
+  const hasOverrides = edits.palette !== undefined || edits.decor !== undefined || edits.icon !== undefined
+
   return (
     <div className="mx-auto max-w-[1240px] px-4 py-6 sm:py-8">
       {/* One header for the whole screen: what this is, whether it is saved, and the two
@@ -802,9 +860,9 @@ function KitEditor({ kind, id, onBack, onManage, onEditSchedule }: { kind: Kind;
         </Button>
       </div>
 
-      <div className="grid gap-6 lg:grid-cols-[minmax(0,5fr)_minmax(0,6fr)] lg:items-start">
-        {/* ---- the picture: one at a time, always in view ---- */}
-        <div className="flex min-w-0 flex-col gap-3 lg:sticky lg:top-20 lg:max-h-[calc(100vh-6rem)] lg:overflow-y-auto lg:pr-1 lg:scroll-thin">
+      <div className="grid gap-6 lg:grid-cols-[minmax(0,6fr)_minmax(0,5fr)] lg:items-start">
+        {/* ---- the picture: one at a time, always in view, on the right ---- */}
+        <div className="order-1 flex min-w-0 flex-col gap-3 lg:order-2 lg:sticky lg:top-20 lg:max-h-[calc(100vh-6rem)] lg:overflow-y-auto lg:pl-1 lg:scroll-thin">
           <div className="flex flex-wrap gap-1" role="group" aria-label="Which picture to show">
             {ARTEFACTS.filter(([id]) => kind === 'club' || id !== 'whatsapp').map(([id, label]) => (
               <button key={id} type="button" aria-pressed={artefact === id} onClick={() => setArtefact(id)} className={chipCls(artefact === id)}>
@@ -862,7 +920,7 @@ function KitEditor({ kind, id, onBack, onManage, onEditSchedule }: { kind: Kind;
         </div>
 
         {/* ---- everything that goes into the picture, in four plain cards ---- */}
-        <div className="flex min-w-0 flex-col gap-3">
+        <div className="order-2 flex min-w-0 flex-col gap-3 lg:order-1">
           <Card title="Content" hint="What it says. The day, the time and the place come from the club or event, so they are changed there.">
                 <Block title="Poster">
                   <div className="flex items-center gap-4">
@@ -938,10 +996,9 @@ function KitEditor({ kind, id, onBack, onManage, onEditSchedule }: { kind: Kind;
                 </Block>
           </Card>
 
-          <Card title="Design" hint="The look sets the two colors and the decoration together. Everything under it is a small change to that look.">
-                <Block title="Look">
-                  <p className="text-xs text-muted-foreground">One choice sets the two colors and the edge decoration together. Anything you change further down is an addition to this look.</p>
-                  <div className="grid max-h-[23rem] grid-cols-2 gap-2 overflow-y-auto pr-1 sm:grid-cols-3">
+          <Card title="Design" hint="A style sets the colours, the decoration and the icon at once. Open a layer only to change one of the three.">
+                <Block title="Style">
+                  <div className="grid max-h-[19rem] grid-cols-2 gap-2 overflow-y-auto pr-1 sm:grid-cols-3">
                     {Object.entries(LOOKS).map(([k, v]) => {
                       const on = R.look === k
                       return (
@@ -956,8 +1013,8 @@ function KitEditor({ kind, id, onBack, onManage, onEditSchedule }: { kind: Kind;
                             on ? 'border-primary bg-primary/5 ring-2 ring-primary' : 'border-border bg-card hover:bg-secondary',
                           )}
                         >
-                          {/* both colors, side by side, so the two words of the name make sense */}
-                          <span className="flex h-7 overflow-hidden rounded-md border border-black/5">
+                          {/* both colours, side by side: the name always reads "colour and colour" */}
+                          <span className="flex h-8 overflow-hidden rounded-md border border-black/5">
                             <span className="flex-1" style={{ background: rg(v[1]) }} />
                             <span className="flex-1" style={{ background: rg(v[2]) }} />
                           </span>
@@ -969,9 +1026,89 @@ function KitEditor({ kind, id, onBack, onManage, onEditSchedule }: { kind: Kind;
                   </div>
                 </Block>
 
-                <Block title="Background">
+                <Block title="Layers">
+                  <p className="-mt-1 text-[11.5px] leading-snug text-muted-foreground">A style already fills all three of these. Open one only when the style is almost right.</p>
+                  <div className="flex flex-col gap-2">
+                    <LayerRow
+                      label="Colours"
+                      value={paletteName}
+                      preview={<span className="block h-full w-full" style={{ background: `linear-gradient(135deg,${rg(theme.c1)},${rg(theme.c2)})` }} />}
+                      open={openLayer === 'colors'}
+                      onToggle={() => setOpenLayer(openLayer === 'colors' ? null : 'colors')}
+                    >
+                      <div className="flex flex-wrap gap-1.5">
+                        <button type="button" className={chipCls(R.palette === 'same')} onClick={() => set('palette', 'same')}>From the style</button>
+                        {Object.entries(LOOKS).map(([k, v]) => {
+                          const on = R.palette === k && R.palette !== 'same'
+                          return (
+                            <button
+                              key={k}
+                              type="button"
+                              onClick={() => set('palette', k)}
+                              aria-pressed={on}
+                              className={cn('inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-[11.5px] font-bold outline-none transition focus-visible:ring-2 focus-visible:ring-ring', on ? 'border-primary bg-primary/10' : 'border-border bg-card hover:bg-secondary')}
+                            >
+                              <span className="flex h-3.5 w-3.5 overflow-hidden rounded-full border border-black/10">
+                                <span className="h-full w-1/2" style={{ background: rg(v[1]) }} />
+                                <span className="h-full w-1/2" style={{ background: rg(v[2]) }} />
+                              </span>
+                              {v[0].split(':')[0]}
+                            </button>
+                          )
+                        })}
+                      </div>
+                    </LayerRow>
+
+                    <LayerRow
+                      label="Decoration"
+                      value={decorName}
+                      preview={R.decor && R.decor !== 'same' && DECOR[R.decor]
+                        ? <svg viewBox="0 0 1080 1680" className="h-full w-full" preserveAspectRatio="xMidYMid slice" aria-hidden dangerouslySetInnerHTML={{ __html: `<rect width="1080" height="1920" fill="${rg(theme.ink, 0.06)}"/>${DECOR[R.decor](theme.c1, theme.c2)}` }} />
+                        : <span className="block h-full w-full" style={{ background: `linear-gradient(135deg,${rg(theme.c1)},${rg(theme.c2)})` }} />}
+                      open={openLayer === 'decor'}
+                      onToggle={() => setOpenLayer(openLayer === 'decor' ? null : 'decor')}
+                    >
+                      <div className="-mx-1 flex gap-2 overflow-x-auto px-1 pb-1">
+                        <DecorThumb k="same" label="From the style" on={R.decor === 'same'} c1={theme.c1} c2={theme.c2} onPick={() => set('decor', 'same')} />
+                        {Object.entries(DECOR_NAMES).map(([k, n]) => (
+                          <DecorThumb key={k} k={k} label={n} on={R.decor === k} c1={theme.c1} c2={theme.c2} onPick={() => set('decor', k)} />
+                        ))}
+                      </div>
+                    </LayerRow>
+
+                    <LayerRow
+                      label="Icon"
+                      value={iconName}
+                      preview={<IconDot name={R.icon} c1={theme.c1} c2={theme.c2} />}
+                      open={openLayer === 'icon'}
+                      onToggle={() => setOpenLayer(openLayer === 'icon' ? null : 'icon')}
+                    >
+                      <IconPicker
+                        value={R.icon}
+                        c1={theme.c1}
+                        c2={theme.c2}
+                        onChange={(k) => { set('icon', k); setOpenLayer(null) }}
+                        suggestFor={[R.word, R.top, R.name].filter(Boolean).join(' ')}
+                      />
+                    </LayerRow>
+                  </div>
+
+                  {hasOverrides && (
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      className="self-start text-destructive"
+                      onClick={() => change((e) => { const n = { ...e }; delete n.palette; delete n.decor; delete n.icon; return n })}
+                    >
+                      <RotateCcw className="h-4 w-4" /> Back to the style
+                    </Button>
+                  )}
+                </Block>
+
+                <Block title="Paper and waves">
                   <div>
-                    <Lab hint="The color of the background picture itself, under the waves. Used by the story, the WhatsApp picture and the highlight cover.">Ground color</Lab>
+                    <Lab hint="The colour of the paper behind everything. Used by the story, the WhatsApp picture and the highlight cover.">Paper</Lab>
                     <div className="grid grid-cols-3 gap-2 sm:grid-cols-5">
                       {Object.entries(GROUNDS).map(([k, [label, tint]]) => {
                         const sw = k === 'look' ? `linear-gradient(135deg,${rg(theme.c1, .35)},${rg(theme.c2, .35)})` : tint ? rg(tint, .7) : 'rgb(244,240,232)'
@@ -988,65 +1125,28 @@ function KitEditor({ kind, id, onBack, onManage, onEditSchedule }: { kind: Kind;
                     )}
                   </div>
                   <div>
-                    <Lab hint="The glass waves picture behind the writing. Used by the story and the WhatsApp picture.">Wave picture</Lab>
+                    <Lab hint="The wave picture behind the writing. Used by the story and the WhatsApp picture.">Waves</Lab>
                     <div className="-mx-1 flex snap-x gap-2 overflow-x-auto px-1 pb-2">
                       {Array.from({ length: 8 }, (_, i) => (
-                        <button key={i} type="button" onClick={() => set('bg', i)} aria-pressed={R.bg === i} className={cn('w-20 shrink-0 snap-start overflow-hidden rounded-lg border p-0 outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1 focus-visible:ring-offset-background', R.bg === i ? 'border-primary ring-2 ring-primary' : 'border-border')} aria-label={`Background ${i + 1}`}>
+                        <button key={i} type="button" onClick={() => set('bg', i)} aria-pressed={R.bg === i} className={cn('w-20 shrink-0 snap-start overflow-hidden rounded-lg border p-0 outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1 focus-visible:ring-offset-background', R.bg === i ? 'border-primary ring-2 ring-primary' : 'border-border')} aria-label={`Wave picture ${i + 1}`}>
                           <img src={`/kit/bg/story${i}.jpg`} alt="" className="block aspect-[9/14] w-full object-cover object-top" loading="lazy" />
                         </button>
                       ))}
                     </div>
                   </div>
                   <div>
-                    <Lab hint="How much of the glass waves shows. 0 is a plain pearl ground, 100 is the full effect.">Glass strength: {R.glass}</Lab>
-                    <input type="range" min={0} max={100} step={5} value={R.glass} onChange={(e) => set('glass', +e.target.value)} className="w-full accent-[var(--primary)]" aria-label="Glass strength" />
-                    <div className="flex justify-between text-[11px] text-muted-foreground"><span>None</span><span>Full</span></div>
+                    <Lab hint="How much of the waves shows. 0 is plain paper, 100 is the full effect.">Waves strength: {R.glass}</Lab>
+                    <input type="range" min={0} max={100} step={5} value={R.glass} onChange={(e) => set('glass', +e.target.value)} className="w-full accent-[var(--primary)]" aria-label="Waves strength" />
+                    <div className="flex justify-between text-[11px] text-muted-foreground"><span>Plain paper</span><span>Full waves</span></div>
                   </div>
                 </Block>
 
-                <Block title="Motion">
+                <Block title="Movement">
                   <div>
-                    <Lab hint="How the story moves in the preview and in the video.">Movement</Lab>
+                    <Lab hint="Only the story video and this preview move. The picture you download does not.">Movement</Lab>
                     <div className="flex flex-wrap gap-1.5">
                       {([[0, 'Still'], [1, 'Gentle'], [2, 'Lively']] as const).map(([v, n]) => (
                         <button key={v} type="button" className={chipCls(R.motion === v)} onClick={() => set('motion', v)}>{n}</button>
-                      ))}
-                    </div>
-                  </div>
-                </Block>
-
-                <Block title="Icon">
-                  <IconBlock value={R.icon} c1={theme.c1} c2={theme.c2} onChange={(k) => set('icon', k)} suggestFor={[R.word, R.top, R.name].filter(Boolean).join(' ')} />
-                </Block>
-
-                <Block title="Optional overrides">
-                  <p className="text-xs text-muted-foreground">Only if the look above is almost right. Both stay empty until you pick something.</p>
-                  {(edits.palette !== undefined || edits.decor !== undefined) && (
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      size="sm"
-                      className="self-start text-destructive"
-                      onClick={() => change((e) => { const n = { ...e }; delete n.palette; delete n.decor; return n })}
-                    >
-                      <RotateCcw className="h-4 w-4" /> Back to the look as it is
-                    </Button>
-                  )}
-                  <div>
-                    <Lab hint="Use the colors of another look, keeping this decoration.">Colors only</Lab>
-                    <div className="flex flex-wrap gap-1.5">
-                      <button type="button" className={chipCls(R.palette === 'same')} onClick={() => set('palette', 'same')}>Same as look</button>
-                      {Object.entries(LOOKS).map(([k, v]) => (
-                        <button key={k} type="button" className={chipCls(R.palette === k)} onClick={() => set('palette', k)}>{v[0].split(':')[0]}</button>
-                      ))}
-                    </div>
-                  </div>
-                  <div>
-                    <Lab hint="Use the decoration of another look, keeping these colors.">Edge decoration only</Lab>
-                    <div className="-mx-1 flex gap-2 overflow-x-auto px-1 pb-2">
-                      <DecorThumb k="same" label="Same as look" on={R.decor === 'same'} c1={theme.c1} c2={theme.c2} onPick={() => set('decor', 'same')} />
-                      {Object.entries(DECOR_NAMES).map(([k, n]) => (
-                        <DecorThumb key={k} k={k} label={n} on={R.decor === k} c1={theme.c1} c2={theme.c2} onPick={() => set('decor', k)} />
                       ))}
                     </div>
                   </div>
@@ -1762,26 +1862,8 @@ function DecorThumb({ k, label, on, c1, c2, onPick }: { k: string; label: string
   )
 }
 
-function IconBlock({ value, c1, c2, onChange, suggestFor }: { value: string; c1: number[]; c2: number[]; onChange: (k: string) => void; suggestFor?: string }) {
-  const [open, setOpen] = React.useState(false)
-  const [url, setUrl] = React.useState('')
-  const sig = c1.join(',') + '|' + c2.join(',')
-  React.useEffect(() => {
-    let live = true
-    iconCanvas(value, 96, c1 as [number, number, number], c2 as [number, number, number]).then((c) => { if (live) setUrl(c.toDataURL('image/png')) }).catch(() => {})
-    return () => { live = false }
-  }, [value, sig])
-  return (
-    <div className="flex flex-col gap-3">
-      <div className="flex items-center gap-3 rounded-xl bg-secondary/60 p-3">
-        {url ? <img src={url} alt="" className="h-14 w-14" /> : <span className="h-14 w-14" />}
-        <div className="min-w-0 flex-1 text-sm font-bold">{KIT_ICONS[value]?.label || 'Icon'}<div className="text-[11px] font-medium text-muted-foreground">Shown on the story and the WhatsApp picture</div></div>
-        <Button type="button" variant="outline" size="sm" aria-expanded={open} onClick={() => setOpen((v) => !v)}>{open ? 'Done' : 'Change'}</Button>
-      </div>
-      {open && <IconPicker value={value} c1={c1} c2={c2} onChange={(k) => { onChange(k); setOpen(false) }} suggestFor={suggestFor} />}
-    </div>
-  )
-}
+/* (the old IconBlock lived here: a preview plus a Change button. The icon is now a layer
+   row like the colours and the decoration, so the picker opens inline instead.) */
 
 
 function CancelPanel({ R, theme, title, slug, onManage }: { R: KitRec; theme: ReturnType<typeof kitTheme>; title: string; slug: string; onManage: () => void }) {
