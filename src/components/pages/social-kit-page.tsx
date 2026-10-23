@@ -126,7 +126,7 @@ export function SocialKitPage() {
     <div className="mx-auto max-w-6xl px-4 py-6 sm:py-8">
       <PageHead
         title="Social media"
-        subtitle="What to post, the pictures of every club and event, the month calendars, and posting to Facebook and Instagram. All made from the data you already keep here."
+        subtitle="Pictures and captions for every club and event, made from the data you already keep. Post them to Facebook and Instagram or download them."
         right={
           <div className="flex flex-wrap items-center gap-2">
             {tab !== 'connection' && <><LinksKitButton /><FullKitButton /></>}
@@ -138,8 +138,8 @@ export function SocialKitPage() {
           </div>
         }
       />
-      <div className="mb-5 inline-flex rounded-full border border-border bg-card p-1" role="tablist" aria-label="Kind">
-        {([['todo', 'Share', null], ['club', 'Clubs', state.clubs.filter((c) => !isOver('club', c)).length], ['event', 'Events', state.events.filter((e) => !isOver('event', e)).length], ['post', 'New post', null], ['month', 'Calendar', null], ['scheduled', 'Scheduled', null], ['connection', 'Connection', null]] as const).map(([k, label, n]) => (
+      <div className="mb-5 flex max-w-full overflow-x-auto"><div className="inline-flex shrink-0 rounded-full border border-border bg-card p-1" role="tablist" aria-label="Kind">
+        {([['todo', 'To post', null], ['club', 'Clubs', state.clubs.filter((c) => !isOver('club', c)).length], ['event', 'Events', state.events.filter((e) => !isOver('event', e)).length], ['post', 'New post', null], ['month', 'Calendar', null], ['scheduled', 'Scheduled', null], ['connection', 'Connection', null]] as const).map(([k, label, n]) => (
           <button
             key={k}
             role="tab"
@@ -150,6 +150,7 @@ export function SocialKitPage() {
             {label} {n !== null && <span className="ml-1 text-[11px] opacity-70">{n}</span>}
           </button>
         ))}
+      </div>
       </div>
       {status && typeof status !== 'string' && status.connected && status.daysLeft !== null && status.daysLeft <= 14 && tab !== 'connection' && (
         <div className="mb-4 flex flex-wrap items-center gap-3 rounded-xl border border-[var(--aso-gold)]/40 bg-[var(--aso-gold-tint)] px-4 py-2.5 text-sm font-semibold">
