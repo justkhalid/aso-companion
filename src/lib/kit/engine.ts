@@ -291,9 +291,9 @@ async function storyBody(p: KitParams, t: KitTheme, withBg: boolean, withDecor =
   x.restore();
   // bottom: a QR code of the WhatsApp group (a story cannot carry a tappable link from the app), or the small club icon
   if (withQR) {
-    const QS = 204, qcy = 1608;
-    /* a plain plate under the QR, so the decoration lines never run through the code */
-    x.save(); x.fillStyle = "rgba(246,243,238,.96)"; x.shadowColor = "rgba(40,30,60,.18)"; x.shadowBlur = 30; x.shadowOffsetY = 8; x.fillRect(CX - QS / 2 - 40, qcy - QS / 2 - 40, QS + 80, QS + 80); x.restore();
+    const QS = 204, qcy = 1628;
+    /* a glassy strip under the words only, so decoration lines do not run through the text */
+    x.save(); x.fillStyle = rg(t.ink, .09); x.fillRect(CX - 215, 1766, 430, 98); x.strokeStyle = rg(t.ink, .2); x.lineWidth = 1.5; x.strokeRect(CX - 215, 1766, 430, 98); x.restore();
     drawQR(x, p.wa!, CX, qcy, QS, t.c1, t.c2);
     x.font = "700 27px ManropeA"; spaced(x, "SCAN TO JOIN THE", CX, 1800, 5, rg(t.ink, .92));
     x.font = "700 27px ManropeA"; spaced(x, "WHATSAPP GROUP", CX, 1840, 5, grad(x, CX - 300, CX + 300, t.c1, t.c2));
