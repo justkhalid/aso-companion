@@ -258,7 +258,21 @@ async function storyBody(p: KitParams, t: KitTheme, withBg: boolean, withDecor =
   const dsz = ev ? 40 : 42, dtr = ev ? 7 : 8;
   const B = cap(25) + g1 + inkH + g2 + g3 + cap(dsz) + g4 + cap(30);
   /* even spacing: logo to writing, writing to poster, poster to the bottom button (or the small icon) are the same distance */
-  const withQR = !ev && !!p.wa, PH = withQR ? 640 : 906, PW = Math.round(PH * 0.75), PX = Math.round((1080 - PW) / 2), bottom = withQR ? 1490 : 1800, space = Math.floor((bottom - 204 - B - PH) / 3)
+  const withQR = !ev && !!p.wa
+  const PWmax = withQR ? 480 : 680, PHmax = withQR ? 720 : 1120
+  let PW = PWmax, PH: number
+  if (p.im) {
+    /* respect the uploaded poster's actual aspect ratio: the slot adapts to
+       whatever dimensions the image has, the surrounding layout (kicker, day,
+       time, QR/icon) shifts to keep even spacing. */
+    const ar = p.im.width / p.im.height
+    PH = Math.round(PW / ar)
+    if (PH > PHmax) { PH = PHmax; PW = Math.round(PH * ar) }
+    if (PW > PWmax) { PW = PWmax; PH = Math.round(PW / ar) }
+  } else {
+    PH = withQR ? 640 : 906; PW = Math.round(PH * 0.75)
+  }
+  const PX = Math.round((1080 - PW) / 2), bottom = withQR ? 1490 : 1800, space = Math.floor((bottom - 204 - B - PH) / 3)
   const y = 204 + space, PY = bottom - space - PH;
   x.font = "700 25px ManropeA"; kick(x, p.kicker, CX, y + cap(25), 7, rg(dim(t.c2, .72)));
   const ty = y + cap(25) + g1, base = ty + inkH;
@@ -273,7 +287,7 @@ async function storyBody(p: KitParams, t: KitTheme, withBg: boolean, withDecor =
   const R = 0;
   x.save(); x.shadowColor = "rgba(40,30,60,.28)"; x.shadowBlur = 40; x.shadowOffsetY = 14; rr(x, PX, PY, PW, PH, R); x.fillStyle = "#f6f3ee"; x.fill(); x.restore();
   x.save(); rr(x, PX, PY, PW, PH, R); x.clip();
-  if (p.im) { fitCover(x, p.im, PX, PY, PW, PH) } else { x.fillStyle = "#f6f3ee"; x.fillRect(PX, PY, PW, PH); x.font = "700 23px ManropeA"; spaced(x, "POSTER 3:4", CX, PY + PH / 2 + 8, 6, rg(t.ink, .45)); }
+  if (p.im) { x.drawImage(p.im, PX, PY, PW, PH) } else { x.fillStyle = "#f6f3ee"; x.fillRect(PX, PY, PW, PH); x.font = "700 23px ManropeA"; spaced(x, "POSTER 3:4", CX, PY + PH / 2 + 8, 6, rg(t.ink, .45)); }
   x.restore();
   // bottom: a QR code of the WhatsApp group (a story cannot carry a tappable link from the app), or the small club icon
   if (withQR) {

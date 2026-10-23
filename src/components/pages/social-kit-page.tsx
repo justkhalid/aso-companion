@@ -801,9 +801,17 @@ function KitEditor({ kind, id, onBack, onManage, onEditSchedule }: { kind: Kind;
      avoid. "Back to the style" clears all three layers when you do want the style's own. */
   const pickLook = (k: string) => change((e) => ({ ...e, look: k }))
   const setPoster = async (file: File) => {
-    const im = await loadImage(URL.createObjectURL(file))
-    const c = cv(1080, 1440)
-    fitCover(c.getContext('2d')!, im, 0, 0, 1080, 1440)
+    const url = URL.createObjectURL(file)
+    const im = await loadImage(url)
+    URL.revokeObjectURL(url)
+    /* respect the uploaded aspect ratio: keep the original dimensions (capped at
+       1440px on the longest side so very large uploads do not bloat the state).
+       The story engine adjusts the poster slot to whatever aspect ratio this is. */
+    const maxSide = 1440
+    const scale = Math.min(1, maxSide / Math.max(im.width, im.height))
+    const w = Math.round(im.width * scale), h = Math.round(im.height * scale)
+    const c = cv(w, h)
+    c.getContext('2d')!.drawImage(im, 0, 0, w, h)
     const webp = c.toDataURL('image/webp', 0.88)
     set('poster', webp.startsWith('data:image/webp') ? webp : c.toDataURL('image/jpeg', 0.88))
   }
@@ -960,7 +968,7 @@ function KitEditor({ kind, id, onBack, onManage, onEditSchedule }: { kind: Kind;
                 <Block title="Poster">
                   <div className="flex items-center gap-4">
                     <div className="w-24 shrink-0 overflow-hidden border border-border bg-secondary" style={{ aspectRatio: '3 / 4' }}>
-                      {R.poster ? <img src={R.poster} alt="" className="h-full w-full object-cover" /> : <div className="grid h-full place-items-center text-[10px] font-bold text-muted-foreground">NO POSTER</div>}
+                      {R.poster ? <img src={R.poster} alt="" className="h-full w-full object-contain" /> : <div className="grid h-full place-items-center text-[10px] font-bold text-muted-foreground">NO POSTER</div>}
                     </div>
                     <div className="flex min-w-0 flex-1 flex-col items-start gap-2">
                       <p className="text-xs text-muted-foreground">
