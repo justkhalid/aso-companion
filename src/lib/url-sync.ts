@@ -105,6 +105,12 @@ const ADMIN_PATH: Partial<Record<View, string>> = {
   login: '/admin',
 }
 
+/** The admin URL for a view. The sidebar links to it, so middle-click, ⌘-click and
+ *  "copy link address" work the way people expect from a menu. */
+export function adminPathFor(view: View): string {
+  return ADMIN_PATH[view] || '/admin'
+}
+
 export function isAdminPath(pathname: string): boolean {
   return pathname === '/admin' || pathname.startsWith('/admin/')
 }

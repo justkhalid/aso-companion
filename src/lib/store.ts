@@ -732,19 +732,11 @@ if (typeof window !== 'undefined') {
   })
 }
 
-/* helper hook: the current "effective" view considering pubView */
-export function effectiveView(store: UIStore): View {
-  if (!store.admin) {
-    // public: only home/eltaso/level-detail/clubs/resources/login
-    const allowed: View[] = ['landing', 'home', 'eltaso', 'level-detail', 'resources', 'intern-public', 'interns-events', 'interns-clubs', 'interns-rooms', 'interns-report', 'teacher-rooms', 'login']
-    return allowed.includes(store.view) ? store.view : 'home'
-  }
-  if (store.pubView) {
-    const allowed: View[] = ['landing', 'home', 'eltaso', 'level-detail', 'resources', 'intern-public', 'interns-events', 'interns-clubs', 'interns-rooms', 'interns-report', 'teacher-rooms']
-    return allowed.includes(store.view) ? store.view : 'home'
-  }
-  return store.view
-}
+/* `effectiveView` used to live here: a second copy of the allow-list that
+   app-shell.tsx already keeps in computeView(), and the two had drifted (this one
+   never allowed 'director' or 'reports'). Nothing imported it, so it is gone:
+   computeView() in app-shell.tsx is the single place that decides what a visitor
+   may open. */
 
 /* the holiday list follows the saved settings (moved lunar dates, own holidays) wherever it is used */
 setHolidayRules(useStore.getState().state?.settings?.holidays)

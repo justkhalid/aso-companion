@@ -196,7 +196,7 @@ export function AppShell({ initialView }: { initialView?: View }) {
       <AdminSidebar mobileNavOpen={mobileNav} setMobileNavOpen={setMobileNav} />
       <LeaveGuard />
       <div className="flex min-w-0 flex-1 flex-col">
-        <AdminTopbar setMobileNavOpen={setMobileNav} />
+        <AdminTopbar mobileNavOpen={mobileNav} setMobileNavOpen={setMobileNav} />
         <main id="main" tabIndex={-1} className="flex-1 outline-none">
           <div key={ev} className="aso-page"><PageBody view={ev} admin /></div>
         </main>

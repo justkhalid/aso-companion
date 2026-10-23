@@ -1,152 +1,47 @@
 'use client'
 
 import * as React from 'react'
-import {
-  LayoutDashboard,
-  CalendarRange,
-  CalendarClock,
-  GraduationCap,
-  Users,
-  CalendarDays,
-  FileText,
-  Settings,
-  LogOut,
-  Eye,
-  Menu,
-  Sparkles,
-  FolderOpen,
-  DoorOpen,
-  UserX,
-  Check,
-  Loader2,
-  CloudOff,
-  RotateCcw,
-  BookUser,
-  Send,
-  Plus,
-  Clock,
-  ClipboardList,
-  ClipboardCheck,
-  Boxes,
-} from 'lucide-react'
+import * as Dialog from '@radix-ui/react-dialog'
+import { Settings, LogOut, Eye, Menu, Check, Loader2, CloudOff, RotateCcw } from 'lucide-react'
 import { Logo } from './logo'
 import { ThemeToggle } from './theme-toggle'
 import { useStore } from '@/lib/store'
-import type { View } from '@/lib/types'
 import { termStatus } from '@/lib/app-utils'
-import { postQueue } from '@/lib/post-queue'
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
 import { QuickAdd } from '@/components/admin/quick-add'
+import { adminPathFor } from '@/lib/url-sync'
+import { NAV_GROUPS, filterNav, isActive, titleFor, type NavItem } from '@/lib/nav/menu'
+import { NavRow, FooterRow } from '@/components/nav/nav-row'
+import { useNavBadges } from '@/components/nav/use-nav-badges'
 
-interface NavItem {
-  label: string
-  view: View
-  icon: React.ElementType
-  tab?: 'todo' | 'club' | 'event' | 'post' | 'month' | 'scheduled' | 'connection' // opens the Posts page on this tab
-  home?: 'overview' | 'calendar' // opens Home on this tab
-  tabs?: string[] // all the tabs that keep this item lit
-  badge?: number
-}
-interface NavGroup {
-  label: string
-  items: NavItem[]
-}
-
-function useNavGroups(): NavGroup[] {
-  const state = useStore((s) => s.state)
-  const toPost = React.useMemo(() => postQueue(state).length, [state])
-  return [
-    {
-      label: 'Home',
-      items: [
-        { label: 'Home', view: 'dashboard', icon: LayoutDashboard, home: 'overview' },
-        { label: 'Calendar', view: 'dashboard', icon: CalendarRange, home: 'calendar' },
-      ],
-    },
-    {
-      label: 'Clubs and events',
-      items: [
-        { label: 'Clubs', view: 'intern-clubs', icon: Sparkles },
-        { label: 'Events', view: 'intern-events', icon: CalendarClock },
-      ],
-    },
-    {
-      label: 'Social media',
-      items: [
-        { label: 'Share', view: 'social', icon: Send, tab: 'todo', badge: toPost },
-        { label: 'New post', view: 'social', icon: Plus, tab: 'post' },
-        { label: 'Scheduled', view: 'social', icon: Clock, tab: 'scheduled' },
-        { label: 'Month calendar', view: 'social', icon: CalendarDays, tab: 'month' },
-      ],
-    },
-    {
-      label: 'Classes and teaching',
-      items: [
-        { label: 'Classes', view: 'classes', icon: Users },
-        { label: 'Levels and plans', view: 'eltaso', icon: GraduationCap },
-        { label: 'Teaching resources', view: 'library', icon: FolderOpen },
-        { label: 'Submissions', view: 'submissions', icon: ClipboardCheck },
-        { label: 'Reporting guide', view: 'reports', icon: FileText },
-      ],
-    },
-    {
-      label: 'Space',
-      items: [
-        { label: 'Members', view: 'members', icon: BookUser },
-        { label: 'Inventory', view: 'inventory', icon: Boxes },
-        { label: 'People', view: 'team', icon: Users },
-        { label: 'Absences', view: 'absences', icon: UserX },
-      ],
-    },
-  ]
-}
-
-export function pageTitle(view: View, selectedLevelKey: string, levelLabel?: string): string {
-  switch (view) {
-    case 'dashboard': return 'Home'
-    case 'home': return 'Week schedule'
-    case 'eltaso': return 'Levels and plans'
-    case 'level-detail': return levelLabel || 'Level'
-    case 'clubs': return 'Calendar'
-    case 'resources': return 'Resources'
-    case 'login': return 'Sign in'
-    case 'settings': return 'Settings'
-    case 'intern': return 'Home'
-    case 'classes': return 'Classes'
-    case 'team': return 'People'
-    case 'rooms': return 'Rooms'
-    case 'absences': return 'Absences'
-    case 'library': return 'Teaching resources'
-    case 'members': return 'Members'
-    case 'inventory': return 'Inventory'
-    case 'submissions': return 'Report submissions'
-    case 'reports': return 'Reporting guide'
-    case 'intern-clubs': return 'Clubs'
-    case 'intern-events': return 'Events'
-    case 'social': return 'Social media'
-    default: return 'ASO Companion'
-  }
-}
+/* The menu itself lives in src/lib/nav/menu.ts as data: ids, labels, icons, which tab of
+   the Social media page to open, who may see it, and which badge to show. Nothing here
+   defines what the menu contains any more, and the title in the top bar comes from the
+   same entry, so the heading and the lit item can never disagree. */
 
 /* the sidebar body shared by desktop aside + mobile drawer */
 function SidebarBody({ onNavigate }: { onNavigate?: () => void }) {
-  const groups = useNavGroups()
   const view = useStore((s) => s.view)
   const setView = useStore((s) => s.setView)
   const setPubView = useStore((s) => s.setPubView)
   const logout = useStore((s) => s.logout)
   const state = useStore((s) => s.state)
-
   const socialTab = useStore((s) => s.socialTab)
   const homeTab = useStore((s) => s.homeTab)
   const openSocial = useStore((s) => s.openSocial)
   const guardedGo = useStore((s) => s.guardedGo)
-  const handleNav = (it: NavItem) => guardedGo(() => {
+  const badges = useNavBadges(['posts.toPost'])
+
+  /* the admin shell only renders for an admin, so the session is known here */
+  const groups = filterNav(NAV_GROUPS, { roles: ['admin'], pubView: false })
+  const current = { view, socialTab, homeTab }
+
+  const handleNav = (item: NavItem) => guardedGo(() => {
     useStore.setState((s) => ({ navTick: s.navTick + 1 }))
-    if (it.home) useStore.setState({ homeTab: it.home })
-    if (it.tab) openSocial(it.tab)
-    else setView(it.view)
+    if (item.homeTab) useStore.setState({ homeTab: item.homeTab })
+    if (item.socialTab) openSocial(item.socialTab)
+    else setView(item.view)
     onNavigate?.()
   })
 
@@ -165,32 +60,20 @@ function SidebarBody({ onNavigate }: { onNavigate?: () => void }) {
       <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain scroll-thin px-2">
         <nav aria-label="Admin" className="flex flex-col gap-4 py-2">
           {groups.map((g) => (
-            <div key={g.label} role="group" aria-label={g.label}>
+            <div key={g.id} role="group" aria-label={g.label}>
               <div aria-hidden className="px-2 pb-1 text-[10.5px] font-bold uppercase tracking-wider text-muted-foreground">
                 {g.label}
               </div>
               <div className="flex flex-col gap-0.5">
-                {g.items.map((it) => {
-                  const Icon = it.icon
-                  const active = it.home ? view === 'dashboard' && homeTab === it.home : it.tab ? view === 'social' && (it.tabs || [it.tab]).includes(socialTab) : view === it.view || (it.view === 'eltaso' && view === 'level-detail')
-                  return (
-                    <button
-                      key={it.label}
-                      onClick={() => handleNav(it)}
-                      aria-current={active ? 'page' : undefined}
-                      className={cn(
-                        'flex items-center gap-2.5 rounded-full px-2.5 py-2 text-left text-[13.5px] font-semibold transition',
-                        active
-                          ? 'aso-nav-pill'
-                          : 'text-foreground/80 hover:bg-secondary',
-                      )}
-                    >
-                      <Icon className="h-4 w-4 shrink-0" aria-hidden />
-                      <span className="min-w-0 flex-1 truncate">{it.label}</span>
-                      {!!it.badge && <span className="rounded-full bg-primary px-1.5 py-0.5 text-[10.5px] font-extrabold leading-none text-primary-foreground">{it.badge}</span>}
-                    </button>
-                  )
-                })}
+                {g.items.map((item) => (
+                  <NavRow
+                    key={item.id}
+                    item={item}
+                    active={isActive(item, current)}
+                    badge={item.badgeKey ? badges[item.badgeKey] : undefined}
+                    onNavigate={handleNav}
+                  />
+                ))}
               </div>
             </div>
           ))}
@@ -199,37 +82,24 @@ function SidebarBody({ onNavigate }: { onNavigate?: () => void }) {
 
       <div className="border-t border-border p-2">
         <div className="flex flex-col gap-0.5">
-          <button
-            onClick={() => {
-              setPubView(true)
-              setView('landing')
-              onNavigate?.()
-            }}
-            className="flex items-center gap-2.5 rounded-full px-2.5 py-2 text-left text-[13.5px] font-semibold text-foreground/80 hover:bg-secondary"
-          >
-            <Eye className="h-4 w-4" /> Public view
-          </button>
-          <button
-            onClick={() => {
-              setView('settings')
-              onNavigate?.()
-            }}
-            className={cn(
-              'flex items-center gap-2.5 rounded-full px-2.5 py-2 text-left text-[13.5px] font-semibold transition',
-              view === 'settings' ? 'aso-nav-pill' : 'text-foreground/80 hover:bg-secondary',
-            )}
-          >
-            <Settings className="h-4 w-4" /> Settings
-          </button>
-          <button
-            onClick={() => {
-              logout()
-              onNavigate?.()
-            }}
-            className="flex items-center gap-2.5 rounded-full px-2.5 py-2 text-left text-[13.5px] font-semibold text-destructive hover:bg-destructive/10"
-          >
-            <LogOut className="h-4 w-4" /> Sign out
-          </button>
+          <FooterRow
+            label="Public view"
+            icon={Eye}
+            onClick={() => { setPubView(true); setView('landing'); onNavigate?.() }}
+          />
+          <FooterRow
+            label="Settings"
+            icon={Settings}
+            href={adminPathFor('settings')}
+            active={view === 'settings'}
+            onClick={() => { setView('settings'); onNavigate?.() }}
+          />
+          <FooterRow
+            label="Sign out"
+            icon={LogOut}
+            danger
+            onClick={() => { logout(); onNavigate?.() }}
+          />
         </div>
       </div>
     </div>
@@ -250,29 +120,36 @@ export function AdminSidebar({ mobileNavOpen, setMobileNavOpen }: AdminChromePro
         </div>
       </aside>
 
-      {mobileNavOpen && (
-        <div className="fixed inset-0 z-50 md:hidden" role="dialog" aria-modal="true" aria-label="Menu" onKeyDown={(e) => e.key === 'Escape' && setMobileNavOpen(false)}>
-          <div
-            className="absolute inset-0 bg-black/40"
-            onClick={() => setMobileNavOpen(false)}
-            aria-hidden
-          />
-          <div className="absolute left-0 top-0 h-full w-72 max-w-[85%] bg-sidebar shadow-2xl aso-fade-up">
+      {/* Radix Dialog does what the hand-rolled drawer only claimed to do: it traps focus,
+          closes on Escape from anywhere, hands focus back to the button that opened it,
+          and makes the page behind inert while it is open. */}
+      <Dialog.Root open={mobileNavOpen} onOpenChange={setMobileNavOpen}>
+        <Dialog.Portal>
+          <Dialog.Overlay className="fixed inset-0 z-50 bg-black/40 md:hidden" />
+          <Dialog.Content
+            id="admin-mobile-nav"
+            aria-describedby={undefined}
+            className="fixed left-0 top-0 z-50 h-full w-72 max-w-[85%] bg-sidebar shadow-2xl aso-fade-up md:hidden"
+          >
+            <Dialog.Title className="sr-only">Admin menu</Dialog.Title>
             <SidebarBody onNavigate={() => setMobileNavOpen(false)} />
-          </div>
-        </div>
-      )}
+          </Dialog.Content>
+        </Dialog.Portal>
+      </Dialog.Root>
     </>
   )
 }
 
-export function AdminTopbar({ setMobileNavOpen }: { setMobileNavOpen: (v: boolean) => void }) {
+export function AdminTopbar({ mobileNavOpen, setMobileNavOpen }: AdminChromeProps) {
   const view = useStore((s) => s.view)
   const state = useStore((s) => s.state)
   const selectedLevelKey = useStore((s) => s.selectedLevelKey)
+  const socialTab = useStore((s) => s.socialTab)
+  const homeTab = useStore((s) => s.homeTab)
 
   const level = (state.levels || []).find((l) => l.key === selectedLevelKey)
-  const title = pageTitle(view, selectedLevelKey, level?.label)
+  /* the title comes from the menu entry that is lit, so they cannot disagree */
+  const title = titleFor({ view, socialTab, homeTab }, level?.label)
 
   const st = termStatus(state)
   const total = state.levels.reduce((m, l) => Math.max(m, l.weeks.length), 0)
@@ -291,6 +168,8 @@ export function AdminTopbar({ setMobileNavOpen }: { setMobileNavOpen: (v: boolea
         onClick={() => setMobileNavOpen(true)}
         aria-label="Open menu"
         aria-haspopup="dialog"
+        aria-expanded={mobileNavOpen}
+        aria-controls="admin-mobile-nav"
       >
         <Menu className="h-5 w-5" />
       </Button>
