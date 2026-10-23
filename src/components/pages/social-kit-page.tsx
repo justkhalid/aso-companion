@@ -612,15 +612,28 @@ const Block = ({ title, children, bare }: { title: string; children: React.React
 const shortPlaceholder = (name: string) => name.replace(/^American Space\s+/i, '').replace(/\s+(Club|Activity)$/i, '')
 const inputCls = 'w-full rounded-lg border border-border bg-background px-3 py-2 text-sm outline-none focus:border-primary'
 
-type Section = 'content' | 'look' | 'caption' | 'publish' | 'cancel'
-const SECTIONS: [Section, string][] = [['content', 'Poster and name'], ['look', 'Look'], ['caption', 'Caption'], ['publish', 'Share'], ['cancel', 'Canceled?']]
+type Artefact = 'story' | 'post' | 'whatsapp' | 'highlight'
+const ARTEFACTS: [Artefact, string][] = [['story', 'Story'], ['post', 'Post'], ['whatsapp', 'WhatsApp'], ['highlight', 'Highlight']]
+
+/* A card is the whole navigation of this screen: no steps, no Next button, nothing hidden
+   behind a counter. Each card is one question, and the picture on the left follows. */
+function Card({ title, hint, id, children }: { title: string; hint?: string; id?: string; children: React.ReactNode }) {
+  return (
+    <section id={id} className="rounded-2xl border border-border bg-card p-5">
+      <h2 className="text-[15px] font-extrabold tracking-tight">{title}</h2>
+      {hint && <p className="mt-0.5 text-[11.5px] leading-snug text-muted-foreground">{hint}</p>}
+      <div className="mt-4 flex flex-col gap-5">{children}</div>
+    </section>
+  )
+}
 
 function KitEditor({ kind, id, onBack, onManage, onEditSchedule }: { kind: Kind; id: string; onBack: () => void; onManage: () => void; onEditSchedule: (item: Club | EventEntry) => void }) {
   const list = useStore((s) => (kind === 'club' ? s.state.clubs : s.state.events)) as (Club | EventEntry)[]
   const patch = useStore((s) => s.patch)
   const toast = useStore((s) => s.toast)
   const item = list.find((x) => x.id === id)
-  const [section, setSection] = React.useState<Section>('content')
+  const [mode, setMode] = React.useState<'studio' | 'cancel'>('studio')
+  const [artefact, setArtefact] = React.useState<Artefact>('story')
   const [typeOpen, setTypeOpen] = React.useState(false)
 
   const [edits, setEdits] = React.useState<KitOverrides>(() => ({ ...(item?.kit || {}) }))
@@ -748,59 +761,109 @@ function KitEditor({ kind, id, onBack, onManage, onEditSchedule }: { kind: Kind;
   const dlPoster = async () => { if (R.poster) saveBlob((await posterBlobs(R.poster)).poster, `${sl}-poster-3x4.jpg`) }
   const dlBoth = () => { dlStory(); if (out?.cover) setTimeout(dlCover, 600) }
 
+  /* A cancellation notice is a different artefact, not a fifth step of this screen. */
+  if (mode === 'cancel') {
+    return (
+      <div className="mx-auto max-w-3xl px-4 py-6 sm:py-8">
+        <div className="mb-5 flex flex-wrap items-center gap-3">
+          <Button variant="outline" size="sm" onClick={() => setMode('studio')}><ArrowLeft className="h-4 w-4" /> Back to the post</Button>
+          <div className="min-w-0 flex-1">
+            <h1 className="truncate text-xl font-extrabold tracking-tight">Cancellation notice</h1>
+            <p className="text-xs text-muted-foreground">For when this session does not happen. Nothing here changes the {kind}.</p>
+          </div>
+        </div>
+        <CancelPanel R={R} theme={theme} title={title} slug={sl} onManage={onManage} />
+      </div>
+    )
+  }
+
+  /* what is still missing, gathered in one place instead of warnings spread over five steps */
+  const missing = [
+    R.nameNeeded ? 'The name is in Arabic: type the English name under Content.' : '',
+    !R.poster ? 'No poster yet: add one under Content.' : '',
+    !R.cap.trim() ? 'No caption yet: write one under Caption.' : '',
+  ].filter(Boolean)
+
   return (
     <div className="mx-auto max-w-[1240px] px-4 py-6 sm:py-8">
+      {/* One header for the whole screen: what this is, whether it is saved, and the two
+          things you can do with it. No step counter, no Next. */}
       <div className="mb-5 flex flex-wrap items-center gap-3">
         <Button variant="outline" size="sm" onClick={() => { flush(); onBack() }}><ArrowLeft className="h-4 w-4" /> All {kind === 'club' ? 'clubs' : 'events'}</Button>
         <div className="min-w-0 flex-1">
           <h1 className="truncate text-xl font-extrabold tracking-tight">{title}</h1>
-          <p className="text-xs text-muted-foreground">{updating ? 'Updating the pictures...' : 'Changes are saved with the ' + kind + '.'}</p>
+          <p className="text-xs text-muted-foreground">{updating ? 'Redrawing the pictures…' : `Saved with the ${kind} as you change it`}</p>
         </div>
+        <Button size="sm" variant="ghost" onClick={() => setMode('cancel')}>
+          <CalendarClock className="h-4 w-4" /> Cancellation notice
+        </Button>
+        <Button size="sm" onClick={() => document.getElementById('publish-card')?.scrollIntoView({ behavior: 'smooth', block: 'start' })}>
+          <Send className="h-4 w-4" /> Publish
+        </Button>
       </div>
 
       <div className="grid gap-6 lg:grid-cols-[minmax(0,5fr)_minmax(0,6fr)] lg:items-start">
-        {/* the pictures, always in view while settings change: the story, the poster and the WhatsApp picture under them */}
-        <div className="flex min-w-0 flex-col gap-4 lg:sticky lg:top-20">
-          <div className="grid grid-cols-2 items-stretch gap-3">
-            <PreviewCard title="Instagram story" note={live && R.motion !== 0 ? 'moving' : undefined} canvas={live ?? out?.story ?? null} />
+        {/* ---- the picture: one at a time, always in view ---- */}
+        <div className="flex min-w-0 flex-col gap-3 lg:sticky lg:top-20 lg:max-h-[calc(100vh-6rem)] lg:overflow-y-auto lg:pr-1 lg:scroll-thin">
+          <div className="flex flex-wrap gap-1" role="group" aria-label="Which picture to show">
+            {ARTEFACTS.filter(([id]) => kind === 'club' || id !== 'whatsapp').map(([id, label]) => (
+              <button key={id} type="button" aria-pressed={artefact === id} onClick={() => setArtefact(id)} className={chipCls(artefact === id)}>
+                {label}
+              </button>
+            ))}
+          </div>
+
+          {artefact === 'story' && <PreviewCard title="Instagram story" note={live && R.motion !== 0 ? 'moving' : '9:16'} canvas={live ?? out?.story ?? null} />}
+
+          {artefact === 'post' && (
             <section className="flex flex-col gap-2.5 rounded-2xl border border-border bg-card p-3">
-              <h3 className="flex items-baseline justify-between gap-2 text-xs font-extrabold">Poster <span className="text-[11px] font-medium text-muted-foreground">Instagram 3:4</span></h3>
-              <div className="my-auto overflow-hidden border border-border bg-secondary" style={{ aspectRatio: '3 / 4' }}>
-                {R.poster ? <img src={R.poster} alt="" className="h-full w-full object-cover" /> : <div className="grid h-full place-items-center px-2 text-center text-[11px] font-bold text-muted-foreground">No poster yet</div>}
+              <h3 className="flex items-baseline justify-between gap-2 text-xs font-extrabold">Poster <span className="text-[11px] font-medium text-muted-foreground">3:4</span></h3>
+              <div className="overflow-hidden border border-border bg-secondary" style={{ aspectRatio: '3 / 4' }}>
+                {R.poster
+                  ? <img src={R.poster} alt={`Poster of ${title}`} className="h-full w-full object-cover" />
+                  : <div className="grid h-full place-items-center px-2 text-center text-[11px] font-bold text-muted-foreground">No poster yet</div>}
               </div>
             </section>
-          </div>
-          {kind === 'club' && (
-            <div className="mx-auto w-full max-w-[220px]">
+          )}
+
+          {artefact === 'whatsapp' && (
+            <div className="mx-auto w-full max-w-[240px]">
               <PreviewCard title="WhatsApp picture" note="shown round" canvas={out?.cover ?? null} round />
             </div>
           )}
+
+          {artefact === 'highlight' && <PreviewCard title="Highlight cover" note="for the story album" canvas={out?.highlight ?? null} />}
+
+          {/* what is still missing, in one place, instead of warnings spread over five steps */}
+          {missing.length > 0 ? (
+            <div className="rounded-xl border border-[var(--aso-gold)]/40 bg-[var(--aso-gold-tint)] p-3">
+              <p className="mb-1.5 text-[11px] font-extrabold uppercase tracking-wider text-[var(--aso-gold)]">Not ready yet</p>
+              <ul className="flex flex-col gap-1 text-[11.5px] font-semibold text-foreground">
+                {missing.map((m) => (
+                  <li key={m} className="flex items-start gap-1.5"><CircleAlert className="mt-0.5 h-3.5 w-3.5 shrink-0 text-[var(--aso-gold)]" /> {m}</li>
+                ))}
+              </ul>
+            </div>
+          ) : (
+            <p className="flex items-center gap-1.5 rounded-xl bg-[var(--aso-ok-tint)] p-3 text-[11.5px] font-bold text-[var(--aso-ok)]">
+              <Check className="h-3.5 w-3.5" /> Everything is there.
+            </p>
+          )}
+
+          <ShareFiles
+            items={[
+              { label: 'Story picture', hint: 'PNG, 9:16', icon: Download, on: dlStory, off: !out },
+              { label: videoBusy !== null ? `Recording ${Math.round(videoBusy * 100)}%` : 'Story video', hint: 'MP4, moving', icon: videoBusy !== null ? Loader2 : Play, on: () => void dlVideo(), off: !live || videoBusy !== null },
+              { label: 'Poster', hint: 'JPG, 3:4', icon: Download, on: () => void dlPoster(), off: !R.poster },
+              ...(kind === 'club' ? [{ label: 'WhatsApp picture', hint: 'PNG, round', icon: Download, on: dlCover, off: !out?.cover }] : []),
+              { label: 'Everything', hint: 'ZIP of all files', icon: Download, on: () => void dlKit(), off: !out },
+            ]}
+          />
         </div>
 
-        {/* settings */}
+        {/* ---- everything that goes into the picture, in four plain cards ---- */}
         <div className="flex min-w-0 flex-col gap-3">
-          <ol className="grid grid-cols-5 gap-1.5" aria-label="Steps">
-            {SECTIONS.map(([k, label], i) => {
-              const cur = SECTIONS.findIndex(([x]) => x === section)
-              return (
-                <li key={k}>
-                  <button
-                    type="button"
-                    aria-current={section === k ? 'step' : undefined}
-                    onClick={() => setSection(k)}
-                    className={cn('flex w-full flex-col items-start gap-1 rounded-xl border px-2.5 py-2 text-left transition', section === k ? 'border-primary bg-primary/5 ring-1 ring-primary' : 'border-border bg-card hover:bg-secondary')}
-                  >
-                    <span className={cn('grid h-5 w-5 place-items-center rounded-full text-[11px] font-extrabold', i < cur ? 'bg-primary text-primary-foreground' : section === k ? 'bg-primary text-primary-foreground' : 'bg-secondary text-muted-foreground')}>{i < cur ? <Check className="h-3 w-3" /> : i + 1}</span>
-                    <span className="text-[12px] font-bold leading-tight">{label}</span>
-                  </button>
-                </li>
-              )
-            })}
-          </ol>
-
-          <div className="flex flex-col gap-5 rounded-2xl border border-border bg-card p-5">
-            {section === 'content' && (
-              <>
+          <Card title="Content" hint="What it says. The day, the time and the place come from the club or event, so they are changed there.">
                 <Block title="Poster">
                   <div className="flex items-center gap-4">
                     <div className="w-24 shrink-0 overflow-hidden border border-border bg-secondary" style={{ aspectRatio: '3 / 4' }}>
@@ -873,11 +936,9 @@ function KitEditor({ kind, id, onBack, onManage, onEditSchedule }: { kind: Kind;
                   </div>
                   <p className="-mt-2 text-[11px] text-muted-foreground">This comes from the {kind === 'club' ? 'club' : 'event'}. Change it there and the pictures follow.</p>
                 </Block>
-              </>
-            )}
+          </Card>
 
-            {section === 'look' && (
-              <>
+          <Card title="Design" hint="The look sets the two colors and the decoration together. Everything under it is a small change to that look.">
                 <Block title="Look">
                   <p className="text-xs text-muted-foreground">One choice sets the two colors and the edge decoration together. Anything you change further down is an addition to this look.</p>
                   <div className="grid max-h-[23rem] grid-cols-2 gap-2 overflow-y-auto pr-1 sm:grid-cols-3">
@@ -990,11 +1051,9 @@ function KitEditor({ kind, id, onBack, onManage, onEditSchedule }: { kind: Kind;
                     </div>
                   </div>
                 </Block>
-              </>
-            )}
+          </Card>
 
-            {section === 'caption' && (
-              <>
+          <Card title="Caption" hint="The words that go under the post. Copy it, or paste it straight into the app.">
                 <Block title="Caption for the post">
                   <textarea className={cn(inputCls, 'min-h-[180px] resize-y')} value={R.cap} placeholder="Paste the caption here" onChange={(e) => set('cap', e.target.value)} />
                   <Button type="button" variant="outline" size="sm" className="self-start" onClick={() => { void navigator.clipboard.writeText(R.cap).then(() => toast('Caption copied')) }}>
@@ -1009,19 +1068,9 @@ function KitEditor({ kind, id, onBack, onManage, onEditSchedule }: { kind: Kind;
                     </div>
                   </Block>
                 )}
-              </>
-            )}
-            {section === 'publish' && (
-              <>
-              <ShareFiles
-                items={[
-                  { label: 'Story picture', hint: 'PNG, 9:16', icon: Download, on: dlStory, off: !out },
-                  { label: videoBusy !== null ? `Recording ${Math.round(videoBusy * 100)}%` : 'Story video', hint: 'MP4, moving', icon: videoBusy !== null ? Loader2 : Play, on: () => void dlVideo(), off: !live || videoBusy !== null },
-                  { label: 'Poster', hint: 'JPG, 3:4', icon: Download, on: () => void dlPoster(), off: !R.poster },
-                  ...(kind === 'club' ? [{ label: 'WhatsApp picture', hint: 'PNG, round', icon: Download, on: dlCover, off: !out?.cover }] : []),
-                  { label: 'Everything', hint: 'ZIP of all files', icon: Download, on: () => void dlKit(), off: !out },
-                ]}
-              />
+          </Card>
+
+          <Card id="publish-card" title="Publish" hint="Send it now, or pick a time. The files above are yours to download whatever you choose here.">
               <PublishPanel
                 storyCanvas={out?.story ?? null}
                 poster={R.poster}
@@ -1039,17 +1088,7 @@ function KitEditor({ kind, id, onBack, onManage, onEditSchedule }: { kind: Kind;
                   if (target) target.kit = { ...(target.kit || {}), posts: [...(target.kit?.posts || []), { t: new Date().toISOString(), to: done, sig: kitSig(kind, target) }] }
                 })}
               />
-              </>
-            )}
-            {section === 'cancel' && (
-              <CancelPanel R={R} theme={theme} title={title} slug={sl} onManage={onManage} />
-            )}
-            <div className="flex items-center justify-between border-t border-border pt-4">
-              <Button type="button" variant="outline" size="sm" disabled={section === SECTIONS[0][0]} onClick={() => setSection(SECTIONS[Math.max(0, SECTIONS.findIndex(([x]) => x === section) - 1)][0])}><ArrowLeft className="h-4 w-4" /> Back</Button>
-              <span className="text-[11px] font-semibold text-muted-foreground">Step {SECTIONS.findIndex(([x]) => x === section) + 1} of {SECTIONS.length}</span>
-              <Button type="button" size="sm" disabled={section === SECTIONS[SECTIONS.length - 1][0]} onClick={() => setSection(SECTIONS[Math.min(SECTIONS.length - 1, SECTIONS.findIndex(([x]) => x === section) + 1)][0])}>Next <ArrowRight className="h-4 w-4" /></Button>
-            </div>
-          </div>
+          </Card>
         </div>
       </div>
     </div>
