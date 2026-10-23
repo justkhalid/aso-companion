@@ -156,6 +156,18 @@ export const GROUNDS: Record<string, [label: string, tint: RGB | null, strength:
   dusk: ["Dusk", [96, 92, 140], .85],
   night: ["Night", [28, 34, 70], .95],
   look: ["Colors of the look", null, 0],
+
+  /* ---- added: ten more papers ---- */
+  ivory: ["Ivory", [250, 246, 232], .5],
+  fog: ["Fog", [214, 218, 224], .55],
+  clay: ["Clay", [214, 176, 148], .6],
+  emerald: ["Emerald", [120, 200, 165], .7],
+  ocean: ["Deep ocean", [110, 165, 205], .85],
+  plum: ["Plum", [170, 130, 190], .7],
+  coral: ["Coral paper", [246, 176, 158], .65],
+  gold: ["Antique gold", [222, 196, 140], .6],
+  rosewood: ["Rosewood", [190, 120, 130], .75],
+  charcoal: ["Charcoal", [70, 74, 82], .9],
 }
 export async function groundCanvas(_t: KitTheme, w: number, h: number) {
   const c = cv(w, h), x = c.getContext("2d")!
