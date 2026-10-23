@@ -29,7 +29,7 @@ export function TeamPage() {
   const count = (f: string) => (f === 'All' ? people.length : people.filter((p) => rolesOf(p).includes(f)).length)
 
   return (
-    <div className="mx-auto max-w-4xl px-4 py-6 sm:py-8">
+    <div className="mx-auto max-w-5xl px-4 py-6 sm:py-8">
       <PageHead
         title="People"
         subtitle={`${people.length} people · teachers, interns, volunteers and staff in one list`}

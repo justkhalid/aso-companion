@@ -35,8 +35,8 @@ export function EltasoPage() {
   return (
     <div className="mx-auto max-w-5xl px-4 py-6 sm:py-8">
       <PageHead
-        title="ELTASO"
-        subtitle="The teacher section · weekly plans for every level, the library and reports."
+        title={asAdmin ? 'Levels and plans' : 'ELTASO'}
+        subtitle={asAdmin ? 'ELTASO, the teacher section: weekly plans for every level, the library and reports.' : 'The teacher section · weekly plans for every level, the library and reports.'}
       />
 
       <div className="mb-5 flex items-center gap-2">
@@ -68,8 +68,7 @@ export function EltasoPage() {
                     <div className="flex h-9 w-9 items-center justify-center rounded-full bg-primary/10 text-primary">
                       <GraduationCap className="h-5 w-5" />
                     </div>
-                    <div className="flex-1 font-bold leading-tight">{l.label}</div>
-                    <Chip tone="primary" icon={GraduationCap}>{l.cefr}</Chip>
+                    <div className="min-w-0 flex-1 font-bold leading-tight">{l.label}</div>
                   </div>
                   {asAdmin && whyHidden(l) && <div><Chip tone="gold" icon={EyeOff}>{whyHidden(l)}</Chip></div>}
                   {sw && (
@@ -77,8 +76,9 @@ export function EltasoPage() {
                       {w ? 'This week' : 'Next up'} · W{showWi + 1} · {sw.theme}
                     </div>
                   )}
-                  <div className="mt-auto flex items-center gap-1 pt-1 text-xs font-bold text-primary">
-                    Open <ArrowRight className="h-3.5 w-3.5" />
+                  <div className="mt-auto flex items-center justify-between gap-2 pt-1">
+                    <span className="flex items-center gap-1 text-xs font-bold text-primary">Open <ArrowRight className="h-3.5 w-3.5" /></span>
+                    <Chip tone="primary" icon={GraduationCap}>{l.cefr}</Chip>
                   </div>
                 </button>
               )

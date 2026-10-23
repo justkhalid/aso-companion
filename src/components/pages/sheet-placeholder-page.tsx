@@ -12,7 +12,7 @@ const PAGES = {
     will: ['Search and filter everything in the space by category', 'See what is available and what is checked out', 'Photo and code of each item, from the sheet', 'Items added each month, for the monthly report'],
   },
   submissions: {
-    title: 'Report submissions',
+    title: 'Submissions',
     subtitle: 'Who filed their report and who did not, for teachers and volunteers.',
     icon: ClipboardCheck,
     will: ['A grid of people against weeks and months: submitted, late or missing', 'Open any report to read what was submitted', 'A ready WhatsApp reminder for everyone who is missing', 'The monthly report lists who did not submit'],
@@ -24,7 +24,7 @@ export function SheetPlaceholderPage({ page }: { page: keyof typeof PAGES }) {
   const p = PAGES[page]
   const Icon = p.icon
   return (
-    <div className="mx-auto max-w-3xl px-4 py-6 sm:py-8">
+    <div className="mx-auto max-w-5xl px-4 py-6 sm:py-8">
       <PageHead title={p.title} subtitle={p.subtitle} />
       <div className="rounded-2xl border border-dashed border-border bg-card p-6">
         <div className="flex items-center gap-3">

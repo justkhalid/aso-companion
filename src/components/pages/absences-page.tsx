@@ -119,9 +119,9 @@ export function AbsencesPage() {
     )
 
   return (
-    <div className="mx-auto max-w-3xl px-4 py-6 sm:py-8">
+    <div className="mx-auto max-w-5xl px-4 py-6 sm:py-8">
       <PageHead
-        title="Absences and cancellations"
+        title="Absences"
         subtitle="A teacher cannot come, a club or an event is off: enter it here and every calendar updates for those dates."
         right={<Button size="sm" onClick={() => setDialog({ open: true, abs: null })}><Plus className="h-4 w-4" /> Report absence</Button>}
       />
