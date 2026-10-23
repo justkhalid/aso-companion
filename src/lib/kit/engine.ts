@@ -453,11 +453,12 @@ export async function makeLinksStory(url: string, t: KitTheme) {
   const c = cv(1080, 1920), x = c.getContext("2d")!, CX = 540;
   await paintGlass(x, storyBg(t), glassOf(t), t);
   glow(x, 540, 1100, t.c2);
+  x.save(); x.translate(0, 100) /* the block sits in the middle of the story: the same space above the logo as below the last line */;
   await drawLogo(x, CX, 165, 78);
-  x.font = "700 25px ManropeA"; kick(x, "JOIN THE", CX, 340, 7, rg(dim(t.c2, .72)));
+  x.font = "700 25px ManropeA"; kick(x, "JOIN THE", CX, 340, 7, grad(x, CX - 160, CX + 160, WA_GREEN[0], WA_GREEN[1]));
   const fw = fit(x, s => `italic 600 ${s}px Bodoni`, "ASO Community", 820, 170, -5), cw = capOf(x, fw, 600);
-  gradTitle(x, "ASO Community", CX, 372 + cw, fw, -5, 600, t.c1, t.c2);
-  const hl = 372 + cw + 52; x.fillStyle = grad(x, CX - 260, CX + 260, t.c1, t.c2); x.fillRect(CX - 260, hl, 520, 3);
+  gradTitle(x, "ASO Community", CX, 372 + cw, fw, -5, 600, WA_GREEN[0], WA_GREEN[1]);
+  const hl = 372 + cw + 52; x.fillStyle = grad(x, CX - 260, CX + 260, WA_GREEN[0], WA_GREEN[1]); x.fillRect(CX - 260, hl, 520, 3);
   await drawIconFit(x, "i-whatsapp", CX, hl + 165, 190, 190, WA_GREEN[0], WA_GREEN[1]);
   const QS = 480, qcy = hl + 165 + 95 + 70 + QS / 2 + 30;
   drawQR(x, url, CX, qcy, QS, WA_GREEN[0], WA_GREEN[1]);
@@ -465,7 +466,7 @@ export async function makeLinksStory(url: string, t: KitTheme) {
   x.font = "700 30px ManropeA"; spaced(x, "SCAN TO JOIN THE", CX, ty, 6, rg(t.ink, .92));
   x.font = "700 30px ManropeA"; spaced(x, "WHATSAPP COMMUNITY", CX, ty + 46, 6, grad(x, CX - 300, CX + 300, WA_GREEN[0], WA_GREEN[1]));
   x.font = "500 24px ManropeA"; spaced(x, "or tap the link below", CX, ty + 102, 1, rg(t.ink, .6));
-  grain(x, 1080, 1920); return c;
+  x.restore(); grain(x, 1080, 1920); return c;
 }
 /* the round cover of the "Links" highlight: the WhatsApp icon on the same ground as the club covers */
 export async function makeLinksCover(t: KitTheme) {
