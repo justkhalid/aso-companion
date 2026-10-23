@@ -1,29 +1,54 @@
 'use client'
 
 import * as React from 'react'
-import { Send, AlertTriangle, Sparkles, UserX, Ban, UserCheck, CalendarDays, Sun, GraduationCap, Camera, CheckCircle2, ChevronRight } from 'lucide-react'
+import {
+  Send, AlertTriangle, Sparkles, UserX, Ban, UserCheck, CalendarDays, Sun, GraduationCap,
+  Camera, CheckCircle2, ChevronRight, MoreHorizontal, Copy, CalendarOff, Pencil, Users,
+} from 'lucide-react'
 import { useStore } from '@/lib/store'
 import { DAY_KEYS } from '@/lib/constants'
 import { Chip } from '@/components/ui-bits'
 import { peopleOf, fmtAbsenceRange, isoOf, nextOccurrence, termStatus, classStatusOn, clubStatusOn, clubWhere, eventStatusOn, eventWhere, isOnceEvent, fmtTime, parseSlot } from '@/lib/app-utils'
 import { isClubOver, isClassOver } from '@/lib/archive'
+import { closedHoliday, holidayItems } from '@/lib/holidays'
 import { UnifiedCalendar } from '@/components/unified-calendar'
 import type { CalTab } from '@/components/calendar-switch'
 import { postQueue } from '@/lib/post-queue'
 import type { View } from '@/lib/types'
 import { cn } from '@/lib/utils'
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog'
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
+import { Button } from '@/components/ui/button'
 
 /*
-  The admin's landing page. It answers three questions, in the order they are asked:
+  The admin's landing page. It answers, in the order the questions get asked:
 
-    1. What is happening today, and what is next?   -> the timeline
-    2. What needs me?                                -> the ranked list
-    3. What does the rest of the week look like?     -> the week strip
+    1. Is the building even open today?      -> the closed banner
+    2. What is happening, and what is next?  -> the timeline, with actions on each row
+    3. What needs me?                        -> the ranked list
+    4. What does the week look like?          -> the seven day bars
+    5. Is anything quietly wrong?             -> housekeeping
 
-  Deliberately not a grid of number cards: "8 clubs, 3 events" is not something you
-  act on at nine in the morning, and the sidebar already goes to every list, so the
-  old row of shortcut buttons was the same five destinations a third time.
+  Not a grid of number cards: "8 clubs, 3 events" is not something you act on at nine in
+  the morning, and the sidebar already goes to every list.
 */
+
+type SessionKind = 'class' | 'club' | 'event'
+
+type Session = {
+  key: string
+  kind: SessionKind
+  id: string
+  title: string
+  sub: string
+  person: string
+  time: string
+  room: string
+  status: { kind: string; cover?: string }
+  mins: number
+  endMins: number
+}
 
 type Action = {
   id: string
@@ -34,10 +59,22 @@ type Action = {
   go: () => void
 }
 
+const TIME_RANGE = /^\d{1,2}[:.]\d{2}-\d{1,2}[:.]\d{2}$/
+
+/* "14:00-16:00" -> how long it lasts, so we can say "35 min left" */
+function endOf(t: string, startMins: number): number {
+  const m = String(t || '').replace(/\s/g, '').match(/^(\d{1,2})[:.](\d{2})-(\d{1,2})[:.](\d{2})$/)
+  if (!m) return startMins + 60
+  const end = +m[3] * 60 + +m[4]
+  return end > startMins ? end : startMins + 60
+}
+
 export function DashboardPage() {
   const state = useStore((s) => s.state)
   const setView = useStore((s) => s.setView)
   const openSocial = useStore((s) => s.openSocial)
+  const patch = useStore((s) => s.patch)
+  const toast = useStore((s) => s.toast)
   const [calTab, setCalTab] = React.useState<CalTab>('cluev')
   const page = useStore((s) => s.homeTab)
   const setPage = (k: 'overview' | 'calendar') => useStore.setState({ homeTab: k })
@@ -46,44 +83,72 @@ export function DashboardPage() {
     fetch('/api/members?summary=1', { cache: 'no-store' }).then((r) => (r.ok ? r.json() : null)).then(setLib).catch(() => setLib(null))
   }, [])
 
+  /* who is being looked at, and the three small dialogs */
+  const [focus, setFocus] = React.useState<string | null>(null)
+  const [moving, setMoving] = React.useState<Session | null>(null)
+  const [moveTime, setMoveTime] = React.useState('')
+  const [canceling, setCanceling] = React.useState<Session | null>(null)
+  const [covering, setCovering] = React.useState<Session | null>(null)
+
   const queue = React.useMemo(() => postQueue(state), [state])
   const now = new Date()
   const today = isoOf(now)
   const dayKey = DAY_KEYS[(now.getDay() + 6) % 7]
   const st = termStatus(state)
-  /* the term's length, for the progress rail: the longest level decides */
   const total = state.levels.reduce((m, l) => Math.max(m, l.weeks.length), 0)
   const clubs = state.clubs.filter((c) => !isClubOver(c))
   const classes = state.classes.filter((c) => !isClassOver(c))
+
+  /* ---- is the space open today? ---- */
+  const closedToday = closedHoliday(today)
+  const nextClosed = holidayItems(now.getFullYear())
+    .filter((h) => !h.hidden && h.closed && h.date > today)
+    .sort((a, b) => a.date.localeCompare(b.date))[0]
 
   const away = (state.absences || []).filter((a) => !a.moved && a.from <= today && a.to >= today)
   const awayName = (a: (typeof away)[number]) =>
     a.kind === 'club' ? state.clubs.find((c) => c.id === a.clubId)?.name || 'Club' : a.kind === 'event' ? state.events.find((e) => e.id === a.eventId)?.title || 'Event' : a.teacher
 
-  /* ---- today, in time order, with a start minute so we know what has passed ---- */
-  const sessions = [
-    ...classes.filter((c) => (c.days || []).includes(dayKey)).map((c) => ({ key: c.id, title: c.code, sub: `${c.level} · ${c.teacher || 'no teacher'}`, time: c.time, room: c.room, status: classStatusOn(state, c, today), mins: parseSlot(c.time || '').mins })),
-    ...clubs.filter((c) => (c.days || []).includes(dayKey)).map((c) => ({ key: c.id, title: c.name, sub: `Club · ${c.lead || 'no lead'}`, time: clubWhere(state, c, today).time, room: clubWhere(state, c, today).place, status: clubStatusOn(state, c.id, today), mins: parseSlot(clubWhere(state, c, today).time || '').mins })),
-    ...state.events.filter((e) => (isOnceEvent(e) ? e.date === today : e.day === dayKey && !!nextOccurrence(e) && isoOf(nextOccurrence(e)!) === today)).map((e) => ({ key: e.id, title: e.title, sub: e.lead ? `Event · ${e.lead}` : 'Event', time: eventWhere(state, e, today).time, room: eventWhere(state, e, today).place, status: eventStatusOn(state, e.id, today), mins: parseSlot(eventWhere(state, e, today).time || '').mins })),
+  /* ---- today, in time order ---- */
+  const sessions: Session[] = [
+    ...classes.filter((c) => (c.days || []).includes(dayKey)).map((c) => {
+      const mins = parseSlot(c.time || '').mins
+      return { key: c.id, kind: 'class' as const, id: c.id, title: c.code, sub: c.level, person: c.teacher || '', time: c.time, room: c.room, status: classStatusOn(state, c, today), mins, endMins: endOf(c.time, mins) }
+    }),
+    ...clubs.filter((c) => (c.days || []).includes(dayKey)).map((c) => {
+      const where = clubWhere(state, c, today)
+      const mins = parseSlot(where.time || '').mins
+      return { key: c.id, kind: 'club' as const, id: c.id, title: c.name, sub: 'Club', person: c.lead || '', time: where.time, room: where.place, status: clubStatusOn(state, c.id, today), mins, endMins: endOf(where.time, mins) }
+    }),
+    ...state.events.filter((e) => (isOnceEvent(e) ? e.date === today : e.day === dayKey && !!nextOccurrence(e) && isoOf(nextOccurrence(e)!) === today)).map((e) => {
+      const where = eventWhere(state, e, today)
+      const mins = parseSlot(where.time || '').mins
+      return { key: e.id, kind: 'event' as const, id: e.id, title: e.title, sub: 'Event', person: e.lead || '', time: where.time, room: where.place, status: eventStatusOn(state, e.id, today), mins, endMins: endOf(where.time, mins) }
+    }),
   ].sort((a, b) => a.mins - b.mins)
 
   const nowMins = now.getHours() * 60 + now.getMinutes()
-  /* the first session that has not started yet, and is not canceled: the one to point at */
   const nextIdx = sessions.findIndex((s) => s.mins >= nowMins && s.status.kind !== 'canceled')
+  const running = sessions.find((s) => s.mins <= nowMins && s.endMins > nowMins && s.status.kind !== 'canceled')
   const remaining = sessions.filter((s) => s.mins >= nowMins && s.status.kind !== 'canceled').length
+  const shown = focus ? sessions.filter((s) => s.person === focus) : sessions
 
-  /* ---- the next seven days, counted ---- */
+  /* ---- the next seven days ---- */
   const week = Array.from({ length: 7 }, (_, i) => {
     const d = new Date(now.getFullYear(), now.getMonth(), now.getDate() + i)
     const key = DAY_KEYS[(d.getDay() + 6) % 7]
     const iso = isoOf(d)
+    const closed = closedHoliday(iso)
     const n =
       classes.filter((c) => (c.days || []).includes(key)).length +
       clubs.filter((c) => (c.days || []).includes(key) && (!c.from || c.from <= iso) && (!c.until || c.until >= iso)).length +
       state.events.filter((e) => (isOnceEvent(e) ? e.date === iso : e.day === key)).length
-    return { iso, label: d.toLocaleDateString('en-GB', { weekday: 'short' }), dayNum: d.getDate(), n, today: i === 0 }
+    return { iso, label: d.toLocaleDateString('en-GB', { weekday: 'short' }), dayNum: d.getDate(), n, today: i === 0, closed: closed?.name }
   })
   const busiest = Math.max(1, ...week.map((d) => d.n))
+
+  /* ---- everyone with something today ---- */
+  const onToday = Array.from(new Set(sessions.map((s) => s.person).filter(Boolean)))
 
   /* ---- what needs her, urgent first ---- */
   const uncovered = away.filter((a) => !a.cover).length
@@ -92,13 +157,35 @@ export function DashboardPage() {
   const noLead = clubs.filter((c) => !c.lead).length
   const noPoster = clubs.filter((c) => !c.poster && !c.placeholder).length
 
+  const postDetail = (q: (typeof queue)[number]) =>
+    `${q.daysAway === 0 ? 'today' : q.daysAway === 1 ? 'tomorrow' : q.when.toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short' })} · post it ${q.daysAway <= 1 ? 'now' : 'soon'}`
+
   const actions: Action[] = []
-  if (queue.length) actions.push({ id: 'posts', text: `${queue.length} ${queue.length === 1 ? 'post' : 'posts'} to publish`, detail: 'Coming up, and not posted yet', icon: Send, urgent: true, go: () => openSocial('todo') })
-  if (uncovered) actions.push({ id: 'cover', text: `${uncovered} ${uncovered === 1 ? 'session is' : 'sessions are'} canceled today with no cover`, detail: 'Someone is away and nobody replaces them', icon: UserX, urgent: true, go: () => setView('absences') })
+  queue.slice(0, 2).forEach((q) => actions.push({
+    id: `post-${q.kind}-${q.id}`,
+    text: q.name,
+    detail: postDetail(q),
+    icon: Send,
+    urgent: q.daysAway <= 1,
+    go: () => openSocial(q.kind, { kind: q.kind, id: q.id }),
+  }))
+  if (queue.length > 2) actions.push({ id: 'posts-more', text: `${queue.length - 2} more to publish`, detail: 'Everything else that needs a post', icon: Send, urgent: false, go: () => openSocial('todo') })
+  if (uncovered) actions.push({ id: 'cover', text: `${uncovered} ${uncovered === 1 ? 'session is' : 'sessions are'} canceled today with no cover`, detail: 'Open the day to find someone free', icon: UserX, urgent: true, go: () => { const s = sessions.find((x) => x.status.kind === 'canceled'); if (s) setCovering(s) } })
   if (noTeacher) actions.push({ id: 'teachers', text: `${noTeacher} ${noTeacher === 1 ? 'class has' : 'classes have'} no teacher`, detail: 'Set one in Classes', icon: GraduationCap, urgent: false, go: () => setView('classes') })
   if (noRoom) actions.push({ id: 'rooms', text: `${noRoom} ${noRoom === 1 ? 'class has' : 'classes have'} no room`, detail: 'Set one in Classes', icon: GraduationCap, urgent: false, go: () => setView('classes') })
   if (noLead) actions.push({ id: 'leads', text: `${noLead} ${noLead === 1 ? 'club has' : 'clubs have'} no lead`, detail: 'Set one in Clubs', icon: Sparkles, urgent: false, go: () => setView('intern-clubs') })
   if (noPoster) actions.push({ id: 'posters', text: `${noPoster} ${noPoster === 1 ? 'club has' : 'clubs have'} no poster`, detail: 'The story falls back to a plain card', icon: Camera, urgent: false, go: () => setView('intern-clubs') })
+
+  /* ---- things that are quietly wrong ---- */
+  const nameCount = new Map<string, number>()
+  for (const c of state.clubs) nameCount.set(c.name.trim().toLowerCase(), (nameCount.get(c.name.trim().toLowerCase()) || 0) + 1)
+  const housekeeping = [
+    { n: [...nameCount.values()].filter((v) => v > 1).length, text: 'clubs share a name' },
+    { n: state.classes.filter((c) => c.until && c.until < today).length, text: 'classes are past their last day' },
+    { n: state.levels.filter((l) => !l.weeks.length).length, text: 'levels have no weeks' },
+    { n: state.library.filter((f) => !f.sk?.length).length, text: 'library folders have no skill tags' },
+    { n: state.team.filter((p) => !(p.roles?.length || p.role)).length, text: 'people have no role' },
+  ].filter((x) => x.n > 0)
 
   const glance = [
     { value: classes.length, label: classes.length === 1 ? 'class' : 'classes', view: 'classes' as View },
@@ -116,12 +203,79 @@ export function DashboardPage() {
     st.mode === 'break' ? `Winter break · S2 in ${st.daysTo} days` : 'Year complete'
   const pct = inTerm ? Math.min(100, Math.round((weekNo / Math.max(1, total)) * 100)) : 100
 
+  /* ---- the year in one line ---- */
+  const s1Weeks = Math.min(total || 16, Math.max(1, state.settings.s1Weeks || 16))
+  const yearCells = Array.from({ length: Math.max(1, total) }, (_, i) => ({ i, s1: i < s1Weeks, cur: inTerm && weekNo === i + 1 }))
+
   const pulse = [
-    sessions.length === 0 ? 'Nothing scheduled today' : `${sessions.length} ${sessions.length === 1 ? 'session' : 'sessions'} today`,
-    remaining > 0 && sessions.length !== remaining ? `${remaining} still to come` : '',
+    closedToday ? `Closed for ${closedToday.name}` : sessions.length === 0 ? 'Nothing scheduled today' : `${sessions.length} ${sessions.length === 1 ? 'session' : 'sessions'} today`,
+    !closedToday && remaining > 0 && sessions.length !== remaining ? `${remaining} still to come` : '',
     away.length ? `${away.length} away` : '',
     queue.length ? `${queue.length} to post` : '',
   ].filter(Boolean).join(' · ')
+
+  /* ---- actions ---- */
+  const copyToday = () => {
+    const lines = sessions.map((s) => `${fmtTime(s.time) || '—'}  ${s.title}${s.room ? ` · ${s.room}` : ''}${s.status.kind === 'canceled' ? '  (canceled)' : ''}`)
+    const text = [
+      now.toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long' }),
+      closedToday ? `Closed for ${closedToday.name}` : '',
+      ...lines,
+      away.length ? `Away: ${away.map(awayName).join(', ')}` : '',
+    ].filter(Boolean).join('\n')
+    void navigator.clipboard.writeText(text).then(() => toast('Today copied')).catch(() => toast('Could not copy', false))
+  }
+
+  const saveMove = () => {
+    if (!moving) return
+    const t = moveTime.replace(/\s/g, '')
+    if (!TIME_RANGE.test(t)) { toast('Use a range like 14:00-16:00', false); return }
+    patch((d) => {
+      const list = (moving.kind === 'class' ? d.classes : moving.kind === 'club' ? d.clubs : d.events) as { id: string; time?: string }[]
+      const item = list.find((x) => x.id === moving.id)
+      if (item) item.time = t
+    })
+    toast(`Moved to ${t}`)
+    setMoving(null)
+  }
+
+  const doCancel = () => {
+    if (!canceling) return
+    const s = canceling
+    patch((d) => {
+      const list = d.absences || (d.absences = [])
+      list.push({
+        id: `abs-${Date.now()}`,
+        kind: s.kind === 'class' ? 'teacher' : s.kind,
+        teacher: s.person || '',
+        ...(s.kind === 'class' ? { classId: s.id } : s.kind === 'club' ? { clubId: s.id } : { eventId: s.id }),
+        from: today,
+        to: today,
+        reason: 'Canceled from Home',
+      })
+    })
+    toast(`${s.title} is canceled for today`)
+    setCanceling(null)
+  }
+
+  /* a club or an event can have a story; a class cannot, so the narrowing lives here */
+  const postStory = (s: Session) => { if (s.kind !== 'class') openSocial(s.kind, { kind: s.kind, id: s.id }) }
+
+  const freeFor = (s: Session) => state.team    .filter((p) => p.name !== s.person && !away.some((a) => a.teacher === p.name))
+    .filter((p) => !sessions.some((o) => o.person === p.name && o.mins < s.endMins && o.endMins > s.mins))
+    .slice(0, 8)
+
+  const doCover = (name: string) => {
+    if (!covering) return
+    const s = covering
+    patch((d) => {
+      const a = (d.absences || []).find((x) => x.from <= today && x.to >= today &&
+        ((s.kind === 'class' && x.classId === s.id) || (s.kind === 'club' && x.clubId === s.id) || (s.kind === 'event' && x.eventId === s.id)))
+      if (a) a.cover = name
+    })
+    toast(`${name} covers ${s.title}`)
+    setCovering(null)
+  }
 
   return (
     <div className="mx-auto max-w-6xl px-4 py-6 sm:py-8">
@@ -138,12 +292,16 @@ export function DashboardPage() {
           <div className="w-60">
             <div className="flex items-baseline justify-between gap-2 text-[11px] font-bold">
               <span className="text-muted-foreground">{weekLabel}</span>
-              {(st.mode === 's1' || st.mode === 's2') && <span className="tabular-nums text-muted-foreground">{pct}%</span>}
+              {inTerm && <span className="tabular-nums text-muted-foreground">{pct}%</span>}
             </div>
             <div className="mt-1 h-1.5 overflow-hidden rounded-full bg-secondary" role="img" aria-label={weekLabel}>
               <div className="h-full rounded-full bg-primary transition-all" style={{ width: `${pct}%` }} />
             </div>
-            {st.mode === 'break' && <p className="mt-1 text-[11px] text-muted-foreground">Semester 2 starts in {st.daysTo} days</p>}
+            {nextClosed && (
+              <p className="mt-1 text-[11px] text-muted-foreground">
+                Next closed: {nextClosed.name} · {new Date(nextClosed.date).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })}
+              </p>
+            )}
           </div>
 
           <div className="inline-flex rounded-full border border-border bg-card p-1" role="group" aria-label="Home sections">
@@ -168,41 +326,116 @@ export function DashboardPage() {
         </section>
       ) : (
         <>
+          {closedToday && (
+            <div className="mb-4 flex flex-wrap items-center gap-3 rounded-2xl border border-[var(--aso-gold)]/40 bg-[var(--aso-gold-tint)] px-4 py-3">
+              <CalendarOff className="h-5 w-5 shrink-0 text-[var(--aso-gold)]" aria-hidden />
+              <p className="min-w-0 flex-1 text-sm font-bold text-foreground">
+                Closed today for {closedToday.name}.
+                <span className="ml-1 font-medium text-muted-foreground">Nothing is expected to run.</span>
+              </p>
+              <button type="button" onClick={() => setPage('calendar')} className="text-xs font-bold text-primary hover:underline">See the calendar</button>
+            </div>
+          )}
+
           <div className="grid gap-4 lg:grid-cols-[minmax(0,6fr)_minmax(0,5fr)] lg:items-start">
-            {/* ---- 1. the day, as a line you can read down ---- */}
-            <section className="rounded-2xl border border-border bg-card p-5">
-              <div className="mb-4 flex items-center justify-between gap-2">
+            {/* ---- 1. the day ---- */}
+            <section className={cn('rounded-2xl border border-border bg-card p-5', closedToday && 'opacity-70')}>
+              <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
                 <h2 className="flex items-center gap-2 text-sm font-extrabold tracking-tight"><Sun className="h-4 w-4 text-primary" aria-hidden /> Today</h2>
-                <span className="text-xs font-semibold text-muted-foreground tabular-nums">
-                  {sessions.length === 0 ? 'empty' : `${sessions.length} ${sessions.length === 1 ? 'session' : 'sessions'}`}
-                </span>
+                <div className="flex items-center gap-2">
+                  <span className="text-xs font-semibold text-muted-foreground tabular-nums">
+                    {sessions.length === 0 ? 'empty' : `${sessions.length} ${sessions.length === 1 ? 'session' : 'sessions'}`}
+                  </span>
+                  {sessions.length > 0 && (
+                    <button type="button" onClick={copyToday} title="Copy today's schedule as text" className="inline-flex items-center gap-1 rounded-full border border-border px-2 py-0.5 text-[11px] font-bold text-muted-foreground outline-none transition hover:bg-secondary focus-visible:ring-2 focus-visible:ring-ring">
+                      <Copy className="h-3 w-3" aria-hidden /> Copy
+                    </button>
+                  )}
+                </div>
               </div>
+
+              {running && (
+                <p className="mb-3 flex items-center gap-2 rounded-xl bg-primary/10 px-3 py-2 text-[12.5px] font-bold text-primary">
+                  <span className="h-2 w-2 animate-pulse rounded-full bg-primary" aria-hidden />
+                  {running.title} is on now — {running.endMins - nowMins} min left
+                </p>
+              )}
+
+              {onToday.length > 1 && (
+                <div className="mb-3 flex flex-wrap items-center gap-1.5" role="group" aria-label="Filter by person">
+                  {onToday.map((p) => (
+                    <button
+                      key={p}
+                      type="button"
+                      onClick={() => setFocus(focus === p ? null : p)}
+                      aria-pressed={focus === p}
+                      className={cn('inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-[11px] font-bold outline-none transition focus-visible:ring-2 focus-visible:ring-ring', focus === p ? 'border-primary bg-primary/10 text-foreground' : 'border-border bg-card text-muted-foreground hover:bg-secondary')}
+                    >
+                      <Users className="h-3 w-3" aria-hidden /> {p}
+                    </button>
+                  ))}
+                </div>
+              )}
 
               {sessions.length === 0 ? (
                 <p className="rounded-xl border border-dashed border-border p-6 text-center text-sm text-muted-foreground">
                   Nothing is scheduled for today.
                 </p>
+              ) : shown.length === 0 ? (
+                <p className="rounded-xl border border-dashed border-border p-6 text-center text-sm text-muted-foreground">
+                  {focus} has nothing today. <button type="button" onClick={() => setFocus(null)} className="font-bold text-primary hover:underline">Show everyone</button>
+                </p>
               ) : (
                 <ol>
-                  {sessions.map((s, i) => {
+                  {shown.map((s) => {
                     const past = s.mins < nowMins
-                    const isNext = i === nextIdx
+                    const isNext = s.key === sessions[nextIdx]?.key
                     return (
-                      <li key={s.key} className={cn('flex gap-3', i === sessions.length - 1 ? 'pb-0' : 'pb-3', past && !isNext && 'opacity-55')}>
+                      <li key={s.key} className={cn('group flex gap-3', past && !isNext && 'opacity-55')}>
                         <span className="w-11 shrink-0 pt-0.5 text-right text-[11px] font-bold tabular-nums text-muted-foreground">{fmtTime(s.time) || '—'}</span>
                         <span className="relative flex w-3 shrink-0 justify-center pt-1.5">
                           <span className={cn('z-10 h-2.5 w-2.5 rounded-full ring-2 ring-card', isNext ? 'bg-primary' : past ? 'bg-border' : 'bg-foreground/25')} />
-                          {i < sessions.length - 1 && <span className="absolute top-3.5 h-full w-px bg-border" aria-hidden />}
+                          {s.key !== shown[shown.length - 1].key && <span className="absolute top-3.5 h-full w-px bg-border" aria-hidden />}
                         </span>
-                        <span className="min-w-0 flex-1 pb-0.5">
+                        <span className="min-w-0 flex-1 pb-3">
                           <span className="flex flex-wrap items-center gap-x-2 gap-y-1">
                             <span className={cn('text-[13.5px] font-bold leading-tight', s.status.kind === 'canceled' && 'line-through decoration-2')}>{s.title}</span>
                             {isNext && <span className="rounded-full bg-primary px-1.5 py-0.5 text-[9.5px] font-extrabold uppercase tracking-wider text-primary-foreground">Next</span>}
                             {s.status.kind === 'canceled' && <Chip tone="gold" icon={Ban}>Canceled</Chip>}
                             {s.status.kind === 'cover' && <Chip tone="primary" icon={UserCheck}>Cover: {s.status.cover}</Chip>}
+                            <span className="ml-auto flex items-center gap-1">
+                              {s.status.kind === 'canceled' && (
+                                <button type="button" onClick={() => setCovering(s)} className="rounded-full border border-border px-2 py-0.5 text-[10.5px] font-bold text-primary opacity-0 transition group-hover:opacity-100 group-focus-within:opacity-100 focus-visible:opacity-100">Find cover</button>
+                              )}
+                              <DropdownMenu>
+                                <DropdownMenuTrigger asChild>
+                                  <button type="button" aria-label={`Actions for ${s.title}`} className="grid h-6 w-6 place-items-center rounded-full text-muted-foreground opacity-0 transition hover:bg-secondary group-hover:opacity-100 group-focus-within:opacity-100 focus-visible:opacity-100">
+                                    <MoreHorizontal className="h-4 w-4" aria-hidden />
+                                  </button>
+                                </DropdownMenuTrigger>
+                                <DropdownMenuContent align="end" className="w-52">
+                                  <DropdownMenuItem onSelect={() => setView(s.kind === 'class' ? 'classes' : s.kind === 'club' ? 'intern-clubs' : 'intern-events')}>
+                                    <Pencil className="h-4 w-4" aria-hidden /> Open in {s.kind === 'class' ? 'Classes' : s.kind === 'club' ? 'Clubs' : 'Events'}
+                                  </DropdownMenuItem>
+                                  {s.kind !== 'class' && (
+                                    <DropdownMenuItem onSelect={() => postStory(s)}>
+                                      <Send className="h-4 w-4" aria-hidden /> Post the story
+                                    </DropdownMenuItem>
+                                  )}
+                                  <DropdownMenuSeparator />
+                                  <DropdownMenuItem onSelect={() => { setMoving(s); setMoveTime(s.time) }}>
+                                    <CalendarDays className="h-4 w-4" aria-hidden /> Move to another time…
+                                  </DropdownMenuItem>
+                                  <DropdownMenuItem onSelect={() => setCanceling(s)} className="text-destructive">
+                                    <Ban className="h-4 w-4" aria-hidden /> Cancel for today…
+                                  </DropdownMenuItem>
+                                </DropdownMenuContent>
+                              </DropdownMenu>
+                            </span>
                           </span>
                           <span className="mt-0.5 flex flex-wrap gap-x-1.5 text-[11.5px] text-muted-foreground">
                             <span>{s.sub}</span>
+                            {s.person && <><span aria-hidden>·</span><span>{s.person}</span></>}
                             {s.room && <><span aria-hidden>·</span><span>{s.room}</span></>}
                           </span>
                         </span>
@@ -212,14 +445,14 @@ export function DashboardPage() {
                 </ol>
               )}
 
-              {sessions.length > 0 && nextIdx === -1 && (
-                <p className="mt-3 flex items-center gap-1.5 text-[11.5px] font-semibold text-muted-foreground">
+              {sessions.length > 0 && nextIdx === -1 && !running && (
+                <p className="mt-1 flex items-center gap-1.5 text-[11.5px] font-semibold text-muted-foreground">
                   <CheckCircle2 className="h-3.5 w-3.5 text-[var(--aso-ok)]" aria-hidden /> That is everything for today.
                 </p>
               )}
 
               {away.length > 0 && (
-                <div className="mt-5 border-t border-border pt-4">
+                <div className="mt-4 border-t border-border pt-4">
                   <h3 className="mb-2 text-[10.5px] font-bold uppercase tracking-[0.14em] text-muted-foreground">Away today</h3>
                   <ul className="flex flex-col gap-1.5">
                     {away.map((a) => (
@@ -234,7 +467,7 @@ export function DashboardPage() {
               )}
             </section>
 
-            {/* ---- 2. what needs her, urgent first ---- */}
+            {/* ---- 2. what needs her ---- */}
             <section className="rounded-2xl border border-border bg-card p-5">
               <div className="mb-3 flex items-center justify-between gap-2">
                 <h2 className="flex items-center gap-2 text-sm font-extrabold tracking-tight">
@@ -260,7 +493,7 @@ export function DashboardPage() {
                           <a.icon className="h-4 w-4" aria-hidden />
                         </span>
                         <span className="min-w-0 flex-1">
-                          <span className="block text-[13px] font-bold leading-tight">{a.text}</span>
+                          <span className="block truncate text-[13px] font-bold leading-tight">{a.text}</span>
                           <span className="block text-[11px] leading-tight text-muted-foreground">{a.detail}</span>
                         </span>
                         <ChevronRight className="h-4 w-4 shrink-0 text-muted-foreground opacity-0 transition group-hover:opacity-100" aria-hidden />
@@ -272,7 +505,7 @@ export function DashboardPage() {
             </section>
           </div>
 
-          {/* ---- 3. the week, at a glance ---- */}
+          {/* ---- 3. the week ---- */}
           <section className="mt-4 rounded-2xl border border-border bg-card p-5">
             <div className="mb-3 flex items-center justify-between gap-2">
               <h2 className="flex items-center gap-2 text-sm font-extrabold tracking-tight"><CalendarDays className="h-4 w-4 text-primary" aria-hidden /> Next seven days</h2>
@@ -284,23 +517,61 @@ export function DashboardPage() {
                   key={d.iso}
                   type="button"
                   onClick={() => setPage('calendar')}
-                  aria-label={`${d.label} ${d.dayNum}: ${d.n} ${d.n === 1 ? 'session' : 'sessions'}`}
-                  className={cn('flex flex-col items-center gap-1.5 rounded-xl border p-2 outline-none transition focus-visible:ring-2 focus-visible:ring-ring', d.today ? 'border-primary bg-primary/5' : 'border-transparent hover:bg-secondary')}
+                  title={d.closed ? `${d.closed} — closed` : undefined}
+                  aria-label={`${d.label} ${d.dayNum}: ${d.closed ? `closed for ${d.closed}` : `${d.n} ${d.n === 1 ? 'session' : 'sessions'}`}`}
+                  className={cn('flex flex-col items-center gap-1.5 rounded-xl border p-2 outline-none transition focus-visible:ring-2 focus-visible:ring-ring', d.today ? 'border-primary bg-primary/5' : d.closed ? 'border-transparent bg-secondary/40' : 'border-transparent hover:bg-secondary')}
                 >
                   <span className={cn('text-[10.5px] font-bold uppercase tracking-wider', d.today ? 'text-primary' : 'text-muted-foreground')}>{d.label}</span>
                   <span className="flex h-14 w-full items-end justify-center">
-                    <span
-                      className={cn('w-full max-w-7 rounded-t-md', d.today ? 'bg-primary' : 'bg-primary/25')}
-                      style={{ height: `${d.n === 0 ? 3 : Math.max(10, (d.n / busiest) * 56)}px` }}
-                    />
+                    {d.closed
+                      ? <CalendarOff className="mb-2 h-4 w-4 text-muted-foreground/60" aria-hidden />
+                      : <span className={cn('w-full max-w-7 rounded-t-md', d.today ? 'bg-primary' : 'bg-primary/25')} style={{ height: `${d.n === 0 ? 3 : Math.max(10, (d.n / busiest) * 56)}px` }} />}
                   </span>
-                  <span className={cn('text-xs font-extrabold tabular-nums', d.n === 0 && 'text-muted-foreground/50')}>{d.n}</span>
+                  <span className={cn('text-xs font-extrabold tabular-nums', (d.n === 0 || d.closed) && 'text-muted-foreground/50')}>{d.closed ? 'closed' : d.n}</span>
                 </button>
               ))}
             </div>
+
+            {/* the year, in one line: where week 7 of 32 actually is */}
+            {total > 0 && (
+              <div className="mt-4">
+                <div className="flex items-center gap-0.5" role="img" aria-label={`The year: ${total} weeks, now at week ${weekNo}`}>
+                  {yearCells.map((c) => (
+                    <span
+                      key={c.i}
+                      className={cn('h-1.5 flex-1 rounded-sm transition', c.cur ? 'bg-primary' : c.s1 ? 'bg-primary/35' : 'bg-primary/15', c.i === s1Weeks && 'ml-1.5')}
+                      title={`Week ${c.i + 1}${c.s1 ? '' : ' · semester 2'}`}
+                    />
+                  ))}
+                </div>
+                <div className="mt-1 flex justify-between text-[10.5px] font-semibold text-muted-foreground">
+                  <span>Semester 1 · {s1Weeks} weeks</span>
+                  <span>Semester 2 · {Math.max(0, total - s1Weeks)} weeks</span>
+                </div>
+              </div>
+            )}
           </section>
 
-          {/* ---- 4. the numbers, smaller than they used to be ---- */}
+          {/* ---- 4. housekeeping ---- */}
+          {housekeeping.length > 0 && (
+            <details className="mt-4 rounded-2xl border border-border bg-card px-5 py-3">
+              <summary className="flex cursor-pointer items-center gap-2 text-sm font-extrabold tracking-tight outline-none">
+                <AlertTriangle className="h-4 w-4 text-muted-foreground" aria-hidden />
+                Housekeeping
+                <span className="rounded-full bg-secondary px-2 py-0.5 text-[11px] font-extrabold text-muted-foreground tabular-nums">{housekeeping.length}</span>
+              </summary>
+              <ul className="mt-3 flex flex-col gap-1.5 text-[13px]">
+                {housekeeping.map((h) => (
+                  <li key={h.text} className="flex items-baseline gap-2">
+                    <span className="font-extrabold tabular-nums">{h.n}</span>
+                    <span className="text-muted-foreground">{h.text}</span>
+                  </li>
+                ))}
+              </ul>
+            </details>
+          )}
+
+          {/* ---- 5. the numbers, small ---- */}
           <nav aria-label="At a glance" className="mt-4 flex flex-wrap items-center gap-x-2 gap-y-2">
             {glance.map((g) => (
               <button
@@ -319,6 +590,82 @@ export function DashboardPage() {
           </nav>
         </>
       )}
+
+      {/* ---- move to another time ---- */}
+      <Dialog open={!!moving} onOpenChange={(v) => !v && setMoving(null)}>
+        <DialogContent className="sm:max-w-sm">
+          <DialogHeader>
+            <DialogTitle>Move {moving?.title}</DialogTitle>
+            <DialogDescription>Only today changes — the weekly pattern stays as it is.</DialogDescription>
+          </DialogHeader>
+          <label className="flex flex-col gap-1.5 text-sm font-bold">
+            New time
+            <input
+              value={moveTime}
+              onChange={(e) => setMoveTime(e.target.value)}
+              placeholder="14:00-16:00"
+              inputMode="numeric"
+              className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm font-normal outline-none focus:border-primary"
+            />
+          </label>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setMoving(null)}>Cancel</Button>
+            <Button onClick={saveMove}>Save</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* ---- cancel for today ---- */}
+      <AlertDialog open={!!canceling} onOpenChange={(v) => !v && setCanceling(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Cancel {canceling?.title} for today?</AlertDialogTitle>
+            <AlertDialogDescription>
+              It will show as canceled today and stay in the weekly pattern. You can undo it in Absences.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Keep it</AlertDialogCancel>
+            <AlertDialogAction onClick={doCancel}>Cancel it</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* ---- who is free at that hour ---- */}
+      <Dialog open={!!covering} onOpenChange={(v) => !v && setCovering(null)}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Who can cover {covering?.title}?</DialogTitle>
+            <DialogDescription>
+              People who are not away and not busy {fmtTime(covering?.time || '') || 'then'}.
+            </DialogDescription>
+          </DialogHeader>
+          {covering && freeFor(covering).length === 0 ? (
+            <p className="text-sm text-muted-foreground">Nobody is free at that hour.</p>
+          ) : (
+            <ul className="flex max-h-72 flex-col gap-1 overflow-y-auto">
+              {covering && freeFor(covering).map((p) => (
+                <li key={p.id}>
+                  <button
+                    type="button"
+                    onClick={() => doCover(p.name)}
+                    className="flex w-full items-center gap-3 rounded-xl px-2 py-2 text-left outline-none transition hover:bg-secondary focus-visible:ring-2 focus-visible:ring-ring"
+                  >
+                    <span className="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-secondary text-[11px] font-extrabold">
+                      {p.name.split(' ').map((w) => w[0]).join('').slice(0, 2).toUpperCase()}
+                    </span>
+                    <span className="min-w-0 flex-1">
+                      <span className="block truncate text-[13px] font-bold">{p.name}</span>
+                      <span className="block text-[11px] text-muted-foreground">{(p.roles?.length ? p.roles : [p.role]).filter(Boolean).join(' · ') || 'No role set'}</span>
+                    </span>
+                    <ChevronRight className="h-4 w-4 text-muted-foreground" aria-hidden />
+                  </button>
+                </li>
+              ))}
+            </ul>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }
