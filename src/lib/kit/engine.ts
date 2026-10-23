@@ -224,7 +224,7 @@ export async function makeStoryAnim(p: KitParams, t: KitTheme, loop = 10) {
 
 /* a QR code of a link in the theme colours: square modules in a gradient, four corner brackets round it, no card behind it.
    The colours are darkened enough for the code to stay easy to scan. */
-function drawQR(x: Ctx, url: string, cx: number, cy: number, size: number, c1: RGB, c2: RGB) {
+function drawQR(x: Ctx, url: string, cx: number, cy: number, size: number, c1: RGB, c2: RGB, b1: RGB = c1, b2: RGB = c2) {
   const q = qrcode(0, "M"); q.addData(url); q.make();
   const n = q.getModuleCount(), cell = size / n, left = cx - size / 2, top = cy - size / 2;
   const lum = (c: RGB) => 0.299 * c[0] + 0.587 * c[1] + 0.114 * c[2], safe = (c: RGB): RGB => { const k = lum(c) > 105 ? 105 / lum(c) : 1; return c.map((v) => Math.round(v * k)) as RGB; };
@@ -232,7 +232,7 @@ function drawQR(x: Ctx, url: string, cx: number, cy: number, size: number, c1: R
   x.save(); x.fillStyle = g;
   for (let r = 0; r < n; r++) for (let c = 0; c < n; c++) if (q.isDark(r, c)) x.fillRect(Math.floor(left + c * cell), Math.floor(top + r * cell), Math.ceil(cell), Math.ceil(cell));
   const m = Math.round(size * 0.1), L = Math.round(size * 0.16), lw = Math.max(4, Math.round(size * 0.022));
-  x.strokeStyle = grad(x, left - m, left + size + m, c1, c2); x.lineWidth = lw; x.lineCap = "butt";
+  x.strokeStyle = grad(x, left - m, left + size + m, b1, b2); x.lineWidth = lw; x.lineCap = "butt";
   const l = left - m, t = top - m, rr_ = left + size + m, bb = top + size + m;
   x.beginPath();
   x.moveTo(l, t + L); x.lineTo(l, t); x.lineTo(l + L, t);
@@ -455,13 +455,13 @@ export async function makeLinksStory(url: string, t: KitTheme) {
   glow(x, 540, 1100, t.c2);
   x.save(); x.translate(0, 100) /* the block sits in the middle of the story: the same space above the logo as below the last line */;
   await drawLogo(x, CX, 165, 78);
-  x.font = "700 25px ManropeA"; kick(x, "JOIN THE", CX, 340, 7, grad(x, CX - 160, CX + 160, WA_GREEN[0], WA_GREEN[1]));
+  x.font = "700 25px ManropeA"; kick(x, "JOIN THE", CX, 340, 7, rg(dim(t.c2, .72)));
   const fw = fit(x, s => `italic 600 ${s}px Bodoni`, "ASO Community", 820, 170, -5), cw = capOf(x, fw, 600);
   gradTitle(x, "ASO Community", CX, 372 + cw, fw, -5, 600, WA_GREEN[0], WA_GREEN[1]);
   const hl = 372 + cw + 52; x.fillStyle = grad(x, CX - 260, CX + 260, WA_GREEN[0], WA_GREEN[1]); x.fillRect(CX - 260, hl, 520, 3);
   await drawIconFit(x, "i-whatsapp", CX, hl + 165, 190, 190, WA_GREEN[0], WA_GREEN[1]);
   const QS = 480, qcy = hl + 165 + 95 + 70 + QS / 2 + 30;
-  drawQR(x, url, CX, qcy, QS, WA_GREEN[0], WA_GREEN[1]);
+  drawQR(x, url, CX, qcy, QS, WA_GREEN[0], WA_GREEN[1], t.c1, t.c2);
   const ty = qcy + QS / 2 + 30 + 80;
   x.font = "700 30px ManropeA"; spaced(x, "SCAN TO JOIN THE", CX, ty, 6, rg(t.ink, .92));
   x.font = "700 30px ManropeA"; spaced(x, "WHATSAPP COMMUNITY", CX, ty + 46, 6, grad(x, CX - 300, CX + 300, WA_GREEN[0], WA_GREEN[1]));
