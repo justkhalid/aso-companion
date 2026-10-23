@@ -95,7 +95,7 @@ export async function drawLogo(ctx: Ctx, cx: number, cy: number, h: number) {
    hand-drawn kit icons and 1.15 for the ones that come from the club picker, which made
    the two sets look like two different families next to the lucide icons in the same panel
    (those are 2). One number now, and the picker looks like the rest of the app. */
-export const ICON_STROKE = 1.6
+export const ICON_STROKE = 1
 export async function iconCanvas(key: string, size: number, c1: RGB, c2: RGB, boost = 1) {
   const ic = KIT_ICONS[key];
   /* a club saved with an icon that no longer exists draws nothing instead of throwing */
