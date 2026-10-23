@@ -429,7 +429,7 @@ function ClubListCard({
         {/* poster in the 3:4 frame, stretches to fill taller rows */}
         <div className="relative overflow-hidden flex w-[96px] shrink-0 bg-secondary sm:w-[144px]">
           {club.poster ? (
-            <img loading="lazy" decoding="async" src={posterThumb(club.poster, 320)} alt={`${club.name} poster`} className="aspect-[3/4] min-h-full w-full object-cover" />
+            <img loading="lazy" decoding="async" src={posterThumb(club.poster, 320)} alt={`${club.name} poster`} className="aspect-[3/4] min-h-full w-full object-contain" />
           ) : (
             <PosterFallback club={club} compact />
           )}
@@ -544,7 +544,7 @@ export function ClubGridCard({
       {/* poster in the Instagram frame, 3:4 */}
       <div className="relative overflow-hidden aspect-[3/4] w-full bg-secondary">
         {club.poster ? (
-          <img loading="lazy" decoding="async" src={posterThumb(club.poster, 480)} alt={`${club.name} poster`} className="h-full w-full object-cover" />
+          <img loading="lazy" decoding="async" src={posterThumb(club.poster, 480)} alt={`${club.name} poster`} className="h-full w-full object-contain" />
         ) : (
           <PosterFallback club={club} />
         )}
@@ -603,7 +603,7 @@ export function EventGridCard({ event }: { event: EventEntry }) {
     <div className="flex h-full flex-col overflow-hidden rounded-2xl border border-border bg-card shadow-sm">
       <div className="relative overflow-hidden aspect-[3/4] w-full bg-secondary">
         {event.poster ? (
-          <img loading="lazy" decoding="async" src={posterThumb(event.poster, 480)} alt={`${event.title} poster`} className="h-full w-full object-cover" />
+          <img loading="lazy" decoding="async" src={posterThumb(event.poster, 480)} alt={`${event.title} poster`} className="h-full w-full object-contain" />
         ) : (
           <div className="flex h-full w-full flex-col items-center justify-center gap-3 bg-gradient-to-br from-secondary to-background p-4 text-center">
             <div className="flex h-16 w-16 items-center justify-center rounded-full bg-primary/10 text-primary"><Icon className="h-8 w-8" /></div>
@@ -672,7 +672,7 @@ export function ClubExpandOverlay({
         {/* LEFT — the poster, full height, the visual anchor of the card */}
         <div className="relative aspect-[3/4] w-full shrink-0 overflow-hidden md:aspect-auto md:w-[300px] md:min-h-[424px]" style={{ containerType: 'inline-size' }}>
           {club.poster ? (
-            <img loading="lazy" decoding="async" src={club.poster} alt={`${club.name} poster`} className="absolute inset-0 h-full w-full object-cover" />
+            <img loading="lazy" decoding="async" src={club.poster} alt={`${club.name} poster`} className="absolute inset-0 h-full w-full object-contain" />
           ) : (
             <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 bg-gradient-to-br from-secondary to-background px-6 text-center">
               <div className="flex h-14 w-14 items-center justify-center rounded-full bg-primary/10 text-primary">
@@ -942,7 +942,7 @@ export function EventCard({
           <div className="flex w-full shrink-0 items-start justify-center bg-secondary p-3 sm:w-[210px]">
             <a href={event.poster} target="_blank" rel="noopener" className="block w-full max-w-[260px]" title="Open the full poster">
               <div className="relative aspect-[3/4] overflow-hidden shadow-sm">
-                <img loading="lazy" decoding="async" src={posterThumb(event.poster, 480)} alt={`${event.title} poster`} className="block h-full w-full object-cover" />
+                <img loading="lazy" decoding="async" src={posterThumb(event.poster, 480)} alt={`${event.title} poster`} className="block h-full w-full object-contain" />
               </div>
             </a>
           </div>
