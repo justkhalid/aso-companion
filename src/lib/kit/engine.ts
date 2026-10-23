@@ -293,7 +293,8 @@ async function storyBody(p: KitParams, t: KitTheme, withBg: boolean, withDecor =
   if (withQR) {
     const QS = 204, qcy = 1628;
     /* a soft glassy glow under the words only (fades out evenly, no edges), so decoration lines do not run through the text */
-    x.save(); x.translate(CX, 1815); x.scale(1, .3); const gl = x.createRadialGradient(0, 0, 0, 0, 0, 300); gl.addColorStop(0, rg(t.ink, .14)); gl.addColorStop(.55, rg(t.ink, .1)); gl.addColorStop(1, rg(t.ink, 0)); x.fillStyle = gl; x.fillRect(-300, -300, 600, 600); x.restore();
+    const lightInk = (t.ink[0] * .299 + t.ink[1] * .587 + t.ink[2] * .114) > 140, gw: RGB = lightInk ? t.ink : [255, 255, 255];
+    x.save(); x.translate(CX, 1815); x.scale(1, .32); const gl = x.createRadialGradient(0, 0, 0, 0, 0, 330); gl.addColorStop(0, rg(gw, lightInk ? .14 : .8)); gl.addColorStop(.6, rg(gw, lightInk ? .1 : .6)); gl.addColorStop(1, rg(gw, 0)); x.fillStyle = gl; x.fillRect(-330, -330, 660, 660); x.restore();
     drawQR(x, p.wa!, CX, qcy, QS, t.c1, t.c2);
     x.font = "700 27px ManropeA"; spaced(x, "SCAN TO JOIN THE", CX, 1800, 5, rg(t.ink, .92));
     x.font = "700 27px ManropeA"; spaced(x, "WHATSAPP GROUP", CX, 1840, 5, grad(x, CX - 300, CX + 300, t.c1, t.c2));
