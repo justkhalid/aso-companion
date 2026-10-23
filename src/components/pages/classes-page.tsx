@@ -49,39 +49,37 @@ export function ClassesPage() {
       .sort((a, b) => (a.mark?.step ?? 0) - (b.mark?.step ?? 0) || DAY_ORDER.indexOf(a.c.days?.[0] ?? '') - DAY_ORDER.indexOf(b.c.days?.[0] ?? '') || a.c.code.localeCompare(b.c.code)),
   })).filter((g) => g.list.length)
 
-  const card = (c: ClassEntry, tone: string) => {
+  /* one row per class: the same five columns in every group, so teachers, rooms and times line up from top to bottom */
+  const COLS = 'sm:grid-cols-[minmax(0,1.5fr)_minmax(0,1.25fr)_minmax(0,1fr)_minmax(0,.8fr)_auto]'
+  const line = (c: ClassEntry) => {
     const [from, to] = (fmtTime(c.time) || '').split(' - ')
     const days = (c.days || []).slice().sort((a, b) => DAY_ORDER.indexOf(a) - DAY_ORDER.indexOf(b))
+    const missing = (label: string) => <span className="inline-flex items-center gap-1 font-semibold text-[var(--aso-gold)]"><AlertTriangle className="h-3.5 w-3.5" aria-hidden /> {label}</span>
     return (
-      <div key={c.id} className={cn('flex gap-3 rounded-2xl border border-border bg-card p-3 shadow-sm', isOver(c) && 'opacity-70')}>
-        <div className={`${tone} flex w-[88px] shrink-0 flex-col items-center justify-center rounded-xl px-1 py-2 text-center`} style={{ background: 'var(--tone-bg)', color: 'var(--tone-txt)' }}>
-          <span className="text-[11px] font-extrabold uppercase tracking-wide">{days.join(' · ') || 'No day'}</span>
-          <span className="mt-0.5 text-[17px] font-extrabold leading-tight tabular-nums">{from || '-'}</span>
-          {to && <span className="text-[11px] font-semibold opacity-80">to {to}</span>}
+      <div key={c.id} className={cn('grid items-center gap-x-4 gap-y-1 px-4 py-3 text-[13px]', COLS, isOver(c) && 'opacity-70')}>
+        <div className="flex min-w-0 items-baseline gap-2">
+          <h3 className="truncate text-[14px] font-extrabold tracking-tight">{publicGroupName(c.code, c.level)}</h3>
+          <span className="shrink-0 text-xs font-semibold text-muted-foreground">{c.code}</span>
+          {isOver(c) && <span className="shrink-0 rounded-full bg-secondary px-2 py-0.5 text-[10px] font-bold text-muted-foreground">Ended</span>}
         </div>
-        <div className="flex min-w-0 flex-1 flex-col">
-          <div className="flex items-baseline gap-2">
-            <h3 className="truncate text-[15px] font-extrabold tracking-tight">{publicGroupName(c.code, c.level)}</h3>
-            <span className="shrink-0 text-xs font-semibold text-muted-foreground">{c.code}</span>
-            {isOver(c) && <span className="shrink-0 rounded-full bg-secondary px-2 py-0.5 text-[10px] font-bold text-muted-foreground">Ended</span>}
-          </div>
-          <div className="mt-1.5 grid gap-1 text-[13px]">
-            <span className="inline-flex items-center gap-1.5 font-semibold"><Users className="h-3.5 w-3.5 text-muted-foreground" aria-hidden /> {c.teacher || <span className="inline-flex items-center gap-1 text-[var(--aso-gold)]"><AlertTriangle className="h-3.5 w-3.5" aria-hidden /> Needs a teacher</span>}</span>
-            <span className="inline-flex items-center gap-1.5 font-semibold text-muted-foreground"><Home className="h-3.5 w-3.5" aria-hidden /> {c.room || <span className="text-[var(--aso-gold)]">No room</span>}</span>
-          </div>
-          <div className="mt-2.5 flex justify-end">
-            <RowActions
-              name={c.code}
-              onEdit={() => setDialog({ open: true, cls: c })}
-              onDuplicate={() => duplicate(c)}
-              remove={(d) => { d.classes = d.classes.filter((x) => x.id !== c.id) }}
-              deleteNote="The class card is removed. Weeks and team are not affected."
-            />
-          </div>
+        <div className="font-semibold tabular-nums">
+          {days.length || from ? <>{days.join(' · ') || 'No day'} <span className="text-muted-foreground">{from ? `${from}${to ? ` - ${to}` : ''}` : ''}</span></> : missing('No time')}
+        </div>
+        <div className="inline-flex min-w-0 items-center gap-1.5 truncate font-semibold"><Users className="h-3.5 w-3.5 shrink-0 text-muted-foreground" aria-hidden /> {c.teacher || missing('No teacher')}</div>
+        <div className="inline-flex min-w-0 items-center gap-1.5 truncate font-semibold text-muted-foreground"><Home className="h-3.5 w-3.5 shrink-0" aria-hidden /> {c.room || missing('No room')}</div>
+        <div className="flex justify-end sm:justify-self-end">
+          <RowActions
+            name={c.code}
+            onEdit={() => setDialog({ open: true, cls: c })}
+            onDuplicate={() => duplicate(c)}
+            remove={(d) => { d.classes = d.classes.filter((x) => x.id !== c.id) }}
+            deleteNote="The class card is removed. Weeks and team are not affected."
+          />
         </div>
       </div>
     )
   }
+  const table = (list: ClassEntry[]) => <div className="divide-y divide-border overflow-hidden rounded-xl border border-border bg-card shadow-sm">{list.map(line)}</div>
 
   return (
     <div className="mx-auto max-w-5xl px-4 py-6 sm:py-8">
@@ -117,8 +115,8 @@ export function ClassesPage() {
                 <div className="grid gap-4">
                   {steps.map((st) => (
                     <div key={st}>
-                      {steps.length > 1 && <div className="mb-2 px-1 text-[11px] font-bold uppercase tracking-wider text-muted-foreground">{STEP[st]}</div>}
-                      <div className="grid gap-3 sm:grid-cols-2">{g.list.filter((r) => (r.mark?.step ?? 0) === st).map((r) => card(r.c, g.tone))}</div>
+                      {steps.length > 1 && <div className="mb-1.5 px-1 text-[11px] font-bold uppercase tracking-wider text-muted-foreground">{STEP[st]}</div>}
+                      {table(g.list.filter((r) => (r.mark?.step ?? 0) === st).map((r) => r.c))}
                     </div>
                   ))}
                 </div>
@@ -126,7 +124,7 @@ export function ClassesPage() {
             )
           })}
           <ArchiveGroup count={over.length}>
-            <div className="grid gap-3 sm:grid-cols-2">{over.map((c) => card(c, 'tone-8'))}</div>
+            {table(over)}
           </ArchiveGroup>
         </div>
       )}
