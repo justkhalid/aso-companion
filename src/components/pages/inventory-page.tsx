@@ -60,7 +60,7 @@ const photoUrl = (i: Item) => `/api/inventory/photo?code=${i.code}&v=${encodeURI
 
 function Thumb({ item, size = 40 }: { item: Item; size?: number }) {
   return item.hasPhoto
-    ? <img src={photoUrl(item)} alt="" width={size} height={size} className="rounded-md object-cover" style={{ width: size, height: size * 1.25 }} />
+    ? <img src={photoUrl(item)} alt="" width={size} height={size} className="rounded-md object-contain" style={{ width: size, height: size * 1.25 }} />
     : <span className="flex items-center justify-center rounded-md bg-secondary text-muted-foreground" style={{ width: size, height: size * 1.25 }}><Boxes className="h-4 w-4" aria-hidden /></span>
 }
 
@@ -342,7 +342,7 @@ function ItemDialog({ item, onChange, isNew, busy, rooms, onClose, onSave, onDel
           <div className="flex flex-col gap-2">
             <div className="aspect-[4/5] w-full overflow-hidden rounded-xl border border-border bg-secondary">
               {photoSrc
-                            ? <img src={photoSrc} alt="" className="h-full w-full object-cover" />
+                            ? <img src={photoSrc} alt="" className="h-full w-full object-contain" />
                 : <div className="flex h-full items-center justify-center text-muted-foreground"><Boxes className="h-8 w-8" aria-hidden /></div>}
             </div>
             <Button type="button" variant="outline" size="sm" onClick={() => setCam(true)}><Camera className="h-4 w-4" /> Take a photo</Button>

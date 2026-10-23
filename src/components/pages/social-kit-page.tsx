@@ -203,7 +203,7 @@ function KitCard({ kind, item, onOpen }: { kind: Kind; item: Club | EventEntry; 
     <div className="flex flex-col overflow-hidden rounded-2xl border border-border bg-card shadow-sm">
       <button onClick={onOpen} className="relative block aspect-[3/4] w-full overflow-hidden bg-secondary" aria-label={`Open ${R.name}`}>
         {R.sitePoster || R.poster ? (
-          <img src={R.sitePoster ? posterThumb(R.sitePoster, 480) : R.poster || ''} alt={`${R.name} poster`} className="h-full w-full object-cover" loading="lazy" />
+          <img src={R.sitePoster ? posterThumb(R.sitePoster, 480) : R.poster || ''} alt={`${R.name} poster`} className="h-full w-full object-contain" loading="lazy" />
         ) : (
           <span className="flex h-full w-full flex-col items-center justify-center gap-1.5 text-muted-foreground">
             <ImagePlus className="h-5 w-5" />
@@ -836,7 +836,7 @@ function KitEditor({ kind, id, onBack, onManage, onEditSchedule }: { kind: Kind;
       setVideoBusy(null)
     }
   }
-  const dlPoster = async () => { if (R.poster) saveBlob((await posterBlobs(R.poster)).poster, `${sl}-poster-3x4.jpg`) }
+  const dlPoster = async () => { if (R.poster) saveBlob((await posterBlobs(R.poster)).poster, `${sl}-poster.jpg`) }
   const dlBoth = () => { dlStory(); if (out?.cover) setTimeout(dlCover, 600) }
 
   /* A cancellation notice is a different artefact, not a fifth step of this screen. */
@@ -901,10 +901,10 @@ function KitEditor({ kind, id, onBack, onManage, onEditSchedule }: { kind: Kind;
 
           {artefact === 'post' && (
             <section className="flex flex-col gap-2.5 rounded-2xl border border-border bg-card p-3">
-              <h3 className="flex items-baseline justify-between gap-2 text-xs font-extrabold">Poster <span className="text-[11px] font-medium text-muted-foreground">3:4</span></h3>
-              <div className="overflow-hidden border border-border bg-secondary" style={{ aspectRatio: '3 / 4' }}>
+              <h3 className="flex items-baseline justify-between gap-2 text-xs font-extrabold">Poster <span className="text-[11px] font-medium text-muted-foreground">as posted</span></h3>
+              <div className="my-auto overflow-hidden border border-border bg-secondary" style={R.poster ? undefined : { aspectRatio: '3 / 4' }}>
                 {R.poster
-                  ? <img src={R.poster} alt={`Poster of ${title}`} className="h-full w-full object-cover" />
+                  ? <img src={R.poster} alt={`Poster of ${title}`} className="block h-auto w-full" />
                   : <div className="grid h-full place-items-center px-2 text-center text-[11px] font-bold text-muted-foreground">No poster yet</div>}
               </div>
             </section>
@@ -938,7 +938,7 @@ function KitEditor({ kind, id, onBack, onManage, onEditSchedule }: { kind: Kind;
             items={[
               { label: 'Story picture', hint: 'PNG, 9:16', icon: Download, on: dlStory, off: !out },
               { label: videoBusy !== null ? `Recording ${Math.round(videoBusy * 100)}%` : 'Story video', hint: 'MP4, moving', icon: videoBusy !== null ? Loader2 : Play, on: () => void dlVideo(), off: !live || videoBusy !== null },
-              { label: 'Poster', hint: 'JPG, 3:4', icon: Download, on: () => void dlPoster(), off: !R.poster },
+              { label: 'Poster', hint: 'JPG, whole', icon: Download, on: () => void dlPoster(), off: !R.poster },
               ...(kind === 'club' ? [{ label: 'WhatsApp picture', hint: 'PNG, round', icon: Download, on: dlCover, off: !out?.cover }] : []),
               { label: 'Everything', hint: 'ZIP of all files', icon: Download, on: () => void dlKit(), off: !out },
             ]}
@@ -1267,19 +1267,28 @@ function PreviewCard({ title, note, canvas, round, crop, onDownload, extra }: { 
 
 const blobOf = (c: HTMLCanvasElement, q = 0.92) => new Promise<Blob>((res, rej) => c.toBlob((b) => (b ? res(b) : rej(new Error('picture failed'))), 'image/jpeg', q))
 
-/* the poster in the ASO frame, 3:4 (1080x1440), and a 4:5 copy (1080x1350, soft side bars) kept for Instagram feeds that refuse 3:4 */
+/* The poster goes out whole, in the shape it was uploaded in: nothing is cut off.
+   Instagram's feed takes 3:4 up to 1.91:1; a poster outside that range is placed, uncropped, on a soft blurred copy of itself.
+   poster45 (4:5, the same way) is kept for the case where Instagram still refuses the first shape. */
 async function posterBlobs(src: string) {
   const im = await loadImage(src)
-  const a = cv(1080, 1440)
-  fitCover(a.getContext('2d')!, im, 0, 0, 1080, 1440)
-  const b = cv(1080, 1350)
-  const g = b.getContext('2d')!
-  g.filter = 'blur(40px)'
-  fitCover(g, im, -60, -60, 1200, 1470)
-  g.filter = 'none'
-  const w = Math.round((1350 * 3) / 4)
-  g.drawImage(im, (1080 - w) / 2, 0, w, 1350)
-  return { poster: await blobOf(a), poster45: await blobOf(b) }
+  const ratio = im.width / im.height
+  const whole = (cw: number, ch: number) => {
+    const c = cv(cw, ch), g = c.getContext('2d')!
+    g.filter = 'blur(40px)'
+    fitCover(g, im, -60, -60, cw + 120, ch + 120)
+    g.filter = 'none'
+    const k = Math.min(cw / im.width, ch / im.height)
+    g.drawImage(im, (cw - im.width * k) / 2, (ch - im.height * k) / 2, im.width * k, im.height * k)
+    return c
+  }
+  let a: HTMLCanvasElement
+  if (ratio >= 0.75 && ratio <= 1.91) {
+    const k = Math.min(1, 1440 / Math.max(im.width, im.height))
+    a = cv(Math.round(im.width * k), Math.round(im.height * k))
+    a.getContext('2d')!.drawImage(im, 0, 0, a.width, a.height)
+  } else a = ratio < 0.75 ? whole(1080, 1440) : whole(1440, 754)
+  return { poster: await blobOf(a), poster45: await blobOf(whole(1080, 1350)) }
 }
 
 type Dest = 'igFeed' | 'igStory' | 'fbFeed' | 'fbStory'

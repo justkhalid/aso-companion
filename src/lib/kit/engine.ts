@@ -325,7 +325,7 @@ export async function makeCancel(p: KitParams, t0: KitTheme, shape: "story" | "p
   const poster = (px: number, py: number, pw: number, ph: number) => {
     g.save(); g.shadowColor = "rgba(60,10,20,.30)"; g.shadowBlur = 36; g.shadowOffsetY = 14; rr(g, px, py, pw, ph, 0); g.fillStyle = "#f6f3ee"; g.fill(); g.restore();
     g.save(); rr(g, px, py, pw, ph, 0); g.clip();
-    if (p.im) { g.filter = "grayscale(.65) brightness(.96)"; fitCover(g, p.im, px, py, pw, ph); g.filter = "none"; } else { g.fillStyle = "#f6f3ee"; g.fillRect(px, py, pw, ph); }
+    if (p.im) { const k = Math.min(pw / p.im.width, ph / p.im.height), dw = p.im.width * k, dh = p.im.height * k; g.filter = "grayscale(.65) brightness(.96)"; g.drawImage(p.im, px + (pw - dw) / 2, py + (ph - dh) / 2, dw, dh); g.filter = "none"; } else { g.fillStyle = "#f6f3ee"; g.fillRect(px, py, pw, ph); }
     g.fillStyle = "rgba(128,12,32,.16)"; g.fillRect(px, py, pw, ph);
     g.translate(px + pw / 2, py + ph / 2); g.rotate(-Math.PI / 9);
     const bw = pw * 1.5, bh = Math.max(64, pw * .15);

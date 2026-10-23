@@ -352,8 +352,7 @@ export function IconPicker({
 }
 
 /* ---------- poster upload: compress + crop to A4 portrait, store base64 ---------- */
-const POSTER_W = 864
-const POSTER_H = 1152 // 864x1152 = 3:4, the ASO poster frame (Instagram's grid ratio)
+const POSTER_MAX = 1440 // longest side of a stored poster; its shape is never changed
 
 export function PosterUploader({
   value,
@@ -381,17 +380,12 @@ export function PosterUploader({
         im.onerror = () => reject(new Error('bad image'))
         im.src = dataUrl
       })
-      // cover-crop to A4 portrait on a canvas
+      // keep the picture whole, in the shape it was uploaded in (only shrunk when its longest side passes the limit)
       const cv = document.createElement('canvas')
-      cv.width = POSTER_W
-      cv.height = POSTER_H
-      const ctx = cv.getContext('2d')!
-      const scale = Math.max(POSTER_W / img.width, POSTER_H / img.height)
-      const w = img.width * scale
-      const h = img.height * scale
-      ctx.fillStyle = '#ffffff'
-      ctx.fillRect(0, 0, POSTER_W, POSTER_H)
-      ctx.drawImage(img, (POSTER_W - w) / 2, (POSTER_H - h) / 2, w, h)
+      const scale = Math.min(1, POSTER_MAX / Math.max(img.width, img.height))
+      cv.width = Math.round(img.width * scale)
+      cv.height = Math.round(img.height * scale)
+      cv.getContext('2d')!.drawImage(img, 0, 0, cv.width, cv.height)
       /* WebP is about half the size of JPEG; a browser that cannot make one answers with PNG, so JPEG is used then */
       const webp = cv.toDataURL('image/webp', 0.8)
       onChange(webp.startsWith('data:image/webp') ? webp : cv.toDataURL('image/jpeg', 0.82))
@@ -406,7 +400,7 @@ export function PosterUploader({
     return (
       <div className="flex items-start gap-3">
         <div className="relative aspect-[3/4] w-24 shrink-0 overflow-hidden border border-border shadow-sm">
-          <img src={value} alt="Club poster preview" className="block h-full w-full object-cover" />
+          <img src={value} alt="Club poster preview" className="block h-full w-full object-contain" />
         </div>
         <div className="flex flex-col gap-1.5">
           <Button

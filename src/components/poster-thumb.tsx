@@ -8,7 +8,7 @@ export function PosterThumb({ poster, alt, icon, kind }: { poster?: string; alt:
   return (
     <div className="aspect-[3/4] w-[124px] shrink-0 self-start overflow-hidden border border-border bg-secondary shadow-sm sm:w-[168px]">
       {poster ? (
-        <img loading="lazy" decoding="async" src={posterThumb(poster, 480)} alt={alt} className="h-full w-full object-cover" />
+        <img loading="lazy" decoding="async" src={posterThumb(poster, 480)} alt={alt} className="h-full w-full object-contain" />
       ) : (
         <div className="flex h-full w-full flex-col items-center justify-center gap-1.5 text-muted-foreground">
           <Icon className="h-8 w-8" aria-hidden />
