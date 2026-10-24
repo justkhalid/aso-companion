@@ -22,6 +22,8 @@ type Span = 'month' | 'week'
 /* The one calendar for the whole site: what to show (clubs and events, classes, rooms) and how far (a month picture or a week). */
 export function UnifiedCalendar({ tab, onTab, counts, animated = false }: { tab: CalTab; onTab: (t: CalTab) => void; counts?: Partial<Record<CalTab, number>>; animated?: boolean }) {
   const state = useStore((s) => s.state)
+  /* only the signed-in admin edits from the calendar; the public site, its preview and the director view only look */
+  const canEdit = useStore((s) => s.admin && !s.pubView)
   /* classes and rooms open on the week, clubs and events on the month; a choice made on one tab stays on that tab */
   const [spans, setSpans] = React.useState<Partial<Record<CalTab, Span>>>({})
   /* on a phone the month picture is too small to read and the slowest thing to draw: the week opens first there, and the picture is the plain one (nothing moves) */
@@ -157,17 +159,23 @@ export function UnifiedCalendar({ tab, onTab, counts, animated = false }: { tab:
             <button type="button" onClick={() => setOffset((o) => o + 1)} aria-label="Next week" className="flex h-9 w-9 items-center justify-center rounded-full border border-border hover:bg-secondary"><ChevronRight className="h-4 w-4" /></button>
             <button type="button" onClick={() => void downloadWeek()} className="ml-1 inline-flex h-9 items-center gap-1.5 rounded-full border border-border px-3.5 text-sm font-semibold hover:bg-secondary"><Download className="h-4 w-4" aria-hidden /> Download week</button>
           </div>
-          <div className="mb-3 flex flex-wrap items-center justify-center gap-x-4 gap-y-2">
-            <span className="inline-flex items-center gap-1.5 text-xs font-semibold text-muted-foreground"><Pencil className="h-3.5 w-3.5" aria-hidden /> Tap a session to edit it, drag it to move it</span>
-            <button type="button" onClick={() => openQuickAdd(tab === 'classes' ? 'class' : 'event')} className="inline-flex h-8 items-center gap-1 rounded-full border border-border px-3 text-xs font-semibold hover:bg-secondary"><Plus className="h-3.5 w-3.5" aria-hidden /> {tab === 'classes' ? 'Add class' : 'Add event'}</button>
-            {tab !== 'classes' && <button type="button" onClick={() => openQuickAdd('club')} className="inline-flex h-8 items-center gap-1 rounded-full border border-border px-3 text-xs font-semibold hover:bg-secondary"><Plus className="h-3.5 w-3.5" aria-hidden /> Add club</button>}
-          </div>
+          {canEdit && (
+            <div className="mb-3 flex flex-wrap items-center justify-center gap-x-4 gap-y-2">
+              <span className="inline-flex items-center gap-1.5 text-xs font-semibold text-muted-foreground"><Pencil className="h-3.5 w-3.5" aria-hidden /> Tap a session to edit it, drag it to move it</span>
+              <button type="button" onClick={() => openQuickAdd(tab === 'classes' ? 'class' : 'event')} className="inline-flex h-8 items-center gap-1 rounded-full border border-border px-3 text-xs font-semibold hover:bg-secondary"><Plus className="h-3.5 w-3.5" aria-hidden /> {tab === 'classes' ? 'Add class' : 'Add event'}</button>
+              {tab !== 'classes' && <button type="button" onClick={() => openQuickAdd('club')} className="inline-flex h-8 items-center gap-1 rounded-full border border-border px-3 text-xs font-semibold hover:bg-secondary"><Plus className="h-3.5 w-3.5" aria-hidden /> Add club</button>}
+            </div>
+          )}
           <div className="rounded-2xl bg-card">
-            <WeeklyGrid items={items} legend={legend} weekMonday={monday} onCellClick={edit} onMove={move} emptyMessage="Nothing scheduled this week" />
+            <WeeklyGrid items={items} legend={legend} weekMonday={monday} onCellClick={canEdit ? edit : undefined} onMove={canEdit ? move : undefined} emptyMessage="Nothing scheduled this week" />
           </div>
-          <ClassDialog open={!!editing?.cls} onOpenChange={(v) => !v && setEditing(null)} cls={editing?.cls ?? null} />
-          <ClubDialog open={!!editing?.club} onOpenChange={(v) => !v && setEditing(null)} club={editing?.club ?? null} />
-          <EventDialog open={!!editing?.event} onOpenChange={(v) => !v && setEditing(null)} event={editing?.event ?? null} />
+          {canEdit && (
+            <>
+            <ClassDialog open={!!editing?.cls} onOpenChange={(v) => !v && setEditing(null)} cls={editing?.cls ?? null} />
+            <ClubDialog open={!!editing?.club} onOpenChange={(v) => !v && setEditing(null)} club={editing?.club ?? null} />
+            <EventDialog open={!!editing?.event} onOpenChange={(v) => !v && setEditing(null)} event={editing?.event ?? null} />
+            </>
+          )}
         </div>
       )}
     </div>
