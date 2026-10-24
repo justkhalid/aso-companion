@@ -169,8 +169,8 @@ export function DashboardPage() {
   const hero: { value: string; label: string; sub: string; view?: View }[] = [
     { value: memberTotal === null ? '-' : String(memberTotal), label: 'Members', sub: memberTotal === null ? 'Open on the director\'s computer' : `${lib!.summary!.thisMonth} joined this month${lib!.summary!.thisYear !== undefined ? `, ${lib!.summary!.thisYear} this year` : ''}`, view: 'members' },
     { value: String(people.length), label: 'On the team', sub: 'teachers, volunteers, interns and staff', view: 'team' },
-    { value: String(weeklySessions), label: 'Sessions a week', sub: `${classes.length} classes and ${clubs.length} clubs in ${roomsUsed} ${roomsUsed === 1 ? 'space' : 'spaces'}` },
-    { value: String(eventsComing), label: 'Events coming', sub: `${state.events.length} in the programme`, view: 'intern-events' },
+    { value: String(weeklySessions), label: 'Sessions a week', sub: 'classes and clubs, every week' },
+    { value: String(roomsUsed), label: roomsUsed === 1 ? 'Space in use' : 'Spaces in use', sub: 'rooms and places with something booked' },
   ]
   const roleBars = [
     { label: 'Teachers', n: withRole(/teacher/i) },
@@ -181,13 +181,18 @@ export function DashboardPage() {
   const perDay = DAY_KEYS.map((k) => classes.filter((c) => (c.days || []).includes(k)).length + clubs.filter((c) => (c.days || []).includes(k)).length)
   const perDayMax = Math.max(1, ...perDay)
   const band = (b: string) => classes.filter((c) => (c.level || '').split('·')[0].trim().toLowerCase() === b).length
-  const programme = [
-    { label: 'Kids classes', n: band('kids') },
-    { label: 'Teens classes', n: band('teens') },
-    { label: 'Adults classes', n: band('adults') },
-    { label: 'Clubs', n: clubs.length },
+  const classRows = [
+    { label: 'All classes', n: classes.length },
+    { label: 'Kids', n: band('kids') },
+    { label: 'Teens', n: band('teens') },
+    { label: 'Adults', n: band('adults') },
   ]
-  const postsMonth = allPosts.filter((p) => p.t.startsWith(monthKey)).length
+  const clubEventRows = [
+    { label: 'Clubs', n: clubs.length },
+    { label: 'Events', n: state.events.length },
+    { label: 'Events coming up', n: eventsComing },
+    { label: 'Posts this month', n: allPosts.filter((p) => p.t.startsWith(monthKey)).length },
+  ]
 
   const pulse = [
     closedToday ? `Closed for ${closedToday.name}` : sessions.length === 0 ? 'Nothing scheduled today' : `${sessions.length} ${sessions.length === 1 ? 'session' : 'sessions'} today`,
@@ -323,10 +328,11 @@ export function DashboardPage() {
               })}
             </div>
 
-            <div className="mt-6 grid gap-3 border-t border-border pt-5 sm:grid-cols-2 xl:grid-cols-4">
+            <div className="mt-6 grid gap-3 border-t border-border pt-5 md:grid-cols-3">
               {([
                 { title: 'People', rows: roleBars, foot: 'One person can hold several roles.' },
-                { title: 'Programme', rows: programme, foot: `${allPosts.length} posts sent from here, ${postsMonth} this month` },
+                { title: 'Classes', rows: classRows, foot: `${state.levels.length} levels, by age group` },
+                { title: 'Clubs and events', rows: clubEventRows, foot: `${allPosts.length} posts sent from this app` },
               ]).map((panel) => (
                 <div key={panel.title} className="flex flex-col rounded-xl border border-border bg-background/60 p-4">
                   <h3 className="mb-2 text-[11px] font-bold uppercase tracking-wider text-muted-foreground">{panel.title}</h3>
@@ -339,28 +345,6 @@ export function DashboardPage() {
                     ))}
                   </ul>
                   <p className="mt-auto pt-3 text-[11.5px] text-muted-foreground">{panel.foot}</p>
-                </div>
-              ))}
-
-              {([
-                { title: 'Classes', view: 'classes' as View, rows: classes.map((c) => ({ key: c.id, name: c.code, sub: [(c.days || []).join(' '), fmtTime(c.time || '')].filter(Boolean).join(' · ') })) },
-                { title: 'Clubs and events', view: 'intern-clubs' as View, rows: [...clubs.map((c) => ({ key: c.id, name: c.name, sub: [(c.days || []).join(' '), fmtTime(c.time || '')].filter(Boolean).join(' · ') })), ...state.events.filter((e) => nextOccurrence(e)).map((e) => ({ key: e.id, name: e.title, sub: 'Event' }))] },
-              ]).map((panel) => (
-                <div key={panel.title} className="flex flex-col rounded-xl border border-border bg-background/60 p-4">
-                  <h3 className="mb-2 flex items-baseline justify-between text-[11px] font-bold uppercase tracking-wider text-muted-foreground">
-                    <span>{panel.title}</span><span className="tabular-nums">{panel.rows.length}</span>
-                  </h3>
-                  <ul className="max-h-[12.75rem] min-h-0 flex-1 divide-y divide-border overflow-y-auto pr-1 scroll-thin">
-                    {panel.rows.map((r) => (
-                      <li key={r.key}>
-                        <button type="button" onClick={() => setView(panel.view)} className="flex h-11 w-full flex-col justify-center text-left outline-none hover:text-primary focus-visible:ring-2 focus-visible:ring-ring">
-                          <span className="truncate text-[12.5px] font-semibold leading-tight" dir="auto">{r.name}</span>
-                          <span className="truncate text-[11px] leading-tight text-muted-foreground">{r.sub}</span>
-                        </button>
-                      </li>
-                    ))}
-                    {panel.rows.length === 0 && <li className="py-2 text-[12.5px] text-muted-foreground">Nothing yet.</li>}
-                  </ul>
                 </div>
               ))}
             </div>
