@@ -31,6 +31,15 @@ Connect again here (Social kit > Connection), because the connection is locked w
 
 Settings > **Updates** shows the installed version, what is new, and an **Update now** button. The app downloads the new version and restarts by itself (keep the black window open).
 
+Once the computer is signed in with Google (Settings > Data and backup > Google account), updates come from the space's Google Drive and need no GitHub token. Each release is one package of about 5 MB in the "ASO Companion" folder; only the newest 3 are kept. The update replaces the app's files and never touches the data, the settings file or the installed libraries; the app then rebuilds itself once (a few minutes) and reopens.
+
+### Setting up the Drive releases (once, by the developer)
+
+1. On the developer's computer, sign in with Google using the space's account (Settings > Data and backup > Google account).
+2. Click **Copy the publishing key**.
+3. In GitHub, repository > Settings > Secrets and variables > Actions, add three secrets: `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET` (the same two values the app uses) and `GOOGLE_REFRESH_TOKEN` (the copied key).
+4. From the next merge into main, the "Bump version" workflow also publishes the release to Drive. Without the secrets that step is skipped.
+
 ## Removing the app from a computer
 
 Settings > Updates > **Remove from this computer** > **Uninstall and delete the app**. Type UNINSTALL to confirm. The app closes, its Desktop icon and its folder are deleted, and, if the box is ticked, a copy of this computer's data is put on the Desktop first. Node.js and Git stay installed. Data saved online is not touched, so the app can be installed again later.
