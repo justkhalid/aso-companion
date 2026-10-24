@@ -11,6 +11,7 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 interface LogItem { sha: string; date: string; title: string; note: string }
 interface Status {
   changes?: number
+  canPublish?: boolean
   local: boolean
   installed: { sha: string; date: string; version: string } | null
   latest: { sha: string; date: string; version: string } | null
@@ -86,6 +87,22 @@ export function UpdatesPanel() {
     }
   }
 
+  const [pub, setPub] = React.useState(false)
+  const publish = async () => {
+    setPub(true)
+    setMsg(null)
+    try {
+      const r = await fetch('/api/update/publish', { method: 'POST' })
+      const j = (await r.json()) as { ok: boolean; out: string }
+      setMsg({ ok: j.ok, text: j.out })
+      void load()
+    } catch {
+      setMsg({ ok: false, text: 'The app could not be reached.' })
+    } finally {
+      setPub(false)
+    }
+  }
+
   const uninstall = async () => {
     setRmBusy(true)
     setRmMsg(null)
@@ -146,6 +163,15 @@ export function UpdatesPanel() {
                 {restarting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Download className="h-4 w-4" />} {restarting ? 'Restarting...' : 'Update now'}
               </Button>
               {st.dirty && <p className="text-xs text-destructive">This copy has changes of its own, so it cannot update by itself.</p>}
+            </div>
+          )}
+          {st.canPublish && (
+            <div className="flex flex-col gap-1.5 border-t border-border pt-4">
+              <h3 className="text-xs font-extrabold uppercase tracking-[0.14em] text-muted-foreground">Publish update</h3>
+              <p className="text-xs text-muted-foreground">Developer only. Takes the newest version from GitHub and puts it in Google Drive, where the installed copies find it.</p>
+              <Button type="button" variant="outline" size="sm" className="self-start" disabled={pub || busy} onClick={() => void publish()}>
+                {pub ? <Loader2 className="h-4 w-4 animate-spin" /> : <Download className="h-4 w-4" />} Publish update
+              </Button>
             </div>
           )}
           {msg && <p className={`whitespace-pre-wrap text-xs font-semibold ${msg.ok ? 'text-[var(--aso-ok)]' : 'text-destructive'}`}>{msg.text}{restarting ? ' The app is restarting and will reopen in a minute or two. Keep the black window open.' : ''}</p>}

@@ -1,7 +1,7 @@
 'use client'
 
 import * as React from 'react'
-import { CheckCircle2, CircleAlert, HardDrive, KeyRound, Loader2, LogOut } from 'lucide-react'
+import { CheckCircle2, CircleAlert, HardDrive, Loader2, LogOut } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { useStore } from '@/lib/store'
@@ -56,21 +56,6 @@ export function GooglePanel() {
       setBusy(false)
     }
   }
-  const pubKey = async () => {
-    setBusy(true)
-    setMsg(null)
-    try {
-      const r = await fetch('/api/google/publish-key', { method: 'POST' })
-      const j = (await r.json()) as { ok: boolean; msg?: string; key?: string }
-      if (!j.ok || !j.key) { setMsg({ ok: false, text: j.msg || 'The key could not be read.' }); return }
-      await navigator.clipboard.writeText(j.key)
-      setMsg({ ok: true, text: 'Copied. Paste it in GitHub as the secret GOOGLE_REFRESH_TOKEN (see LOCAL.md).' })
-    } catch {
-      setMsg({ ok: false, text: 'The key could not be copied.' })
-    } finally {
-      setBusy(false)
-    }
-  }
   const out = async () => {
     setBusy(true)
     await fetch('/api/google/disconnect', { method: 'POST' }).catch(() => undefined)
@@ -108,10 +93,8 @@ export function GooglePanel() {
               {busy ? <Loader2 className="h-4 w-4 animate-spin" /> : <HardDrive className="h-4 w-4" />} Copy everything from GitHub to Drive
             </Button>
             {st.error && <Button type="button" size="sm" asChild><a href="/api/google/connect">Sign in again</a></Button>}
-            <Button type="button" size="sm" variant="outline" disabled={busy} onClick={() => void pubKey()}><KeyRound className="h-4 w-4" /> Copy the publishing key</Button>
             <Button type="button" size="sm" variant="ghost" disabled={busy} onClick={() => void out()}><LogOut className="h-4 w-4" /> Sign out on this computer</Button>
           </div>
-          <p className="text-xs text-muted-foreground">The publishing key lets GitHub put each new version of the app into this Drive, where every installed copy finds it. Only the developer needs it, once.</p>
           <p className="text-xs text-muted-foreground">Copying only adds what is missing in Drive and never deletes anything on GitHub. Do it once, after the first sign-in.</p>
         </>
       ) : (

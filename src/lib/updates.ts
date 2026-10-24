@@ -2,10 +2,11 @@
    the latest is the main branch of the GitHub repository. Updating pulls the new code; the start file then rebuilds and restarts. */
 import { execFile } from 'node:child_process'
 import { createHash } from 'node:crypto'
-import { cp, mkdir, readFile, rm, unlink, writeFile } from 'node:fs/promises'
+import { cp, mkdir, mkdtemp, readFile, rm, unlink, writeFile } from 'node:fs/promises'
+import { tmpdir } from 'node:os'
 import path from 'node:path'
 import { isLocal } from './mode'
-import { driveGet, googleActive } from './google'
+import { driveDelete, driveGet, driveNames, drivePut, googleActive } from './google'
 
 const run = (cmd: string, args: string[], noShell = false) =>
   new Promise<{ ok: boolean; out: string }>((resolve) => {
@@ -23,6 +24,7 @@ export interface UpdateStatus {
   canUpdate: boolean
   log: LogItem[]
   source?: 'drive' | 'github'
+  canPublish?: boolean
   error?: string
 }
 
@@ -101,6 +103,65 @@ export async function applyRelease(m: Manifest, bytes: Buffer, root = process.cw
   }
 }
 
+const gitAuth = () => {
+  const pat = process.env.GITHUB_PAT
+  return pat ? ['-c', 'credential.helper=', '-c', 'http.https://github.com/.extraheader=AUTHORIZATION: basic ' + Buffer.from('x-access-token:' + pat).toString('base64')] : []
+}
+const EXCLUDE = ['--', '.', ':!data', ':!.github', ':!handoff']
+const KEEP_RELEASES = 3
+export const canPublish = () => isLocal() && process.env.ASO_PUBLISH === '1' && googleActive()
+
+/** the "Publish update" button (developer's computer only): takes the newest main from GitHub and puts it into Drive as a release.
+    Installed copies find it there. Needs git and the GitHub token on this computer; nothing is stored in GitHub. */
+export async function publishRelease(): Promise<{ ok: boolean; out: string }> {
+  if (!canPublish()) return { ok: false, out: 'Publishing is switched off on this computer.' }
+  const f = await run('git', [...gitAuth(), 'fetch', '--quiet', 'origin', '+' + BRANCH() + ':refs/aso/release'], true)
+  if (!f.ok) return { ok: false, out: 'The newest code could not be fetched from GitHub: ' + f.out.replace(/AUTHORIZATION: basic \S+/g, '***').slice(0, 300) }
+  const ref = 'refs/aso/release'
+  const sha = (await run('git', ['rev-parse', ref])).out
+  const pj = await run('git', ['show', `${ref}:package.json`])
+  let version = ''
+  try { version = cleanV(JSON.parse(pj.out).version) } catch { /* below */ }
+  if (!/^[0-9a-f]{40}$/.test(sha) || !version) return { ok: false, out: 'The newest version could not be read.' }
+  const prev = await driveManifest()
+  if (prev && prev.sha === sha) return { ok: true, out: `v${version} is already in Drive.` }
+  if (prev && newer(prev.version, version)) return { ok: false, out: `Drive already has v${prev.version}, which is newer than v${version}.` }
+  const date = (await run('git', ['log', '-1', '--format=%cI', ref])).out
+  const files = (await run('git', ['ls-tree', '-r', '--name-only', ref])).out.split('\n').map((l) => l.trim()).filter((l) => l && !/^(data|\.github|handoff)\//.test(l))
+
+  const dir = await mkdtemp(path.join(tmpdir(), 'aso-rel-'))
+  try {
+    const tgz = path.join(dir, 'release.tar.gz')
+    const a = await run('git', ['archive', '--format=tar.gz', '-o', tgz, ref, ...EXCLUDE], true)
+    if (!a.ok) return { ok: false, out: 'The package could not be made: ' + a.out.slice(0, 300) }
+    const bytes = await readFile(tgz)
+    const name = `release__${version}.tar.gz`
+    const put = await drivePut(name, bytes, 'application/gzip')
+    if (!put.ok) return { ok: false, out: put.msg }
+    const raw = (await run('git', ['log', '-n', '60', '--format=%H%x1f%cI%x1f%B%x1e', prev && /^[0-9a-f]{40}$/.test(prev.sha) ? `${prev.sha}..${ref}` : ref])).out
+    const fresh: LogItem[] = []
+    for (const c of raw.split('\x1e')) {
+      const [h, d, msg] = c.trim().split('\x1f')
+      if (!h || !msg) continue
+      const [first, ...rest] = msg.split('\n')
+      if (/^aso-companion:/i.test(first) || /^chore\(version\)/i.test(first) || /^Merge (origin|remote-tracking|branch)/i.test(first)) continue
+      const lines = rest.map((l) => l.trim()).filter(Boolean)
+      const isPr = /^Merge pull request/i.test(first)
+      fresh.push({ sha: h.slice(0, 7), date: d, title: isPr ? lines[0] || first : first, note: isPr ? '' : lines.filter((l) => !/^(Co-Authored-By|Claude-Session)/i.test(l)).slice(0, 4).join('\n') })
+    }
+    const manifest: Manifest = { version, sha, date, file: name, sha256: createHash('sha256').update(bytes).digest('hex'), size: bytes.length, files, log: [...fresh, ...(prev?.log || [])].slice(0, 40) }
+    const m = await drivePut('release__latest.json', JSON.stringify(manifest))
+    if (!m.ok) return { ok: false, out: m.msg }
+    /* keep only the newest releases so Drive never fills up */
+    const key = (n: string) => (n.match(/^release__(\d+)\.(\d+)\.(\d+)\.tar\.gz$/) || []).slice(1).map(Number)
+    const old = (await driveNames('release__')).filter((n) => key(n).length === 3 && n !== name).sort((x, y) => { const a2 = key(x), b2 = key(y); return b2[0] - a2[0] || b2[1] - a2[1] || b2[2] - a2[2] })
+    for (const n of old.slice(KEEP_RELEASES - 1)) await driveDelete(n)
+    return { ok: true, out: `Published v${version} to Drive (${(bytes.length / 1048576).toFixed(1)} MB). Installed copies will offer it as an update.` }
+  } finally {
+    await rm(dir, { recursive: true, force: true })
+  }
+}
+
 export async function driveUpdateStatus(m: Manifest, root = process.cwd()): Promise<UpdateStatus> {
   const rel = await readInstalled(root)
   const version = rel?.version || (await pkgVersion(root))
@@ -112,7 +173,7 @@ export async function driveUpdateStatus(m: Manifest, root = process.cwd()): Prom
   const waiting = fresh ? m.log.filter((l) => !date || !l.date || l.date > date) : []
   return {
     local: true, installed, latest: { sha: m.sha, date: m.date, version: m.version }, behind: fresh ? Math.max(1, waiting.length) : 0,
-    changes: fresh ? waiting.length : 0, dirty: false, canUpdate: fresh, log: (fresh && waiting.length ? waiting : m.log).slice(0, 40), source: 'drive',
+    changes: fresh ? waiting.length : 0, dirty: false, canUpdate: fresh, canPublish: canPublish(), log: (fresh && waiting.length ? waiting : m.log).slice(0, 40), source: 'drive',
   }
 }
 
