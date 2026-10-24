@@ -23,6 +23,7 @@ import { useStore } from '@/lib/store'
 import { useTheme } from 'next-themes'
 import { PageHead } from '@/components/ui-bits'
 import { UpdatesPanel } from '@/components/updates-panel'
+import { GooglePanel } from '@/components/google-panel'
 import { HolidaysPanel } from '@/components/holidays-panel'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -100,10 +101,16 @@ export function SettingsPage() {
   const [tab, setTab] = React.useState<'general' | 'access' | 'data' | 'updates'>(() => {
     /* the "Update available" badge opens this page on the Updates tab */
     try {
-      if (sessionStorage.getItem('aso-settings-tab') === 'updates') { sessionStorage.removeItem('aso-settings-tab'); return 'updates' }
+      const want = sessionStorage.getItem('aso-settings-tab')
+      if (want === 'updates' || want === 'data') return want
     } catch { /* not available */ }
     return 'general'
   })
+
+  /* the wanted tab is read once above; forget it only after the first paint (a development double render would otherwise lose it) */
+  React.useEffect(() => {
+    try { sessionStorage.removeItem('aso-settings-tab') } catch { /* not available */ }
+  }, [])
 
   /* the theme is chosen per device; the site opens in light mode */
   const setThemeVal = (t: Theme) => setTheme(t === 'auto' ? 'system' : t)
@@ -331,17 +338,18 @@ export function SettingsPage() {
       </div>
 
       <div role="tabpanel" id="settings-panel-data" aria-labelledby="settings-tab-data" hidden={tab !== 'data'}>
+      <GooglePanel />
       {/* cloud storage */}
       <Section title="Cloud storage" icon={<Cloud className="h-4 w-4" />}>
         <div
           className={cn(
             'flex items-start gap-3 rounded-lg border p-3',
-            storage?.blobConfigured
+            (!!storage && storage.provider !== 'github-fallback')
               ? 'border-emerald-500/30 bg-emerald-500/5'
               : 'border-amber-500/30 bg-amber-500/5',
           )}
         >
-          {storage?.blobConfigured ? (
+          {(!!storage && storage.provider !== 'github-fallback') ? (
             <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-emerald-600" />
           ) : (
             <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-amber-600" />
