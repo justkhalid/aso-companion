@@ -20,7 +20,7 @@ export interface JobMeta {
   ranAt?: string
   result?: Step[]
 }
-type JobFiles = { caption: string; story?: string; poster?: string; poster45?: string; video?: string } // pictures as base64
+type JobFiles = { caption: string; tags?: string[]; story?: string; poster?: string; poster45?: string; video?: string } // pictures as base64
 
 function seal(v: unknown): string {
   const iv = randomBytes(12)
@@ -43,10 +43,10 @@ const stem = (at: string, id: string) => `${new Date(at).getTime()}_${id}`
 const b64 = async (b: Blob | null | undefined) => (b && b.size ? Buffer.from(await b.arrayBuffer()).toString('base64') : undefined)
 const blob = (s: string | undefined, type: string) => (s ? new Blob([Buffer.from(s, 'base64')], { type }) : null)
 
-export async function createJob(o: { at: string; label: string; targets: Dests; kind: 'picture' | 'animation'; caption: string; story: Blob | null; poster: Blob | null; poster45: Blob | null; video: Blob | null }): Promise<{ ok: boolean; msg: string; id?: string }> {
+export async function createJob(o: { at: string; label: string; targets: Dests; kind: 'picture' | 'animation'; caption: string; story: Blob | null; poster: Blob | null; poster45: Blob | null; video: Blob | null; tags?: string[] }): Promise<{ ok: boolean; msg: string; id?: string }> {
   const id = randomBytes(5).toString('hex')
   const meta: JobMeta = { id, at: new Date(o.at).toISOString(), label: o.label, targets: o.targets, kind: o.kind, created: new Date().toISOString(), status: 'pending' }
-  const files: JobFiles = { caption: o.caption, story: await b64(o.story), poster: await b64(o.poster), poster45: await b64(o.poster45), video: await b64(o.video) }
+  const files: JobFiles = { caption: o.caption, tags: o.tags, story: await b64(o.story), poster: await b64(o.poster), poster45: await b64(o.poster45), video: await b64(o.video) }
   const w1 = await fileWrite(`${DIR}/${stem(meta.at, id)}.job.json`, seal(files))
   if (!w1.ok) return { ok: false, msg: w1.msg }
   const w2 = await fileWrite(`${DIR}/${stem(meta.at, id)}.meta.json`, seal(meta))
@@ -105,7 +105,7 @@ export async function runDue(): Promise<{ ran: number; results: { id: string; la
       const f = await fileRead(jobName)
       const files = f ? unseal<JobFiles>(f.text) : null
       if (!files) throw new Error('The saved pictures could not be read.')
-      const input: PublishInput = { targets: meta.targets, caption: files.caption, story: blob(files.story, 'image/jpeg'), poster: blob(files.poster, 'image/jpeg'), poster45: blob(files.poster45, 'image/jpeg'), video: blob(files.video, 'video/mp4') }
+      const input: PublishInput = { targets: meta.targets, caption: files.caption, tags: files.tags, story: blob(files.story, 'image/jpeg'), poster: blob(files.poster, 'image/jpeg'), poster45: blob(files.poster45, 'image/jpeg'), video: blob(files.video, 'video/mp4') }
       const r = await publish(input)
       steps = r.steps
       ok = r.ok

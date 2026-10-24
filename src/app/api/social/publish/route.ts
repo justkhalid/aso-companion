@@ -2,6 +2,11 @@ import { NextRequest, NextResponse } from 'next/server'
 import { isAdmin } from '@/lib/auth'
 import { publish } from '@/lib/social'
 
+/* the tagged Instagram accounts sent with the form: a JSON list of usernames */
+const tagsOf = (v: FormDataEntryValue | null): string[] => {
+  try { const a = JSON.parse(String(v || '[]')); return Array.isArray(a) ? a.map(String).slice(0, 10) : [] } catch { return [] }
+}
+
 export const maxDuration = 120
 
 /**
@@ -22,7 +27,7 @@ export async function POST(req: NextRequest) {
     const t = JSON.parse(String(f.get('targets') || '{}')) as Record<string, boolean>
     const targets = { igFeed: !!t.igFeed, igStory: !!t.igStory, fbFeed: !!t.fbFeed, fbStory: !!t.fbStory }
     if (!Object.values(targets).some(Boolean)) return NextResponse.json({ ok: false, steps: [{ label: 'Nothing chosen', ok: false, msg: 'Tick at least one place to post.' }] }, { status: 400 })
-    const out = await publish({ targets, caption: String(f.get('caption') || ''), story: file('story'), poster: file('poster'), poster45: file('poster45'), video: file('video') })
+    const out = await publish({ targets, caption: String(f.get('caption') || ''), story: file('story'), poster: file('poster'), poster45: file('poster45'), video: file('video'), tags: tagsOf(f.get('tags')) })
     return NextResponse.json(out, { headers: { 'Cache-Control': 'no-store' } })
   } catch (e) {
     return NextResponse.json({ ok: false, steps: [{ label: 'Server', ok: false, msg: e instanceof Error ? e.message : 'failed' }] }, { status: 500 })

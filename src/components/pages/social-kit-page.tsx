@@ -1222,9 +1222,10 @@ function KitEditor({ kind, id, onBack, onManage, onEditSchedule }: { kind: Kind;
                 posts={item.kit?.posts}
                 onManage={onManage}
                 scheduleLabel={`${title}: story and posts`}
-                videoMaker={out?.story ? async (onProgress) => {
+                sound
+                videoMaker={out?.story ? async (onProgress, music) => {
                   const { storyVideo } = await import('@/lib/kit/story-video')
-                  const v = await storyVideo(await kitParams(R), kitTheme(R), { onProgress, forPost: true })
+                  const v = await storyVideo(await kitParams(R), kitTheme(R), { onProgress, forPost: true, music })
                   return { blob: v.blob, ext: v.ext }
                 } : undefined}
                 onPosted={(done) => patch((d) => {
@@ -1333,7 +1334,7 @@ function useSocialStatus() {
 
 type Only = 'story' | 'feed'
 
-function PublishPanel({ storyCanvas, poster, feedCanvas, caption, only, posts, onPosted, onManage, videoMaker, scheduleLabel }: {
+function PublishPanel({ storyCanvas, poster, feedCanvas, caption, only, posts, onPosted, onManage, videoMaker, scheduleLabel, sound }: {
   storyCanvas: HTMLCanvasElement | null
   poster: string | null
   feedCanvas?: HTMLCanvasElement | null // a ready picture for the post (the month calendar), used instead of the poster
@@ -1342,7 +1343,8 @@ function PublishPanel({ storyCanvas, poster, feedCanvas, caption, only, posts, o
   posts?: { t: string; to: string[] }[]
   onPosted?: (done: string[]) => void
   onManage?: () => void
-  videoMaker?: (onProgress: (p: number) => void) => Promise<{ blob: Blob; ext: string }> // records the animated story
+  videoMaker?: (onProgress: (p: number) => void, music?: { file: Blob; start: number; volume: number } | null) => Promise<{ blob: Blob; ext: string }> // makes the animated story
+  sound?: boolean // offer a song for the animated story
   scheduleLabel?: string // what to call this in the list of scheduled posts
 }) {
   const { status } = useSocialStatus()
@@ -1356,6 +1358,11 @@ function PublishPanel({ storyCanvas, poster, feedCanvas, caption, only, posts, o
   const [rec, setRec] = React.useState<number | null>(null)
   const [later, setLater] = React.useState(false)
   const [at, setAt] = React.useState('')
+  const [tagText, setTagText] = React.useState('')
+  const [song, setSong] = React.useState<File | null>(null)
+  const [songStart, setSongStart] = React.useState(0)
+  const [songVol, setSongVol] = React.useState(80)
+  const tags = Array.from(new Set(tagText.split(/[\s,]+/).map((t) => t.replace(/^@/, '')).filter((t) => /^[A-Za-z0-9._]{1,30}$/.test(t)))).slice(0, 10)
 
   const ready = !!status && typeof status !== 'string' && status.connected
   const dests = DESTS.filter(([k]) => !only || (only === 'story' ? k === 'igStory' || k === 'fbStory' : k === 'igFeed' || k === 'fbFeed'))
@@ -1370,9 +1377,10 @@ function PublishPanel({ storyCanvas, poster, feedCanvas, caption, only, posts, o
       const f = new FormData()
       f.append('targets', JSON.stringify(pick))
       f.append('caption', caption)
+      if (tags.length && (pick.igStory)) f.append('tags', JSON.stringify(tags))
       if (asVideo && videoMaker && (pick.igStory || pick.fbStory)) {
         setRec(0)
-        const v = await videoMaker((p) => setRec(p))
+        const v = await videoMaker((p) => setRec(p), song ? { file: song, start: songStart, volume: songVol / 100 } : null)
         setRec(null)
         if (v.ext !== 'mp4') throw new Error('This browser made a WebM video, which Instagram does not take. Use the latest Chrome or Edge, or post the picture.')
         if (v.blob.size > 4_300_000) throw new Error(`The video is ${(v.blob.size / 1e6).toFixed(1)} MB, more than the site can send (4 MB). Try again, or post the picture.`)
@@ -1473,11 +1481,37 @@ function PublishPanel({ storyCanvas, poster, feedCanvas, caption, only, posts, o
             ))}
           </div>
         )}
+        {pick.igStory && (
+          <div className="grid gap-1">
+            <Lab hint="Instagram usernames, separated by spaces. They are tagged on the Instagram story.">Tag accounts</Lab>
+            <input className={inputCls} placeholder="@americanspaceoujda @username" value={tagText} onChange={(e) => setTagText(e.target.value)} dir="ltr" />
+            {tags.length > 0 && <p className="text-[11px] text-muted-foreground">Tagging {tags.map((t) => '@' + t).join(', ')}. The accounts must be public or follow you.</p>}
+          </div>
+        )}
+        {sound && asVideo && (pick.igStory || pick.fbStory) && (
+          <div className="grid gap-2">
+            <Lab hint="Use only music you have the right to use. Instagram and Facebook can mute or remove a story with copyrighted music.">Sound</Lab>
+            <div className="flex flex-wrap items-center gap-2">
+              <label className="inline-flex h-9 cursor-pointer items-center gap-1.5 rounded-full border border-border px-3.5 text-sm font-semibold hover:bg-secondary">
+                <Music className="h-4 w-4" /> {song ? 'Change song' : 'Choose a song'}
+                <input type="file" accept="audio/*" className="hidden" onChange={(e) => { const f = e.target.files?.[0]; if (f) { setSong(f); setSongStart(0) } e.target.value = '' }} />
+              </label>
+              {song && <span className="min-w-0 max-w-[14rem] truncate text-xs text-muted-foreground">{song.name}</span>}
+              {song && <Button type="button" variant="ghost" size="sm" className="text-destructive" onClick={() => setSong(null)}><Trash2 className="h-4 w-4" /> Remove</Button>}
+            </div>
+            {song && (
+              <div className="grid grid-cols-2 gap-3">
+                <div><Lab hint="Where in the song it begins.">Start at (seconds)</Lab><input type="number" min={0} className={inputCls} value={songStart} onChange={(e) => setSongStart(Math.max(0, Number(e.target.value) || 0))} /></div>
+                <div><Lab hint={`${songVol}%`}>Volume</Lab><input type="range" min={0} max={100} className="w-full accent-[var(--primary)]" value={songVol} onChange={(e) => setSongVol(Number(e.target.value))} /></div>
+              </div>
+            )}
+          </div>
+        )}
         {needsPicture && <p className="flex items-center gap-1.5 text-xs font-semibold text-[var(--aso-gold)]"><CircleAlert className="h-3.5 w-3.5" /> The posts need a poster. Add one under Poster and name.</p>}
         <Button type="button" className="w-full" disabled={!ready || busy || (!storyCanvas && !feedCanvas) || chosen.length === 0 || needsPicture || (later && !at)} onClick={() => setConfirm(true)}>
           {busy ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />} {rec !== null ? `Recording ${Math.round(rec * 100)}%` : busy ? (later ? 'Saving' : 'Posting') : later ? 'Schedule' : 'Post now'}
         </Button>
-        {asVideo && (only === 'story' || !only) && <p className="text-[11px] text-muted-foreground">The animation is recorded first (about 16 seconds, keep this page open), then sent. Any song you chose is in it.</p>}
+        {asVideo && (only === 'story' || !only) && <p className="text-[11px] text-muted-foreground">The animation is recorded first (about 10 to 16 seconds, keep this page open), then sent. Any song you chose is in it.</p>}
       </Block>
 
       {steps && (

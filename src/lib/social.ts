@@ -326,6 +326,7 @@ export interface PublishInput {
   story: Blob | null // 1080x1920
   poster: Blob | null // the feed picture
   poster45: Blob | null // 1080x1350, tried when Instagram refuses the feed picture's shape
+  tags?: string[] // Instagram accounts to tag on the story (usernames without @)
   video?: Blob | null // an animated story (MP4, 9:16): used for the story destinations instead of the picture
 }
 export interface Step {
@@ -364,8 +365,15 @@ async function rupload(uri: string, token: string, blob: Blob): Promise<void> {
   if (!res.ok || j.success === false || j.error) throw new Error(j.error?.message || j.debug_info?.message || `The video upload failed (${res.status})`)
 }
 
-async function igVideoStory(c: SocialConfig, video: Blob): Promise<string> {
-  const cont = (await gp(c, `${c.ig}/media`, { data: { media_type: 'STORIES', upload_type: 'resumable' } })) as { id: string; uri?: string }
+/* user_tags for a story: each name placed in a row near the bottom, so they sit side by side and do not cover each other */
+function tagData(tags?: string[]): Data {
+  const list = (tags || []).map((t) => t.replace(/^@/, '').trim()).filter((t) => /^[A-Za-z0-9._]{1,30}$/.test(t)).slice(0, 10)
+  if (!list.length) return {}
+  return { user_tags: JSON.stringify(list.map((username, i) => ({ username, x: Math.min(0.9, 0.2 + (0.6 * (i + 0.5)) / list.length + 0.0), y: 0.82 - Math.floor(i / 3) * 0.06 }))) }
+}
+
+async function igVideoStory(c: SocialConfig, video: Blob, tags?: string[]): Promise<string> {
+  const cont = (await gp(c, `${c.ig}/media`, { data: { media_type: 'STORIES', upload_type: 'resumable', ...tagData(tags) } })) as { id: string; uri?: string }
   if (!cont.uri) throw new Error('Instagram did not give an address to upload the video to')
   await rupload(cont.uri, c.token!, video)
   for (let i = 0; i < 40; i++) {
@@ -432,7 +440,7 @@ export async function publish(input: PublishInput): Promise<{ ok: boolean; steps
       }
     })
   }
-  if (t.igStory) await run(video ? 'Instagram story (video)' : 'Instagram story', async () => { if (video) return igVideoStory(c, video); await igPublish(c, (await story()).url, { media_type: 'STORIES' }); return 'Posted' })
+  if (t.igStory) await run(video ? 'Instagram story (video)' : 'Instagram story', async () => { if (video) return igVideoStory(c, video, input.tags); await igPublish(c, (await story()).url, { media_type: 'STORIES', ...tagData(input.tags) }); return 'Posted' })
   if (t.fbFeed) {
     await run('Facebook post', async () => {
       if (!input.poster) throw new Error('There is no picture for the post')
