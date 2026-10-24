@@ -14,7 +14,7 @@
  * GitHub therefore becomes CODE-ONLY: no data commits, no Pages site.
  */
 
-export type StorageMode = 'vercel-blob' | 'github-fallback'
+export type StorageMode = 'vercel-blob' | 'github-fallback' | 'google-drive'
 
 export interface StorageInfo {
   mode: StorageMode
@@ -27,13 +27,37 @@ export interface StorageInfo {
 export interface ReadResult {
   ok: boolean
   state: unknown | null
-  source: 'vercel-blob' | 'github' | 'seeded-from-github' | 'none'
+  source: 'vercel-blob' | 'github' | 'seeded-from-github' | 'google-drive' | 'cache' | 'none'
   error?: string
 }
 
 const BLOB_PATHNAME = 'aso-state.json'
 
+import { googleActive, googleConn, driveGet, drivePut, driveDelete, driveNames, driveName } from './google'
+
+/* a copy of the data kept on this computer, used only when Drive cannot be reached */
+const CACHE = 'data/drive-cache/aso-state.json'
+async function cacheWrite(text: string) {
+  try {
+    const { mkdir, writeFile } = await import('node:fs/promises')
+    await mkdir('data/drive-cache', { recursive: true })
+    await writeFile(CACHE, text, 'utf8')
+  } catch { /* the cache is a bonus */ }
+}
+async function cacheRead(): Promise<unknown | null> {
+  try { return JSON.parse(await (await import('node:fs/promises')).readFile(CACHE, 'utf8')) } catch { return null }
+}
+
 export function getStorageInfo(): StorageInfo {
+  if (googleActive()) {
+    return {
+      mode: 'google-drive',
+      blobConfigured: false,
+      patConfigured: !!process.env.GITHUB_PAT,
+      label: 'Google Drive',
+      detail: `The data lives in the "ASO Companion" folder of the Google account ${googleConn()?.email || ''}. Saves are instant and never touch GitHub.`.replace('account  ', 'account '),
+    }
+  }
   const blobConfigured = !!process.env.BLOB_READ_WRITE_TOKEN
   const patConfigured = !!process.env.GITHUB_PAT
   const mode: StorageMode = blobConfigured ? 'vercel-blob' : 'github-fallback'
@@ -198,7 +222,34 @@ export async function readCloudState(opts?: { fresh?: boolean }): Promise<ReadRe
   return res
 }
 
+async function readFromDrive(): Promise<ReadResult> {
+  try {
+    const f = await driveGet('aso-state.json')
+    if (f) {
+      const st = JSON.parse(f.bytes.toString('utf8')) as unknown
+      if (isState(st)) {
+        if ((st as { _rev?: number })._rev !== lastCachedRev) { lastCachedRev = (st as { _rev?: number })._rev; void cacheWrite(f.bytes.toString('utf8')) }
+        return { ok: true, state: st, source: 'google-drive' }
+      }
+    }
+    /* Drive has no data yet: start from the copy on GitHub (or the test file) */
+    const gh = await githubRead()
+    if (isState(gh)) {
+      const w = await drivePut('aso-state.json', JSON.stringify(gh))
+      if (!w.ok) return { ok: false, state: null, source: 'none', error: w.msg }
+      return { ok: true, state: gh, source: 'seeded-from-github' }
+    }
+    return { ok: false, state: null, source: 'none', error: 'Drive holds no data yet and no GitHub copy was found' }
+  } catch (e) {
+    const c = await cacheRead()
+    if (isState(c)) return { ok: true, state: c, source: 'cache' }
+    return { ok: false, state: null, source: 'none', error: e instanceof Error ? e.message : 'Drive read failed' }
+  }
+}
+let lastCachedRev: number | undefined
+
 async function readCloudStateUncached(): Promise<ReadResult> {
+  if (googleActive()) return readFromDrive()
   const info = getStorageInfo()
 
   if (info.mode === 'vercel-blob') {
@@ -250,6 +301,15 @@ export async function writeCloudState(
   message?: string,
 ): Promise<{ ok: boolean; msg: string; mode: StorageMode }> {
   memo = null /* the next read must see this save */
+  if (googleActive()) {
+    try {
+      const w = await drivePut('aso-state.json', content)
+      if (w.ok) { void cacheWrite(content); return { ok: true, msg: 'Saved to Google Drive', mode: 'google-drive' } }
+      return { ok: false, msg: w.msg, mode: 'google-drive' }
+    } catch (e) {
+      return { ok: false, msg: e instanceof Error ? e.message : 'Google Drive save failed', mode: 'google-drive' }
+    }
+  }
   const info = getStorageInfo()
 
   if (info.mode === 'vercel-blob') {
@@ -285,6 +345,9 @@ function posterGithub() {
 
 export async function posterWrite(name: string, bytes: Buffer): Promise<{ ok: boolean; msg: string }> {
   if (!POSTER_NAME.test(name)) return { ok: false, msg: 'bad poster name' }
+  if (googleActive()) {
+    try { return await drivePut(driveName(`posters/${name}`), bytes, 'image/webp') } catch (e) { return { ok: false, msg: e instanceof Error ? e.message : 'poster save failed' } }
+  }
   try {
     if (getStorageInfo().mode === 'vercel-blob') {
       const { put } = await import('@vercel/blob')
@@ -319,7 +382,10 @@ export async function posterRead(name: string): Promise<Buffer | null> {
   if (hit) return hit
   let out: Buffer | null = null
   try {
-    if (getStorageInfo().mode === 'vercel-blob') {
+    if (googleActive()) out = (await driveGet(driveName(`posters/${name}`)))?.bytes || null
+    if (out) {
+      /* found in Drive */
+    } else if (getStorageInfo().mode === 'vercel-blob') {
       const { list } = await import('@vercel/blob')
       const found = (await list({ prefix: `posters/${name}`, limit: 1 })).blobs.find((b) => b.pathname === `posters/${name}`)
       if (found) {
@@ -358,7 +424,10 @@ export async function secretRead(): Promise<string | null> {
   if (secretMemo && Date.now() - secretMemo.at < 20_000) return secretMemo.text
   let text: string | null = null
   try {
-    if (getStorageInfo().mode === 'vercel-blob') {
+    if (googleActive()) text = (await driveGet(SECRET_BLOB))?.bytes.toString('utf8') || null
+    if (text) {
+      /* found in Drive */
+    } else if (getStorageInfo().mode === 'vercel-blob') {
       const { list } = await import('@vercel/blob')
       const hit = (await list({ prefix: SECRET_BLOB, limit: 1 })).blobs.find((b) => b.pathname === SECRET_BLOB)
       if (hit) {
@@ -387,6 +456,9 @@ export async function secretRead(): Promise<string | null> {
 /** write the file; an empty text clears it */
 export async function secretWrite(text: string): Promise<{ ok: boolean; msg: string }> {
   secretMemo = null
+  if (googleActive()) {
+    try { return await drivePut(SECRET_BLOB, text || ' ') } catch (e) { return { ok: false, msg: e instanceof Error ? e.message : 'could not save' } }
+  }
   try {
     if (getStorageInfo().mode === 'vercel-blob') {
       const { put } = await import('@vercel/blob')
@@ -434,6 +506,9 @@ const blobMode = () => getStorageInfo().mode === 'vercel-blob'
 
 /** the file names (without the folder) in `data/<dir>` */
 export async function fileList(dir: string): Promise<string[]> {
+  if (googleActive()) {
+    try { return (await driveNames(driveName(dir) + '__')).map((n) => n.slice(driveName(dir).length + 2)) } catch { return [] }
+  }
   try {
     if (blobMode()) {
       const { list } = await import('@vercel/blob')
@@ -454,6 +529,12 @@ export async function fileList(dir: string): Promise<string[]> {
 }
 
 export async function fileRead(path: string): Promise<{ text: string; sha?: string } | null> {
+  if (googleActive()) {
+    try {
+      const f = await driveGet(driveName(path))
+      return f ? { text: f.bytes.toString('utf8'), sha: f.version } : null
+    } catch { return null }
+  }
   try {
     if (blobMode()) {
       const { list } = await import('@vercel/blob')
@@ -483,6 +564,9 @@ export async function fileRead(path: string): Promise<{ text: string; sha?: stri
 
 /** write a file; with `sha` it only succeeds when the file has not changed since it was read (GitHub), which is how a post is claimed once */
 export async function fileWrite(path: string, text: string, sha?: string): Promise<{ ok: boolean; msg: string; conflict?: boolean }> {
+  if (googleActive()) {
+    try { return await drivePut(driveName(path), text, 'application/json', sha) } catch (e) { return { ok: false, msg: e instanceof Error ? e.message : 'could not save' } }
+  }
   try {
     if (blobMode()) {
       const { put } = await import('@vercel/blob')
@@ -515,6 +599,9 @@ export async function fileWrite(path: string, text: string, sha?: string): Promi
 }
 
 export async function fileDelete(path: string, sha?: string): Promise<boolean> {
+  if (googleActive()) {
+    try { return await driveDelete(driveName(path)) } catch { return false }
+  }
   try {
     if (blobMode()) {
       const { list, del } = await import('@vercel/blob')
@@ -541,3 +628,6 @@ export async function fileDelete(path: string, sha?: string): Promise<boolean> {
     return false
   }
 }
+
+/** the copy of the data on GitHub (or the test file), used to start Drive from it */
+export const readGithubState = () => githubRead()

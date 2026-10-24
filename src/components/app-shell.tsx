@@ -86,6 +86,16 @@ export function AppShell({ initialView }: { initialView?: View }) {
     if (st.admin) {
       st.setPubView(false)
       setView(adminViewFromPath(path) || 'dashboard')
+      /* back from Google's sign-in page: open Settings on the data tab and say how it went */
+      const q = new URLSearchParams(window.location.search)
+      const g = q.get('google')
+      if (g) {
+        try { sessionStorage.setItem('aso-settings-tab', 'data') } catch { /* not available */ }
+        setView('settings')
+        const text = g === 'ok' ? 'Signed in to Google. The data now lives in the Drive folder.' : g === 'cancelled' ? 'Google sign-in was cancelled.' : g === 'unavailable' ? 'Google sign-in is not set up in this copy of the app.' : q.get('gmsg') || 'Google sign-in did not work.'
+        window.setTimeout(() => useStore.getState().toast(text, g === 'ok'), 600)
+        window.history.replaceState(null, '', window.location.pathname)
+      }
     } else setView('login')
   }, [boot])
 

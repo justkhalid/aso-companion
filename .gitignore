@@ -103,3 +103,8 @@ data/inventory.enc.json
 data/inventory.local.json
 data/inventory-photos/
 .test-state.json
+
+# Google connection of this computer (encrypted) and the local copy of the Drive data
+data/google.enc.json
+data/drive-cache/
+data/google-client.enc.json
