@@ -10,6 +10,8 @@ note() { osascript -e "display dialog \"$1\" buttons {\"OK\"} default button 1 w
 # the newest version, pulled quietly with the GitHub token from .env.local (never a login popup)
 self_update() {
   command -v git >/dev/null 2>&1 || return 0
+  # once updates come from Google Drive (.aso/release.json exists) the app updates itself and git must not touch the files
+  [ -f .aso/release.json ] && return 0
   export GIT_TERMINAL_PROMPT=0 GCM_INTERACTIVE=never
   PAT=$(grep -m1 '^GITHUB_PAT=' .env.local 2>/dev/null | cut -d= -f2- | tr -d '\r')
   if [ -n "$PAT" ]; then
@@ -55,25 +57,15 @@ if ! up; then
     exit 1
   fi
   if [ ! -f .env.local ]; then
-    TOK=$(osascript -e 'text returned of (display dialog "First start. Paste the GitHub token here (LOCAL.md explains how to make it):" default answer "" with title "ASO Companion")' 2>/dev/null)
-    [ -z "$TOK" ] && exit 0
-    SECRET=$(LC_ALL=C tr -dc 'a-f0-9' </dev/urandom | head -c 64)
-    cat > .env.local <<ENV
-ASO_LOCAL=1
-ASO_SESSION_SECRET=$SECRET
-GITHUB_PAT=$TOK
-GITHUB_REPO=justkhalid/aso-companion
-GITHUB_BRANCH=main
-META_APP_ID=
-META_APP_SECRET=
-ENV
+    note "The settings of this Mac are missing. Run the ASO Companion setup file again."
+    exit 1
   fi
   rm -f aso-failed.txt
   start_splash
   (
     while true; do
       self_update
-      HEAD=$(git rev-parse HEAD 2>/dev/null)
+      HEAD=""; [ -f .aso/release.json ] || HEAD=$(git rev-parse HEAD 2>/dev/null)
       BUILT=$(cat .next/aso-built.txt 2>/dev/null)
       if [ ! -d node_modules ] || [ ! -f .next/BUILD_ID ] || [ "$HEAD" != "$BUILT" ]; then
         echo "[$(date)] installing and building" >> aso.log

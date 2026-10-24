@@ -18,22 +18,9 @@ if ! command -v node >/dev/null 2>&1; then
 fi
 
 if [ ! -f .env.local ]; then
-  echo "First start: making the settings file..."
-  SECRET=$(LC_ALL=C tr -dc 'a-f0-9' </dev/urandom | head -c 64)
-  cat > .env.local <<ENV
-ASO_LOCAL=1
-ASO_SESSION_SECRET=$SECRET
-GITHUB_PAT=
-GITHUB_REPO=justkhalid/aso-companion
-GITHUB_BRANCH=main
-META_APP_ID=
-META_APP_SECRET=
-ENV
-  echo
-  echo "TextEdit opens now. After GITHUB_PAT= paste the GitHub token, save the file and close it."
-  echo "See LOCAL.md for how to make the token."
-  open -e .env.local
-  read -p "When the token is saved, press Enter here. "
+  echo "The settings of this Mac are missing. Run the ASO Companion setup file again."
+  read -n 1 -s -r -p "Press any key to close."
+  exit 1
 fi
 
 self_update() {
@@ -53,7 +40,7 @@ self_update() {
 
 while true; do
   self_update
-  HEAD=$(git rev-parse HEAD 2>/dev/null)
+  HEAD=""; [ -f .aso/release.json ] || HEAD=$(git rev-parse HEAD 2>/dev/null)
   BUILT=$(cat .next/aso-built.txt 2>/dev/null)
   if [ ! -d node_modules ] || [ ! -f .next/BUILD_ID ] || [ "$HEAD" != "$BUILT" ]; then
     echo

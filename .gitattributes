@@ -1,3 +1,4 @@
 *.bat text eol=crlf
 *.command text eol=lf
 *.vbs text eol=crlf
+installer/mac/*.sh text eol=lf
