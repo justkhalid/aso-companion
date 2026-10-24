@@ -41,6 +41,8 @@ export function SiteFooter({ current }: { current: Side }) {
               {l.label}
             </button>
           ))}
+          <a href="/privacy" className="text-muted-foreground hover:text-foreground">Privacy</a>
+          <a href="/terms" className="text-muted-foreground hover:text-foreground">Terms</a>
           {!admin && (viewer.teacher || viewer.intern) && (
             <button onClick={signOutViewer} className="text-muted-foreground hover:text-foreground">Sign out</button>
           )}
