@@ -37,3 +37,25 @@ jobs:
           git commit -m "chore(version): $next"
           git pull --rebase origin main
           git push origin HEAD:main
+
+  # Puts the new version into the space's Google Drive, where the installed apps look for updates.
+  # Needs three secrets in GitHub > Settings > Secrets and variables > Actions: GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET, GOOGLE_REFRESH_TOKEN (see LOCAL.md).
+  # Without them this step is skipped and nothing else changes.
+  release:
+    needs: bump
+    if: ${{ !startsWith(github.event.head_commit.message, 'aso-companion:') && !startsWith(github.event.head_commit.message, 'chore(version)') }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      GOOGLE_CLIENT_ID: ${{ secrets.GOOGLE_CLIENT_ID }}
+      GOOGLE_CLIENT_SECRET: ${{ secrets.GOOGLE_CLIENT_SECRET }}
+      GOOGLE_REFRESH_TOKEN: ${{ secrets.GOOGLE_REFRESH_TOKEN }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+      - name: Publish the release to Google Drive
+        run: |
+          if [ -z "$GOOGLE_REFRESH_TOKEN" ]; then echo "No Google secrets set: skipping."; exit 0; fi
+          node scripts/publish-release.mjs

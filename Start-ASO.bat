@@ -62,6 +62,8 @@ exit /b 1
 :selfupdate
 rem pull the newest version quietly: with the GitHub token from .env.local, and never ask for a login
 where git >nul 2>nul || exit /b 0
+rem once updates come from Google Drive (.aso\release.json exists) the app updates itself and git must not touch the files
+if exist ".aso\release.json" exit /b 0
 set "GIT_TERMINAL_PROMPT=0"
 set "GCM_INTERACTIVE=never"
 set "PAT="
