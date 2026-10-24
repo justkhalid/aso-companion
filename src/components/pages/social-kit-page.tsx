@@ -126,7 +126,7 @@ export function SocialKitPage() {
     <div className="mx-auto max-w-6xl px-4 py-6 sm:py-8">
       <PageHead
         title="Social media"
-        subtitle="Pictures and captions for every club and event, made from the data you already keep. Post them to Facebook and Instagram or download them."
+        subtitle="Pictures and captions for every club and event. Post them or download them."
         right={
           <div className="flex flex-wrap items-center gap-2">
             {tab !== 'connection' && <><LinksKitButton /><FullKitButton /></>}
@@ -139,7 +139,7 @@ export function SocialKitPage() {
         }
       />
       <div className="mb-5 flex max-w-full overflow-x-auto"><div className="inline-flex shrink-0 rounded-full border border-border bg-card p-1" role="tablist" aria-label="Kind">
-        {([['todo', 'To post', null], ['club', 'Clubs', state.clubs.filter((c) => !isOver('club', c)).length], ['event', 'Events', state.events.filter((e) => !isOver('event', e)).length], ['post', 'New post', null], ['month', 'Calendar', null], ['scheduled', 'Scheduled', null], ['connection', 'Connection', null]] as const).map(([k, label, n]) => (
+        {([['todo', 'To post', null], ['club', 'Clubs', state.clubs.filter((c) => !isOver('club', c)).length], ['event', 'Events', state.events.filter((e) => !isOver('event', e)).length], ['post', 'New post', null], ['month', 'Month calendar', null], ['scheduled', 'Scheduled', null], ['connection', 'Connection', null]] as const).map(([k, label, n]) => (
           <button
             key={k}
             role="tab"
@@ -201,7 +201,7 @@ function KitCard({ kind, item, onOpen }: { kind: Kind; item: Club | EventEntry; 
   const R = React.useMemo(() => kitRec(kind, item), [kind, item])
   const [busy, setBusy] = React.useState(false)
   return (
-    <div className="flex flex-col overflow-hidden rounded-2xl border border-border bg-card shadow-sm">
+    <div className="@container flex flex-col overflow-hidden rounded-2xl border border-border bg-card shadow-sm">
       <button onClick={onOpen} className="relative block aspect-[3/4] w-full overflow-hidden bg-secondary" aria-label={`Open ${R.name}`}>
         {R.sitePoster || R.poster ? (
           <img src={R.sitePoster ? posterThumb(R.sitePoster, 480) : R.poster || ''} alt={`${R.name} poster`} className="h-full w-full object-contain" loading="lazy" />
@@ -222,7 +222,7 @@ function KitCard({ kind, item, onOpen }: { kind: Kind; item: Club | EventEntry; 
           </span>
         )}
       </div>
-      <div className="grid grid-cols-2 gap-1.5 p-3 pt-0">
+      <div className="grid grid-cols-1 gap-1.5 p-3 pt-0 @[15rem]:grid-cols-2">
         <Button size="sm" onClick={onOpen}><Pencil className="h-3.5 w-3.5" /> Customize</Button>
         <Button
           size="sm"
@@ -1418,7 +1418,7 @@ function PublishPanel({ storyCanvas, poster, feedCanvas, caption, only, posts, o
 
   return (
     <>
-      <div className="grid gap-5 border-t border-border pt-5 sm:grid-cols-2">
+      <div className="grid gap-5 border-t border-border pt-5 first:border-t-0 first:pt-0 sm:grid-cols-2">
       <Block bare title="Connection">
         {status === null && <p className="text-xs text-muted-foreground">Checking...</p>}
         {status === 'signin' && <SignInAgain />}
@@ -1567,7 +1567,7 @@ function ScheduledPanel() {
 
   if (state === 'signin') return <SignInAgain />
   return (
-    <div className="mx-auto flex max-w-2xl flex-col gap-4">
+    <div className="flex max-w-2xl flex-col gap-4">
       <div className="flex flex-col gap-4 rounded-2xl border border-border bg-card p-5">
         <Block title="Scheduled posts">
           <p className="text-xs text-muted-foreground">Schedule from any Publish panel by choosing <b>Later</b>. The post goes out within about 10 minutes of the time you set. Instagram has no timer of its own, so the pictures wait here, encrypted, until then.</p>
@@ -1668,7 +1668,7 @@ function ConnectionPanel() {
   const day = (iso: string) => new Date(iso).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' })
 
   return (
-    <div className="mx-auto flex max-w-2xl flex-col gap-4">
+    <div className="flex max-w-2xl flex-col gap-4">
       <div className="flex flex-col gap-5 rounded-2xl border border-border bg-card p-5">
         <Block title="Facebook and Instagram">
           {connected ? (
