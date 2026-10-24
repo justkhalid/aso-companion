@@ -31,6 +31,10 @@ Connect again here (Social kit > Connection), because the connection is locked w
 
 Settings > **Updates** shows the installed version, what is new, and an **Update now** button. The app downloads the new version and restarts by itself (keep the black window open).
 
+## Removing the app from a computer
+
+Settings > Updates > **Remove from this computer** > **Uninstall and delete the app**. Type UNINSTALL to confirm. The app closes, its Desktop icon and its folder are deleted, and, if the box is ticked, a copy of this computer's data is put on the Desktop first. Node.js and Git stay installed. Data saved online is not touched, so the app can be installed again later.
+
 ## Switching the admin off on the website
 
 In Vercel > Settings > Environment Variables add `ASO_PUBLIC_ONLY` = `1` and redeploy. After that the website has no admin sign-in, no saving and no posting. When this is done, the GitHub token and the Facebook values can be removed from Vercel.

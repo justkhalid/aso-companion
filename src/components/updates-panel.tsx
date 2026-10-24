@@ -3,6 +3,8 @@
 import * as React from 'react'
 import { Check, CircleAlert, Download, Loader2, RefreshCw } from 'lucide-react'
 import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { Checkbox } from '@/components/ui/checkbox'
 import { useStore } from '@/lib/store'
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog'
 
@@ -30,6 +32,11 @@ export function UpdatesPanel() {
   const [msg, setMsg] = React.useState<{ ok: boolean; text: string } | null>(null)
   const [restarting, setRestarting] = React.useState(false)
   const [quitMsg, setQuitMsg] = React.useState('')
+  const [rm, setRm] = React.useState(false)
+  const [rmText, setRmText] = React.useState('')
+  const [rmBackup, setRmBackup] = React.useState(true)
+  const [rmBusy, setRmBusy] = React.useState(false)
+  const [rmMsg, setRmMsg] = React.useState<{ ok: boolean; text: string } | null>(null)
 
   const load = React.useCallback(async () => {
     setBusy(true)
@@ -76,6 +83,21 @@ export function UpdatesPanel() {
       setMsg({ ok: false, text: 'The app could not be reached.' })
     } finally {
       setBusy(false)
+    }
+  }
+
+  const uninstall = async () => {
+    setRmBusy(true)
+    setRmMsg(null)
+    try {
+      const r = await fetch('/api/uninstall', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ confirm: rmText.trim(), backup: rmBackup }) })
+      const j = (await r.json()) as { ok: boolean; msg: string }
+      setRmMsg({ ok: j.ok, text: j.ok ? `ASO Companion is being removed from this computer.${rmBackup ? ' A copy of the data is on the Desktop.' : ''} You can close this window.` : j.msg })
+      if (j.ok) setRm(false)
+    } catch {
+      setRmMsg({ ok: false, text: 'The app could not be reached.' })
+    } finally {
+      setRmBusy(false)
     }
   }
 
@@ -157,6 +179,36 @@ export function UpdatesPanel() {
           {quitMsg && <p className="text-xs font-semibold text-[var(--aso-ok)]">{quitMsg}</p>}
         </div>
       )}
+
+      {st?.local && (
+        <div className="flex flex-col gap-1.5 border-t border-border pt-4">
+          <h3 className="text-xs font-extrabold uppercase tracking-[0.14em] text-muted-foreground">Remove from this computer</h3>
+          <p className="text-xs text-muted-foreground">Deletes the app, its Desktop icon and everything saved on this computer. Data saved online is not touched, and the app can be installed again later.</p>
+          <Button type="button" variant="outline" size="sm" className="self-start border-destructive/40 text-destructive hover:text-destructive" disabled={!!rmMsg?.ok} onClick={() => { setRmText(''); setRm(true) }}>Uninstall and delete the app</Button>
+          {rmMsg && <p className={`text-xs font-semibold ${rmMsg.ok ? 'text-[var(--aso-ok)]' : 'text-destructive'}`}>{rmMsg.text}</p>}
+        </div>
+      )}
+
+      <AlertDialog open={rm} onOpenChange={setRm}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete the app from this computer?</AlertDialogTitle>
+            <AlertDialogDescription>The app closes and its folder is deleted. This cannot be undone. Node.js and Git stay installed.</AlertDialogDescription>
+          </AlertDialogHeader>
+          <label className="flex items-center gap-2 text-sm">
+            <Checkbox checked={rmBackup} onCheckedChange={(v) => setRmBackup(v === true)} /> Put a copy of this computer's data on the Desktop first
+          </label>
+          <div className="flex flex-col gap-1.5">
+            <span className="text-xs text-muted-foreground">Type UNINSTALL to confirm</span>
+            <Input value={rmText} onChange={(e) => setRmText(e.target.value)} placeholder="UNINSTALL" autoComplete="off" />
+          </div>
+          {rmMsg && !rmMsg.ok && <p className="text-xs font-semibold text-destructive">{rmMsg.text}</p>}
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction disabled={rmText.trim() !== 'UNINSTALL' || rmBusy} className="bg-destructive text-white hover:bg-destructive/90" onClick={(e) => { e.preventDefault(); void uninstall() }}>Delete the app</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
 
       <AlertDialog open={confirm} onOpenChange={setConfirm}>
         <AlertDialogContent>
