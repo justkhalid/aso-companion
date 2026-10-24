@@ -288,37 +288,47 @@ export function DashboardPage() {
           <p className="mt-1 text-sm text-muted-foreground">{pulse}</p>
         </div>
 
-        <div className="flex flex-col items-start gap-3 sm:items-end">
-          <div className="w-60">
-            <div className="flex items-baseline justify-between gap-2 text-[11px] font-bold">
-              <span className="text-muted-foreground">{weekLabel}</span>
-              {inTerm && <span className="tabular-nums text-muted-foreground">{pct}%</span>}
-            </div>
-            <div className="mt-1 h-1.5 overflow-hidden rounded-full bg-secondary" role="img" aria-label={weekLabel}>
-              <div className="h-full rounded-full bg-primary transition-all" style={{ width: `${pct}%` }} />
-            </div>
-            {nextClosed && (
-              <p className="mt-1 text-[11px] text-muted-foreground">
-                Next closed: {nextClosed.name} · {new Date(nextClosed.date).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })}
-              </p>
-            )}
-          </div>
-
-          <div className="inline-flex rounded-full border border-border bg-card p-1" role="group" aria-label="Home sections">
-            {([['overview', 'Today'], ['calendar', 'Calendar']] as const).map(([k, l]) => (
-              <button
-                key={k}
-                type="button"
-                onClick={() => setPage(k)}
-                aria-pressed={page === k}
-                className={cn('rounded-full px-4 py-1 text-[12.5px] font-bold transition outline-none focus-visible:ring-2 focus-visible:ring-ring', page === k ? 'aso-nav-pill' : 'text-foreground/70 hover:bg-secondary')}
-              >
-                {l}
-              </button>
-            ))}
-          </div>
+        <div className="inline-flex rounded-full border border-border bg-card p-1" role="group" aria-label="Home sections">
+          {([['overview', 'Today'], ['calendar', 'Calendar']] as const).map(([k, l]) => (
+            <button
+              key={k}
+              type="button"
+              onClick={() => setPage(k)}
+              aria-pressed={page === k}
+              className={cn('rounded-full px-4 py-1 text-[12.5px] font-bold transition outline-none focus-visible:ring-2 focus-visible:ring-ring', page === k ? 'aso-nav-pill' : 'text-foreground/70 hover:bg-secondary')}
+            >
+              {l}
+            </button>
+          ))}
         </div>
       </header>
+
+      {/* ---- where the year is: one strip, the weeks as cells ---- */}
+      {total > 0 && (
+        <section aria-label="The year" className="mb-4 rounded-2xl border border-border bg-card px-4 py-3">
+          <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1 text-[12px] font-bold">
+            <span>{weekLabel}{inTerm && <span className="ml-2 tabular-nums text-muted-foreground">{pct}%</span>}</span>
+            {nextClosed && (
+              <span className="font-semibold text-muted-foreground">
+                Next closed: {nextClosed.name} · {new Date(nextClosed.date).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })}
+              </span>
+            )}
+          </div>
+          <div className="mt-2 flex items-center gap-0.5" role="img" aria-label={`The year: ${total} weeks, now at week ${weekNo}`}>
+            {yearCells.map((c) => (
+              <span
+                key={c.i}
+                className={cn('h-2 flex-1 rounded-sm transition', c.cur ? 'bg-primary' : inTerm && c.i < weekNo ? 'bg-primary/55' : c.s1 ? 'bg-primary/25' : 'bg-primary/12', c.i === s1Weeks && 'ml-1.5')}
+                title={`Week ${c.i + 1}${c.s1 ? '' : ' · semester 2'}`}
+              />
+            ))}
+          </div>
+          <div className="mt-1 flex justify-between text-[10.5px] font-semibold text-muted-foreground">
+            <span>Semester 1 · {s1Weeks} weeks</span>
+            <span>Semester 2 · {Math.max(0, total - s1Weeks)} weeks</span>
+          </div>
+        </section>
+      )}
 
       {page === 'calendar' ? (
         <section aria-label="Calendar" className="rounded-2xl border border-border bg-card p-4">
@@ -336,6 +346,29 @@ export function DashboardPage() {
               <button type="button" onClick={() => setPage('calendar')} className="text-xs font-bold text-primary hover:underline">See the calendar</button>
             </div>
           )}
+
+          {/* ---- the day in four numbers ---- */}
+          <div className="mb-4 grid grid-cols-2 gap-3 lg:grid-cols-4">
+            {([
+              { label: 'Today', value: closedToday ? 'Closed' : String(sessions.length), sub: closedToday ? closedToday.name : remaining > 0 ? `${remaining} still to come` : sessions.length ? 'All done' : 'Nothing scheduled', go: undefined as undefined | (() => void) },
+              { label: running ? 'Running now' : 'Up next', value: (running || sessions[nextIdx])?.title || 'Nothing', sub: (running || sessions[nextIdx]) ? [fmtTime((running || sessions[nextIdx])!.time), (running || sessions[nextIdx])!.room].filter(Boolean).join(' · ') : 'The day is clear', go: undefined },
+              { label: 'To post', value: String(queue.length), sub: queue.length ? 'Clubs and events without a fresh post' : 'Everything is posted', go: () => openSocial('todo') },
+              { label: 'Away today', value: String(away.length), sub: away.length ? (uncovered ? `${uncovered} without cover` : 'All covered') : 'Nobody is away', go: () => setView('absences') },
+            ]).map((t) => {
+              const Comp: React.ElementType = t.go ? 'button' : 'div'
+              return (
+                <Comp
+                  key={t.label}
+                  {...(t.go ? { type: 'button', onClick: t.go } : null)}
+                  className={cn('min-w-0 rounded-2xl border border-border bg-card px-4 py-3 text-left outline-none', t.go && 'transition hover:border-primary/40 hover:bg-secondary/60 focus-visible:ring-2 focus-visible:ring-ring')}
+                >
+                  <span className="block text-[11px] font-bold uppercase tracking-wider text-muted-foreground">{t.label}</span>
+                  <span className="mt-0.5 block truncate text-xl font-extrabold leading-tight tracking-tight tabular-nums" dir="auto">{t.value}</span>
+                  <span className="mt-0.5 line-clamp-2 block text-xs text-muted-foreground">{t.sub}</span>
+                </Comp>
+              )
+            })}
+          </div>
 
           <div className="grid gap-4 lg:grid-cols-[minmax(0,6fr)_minmax(0,5fr)] lg:items-start">
             {/* ---- 1. the day ---- */}
@@ -470,90 +503,73 @@ export function DashboardPage() {
               )}
             </section>
 
-            {/* ---- 2. what needs her ---- */}
+            <div className="flex flex-col gap-4">
+              {/* ---- 2. what needs her ---- */}
+              <section className="rounded-2xl border border-border bg-card p-5">
+                <div className="mb-3 flex items-center justify-between gap-2">
+                  <h2 className="flex items-center gap-2 text-sm font-extrabold tracking-tight">
+                    <AlertTriangle className={cn('h-4 w-4', actions.length ? 'text-[var(--aso-gold)]' : 'text-muted-foreground')} aria-hidden /> Needs you
+                  </h2>
+                  {actions.length > 0 && <span className="rounded-full bg-[var(--aso-gold-tint)] px-2 py-0.5 text-[11px] font-extrabold text-[var(--aso-gold)] tabular-nums">{actions.length}</span>}
+                </div>
+
+                {actions.length === 0 ? (
+                  <p className="flex items-start gap-2 rounded-xl bg-[var(--aso-ok-tint)] p-3 text-[13px] font-semibold text-[var(--aso-ok)]">
+                    <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0" aria-hidden /> Everything is set: nothing to post, nobody away, every club and class complete.
+                  </p>
+                ) : (
+                  <ul className="-mx-2 flex flex-col">
+                    {actions.map((a) => (
+                      <li key={a.id}>
+                        <button
+                          type="button"
+                          onClick={a.go}
+                          className="group flex w-full items-center gap-3 rounded-xl px-2 py-2 text-left outline-none transition hover:bg-secondary focus-visible:ring-2 focus-visible:ring-ring"
+                        >
+                          <span className={cn('grid h-8 w-8 shrink-0 place-items-center rounded-full', a.urgent ? 'bg-primary/10 text-primary' : 'bg-secondary text-muted-foreground')}>
+                            <a.icon className="h-4 w-4" aria-hidden />
+                          </span>
+                          <span className="min-w-0 flex-1">
+                            <span className="block truncate text-[13px] font-bold leading-tight">{a.text}</span>
+                            <span className="block text-[11px] leading-tight text-muted-foreground">{a.detail}</span>
+                          </span>
+                          <ChevronRight className="h-4 w-4 shrink-0 text-muted-foreground opacity-0 transition group-hover:opacity-100" aria-hidden />
+                        </button>
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </section>
+
+            {/* ---- 3. the week ---- */}
             <section className="rounded-2xl border border-border bg-card p-5">
               <div className="mb-3 flex items-center justify-between gap-2">
-                <h2 className="flex items-center gap-2 text-sm font-extrabold tracking-tight">
-                  <AlertTriangle className={cn('h-4 w-4', actions.length ? 'text-[var(--aso-gold)]' : 'text-muted-foreground')} aria-hidden /> Needs you
-                </h2>
-                {actions.length > 0 && <span className="rounded-full bg-[var(--aso-gold-tint)] px-2 py-0.5 text-[11px] font-extrabold text-[var(--aso-gold)] tabular-nums">{actions.length}</span>}
+                <h2 className="flex items-center gap-2 text-sm font-extrabold tracking-tight"><CalendarDays className="h-4 w-4 text-primary" aria-hidden /> Next seven days</h2>
+                <button type="button" onClick={() => setPage('calendar')} className="text-xs font-bold text-primary hover:underline">Open the calendar</button>
               </div>
-
-              {actions.length === 0 ? (
-                <p className="flex items-start gap-2 rounded-xl bg-[var(--aso-ok-tint)] p-3 text-[13px] font-semibold text-[var(--aso-ok)]">
-                  <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0" aria-hidden /> Everything is set: nothing to post, nobody away, every club and class complete.
-                </p>
-              ) : (
-                <ul className="-mx-2 flex flex-col">
-                  {actions.map((a) => (
-                    <li key={a.id}>
-                      <button
-                        type="button"
-                        onClick={a.go}
-                        className="group flex w-full items-center gap-3 rounded-xl px-2 py-2 text-left outline-none transition hover:bg-secondary focus-visible:ring-2 focus-visible:ring-ring"
-                      >
-                        <span className={cn('grid h-8 w-8 shrink-0 place-items-center rounded-full', a.urgent ? 'bg-primary/10 text-primary' : 'bg-secondary text-muted-foreground')}>
-                          <a.icon className="h-4 w-4" aria-hidden />
-                        </span>
-                        <span className="min-w-0 flex-1">
-                          <span className="block truncate text-[13px] font-bold leading-tight">{a.text}</span>
-                          <span className="block text-[11px] leading-tight text-muted-foreground">{a.detail}</span>
-                        </span>
-                        <ChevronRight className="h-4 w-4 shrink-0 text-muted-foreground opacity-0 transition group-hover:opacity-100" aria-hidden />
-                      </button>
-                    </li>
-                  ))}
-                </ul>
-              )}
+              <div className="grid grid-cols-7 gap-1 sm:gap-1.5">
+                {week.map((d) => (
+                  <button
+                    key={d.iso}
+                    type="button"
+                    onClick={() => setPage('calendar')}
+                    title={d.closed ? `${d.closed} — closed` : undefined}
+                    aria-label={`${d.label} ${d.dayNum}: ${d.closed ? `closed for ${d.closed}` : `${d.n} ${d.n === 1 ? 'session' : 'sessions'}`}`}
+                    className={cn('flex flex-col items-center gap-1.5 rounded-xl border p-2 outline-none transition focus-visible:ring-2 focus-visible:ring-ring', d.today ? 'border-primary bg-primary/5' : d.closed ? 'border-transparent bg-secondary/40' : 'border-transparent hover:bg-secondary')}
+                  >
+                    <span className={cn('text-[10.5px] font-bold uppercase tracking-wider', d.today ? 'text-primary' : 'text-muted-foreground')}>{d.label}</span>
+                    <span className="flex h-14 w-full items-end justify-center">
+                      {d.closed
+                        ? <CalendarOff className="mb-2 h-4 w-4 text-muted-foreground/60" aria-hidden />
+                        : <span className={cn('w-full max-w-7 rounded-t-md', d.today ? 'bg-primary' : 'bg-primary/25')} style={{ height: `${d.n === 0 ? 3 : Math.max(10, (d.n / busiest) * 56)}px` }} />}
+                    </span>
+                    <span className={cn('text-xs font-extrabold tabular-nums', (d.n === 0 || d.closed) && 'text-muted-foreground/50')}>{d.closed ? 'closed' : d.n}</span>
+                  </button>
+                ))}
+              </div>
             </section>
+            </div>
           </div>
-
-          {/* ---- 3. the week ---- */}
-          <section className="mt-4 rounded-2xl border border-border bg-card p-5">
-            <div className="mb-3 flex items-center justify-between gap-2">
-              <h2 className="flex items-center gap-2 text-sm font-extrabold tracking-tight"><CalendarDays className="h-4 w-4 text-primary" aria-hidden /> Next seven days</h2>
-              <button type="button" onClick={() => setPage('calendar')} className="text-xs font-bold text-primary hover:underline">Open the calendar</button>
-            </div>
-            <div className="grid grid-cols-7 gap-1.5 sm:gap-2">
-              {week.map((d) => (
-                <button
-                  key={d.iso}
-                  type="button"
-                  onClick={() => setPage('calendar')}
-                  title={d.closed ? `${d.closed} — closed` : undefined}
-                  aria-label={`${d.label} ${d.dayNum}: ${d.closed ? `closed for ${d.closed}` : `${d.n} ${d.n === 1 ? 'session' : 'sessions'}`}`}
-                  className={cn('flex flex-col items-center gap-1.5 rounded-xl border p-2 outline-none transition focus-visible:ring-2 focus-visible:ring-ring', d.today ? 'border-primary bg-primary/5' : d.closed ? 'border-transparent bg-secondary/40' : 'border-transparent hover:bg-secondary')}
-                >
-                  <span className={cn('text-[10.5px] font-bold uppercase tracking-wider', d.today ? 'text-primary' : 'text-muted-foreground')}>{d.label}</span>
-                  <span className="flex h-14 w-full items-end justify-center">
-                    {d.closed
-                      ? <CalendarOff className="mb-2 h-4 w-4 text-muted-foreground/60" aria-hidden />
-                      : <span className={cn('w-full max-w-7 rounded-t-md', d.today ? 'bg-primary' : 'bg-primary/25')} style={{ height: `${d.n === 0 ? 3 : Math.max(10, (d.n / busiest) * 56)}px` }} />}
-                  </span>
-                  <span className={cn('text-xs font-extrabold tabular-nums', (d.n === 0 || d.closed) && 'text-muted-foreground/50')}>{d.closed ? 'closed' : d.n}</span>
-                </button>
-              ))}
-            </div>
-
-            {/* the year, in one line: where week 7 of 32 actually is */}
-            {total > 0 && (
-              <div className="mt-4">
-                <div className="flex items-center gap-0.5" role="img" aria-label={`The year: ${total} weeks, now at week ${weekNo}`}>
-                  {yearCells.map((c) => (
-                    <span
-                      key={c.i}
-                      className={cn('h-1.5 flex-1 rounded-sm transition', c.cur ? 'bg-primary' : c.s1 ? 'bg-primary/35' : 'bg-primary/15', c.i === s1Weeks && 'ml-1.5')}
-                      title={`Week ${c.i + 1}${c.s1 ? '' : ' · semester 2'}`}
-                    />
-                  ))}
-                </div>
-                <div className="mt-1 flex justify-between text-[10.5px] font-semibold text-muted-foreground">
-                  <span>Semester 1 · {s1Weeks} weeks</span>
-                  <span>Semester 2 · {Math.max(0, total - s1Weeks)} weeks</span>
-                </div>
-              </div>
-            )}
-          </section>
 
           {/* ---- 4. housekeeping ---- */}
           {housekeeping.length > 0 && (
