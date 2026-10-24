@@ -44,6 +44,7 @@ export function postQueue(state: State, now = new Date()): QueueItem[] {
     if (daysAway < 0 || daysAway > (once ? 3 : 1)) return
     const canceled = kind === 'club' ? clubStatusOn(state, item.id, isoOf(when)).kind === 'canceled' : eventStatusOn(state, item.id, isoOf(when)).kind === 'canceled'
     if (canceled) return
+    if (item.kit?.skip === isoOf(when)) return
     const posts = item.kit?.posts || []
     const last = posts[posts.length - 1]
     let reason: Reason | null = null

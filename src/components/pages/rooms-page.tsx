@@ -1,7 +1,7 @@
 'use client'
 
 import * as React from 'react'
-import { Download, ChevronLeft, ChevronRight } from 'lucide-react'
+import { Download, ChevronLeft, ChevronRight, Pencil, Plus } from 'lucide-react'
 import { useStore } from '@/lib/store'
 import { DAY_KEYS, ROOM_UNAVAILABLE } from '@/lib/constants'
 import { PUBLIC_CLASS_TONE, PUBLIC_CLUB_TONE, PUBLIC_EVENT_TONE } from '@/lib/calendar-items'
@@ -11,7 +11,12 @@ import { classMark, type ClassMark } from '@/lib/class-marks'
 import { ClassMarkIcons } from '@/components/class-mark'
 import { closedHoliday } from '@/lib/holidays'
 import { cn } from '@/lib/utils'
-import type { State } from '@/lib/types'
+import type { ClassEntry, Club, EventEntry, State } from '@/lib/types'
+import { moveSession } from '@/lib/move-session'
+import { ClassDialog } from '@/components/dialogs/class-dialog'
+import { ClubDialog } from '@/components/dialogs/club-dialog'
+import { EventDialog } from '@/components/dialogs/event-dialog'
+import { openQuickAdd } from '@/components/admin/quick-add'
 
 /* Admin: which rooms are free through the week. Classes and clubs repeat every
    week; events count on their own date (one-off) or their weekday (repeating).
@@ -34,6 +39,7 @@ interface Booking {
   group: string // legend label
   canceled?: string // teacher away: the class does not run (value = reason)
   note?: string
+  id: string // class, club or event this booking comes from
 }
 
 
@@ -75,7 +81,7 @@ function bookingsForWeek(state: State, monday: Date, plain: boolean): Booking[] 
       date.setDate(date.getDate() + Math.max(di, 0))
       const stt = classStatusOn(state, c, isoOf(date))
       out.push({
-        room: c.room.trim(), day, start: slot[0], end: slot[1], kind: 'class',
+        id: c.id, room: c.room.trim(), day, start: slot[0], end: slot[1], kind: 'class',
         // interns only need to know an English class is on, not which group it is
         label: plain ? 'English class' : c.code,
         tone: PUBLIC_CLASS_TONE,
@@ -99,7 +105,7 @@ function bookingsForWeek(state: State, monday: Date, plain: boolean): Booking[] 
       const slot = parseSlot(w.time)
       if (w.outside || !slot || !w.place) continue
       out.push({
-        room: w.place.trim(), day, start: slot[0], end: slot[1], label: c.name, kind: 'club', note,
+        id: c.id, room: w.place.trim(), day, start: slot[0], end: slot[1], label: c.name, kind: 'club', note,
         tone: PUBLIC_CLUB_TONE, icon: c.icon,
         lead: stt.kind === 'cover' ? 'Led by ' + stt.cover : c.lead,
         group: 'Clubs',
@@ -115,7 +121,7 @@ function bookingsForWeek(state: State, monday: Date, plain: boolean): Booking[] 
       const w = eventWhere(state, e, e.date)
       const slot = parseSlot(w.time)
       if (w.outside || !slot || !w.place) continue
-      out.push({ room: w.place.trim(), day: dayKeyOf(new Date(y, m - 1, d)), start: slot[0], end: slot[1], label: e.title, kind: 'event', note: 'one-off', tone: PUBLIC_EVENT_TONE, icon: e.icon || 'calendar', group: 'Events', canceled: stt.kind === 'canceled' ? stt.absence.reason || 'Canceled' : undefined })
+      out.push({ id: e.id, room: w.place.trim(), day: dayKeyOf(new Date(y, m - 1, d)), start: slot[0], end: slot[1], label: e.title, kind: 'event', note: 'one-off', tone: PUBLIC_EVENT_TONE, icon: e.icon || 'calendar', group: 'Events', canceled: stt.kind === 'canceled' ? stt.absence.reason || 'Canceled' : undefined })
     } else if (e.day && inSeries(e.from, e.until)) {
       const note = e.recur === 'biweekly' ? 'every 2 weeks' : e.recur === 'monthly' ? 'monthly' : undefined
       const di = DAY_KEYS.indexOf(e.day as (typeof DAY_KEYS)[number])
@@ -125,7 +131,7 @@ function bookingsForWeek(state: State, monday: Date, plain: boolean): Booking[] 
       const w = eventWhere(state, e, isoOf(date))
       const slot = parseSlot(w.time)
       if (w.outside || !slot || !w.place) continue
-      out.push({ room: w.place.trim(), day: e.day, start: slot[0], end: slot[1], label: e.title, kind: 'event', note, tone: PUBLIC_EVENT_TONE, icon: e.icon || 'calendar', group: 'Events', canceled: stt.kind === 'canceled' ? stt.absence.reason || 'Canceled' : undefined })
+      out.push({ id: e.id, room: w.place.trim(), day: e.day, start: slot[0], end: slot[1], label: e.title, kind: 'event', note, tone: PUBLIC_EVENT_TONE, icon: e.icon || 'calendar', group: 'Events', canceled: stt.kind === 'canceled' ? stt.absence.reason || 'Canceled' : undefined })
     }
   }
   return out
@@ -172,7 +178,14 @@ export function RoomsPage({ embedded = false, focus, only = false }: { embedded?
   const [monday, setMonday] = React.useState(() => mondayOf(new Date()))
   const [picked, setPicked] = React.useState<string>(focus ? FOCUS : ALL)
 
-  const bookings = React.useMemo(() => bookingsForWeek(state, monday, embedded), [state, monday, embedded])
+  /* the signed-in admin edits from here; the public site, its preview and teachers only look */
+  const canEdit = useStore((s) => s.admin && !s.pubView) && !only
+  const patch = useStore((s) => s.patch)
+  const toastMsg = useStore((s) => s.toast)
+  const [editing, setEditing] = React.useState<{ cls?: ClassEntry; club?: Club; event?: EventEntry } | null>(null)
+  const [drag, setDrag] = React.useState<{ key: string; dx: number; dy: number } | null>(null)
+  const justDragged = React.useRef(false)
+  const bookings = React.useMemo(() => bookingsForWeek(state, monday, embedded && !canEdit), [state, monday, embedded, canEdit])
   const rooms = React.useMemo(() => {
     const set = new Set<string>(roomOptionsFor(state))
     bookings.forEach((b) => set.add(b.room))
@@ -185,7 +198,7 @@ export function RoomsPage({ embedded = false, focus, only = false }: { embedded?
   const mode = picked === ALL || (picked === FOCUS && hasFocus) || tabRooms.includes(picked) ? picked : hasFocus ? FOCUS : ALL
   const all = mode === ALL || mode === FOCUS // several rooms in one calendar
   const shown = mode === ALL ? rooms : mode === FOCUS ? focusRooms : [mode]
-  const CHIP_H = all ? 38 : 60
+  const CHIP_H = all ? 56 : 72
 
   const sunday = new Date(monday)
   sunday.setDate(sunday.getDate() + 6)
@@ -208,6 +221,48 @@ export function RoomsPage({ embedded = false, focus, only = false }: { embedded?
   const HOURS = Array.from({ length: (viewClose - viewOpen) / 60 + 1 }, (_, i) => viewOpen / 60 + i)
   const pct = (min: number) => (Math.min(Math.max(min, viewOpen), viewClose) - viewOpen) / (viewClose - viewOpen) * 100
   const showNow = iso(monday) === thisMonday && nowMin >= viewOpen && nowMin <= viewClose
+  const edit = (b: Booking) => {
+    const cls = state.classes.find((c) => c.id === b.id)
+    const club = state.clubs.find((c) => c.id === b.id)
+    const event = state.events.find((e) => e.id === b.id)
+    if (cls || club || event) setEditing({ cls, club, event })
+  }
+  /* drag a booking: sideways changes the hour, up or down changes the day and the room */
+  const beginDrag = (ev: React.PointerEvent<HTMLElement>, b: Booking, key: string) => {
+    if (!canEdit || ev.button !== 0 || ev.pointerType === 'touch') return
+    const sx = ev.clientX
+    const sy = ev.clientY
+    const track = ev.currentTarget.closest<HTMLElement>('[data-slot]')
+    let moved = false
+    const mv = (e: PointerEvent) => {
+      if (!moved && Math.hypot(e.clientX - sx, e.clientY - sy) < 6) return
+      moved = true
+      setDrag({ key, dx: e.clientX - sx, dy: e.clientY - sy })
+    }
+    const up = (e: PointerEvent) => {
+      window.removeEventListener('pointermove', mv)
+      window.removeEventListener('pointerup', up)
+      window.removeEventListener('pointercancel', up)
+      setDrag(null)
+      if (!moved) return
+      justDragged.current = true
+      setTimeout(() => { justDragged.current = false }, 60)
+      const w = track?.getBoundingClientRect().width || 1
+      const delta = Math.round(((e.clientX - sx) * ((viewClose - viewOpen) / w)) / 15) * 15
+      const slots = Array.from(document.querySelectorAll<HTMLElement>('[data-slot]'))
+      const target = slots.find((el) => {
+        const r = el.getBoundingClientRect()
+        return e.clientY >= r.top && e.clientY < r.bottom && e.clientX >= r.left - 80 && e.clientX <= r.right + 80
+      })
+      const toDay = target?.dataset.day || b.day
+      const toRoom = target?.dataset.room || b.room
+      if (toDay === b.day && toRoom === b.room && delta === 0) return
+      moveSession(state, patch, toastMsg, { id: b.id, label: b.label, from: b.day, to: toDay, delta, room: toRoom })
+    }
+    window.addEventListener('pointermove', mv)
+    window.addEventListener('pointerup', up)
+    window.addEventListener('pointercancel', up)
+  }
   const legendItems = Array.from(new Map(visible.map((b) => [b.group, { label: b.group, tone: b.tone }])).values())
   const circle = 'flex h-7 w-7 items-center justify-center rounded-full bg-black/[0.06] text-foreground/70 transition active:scale-95 dark:bg-white/10'
   const labelW = LABEL_W + (all ? ROOM_W : 0)
@@ -268,6 +323,15 @@ export function RoomsPage({ embedded = false, focus, only = false }: { embedded?
         </div>
       </div>
 
+      {canEdit && (
+        <div className="mb-3 flex flex-wrap items-center justify-center gap-x-4 gap-y-2">
+          <span className="inline-flex items-center gap-1.5 text-xs font-semibold text-muted-foreground"><Pencil className="h-3.5 w-3.5" aria-hidden /> Tap a booking to edit it, drag it to another hour, day or room</span>
+          <button type="button" onClick={() => openQuickAdd('class')} className="inline-flex h-8 items-center gap-1 rounded-full border border-border px-3 text-xs font-semibold hover:bg-secondary"><Plus className="h-3.5 w-3.5" aria-hidden /> Class</button>
+          <button type="button" onClick={() => openQuickAdd('club')} className="inline-flex h-8 items-center gap-1 rounded-full border border-border px-3 text-xs font-semibold hover:bg-secondary"><Plus className="h-3.5 w-3.5" aria-hidden /> Club</button>
+          <button type="button" onClick={() => openQuickAdd('event')} className="inline-flex h-8 items-center gap-1 rounded-full border border-border px-3 text-xs font-semibold hover:bg-secondary"><Plus className="h-3.5 w-3.5" aria-hidden /> Event</button>
+        </div>
+      )}
+
       {/* all rooms, or one room */}
       <div className="mb-3 flex gap-1 overflow-x-auto rounded-[10px] bg-black/[0.06] p-0.5 dark:bg-white/10 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden" role="tablist" aria-label="Room">
         {[...(hasFocus ? [FOCUS] : []), ...(only ? [...tabRooms, ALL] : [ALL, ...tabRooms])].map((r) => {
@@ -322,6 +386,9 @@ export function RoomsPage({ embedded = false, focus, only = false }: { embedded?
                       )}
                       <div
                         className="relative min-w-0 flex-1"
+                        data-slot
+                        data-day={d.day}
+                        data-room={r.room}
                         style={{
                           backgroundImage: 'linear-gradient(to right, rgba(120,120,128,0.14) 1px, transparent 1px)',
                           backgroundSize: `${100 / (HOURS.length - 1)}% 100%`,
@@ -377,25 +444,30 @@ export function RoomsPage({ embedded = false, focus, only = false }: { embedded?
                         {/* bookings, same chip design as the other calendars */}
                         {r.lanes.map(({ b, lane }, k) => {
                           const Icon = clubIcon(b.icon)?.Icon
+                          const dkey = d.day + r.room + b.id + k
+                          const dragging = drag?.key === dkey
                           return (
                             <div
                               key={'b' + k}
                               className={cn('absolute', b.tone)}
-                              style={{ left: `calc(${pct(b.start)}% + 2px)`, width: `calc(${pct(b.end) - pct(b.start)}% - 4px)`, top: 4 + lane * (CHIP_H + 4), height: CHIP_H }}
+                              style={{ left: `calc(${pct(b.start)}% + 2px)`, width: `calc(${pct(b.end) - pct(b.start)}% - 4px)`, top: 4 + lane * (CHIP_H + 4), height: CHIP_H, zIndex: dragging ? 60 : undefined, transform: dragging ? `translate(${drag!.dx}px, ${drag!.dy}px)` : undefined, opacity: dragging ? 0.85 : undefined, touchAction: canEdit ? 'pan-y' : undefined }}
                               title={`${b.label} · ${b.room} · ${fmt(b.start)}-${fmt(b.end)}${b.note ? ' (' + b.note + ')' : ''}`}
+                              onPointerDown={canEdit ? (ev) => beginDrag(ev, b, dkey) : undefined}
                             >
                               <div
-                                className={cn('relative flex h-full w-full flex-col justify-center overflow-hidden rounded-lg border px-2 py-1 pl-[13px] text-left', all ? 'gap-[1px]' : 'gap-[3px]')}
+                                role={canEdit ? 'button' : undefined}
+                                tabIndex={canEdit ? 0 : undefined}
+                                onClick={canEdit ? () => { if (!justDragged.current) edit(b) } : undefined}
+                                onKeyDown={canEdit ? (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); edit(b) } } : undefined}
+                                className={cn('relative flex h-full w-full flex-col justify-center overflow-hidden rounded-lg border px-2 py-1 pl-[13px] text-left transition', all ? 'gap-[1px]' : 'gap-[3px]', canEdit && (dragging ? 'cursor-grabbing shadow-lg' : 'cursor-grab hover:shadow-md hover:brightness-[1.04]'))}
                                 style={{ background: 'var(--tone-bg)', borderColor: 'var(--tone-line)', color: 'var(--tone-txt)' }}
                               >
                                 <span aria-hidden className="absolute left-[3px] top-1 bottom-1 w-[3px] rounded-full" style={{ background: 'var(--tone-txt)', opacity: 0.45 }} />
                                 <span className="flex w-full items-center gap-1 text-[11px] font-bold leading-[13px]">
                                   {b.mark ? <ClassMarkIcons mark={b.mark} className="h-3 w-3 shrink-0" /> : Icon ? <Icon className="h-3 w-3 shrink-0" /> : <i className="inline-block h-1.5 w-1.5 shrink-0 rounded-full" style={{ background: 'var(--tone-txt)' }} />}
-                                  <span className={all ? 'truncate' : 'line-clamp-3 break-words leading-[12px]'} dir="auto">
-                                    {b.label}
-                                    {b.lead && <span className="font-medium opacity-80"> · {b.lead}</span>}
-                                  </span>
+                                  <span className="line-clamp-2 break-words leading-[12px]" dir="auto">{b.label}</span>
                                 </span>
+                                {b.lead && <span className="truncate text-[10px] font-medium leading-[12px] opacity-85" dir="auto">{b.lead}</span>}
                                 <span className="truncate text-[10px] font-semibold leading-[12px] tabular-nums" style={{ opacity: 0.92 }}>
                                   {fmt(b.start)}-{fmt(b.end)}{b.note ? ' · ' + b.note : ''}
                                 </span>
@@ -447,6 +519,13 @@ export function RoomsPage({ embedded = false, focus, only = false }: { embedded?
           </span>
         )}
       </div>
+      {canEdit && (
+        <>
+          <ClassDialog open={!!editing?.cls} onOpenChange={(v) => !v && setEditing(null)} cls={editing?.cls ?? null} />
+          <ClubDialog open={!!editing?.club} onOpenChange={(v) => !v && setEditing(null)} club={editing?.club ?? null} />
+          <EventDialog open={!!editing?.event} onOpenChange={(v) => !v && setEditing(null)} event={editing?.event ?? null} />
+        </>
+      )}
     </div>
   )
 }
