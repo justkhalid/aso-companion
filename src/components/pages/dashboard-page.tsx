@@ -210,9 +210,13 @@ export function DashboardPage() {
   ]
   const perDay = DAY_KEYS.map((k) => classes.filter((c) => (c.days || []).includes(k)).length + clubs.filter((c) => (c.days || []).includes(k)).length)
   const perDayMax = Math.max(1, ...perDay)
-  const bands = ['Kids', 'Teens', 'Adults'].map((b) => ({ label: b, n: classes.filter((c) => (c.level || '').split('·')[0].trim().toLowerCase() === b.toLowerCase()).length }))
-  const bandsOther = classes.length - bands.reduce((n, x) => n + x.n, 0)
-  if (bandsOther > 0) bands.push({ label: 'Other', n: bandsOther })
+  const band = (b: string) => classes.filter((c) => (c.level || '').split('·')[0].trim().toLowerCase() === b).length
+  const programme = [
+    { label: 'Kids classes', n: band('kids') },
+    { label: 'Teens classes', n: band('teens') },
+    { label: 'Adults classes', n: band('adults') },
+    { label: 'Clubs', n: clubs.length },
+  ]
   const postsMonth = allPosts.filter((p) => p.t.startsWith(monthKey)).length
 
   const inTerm = st.mode === 's1' || st.mode === 's2'
@@ -631,60 +635,37 @@ export function DashboardPage() {
               })}
             </div>
 
-            <div className="mt-6 grid gap-4 border-t border-border pt-5 md:grid-cols-3">
-              {/* who runs it */}
-              <div>
-                <h3 className="mb-3 text-[11px] font-bold uppercase tracking-wider text-muted-foreground">Who runs it</h3>
-                <ul className="grid gap-2.5">
-                  {roleBars.map((r) => (
-                    <li key={r.label}>
-                      <div className="flex items-baseline justify-between text-[12.5px]">
+            <div className="mt-6 grid gap-3 border-t border-border pt-5 md:grid-cols-3">
+              {([
+                { title: 'People', rows: roleBars, foot: 'One person can hold several roles.' },
+                { title: 'Programme', rows: programme, foot: `${allPosts.length} posts sent from here, ${postsMonth} this month` },
+              ]).map((panel) => (
+                <div key={panel.title} className="flex flex-col rounded-xl border border-border bg-background/60 p-4">
+                  <h3 className="mb-2 text-[11px] font-bold uppercase tracking-wider text-muted-foreground">{panel.title}</h3>
+                  <ul className="divide-y divide-border">
+                    {panel.rows.map((r) => (
+                      <li key={r.label} className="flex h-9 items-center justify-between text-[13px]">
                         <span className="font-semibold">{r.label}</span>
-                        <span className="font-extrabold tabular-nums">{r.n}</span>
-                      </div>
-                      <div className="mt-1 h-1.5 overflow-hidden rounded-full bg-secondary">
-                        <div className="h-full rounded-full bg-primary" style={{ width: `${people.length ? Math.max(r.n ? 4 : 0, (r.n / people.length) * 100) : 0}%` }} />
-                      </div>
-                    </li>
-                  ))}
-                </ul>
-                <p className="mt-2.5 text-[11px] text-muted-foreground">One person can hold several roles.</p>
-              </div>
+                        <span className="text-lg font-extrabold tabular-nums">{r.n}</span>
+                      </li>
+                    ))}
+                  </ul>
+                  <p className="mt-auto pt-3 text-[11.5px] text-muted-foreground">{panel.foot}</p>
+                </div>
+              ))}
 
-              {/* the week */}
-              <div>
-                <h3 className="mb-3 text-[11px] font-bold uppercase tracking-wider text-muted-foreground">Sessions by weekday</h3>
-                <div className="flex h-28 items-end gap-1.5" role="img" aria-label={`Sessions per weekday: ${DAY_KEYS.map((k, i) => `${k} ${perDay[i]}`).join(', ')}`}>
+              <div className="flex flex-col rounded-xl border border-border bg-background/60 p-4">
+                <h3 className="mb-2 text-[11px] font-bold uppercase tracking-wider text-muted-foreground">Sessions by weekday</h3>
+                <div className="flex h-36 items-end gap-1.5" role="img" aria-label={`Sessions per weekday: ${DAY_KEYS.map((k, i) => `${k} ${perDay[i]}`).join(', ')}`}>
                   {perDay.map((n, i) => (
                     <div key={DAY_KEYS[i]} className="flex h-full min-w-0 flex-1 flex-col items-center justify-end gap-1">
-                      <span className={cn('text-[11px] font-extrabold tabular-nums', n === 0 && 'text-muted-foreground/50')}>{n}</span>
-                      <span className={cn('w-full rounded-t-md', n === perDayMax && n > 0 ? 'bg-primary' : 'bg-primary/30')} style={{ height: `${n === 0 ? 3 : Math.max(8, (n / perDayMax) * 72)}px` }} />
+                      <span className={cn('text-[12px] font-extrabold tabular-nums', n === 0 && 'text-muted-foreground/50')}>{n}</span>
+                      <span className={cn('w-full rounded-t-md', n === perDayMax && n > 0 ? 'bg-primary' : 'bg-primary/30')} style={{ height: `${n === 0 ? 3 : Math.max(8, (n / perDayMax) * 84)}px` }} />
                       <span className="text-[10.5px] font-bold uppercase text-muted-foreground">{DAY_KEYS[i]}</span>
                     </div>
                   ))}
                 </div>
-              </div>
-
-              {/* classes by group, and what has been shared */}
-              <div>
-                <h3 className="mb-3 text-[11px] font-bold uppercase tracking-wider text-muted-foreground">Classes by group</h3>
-                {classes.length > 0 ? (
-                  <>
-                    <div className="flex h-3 overflow-hidden rounded-full bg-secondary" role="img" aria-label={bands.map((b) => `${b.label} ${b.n}`).join(', ')}>
-                      {bands.map((b, i) => b.n > 0 && <span key={b.label} className={cn('h-full', i === 0 ? 'bg-primary' : i === 1 ? 'bg-primary/60' : i === 2 ? 'bg-primary/30' : 'bg-primary/15')} style={{ width: `${(b.n / classes.length) * 100}%` }} />)}
-                    </div>
-                    <ul className="mt-3 grid gap-1.5 text-[12.5px]">
-                      {bands.map((b, i) => (
-                        <li key={b.label} className="flex items-center gap-2">
-                          <i className={cn('inline-block h-2 w-2 rounded-full', i === 0 ? 'bg-primary' : i === 1 ? 'bg-primary/60' : i === 2 ? 'bg-primary/30' : 'bg-primary/15')} />
-                          <span className="flex-1 font-semibold">{b.label}</span>
-                          <span className="font-extrabold tabular-nums">{b.n}</span>
-                        </li>
-                      ))}
-                    </ul>
-                  </>
-                ) : <p className="text-[12.5px] text-muted-foreground">No classes yet.</p>}
-                <p className="mt-3 border-t border-border pt-2.5 text-[12px] text-muted-foreground"><b className="font-extrabold tabular-nums text-foreground">{allPosts.length}</b> posts sent from here, <b className="font-extrabold tabular-nums text-foreground">{postsMonth}</b> this month</p>
+                <p className="mt-auto pt-3 text-[11.5px] text-muted-foreground">Busiest: {DAY_KEYS.filter((_, i) => perDay[i] === perDayMax && perDayMax > 0).join(' and ') || 'none'}</p>
               </div>
             </div>
           </section>
