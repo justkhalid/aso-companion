@@ -58,4 +58,4 @@ jobs:
       - name: Publish the release to Google Drive
         run: |
           if [ -z "$GOOGLE_REFRESH_TOKEN" ]; then echo "No Google secrets set: skipping."; exit 0; fi
-          node scripts/publish-release.mjs
+          node .github/.github/scripts/publish-release.mjs

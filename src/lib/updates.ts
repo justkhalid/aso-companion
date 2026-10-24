@@ -27,7 +27,7 @@ export interface UpdateStatus {
 }
 
 /* ---- updates through the space's Google Drive ----
-   A release is one source package (about 5 MB) plus a small manifest in the "ASO Companion" folder, put there by scripts/publish-release.mjs
+   A release is one source package (about 5 MB) plus a small manifest in the "ASO Companion" folder, put there by .github/scripts/publish-release.mjs
    after a merge. The installed app compares the version, downloads the package, checks it, copies the files over the app folder (never data,
    settings or installed libraries) and restarts; the start file then rebuilds. Nothing about GitHub is needed on the computer. */
 export interface Manifest { version: string; sha: string; date: string; file: string; sha256: string; size: number; files: string[]; log: LogItem[] }
