@@ -323,7 +323,7 @@ export function DashboardPage() {
               })}
             </div>
 
-            <div className="mt-6 grid gap-3 border-t border-border pt-5 md:grid-cols-3">
+            <div className="mt-6 grid gap-3 border-t border-border pt-5 sm:grid-cols-2 xl:grid-cols-4">
               {([
                 { title: 'People', rows: roleBars, foot: 'One person can hold several roles.' },
                 { title: 'Programme', rows: programme, foot: `${allPosts.length} posts sent from here, ${postsMonth} this month` },
@@ -342,19 +342,27 @@ export function DashboardPage() {
                 </div>
               ))}
 
-              <div className="flex flex-col rounded-xl border border-border bg-background/60 p-4">
-                <h3 className="mb-2 text-[11px] font-bold uppercase tracking-wider text-muted-foreground">Sessions by weekday</h3>
-                <div className="flex h-36 items-end gap-1.5" role="img" aria-label={`Sessions per weekday: ${DAY_KEYS.map((k, i) => `${k} ${perDay[i]}`).join(', ')}`}>
-                  {perDay.map((n, i) => (
-                    <div key={DAY_KEYS[i]} className="flex h-full min-w-0 flex-1 flex-col items-center justify-end gap-1">
-                      <span className={cn('text-[12px] font-extrabold tabular-nums', n === 0 && 'text-muted-foreground/50')}>{n}</span>
-                      <span className={cn('w-full rounded-t-md', n === perDayMax && n > 0 ? 'bg-primary' : 'bg-primary/30')} style={{ height: `${n === 0 ? 3 : Math.max(8, (n / perDayMax) * 84)}px` }} />
-                      <span className="text-[10.5px] font-bold uppercase text-muted-foreground">{DAY_KEYS[i]}</span>
-                    </div>
-                  ))}
+              {([
+                { title: 'Classes', view: 'classes' as View, rows: classes.map((c) => ({ key: c.id, name: c.code, sub: [(c.days || []).join(' '), fmtTime(c.time || '')].filter(Boolean).join(' · ') })) },
+                { title: 'Clubs and events', view: 'intern-clubs' as View, rows: [...clubs.map((c) => ({ key: c.id, name: c.name, sub: [(c.days || []).join(' '), fmtTime(c.time || '')].filter(Boolean).join(' · ') })), ...state.events.filter((e) => nextOccurrence(e)).map((e) => ({ key: e.id, name: e.title, sub: 'Event' }))] },
+              ]).map((panel) => (
+                <div key={panel.title} className="flex flex-col rounded-xl border border-border bg-background/60 p-4">
+                  <h3 className="mb-2 flex items-baseline justify-between text-[11px] font-bold uppercase tracking-wider text-muted-foreground">
+                    <span>{panel.title}</span><span className="tabular-nums">{panel.rows.length}</span>
+                  </h3>
+                  <ul className="max-h-[12.75rem] min-h-0 flex-1 divide-y divide-border overflow-y-auto pr-1 scroll-thin">
+                    {panel.rows.map((r) => (
+                      <li key={r.key}>
+                        <button type="button" onClick={() => setView(panel.view)} className="flex h-11 w-full flex-col justify-center text-left outline-none hover:text-primary focus-visible:ring-2 focus-visible:ring-ring">
+                          <span className="truncate text-[12.5px] font-semibold leading-tight" dir="auto">{r.name}</span>
+                          <span className="truncate text-[11px] leading-tight text-muted-foreground">{r.sub}</span>
+                        </button>
+                      </li>
+                    ))}
+                    {panel.rows.length === 0 && <li className="py-2 text-[12.5px] text-muted-foreground">Nothing yet.</li>}
+                  </ul>
                 </div>
-                <p className="mt-auto pt-3 text-[11.5px] text-muted-foreground">Busiest: {DAY_KEYS.filter((_, i) => perDay[i] === perDayMax && perDayMax > 0).join(' and ') || 'none'}</p>
-              </div>
+              ))}
             </div>
           </section>
 
@@ -554,6 +562,19 @@ export function DashboardPage() {
             </div>
           </div>
 
+          <section aria-label="Sessions by weekday" className="mt-4 rounded-2xl border border-border bg-card p-5">
+            <h3 className="mb-3 flex items-center gap-2 text-sm font-extrabold normal-case tracking-tight text-foreground">Sessions by weekday</h3>
+            <div className="flex h-36 items-end gap-1.5" role="img" aria-label={`Sessions per weekday: ${DAY_KEYS.map((k, i) => `${k} ${perDay[i]}`).join(', ')}`}>
+              {perDay.map((n, i) => (
+                <div key={DAY_KEYS[i]} className="flex h-full min-w-0 flex-1 flex-col items-center justify-end gap-1">
+                  <span className={cn('text-[12px] font-extrabold tabular-nums', n === 0 && 'text-muted-foreground/50')}>{n}</span>
+                  <span className={cn('w-full rounded-t-md', n === perDayMax && n > 0 ? 'bg-primary' : 'bg-primary/30')} style={{ height: `${n === 0 ? 3 : Math.max(8, (n / perDayMax) * 84)}px` }} />
+                  <span className="text-[10.5px] font-bold uppercase text-muted-foreground">{DAY_KEYS[i]}</span>
+                </div>
+              ))}
+            </div>
+            <p className="mt-3 text-[11.5px] text-muted-foreground">Busiest: {DAY_KEYS.filter((_, i) => perDay[i] === perDayMax && perDayMax > 0).join(' and ') || 'none'}</p>
+          </section>
         </>
       )}
 
