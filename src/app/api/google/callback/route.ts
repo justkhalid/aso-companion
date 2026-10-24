@@ -2,6 +2,10 @@ import { NextRequest, NextResponse } from 'next/server'
 import { isAdmin } from '@/lib/auth'
 import { isLocal } from '@/lib/mode'
 import { completeSignIn } from '@/lib/google'
+import { copyGithubToDrive } from '@/lib/google-migrate'
+import { readGithubState } from '@/lib/state-store'
+
+export const maxDuration = 300
 
 /** GET /api/google/callback: Google sends the browser back here with a code. */
 export async function GET(req: NextRequest) {
@@ -21,5 +25,8 @@ export async function GET(req: NextRequest) {
   const code = q.get('code')
   if (!code) return back('error', 'Google sent no code.')
   const r = await completeSignIn(code, `${req.nextUrl.origin}/api/google/callback`)
-  return r.ok ? back('ok') : back('error', r.msg)
+  if (!r.ok) return back('error', r.msg)
+  /* the data that is in GitHub today moves to Drive once, by itself (it only adds what Drive is missing, and never changes GitHub) */
+  try { await copyGithubToDrive(readGithubState) } catch { /* the Settings button can run it again */ }
+  return back('ok')
 }

@@ -95,7 +95,7 @@ export function GooglePanel() {
             {st.error && <Button type="button" size="sm" asChild><a href="/api/google/connect">Sign in again</a></Button>}
             <Button type="button" size="sm" variant="ghost" disabled={busy} onClick={() => void out()}><LogOut className="h-4 w-4" /> Sign out on this computer</Button>
           </div>
-          <p className="text-xs text-muted-foreground">Copying only adds what is missing in Drive and never deletes anything on GitHub. Do it once, after the first sign-in.</p>
+          <p className="text-xs text-muted-foreground">Copying only adds what is missing in Drive and never deletes anything on GitHub. It runs by itself at the first sign-in; use the button to run it again.</p>
         </>
       ) : (
         <>
