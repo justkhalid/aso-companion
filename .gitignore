@@ -108,3 +108,5 @@ data/inventory-photos/
 data/google.enc.json
 data/drive-cache/
 data/google-client.enc.json
+installer/google.json
+dist/

@@ -38,6 +38,8 @@ fi
 
 self_update() {
   command -v git >/dev/null 2>&1 || return 0
+  # once updates come from Google Drive (.aso/release.json exists) the app updates itself and git must not touch the files
+  [ -f .aso/release.json ] && return 0
   export GIT_TERMINAL_PROMPT=0 GCM_INTERACTIVE=never
   PAT=$(grep -m1 '^GITHUB_PAT=' .env.local 2>/dev/null | cut -d= -f2- | tr -d '\r')
   if [ -n "$PAT" ]; then
