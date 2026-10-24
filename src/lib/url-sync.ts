@@ -98,6 +98,7 @@ const ADMIN_PATH: Partial<Record<View, string>> = {
   members: '/admin/library/members',
   submissions: '/admin/reports/submissions',
   inventory: '/admin/library/inventory',
+  documents: '/admin/documents',
   rooms: '/admin/rooms',
   absences: '/admin/people/absences',
   team: '/admin/people',

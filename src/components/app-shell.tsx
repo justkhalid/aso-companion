@@ -35,6 +35,7 @@ const InternClubsPage = dynamic(() => import('./pages/intern-clubs-page').then((
 const InternEventsPage = dynamic(() => import('./pages/intern-events-page').then((m) => m.InternEventsPage), { ssr: false })
 const SocialKitPage = dynamic(() => import('./pages/social-kit-page').then((m) => m.SocialKitPage), { ssr: false })
 const InventoryPage = dynamic(() => import('./pages/inventory-page').then((m) => m.InventoryPage), { ssr: false })
+const DocumentsPage = dynamic(() => import('./pages/documents-page').then((m) => m.DocumentsPage), { ssr: false })
 const MembersPage = dynamic(() => import('./pages/members-page').then((m) => m.MembersPage), { ssr: false })
 const SheetPlaceholderPage = dynamic(() => import('./pages/sheet-placeholder-page').then((m) => m.SheetPlaceholderPage), { ssr: false })
 const PublicNav = dynamic(() => import('./public-nav').then((m) => m.PublicNav), { ssr: false })
@@ -289,6 +290,8 @@ function PageBody({ view, admin }: { view: View; admin: boolean }) {
       return admin ? <InventoryPage /> : <ClubsPage admin={false} />
     case 'submissions':
       return admin ? <SheetPlaceholderPage page={view} /> : <ClubsPage admin={false} />
+    case 'documents':
+      return admin ? <DocumentsPage /> : <ClubsPage admin={false} />
     case 'members':
       return admin ? <MembersPage /> : <ClubsPage admin={false} />
     case 'social':

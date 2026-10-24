@@ -18,6 +18,7 @@ import {
   Boxes,
   Users,
   UserX,
+  Files,
 } from 'lucide-react'
 
 /**
@@ -127,6 +128,7 @@ export const NAV_GROUPS: NavGroup[] = [
     items: [
       { id: 'space.members', label: 'Members', icon: BookUser, view: 'members', roles: ADMIN },
       { id: 'space.inventory', label: 'Inventory', icon: Boxes, view: 'inventory', roles: ADMIN },
+      { id: 'space.documents', label: 'Documents', icon: Files, view: 'documents', roles: ADMIN },
       { id: 'space.people', label: 'People', icon: Users, view: 'team', roles: ADMIN },
       { id: 'space.absences', label: 'Absences', icon: UserX, view: 'absences', roles: ADMIN },
     ],
