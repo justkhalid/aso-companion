@@ -3,12 +3,12 @@
 import * as React from 'react'
 import {
   Send, AlertTriangle, Sparkles, UserX, Ban, UserCheck, CalendarDays, Sun, GraduationCap,
-  Camera, CheckCircle2, ChevronRight, MoreHorizontal, Copy, CalendarOff, Pencil, Users,
+  Camera, CheckCircle2, ChevronRight, MoreHorizontal, Copy, CalendarOff, Pencil, Users, BarChart3,
 } from 'lucide-react'
 import { useStore } from '@/lib/store'
 import { DAY_KEYS } from '@/lib/constants'
 import { Chip } from '@/components/ui-bits'
-import { peopleOf, fmtAbsenceRange, isoOf, nextOccurrence, termStatus, classStatusOn, clubStatusOn, clubWhere, eventStatusOn, eventWhere, isOnceEvent, fmtTime, parseSlot } from '@/lib/app-utils'
+import { peopleOf, rolesOf, fmtAbsenceRange, isoOf, nextOccurrence, termStatus, classStatusOn, clubStatusOn, clubWhere, eventStatusOn, eventWhere, isOnceEvent, fmtTime, parseSlot } from '@/lib/app-utils'
 import { isClubOver, isClassOver } from '@/lib/archive'
 import { closedHoliday, holidayItems } from '@/lib/holidays'
 import { UnifiedCalendar } from '@/components/unified-calendar'
@@ -78,7 +78,7 @@ export function DashboardPage() {
   const [calTab, setCalTab] = React.useState<CalTab>('cluev')
   const page = useStore((s) => s.homeTab)
   const setPage = (k: 'overview' | 'calendar') => useStore.setState({ homeTab: k })
-  const [lib, setLib] = React.useState<{ available: boolean; connected: boolean; summary?: { total: number; thisMonth: number; cardsToPrint: number; noPhoto: number } } | null>(null)
+  const [lib, setLib] = React.useState<{ available: boolean; connected: boolean; summary?: { total: number; thisMonth: number; thisYear?: number; cardsToPrint: number; noPhoto: number } } | null>(null)
   React.useEffect(() => {
     fetch('/api/members?summary=1', { cache: 'no-store' }).then((r) => (r.ok ? r.json() : null)).then(setLib).catch(() => setLib(null))
   }, [])
@@ -187,12 +187,33 @@ export function DashboardPage() {
     { n: state.team.filter((p) => !(p.roles?.length || p.role)).length, text: 'people have no role' },
   ].filter((x) => x.n > 0)
 
-  const glance = [
-    { value: classes.length, label: classes.length === 1 ? 'class' : 'classes', view: 'classes' as View },
-    { value: clubs.length, label: clubs.length === 1 ? 'club' : 'clubs', view: 'intern-clubs' as View },
-    { value: state.events.filter((e) => nextOccurrence(e)).length, label: 'events coming', view: 'intern-events' as View },
-    { value: peopleOf(state).length, label: 'people', view: 'team' as View },
-    ...(lib?.connected && lib.summary ? [{ value: lib.summary.total, label: 'members', view: 'members' as View }] : []),
+  /* ---- ASO in numbers ---- */
+  const people = peopleOf(state)
+  const withRole = (re: RegExp) => people.filter((m) => rolesOf(m).some((r) => re.test(r))).length
+  const eventsComing = state.events.filter((e) => nextOccurrence(e)).length
+  const weeklySessions = classes.reduce((n, c) => n + (c.days || []).length, 0) + clubs.reduce((n, c) => n + (c.days || []).length, 0)
+  const roomsUsed = new Set([...classes.map((c) => c.room), ...clubs.map((c) => c.room), ...state.events.map((e) => e.place)].map((r) => (r || '').trim()).filter(Boolean)).size
+  const monthKey = today.slice(0, 7)
+  const allPosts = [...state.clubs, ...state.events].flatMap((x) => x.kit?.posts || [])
+  const stats: { group: string; items: { value: string; label: string; sub?: string; view?: View }[] }[] = [
+    { group: 'People', items: [
+      { value: String(withRole(/teacher/i)), label: 'Teachers', view: 'team' },
+      { value: String(withRole(/volunteer/i)), label: 'Volunteers', view: 'team' },
+      { value: String(withRole(/intern/i)), label: 'Interns', view: 'team' },
+      { value: String(people.length), label: 'On the team', sub: 'everyone, all roles', view: 'team' },
+      { value: lib?.connected && lib.summary ? String(lib.summary.total) : '-', label: 'Members', sub: lib?.connected && lib.summary ? `${lib.summary.thisMonth} joined this month${lib.summary.thisYear !== undefined ? `, ${lib.summary.thisYear} this year` : ''}` : 'Open on the director\'s computer', view: 'members' },
+    ] },
+    { group: 'Programme', items: [
+      { value: String(classes.length), label: classes.length === 1 ? 'Class' : 'Classes', sub: `${state.levels.length} levels`, view: 'classes' },
+      { value: String(clubs.length), label: clubs.length === 1 ? 'Club' : 'Clubs', view: 'intern-clubs' },
+      { value: String(state.events.length), label: state.events.length === 1 ? 'Event' : 'Events', sub: `${eventsComing} coming up`, view: 'intern-events' },
+      { value: String(weeklySessions), label: 'Sessions a week', sub: 'classes and clubs' },
+      { value: String(roomsUsed), label: roomsUsed === 1 ? 'Space in use' : 'Spaces in use' },
+    ] },
+    { group: 'Social media', items: [
+      { value: String(allPosts.length), label: 'Posts sent', sub: 'from this app' },
+      { value: String(allPosts.filter((p) => p.t.startsWith(monthKey)).length), label: 'This month' },
+    ] },
   ]
 
   const inTerm = st.mode === 's1' || st.mode === 's2'
@@ -590,23 +611,33 @@ export function DashboardPage() {
             </details>
           )}
 
-          {/* ---- 5. the numbers, small ---- */}
-          <nav aria-label="At a glance" className="mt-4 flex flex-wrap items-center gap-x-2 gap-y-2">
-            {glance.map((g) => (
-              <button
-                key={g.label}
-                type="button"
-                onClick={() => setView(g.view)}
-                className="inline-flex items-baseline gap-1.5 rounded-full border border-border bg-card px-3 py-1 text-[12px] outline-none transition hover:border-primary/40 hover:bg-secondary focus-visible:ring-2 focus-visible:ring-ring"
-              >
-                <span className="font-extrabold tabular-nums">{g.value}</span>
-                <span className="font-semibold text-muted-foreground">{g.label}</span>
-              </button>
-            ))}
-            {!lib?.available && lib !== null && (
-              <span className="text-[11px] text-muted-foreground">Members open in the app on the director&apos;s computer.</span>
-            )}
-          </nav>
+          {/* ---- 5. ASO in numbers ---- */}
+          <section aria-label="ASO in numbers" className="mt-4 rounded-2xl border border-border bg-card p-5">
+            <h2 className="mb-4 flex items-center gap-2 text-sm font-extrabold tracking-tight"><BarChart3 className="h-4 w-4 text-primary" aria-hidden /> ASO in numbers</h2>
+            <div className="grid gap-5">
+              {stats.map((g) => (
+                <div key={g.group}>
+                  <h3 className="mb-2 text-[11px] font-bold uppercase tracking-wider text-muted-foreground">{g.group}</h3>
+                  <div className="grid grid-cols-2 gap-2.5 sm:grid-cols-3 lg:grid-cols-5">
+                    {g.items.map((t) => {
+                      const Comp: React.ElementType = t.view ? 'button' : 'div'
+                      return (
+                        <Comp
+                          key={t.label}
+                          {...(t.view ? { type: 'button', onClick: () => setView(t.view!) } : null)}
+                          className={cn('min-w-0 rounded-xl border border-border bg-background/60 px-3.5 py-3 text-left outline-none', t.view && 'transition hover:border-primary/40 hover:bg-secondary/60 focus-visible:ring-2 focus-visible:ring-ring')}
+                        >
+                          <span className="block text-2xl font-extrabold leading-none tracking-tight tabular-nums">{t.value}</span>
+                          <span className="mt-1.5 block truncate text-[13px] font-bold">{t.label}</span>
+                          <span className="mt-0.5 line-clamp-2 block text-[11px] leading-tight text-muted-foreground">{t.sub}</span>
+                        </Comp>
+                      )
+                    })}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </section>
         </>
       )}
 
