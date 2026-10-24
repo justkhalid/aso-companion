@@ -27,11 +27,12 @@ MSG="Paste the GitHub token in the small window that asks for it."
 DONE=0
 PCT=0
 render() {
-  local rows="" i cls glyph
+  local rows="" i cls glyph cur=-1 curname="" cap=""
   for i in "${!STAGES[@]}"; do
-    case "${STATE[$i]}" in d) cls=d; glyph="&#10003;";; a) cls=c; glyph="&#9679;";; f) cls=f; glyph="&#10005;";; *) cls=p; glyph="&#9675;";; esac
-    rows="$rows<li class=$cls><u>$glyph</u>${STAGES[$i]}</li>"
+    case "${STATE[$i]}" in d) cls=d; glyph="&#10003;";; a) cls=c; glyph="&#9679;"; cur=$i;; f) cls=f; glyph="&#10005;"; cur=$i;; *) cls=p; glyph="&#9675;";; esac
+    rows="$rows<li class=$cls>$glyph</li>"
   done
+  if [ "$cur" -ge 0 ]; then cap="STEP $((cur + 1)) OF ${#STAGES[@]}"; curname="${STAGES[$cur]}"; fi
   local refresh='<meta http-equiv="refresh" content="2">'
   [ "$DONE" = "1" ] && refresh=""
   cat > "$PAGE" <<HTML
@@ -39,15 +40,17 @@ render() {
 *{box-sizing:border-box}html,body{margin:0;height:100%}
 body{background:#f3efe8 url(data:image/jpeg;base64,$BG) center top/cover no-repeat;font-family:-apple-system,"SF Pro Text","Helvetica Neue",sans-serif;color:#26262c;display:flex;justify-content:center}
 main{width:min(520px,92vw);padding:34px 0 40px;text-align:center}
-img{width:70px}
+img{width:60px}
 .k{margin-top:14px;font-weight:700;font-size:12px;letter-spacing:.42em;padding-left:.42em;color:#a8842f}
-h1{margin:6px 0 0;font:italic 600 64px/1.1 "Bodoni 72","Didot","Bodoni MT",Georgia,serif;background:linear-gradient(100deg,#8c1538 5%,#c2552b 50%,#e0a43a 95%);-webkit-background-clip:text;color:transparent;padding:0 .08em}
-.r{width:260px;height:2px;margin:12px auto 26px;background:linear-gradient(90deg,#8c1538,#e0a43a)}
+h1{margin:6px 0 0;font:italic 600 54px/1.1 "Bodoni 72","Didot","Bodoni MT",Georgia,serif;background:linear-gradient(100deg,#8c1538 5%,#c2552b 50%,#e0a43a 95%);-webkit-background-clip:text;color:transparent;padding:0 .08em}
+.r{width:160px;height:2px;margin:12px auto 24px;background:linear-gradient(90deg,#8c1538,#e0a43a)}
 p{margin:0 auto;color:#706960;line-height:1.45;font-size:15px}
 .bar{height:5px;border-radius:5px;background:#e2dace;margin:26px 0 22px;overflow:hidden}.bar b{display:block;height:5px;border-radius:5px;background:linear-gradient(90deg,#8c1538,#e0a43a);width:$PCT%}
-ul{list-style:none;margin:0 auto;padding:0;width:300px;text-align:left}
-li{display:flex;align-items:center;height:30px;font-size:15.5px;color:#706960}li u{text-decoration:none;width:30px;color:#beb2a0}
-li.d{color:#26262c}li.d u{color:#c9962b}li.c{color:#26262c;font-weight:600}li.c u{color:#8c1538}li.f,li.f u{color:#8c1538}
+ul{list-style:none;margin:0;padding:0;display:flex;justify-content:center;gap:6px}
+li{width:24px;height:24px;display:flex;align-items:center;justify-content:center;font-size:16px;color:#beb2a0}
+li.d{color:#c9962b}li.c{color:#8c1538}li.f{color:#8c1538}
+.cap{margin-top:18px;font-weight:700;font-size:11px;letter-spacing:.3em;padding-left:.3em;color:#a8842f;min-height:14px}
+.nm{margin-top:6px;font:italic 400 26px/1.2 "Bodoni 72","Didot","Bodoni MT",Georgia,serif;min-height:32px}
 .msg{margin-top:20px;font-size:14px}
 </style></head><body><main>
 <img src="data:image/png;base64,$LOGO" alt="">
@@ -56,6 +59,7 @@ li.d{color:#26262c}li.d u{color:#c9962b}li.c{color:#26262c;font-weight:600}li.c 
 <p>It takes about 5 to 10 minutes. Leave this page and the Terminal window open.</p>
 <div class="bar"><b></b></div>
 <ul>$rows</ul>
+<div class="cap">$cap</div><div class="nm">$curname</div>
 <p class="msg">$MSG</p>
 </main></body></html>
 HTML
