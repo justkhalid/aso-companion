@@ -125,6 +125,7 @@ export interface KitOverrides {
   wa?: string // WhatsApp group link
   poster?: string // the framed 3:4 poster used in the story
   short?: string // short name for the calendar pictures (default: the name without Club or Activity)
+  skip?: string // date (yyyy-mm-dd) of the session whose post was dismissed from the To post list
   posts?: { t: string; to: string[]; sig?: string }[] // when it was posted to Instagram or Facebook, newest last (sig: what the post showed)
 }
 

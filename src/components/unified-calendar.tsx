@@ -3,8 +3,7 @@
 import * as React from 'react'
 import { CalendarDays, CalendarRange, ChevronLeft, ChevronRight, Download, Pencil, Plus } from 'lucide-react'
 import { useStore } from '@/lib/store'
-import { addDays, isoOf, mondayOfWeek, parseISO } from '@/lib/app-utils'
-import { DAY_KEYS } from '@/lib/constants'
+import { isoOf, mondayOfWeek } from '@/lib/app-utils'
 import { openQuickAdd } from '@/components/admin/quick-add'
 import { ClassDialog } from '@/components/dialogs/class-dialog'
 import { ClubDialog } from '@/components/dialogs/club-dialog'
@@ -15,6 +14,7 @@ import { CalendarSwitch, type CalTab } from './calendar-switch'
 import { MonthCalendarImage } from './month-calendar-image'
 import { RoomsPage } from './pages/rooms-page'
 import { WeeklyGrid, type GridItem, type LegendEntry } from './weekly-grid'
+import { moveSession } from '@/lib/move-session'
 import { cn } from '@/lib/utils'
 
 type Span = 'month' | 'week'
@@ -55,55 +55,10 @@ export function UnifiedCalendar({ tab, onTab, counts, animated = false }: { tab:
     const event = state.events.find((e) => e.id === id)
     if (cls || club || event) setEditing({ cls, club, event })
   }
-  const shiftSlot = (t: string, delta: number) => {
-    const m = String(t || '').replace(/\s/g, '').match(/^(\d{1,2})[:.](\d{2})-(\d{1,2})[:.](\d{2})$/)
-    if (!m || !delta) return t
-    const a = +m[1] * 60 + +m[2] + delta
-    const b = +m[3] * 60 + +m[4] + delta
-    if (a < 0 || b > 24 * 60) return t
-    const f = (n: number) => `${String(Math.floor(n / 60)).padStart(2, '0')}:${String(n % 60).padStart(2, '0')}`
-    return `${f(a)}-${f(b)}`
-  }
-  /* a moved session that lands on another one in the same room is flagged right away, so the two lists never disagree silently */
-  const clashWith = (id: string, room: string | undefined, outside: boolean | undefined, days: string[], time: string) => {
-    const r = /^(\d{1,2})[:.](\d{2})-(\d{1,2})[:.](\d{2})$/.exec(String(time || '').replace(/\s/g, ''))
-    if (!r || !room || outside) return ''
-    const a = +r[1] * 60 + +r[2]
-    const b = +r[3] * 60 + +r[4]
-    const hit = (name: string, oid: string, oroom: string | undefined, oout: boolean | undefined, odays: string[], otime: string) => {
-      const o = /^(\d{1,2})[:.](\d{2})-(\d{1,2})[:.](\d{2})$/.exec(String(otime || '').replace(/\s/g, ''))
-      if (!o || oid === id || oroom !== room || oout || !odays.some((d) => days.includes(d))) return ''
-      return a < +o[3] * 60 + +o[4] && +o[1] * 60 + +o[2] < b ? name : ''
-    }
-    for (const c of state.classes) { const h = hit(c.code, c.id, c.room, false, c.days || [], c.time); if (h) return h }
-    for (const c of state.clubs) { const h = hit(c.name, c.id, c.room, c.outside, c.days || [], c.time); if (h) return h }
-    for (const e of state.events) { const h = hit(e.title, e.id, e.place, e.outside, e.day ? [e.day] : [], e.time); if (h) return h }
-    return ''
-  }
   const move = (item: GridItem, from: string, to: string, delta: number) => {
     const id = baseId(item.id)
     if (/:(off|cov)/.test(item.id.slice(id.length))) return toastFn('Open a canceled or covered session to change it', false)
-    const swap = (days: string[]) => Array.from(new Set(days.map((d) => (d === from ? to : d))))
-    const cls = state.classes.find((c) => c.id === id)
-    const club = state.clubs.find((c) => c.id === id)
-    const ev = state.events.find((e) => e.id === id)
-    const rec = cls || club
-    if (rec) {
-      const was = { days: rec.days, time: rec.time }
-      const next = { days: swap(rec.days), time: shiftSlot(rec.time, delta) }
-      const set = (v: { days: string[]; time: string }) => patch((d) => { const t = (cls ? d.classes : d.clubs).find((x) => x.id === id); if (t) { t.days = v.days; t.time = v.time } })
-      set(next)
-      const clash = clashWith(id, rec.room, 'outside' in rec ? rec.outside : false, next.days, next.time)
-      return toastFn(`${item.code} moved to ${to}, ${next.time.replace('-', ' to ')}${clash ? `. Same room as ${clash} at that time` : ''}`, !clash, { label: 'Undo', run: () => set(was) })
-    }
-    if (ev) {
-      const was = { day: ev.day, date: ev.date, time: ev.time }
-      const diff = DAY_KEYS.indexOf(to as (typeof DAY_KEYS)[number]) - DAY_KEYS.indexOf(from as (typeof DAY_KEYS)[number])
-      const next = { day: to, date: ev.date ? isoOf(addDays(parseISO(ev.date), diff)) : ev.date, time: shiftSlot(ev.time, delta) }
-      const set = (v: { day?: string; date?: string; time: string }) => patch((d) => { const t = d.events.find((x) => x.id === id); if (t) { if (t.date) t.date = v.date; else t.day = v.day; t.time = v.time } })
-      set(next)
-      return toastFn(`${item.code} moved to ${to}, ${next.time.replace('-', ' to ')}`, true, { label: 'Undo', run: () => set(was) })
-    }
+    moveSession(state, patch, toastFn, { id, label: item.code, from, to, delta })
   }
   const legend: LegendEntry[] = [
     ...(items.some((i) => i.tone === PUBLIC_CLASS_TONE) ? [{ label: 'English classes', tone: PUBLIC_CLASS_TONE }] : []),
