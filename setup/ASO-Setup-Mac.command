@@ -8,7 +8,14 @@ LOG="/tmp/aso-setup.log"
 export PATH="/usr/local/bin:/opt/homebrew/bin:/usr/bin:/bin:/usr/sbin:/sbin:$PATH"
 export GIT_TERMINAL_PROMPT=0 GCM_INTERACTIVE=never
 
-say()  { echo "$1"; echo "$1" >> "$LOG"; }
+say()  {
+  case "$1" in
+    "  "*) printf '   \033[32m\xe2\x9c\x93\033[0m %s\n' "${1#  }" ;;
+    "") echo ;;
+    *)  printf '\033[1;34m\xe2\x96\xb8\033[0m \033[1m%s\033[0m\n' "$1" ;;
+  esac
+  echo "$1" >> "$LOG"
+}
 stop() {
   echo
   echo "Something went wrong: $1"
@@ -19,9 +26,9 @@ stop() {
 }
 
 clear
-echo "ASO Companion setup"
-echo "-------------------"
-echo "It takes about 5 to 10 minutes. Leave this window open."
+printf '\n  \033[1;34mASO Companion\033[0m\n'
+printf '  \033[2mAmerican Space Oujda, setup on this computer\033[0m\n'
+printf '  \033[2mIt takes about 5 to 10 minutes. Leave this window open.\033[0m\n'
 echo
 
 # ---- the token ----
