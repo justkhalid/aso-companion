@@ -195,26 +195,25 @@ export function DashboardPage() {
   const roomsUsed = new Set([...classes.map((c) => c.room), ...clubs.map((c) => c.room), ...state.events.map((e) => e.place)].map((r) => (r || '').trim()).filter(Boolean)).size
   const monthKey = today.slice(0, 7)
   const allPosts = [...state.clubs, ...state.events].flatMap((x) => x.kit?.posts || [])
-  const stats: { group: string; items: { value: string; label: string; sub?: string; view?: View }[] }[] = [
-    { group: 'People', items: [
-      { value: String(withRole(/teacher/i)), label: 'Teachers', view: 'team' },
-      { value: String(withRole(/volunteer/i)), label: 'Volunteers', view: 'team' },
-      { value: String(withRole(/intern/i)), label: 'Interns', view: 'team' },
-      { value: String(people.length), label: 'On the team', sub: 'everyone, all roles', view: 'team' },
-      { value: lib?.connected && lib.summary ? String(lib.summary.total) : '-', label: 'Members', sub: lib?.connected && lib.summary ? `${lib.summary.thisMonth} joined this month${lib.summary.thisYear !== undefined ? `, ${lib.summary.thisYear} this year` : ''}` : 'Open on the director\'s computer', view: 'members' },
-    ] },
-    { group: 'Programme', items: [
-      { value: String(classes.length), label: classes.length === 1 ? 'Class' : 'Classes', sub: `${state.levels.length} levels`, view: 'classes' },
-      { value: String(clubs.length), label: clubs.length === 1 ? 'Club' : 'Clubs', view: 'intern-clubs' },
-      { value: String(state.events.length), label: state.events.length === 1 ? 'Event' : 'Events', sub: `${eventsComing} coming up`, view: 'intern-events' },
-      { value: String(weeklySessions), label: 'Sessions a week', sub: 'classes and clubs' },
-      { value: String(roomsUsed), label: roomsUsed === 1 ? 'Space in use' : 'Spaces in use' },
-    ] },
-    { group: 'Social media', items: [
-      { value: String(allPosts.length), label: 'Posts sent', sub: 'from this app' },
-      { value: String(allPosts.filter((p) => p.t.startsWith(monthKey)).length), label: 'This month' },
-    ] },
+  const memberTotal = lib?.connected && lib.summary ? lib.summary.total : null
+  const hero: { value: string; label: string; sub: string; view?: View }[] = [
+    { value: memberTotal === null ? '-' : String(memberTotal), label: 'Members', sub: memberTotal === null ? 'Open on the director\'s computer' : `${lib!.summary!.thisMonth} joined this month${lib!.summary!.thisYear !== undefined ? `, ${lib!.summary!.thisYear} this year` : ''}`, view: 'members' },
+    { value: String(people.length), label: 'On the team', sub: 'teachers, volunteers, interns and staff', view: 'team' },
+    { value: String(weeklySessions), label: 'Sessions a week', sub: `${classes.length} classes and ${clubs.length} clubs in ${roomsUsed} ${roomsUsed === 1 ? 'space' : 'spaces'}` },
+    { value: String(eventsComing), label: 'Events coming', sub: `${state.events.length} in the programme`, view: 'intern-events' },
   ]
+  const roleBars = [
+    { label: 'Teachers', n: withRole(/teacher/i) },
+    { label: 'Volunteers', n: withRole(/volunteer/i) },
+    { label: 'Interns', n: withRole(/intern/i) },
+    { label: 'Coordinators and staff', n: withRole(/coordinator|administrator|director|manager/i) },
+  ]
+  const perDay = DAY_KEYS.map((k) => classes.filter((c) => (c.days || []).includes(k)).length + clubs.filter((c) => (c.days || []).includes(k)).length)
+  const perDayMax = Math.max(1, ...perDay)
+  const bands = ['Kids', 'Teens', 'Adults'].map((b) => ({ label: b, n: classes.filter((c) => (c.level || '').split('·')[0].trim().toLowerCase() === b.toLowerCase()).length }))
+  const bandsOther = classes.length - bands.reduce((n, x) => n + x.n, 0)
+  if (bandsOther > 0) bands.push({ label: 'Other', n: bandsOther })
+  const postsMonth = allPosts.filter((p) => p.t.startsWith(monthKey)).length
 
   const inTerm = st.mode === 's1' || st.mode === 's2'
   const weekNo = inTerm ? (st.week ?? 0) : 0
@@ -614,28 +613,79 @@ export function DashboardPage() {
           {/* ---- 5. ASO in numbers ---- */}
           <section aria-label="ASO in numbers" className="mt-4 rounded-2xl border border-border bg-card p-5">
             <h2 className="mb-4 flex items-center gap-2 text-sm font-extrabold tracking-tight"><BarChart3 className="h-4 w-4 text-primary" aria-hidden /> ASO in numbers</h2>
-            <div className="grid gap-5">
-              {stats.map((g) => (
-                <div key={g.group}>
-                  <h3 className="mb-2 text-[11px] font-bold uppercase tracking-wider text-muted-foreground">{g.group}</h3>
-                  <div className="grid grid-cols-2 gap-2.5 sm:grid-cols-3 lg:grid-cols-5">
-                    {g.items.map((t) => {
-                      const Comp: React.ElementType = t.view ? 'button' : 'div'
-                      return (
-                        <Comp
-                          key={t.label}
-                          {...(t.view ? { type: 'button', onClick: () => setView(t.view!) } : null)}
-                          className={cn('min-w-0 rounded-xl border border-border bg-background/60 px-3.5 py-3 text-left outline-none', t.view && 'transition hover:border-primary/40 hover:bg-secondary/60 focus-visible:ring-2 focus-visible:ring-ring')}
-                        >
-                          <span className="block text-2xl font-extrabold leading-none tracking-tight tabular-nums">{t.value}</span>
-                          <span className="mt-1.5 block truncate text-[13px] font-bold">{t.label}</span>
-                          <span className="mt-0.5 line-clamp-2 block text-[11px] leading-tight text-muted-foreground">{t.sub}</span>
-                        </Comp>
-                      )
-                    })}
-                  </div>
+
+            <div className="grid grid-cols-2 gap-x-6 gap-y-5 lg:grid-cols-4 lg:divide-x lg:divide-border">
+              {hero.map((t, i) => {
+                const Comp: React.ElementType = t.view ? 'button' : 'div'
+                return (
+                  <Comp
+                    key={t.label}
+                    {...(t.view ? { type: 'button', onClick: () => setView(t.view!) } : null)}
+                    className={cn('group min-w-0 text-left outline-none', i > 0 && 'lg:pl-6', t.view && 'focus-visible:rounded-lg focus-visible:ring-2 focus-visible:ring-ring')}
+                  >
+                    <span className="block text-4xl font-extrabold leading-none tracking-tight tabular-nums text-primary">{t.value}</span>
+                    <span className="mt-2 block text-[13px] font-bold group-hover:underline">{t.label}</span>
+                    <span className="mt-0.5 line-clamp-2 block text-[11.5px] leading-snug text-muted-foreground">{t.sub}</span>
+                  </Comp>
+                )
+              })}
+            </div>
+
+            <div className="mt-6 grid gap-4 border-t border-border pt-5 md:grid-cols-3">
+              {/* who runs it */}
+              <div>
+                <h3 className="mb-3 text-[11px] font-bold uppercase tracking-wider text-muted-foreground">Who runs it</h3>
+                <ul className="grid gap-2.5">
+                  {roleBars.map((r) => (
+                    <li key={r.label}>
+                      <div className="flex items-baseline justify-between text-[12.5px]">
+                        <span className="font-semibold">{r.label}</span>
+                        <span className="font-extrabold tabular-nums">{r.n}</span>
+                      </div>
+                      <div className="mt-1 h-1.5 overflow-hidden rounded-full bg-secondary">
+                        <div className="h-full rounded-full bg-primary" style={{ width: `${people.length ? Math.max(r.n ? 4 : 0, (r.n / people.length) * 100) : 0}%` }} />
+                      </div>
+                    </li>
+                  ))}
+                </ul>
+                <p className="mt-2.5 text-[11px] text-muted-foreground">One person can hold several roles.</p>
+              </div>
+
+              {/* the week */}
+              <div>
+                <h3 className="mb-3 text-[11px] font-bold uppercase tracking-wider text-muted-foreground">Sessions by weekday</h3>
+                <div className="flex h-28 items-end gap-1.5" role="img" aria-label={`Sessions per weekday: ${DAY_KEYS.map((k, i) => `${k} ${perDay[i]}`).join(', ')}`}>
+                  {perDay.map((n, i) => (
+                    <div key={DAY_KEYS[i]} className="flex h-full min-w-0 flex-1 flex-col items-center justify-end gap-1">
+                      <span className={cn('text-[11px] font-extrabold tabular-nums', n === 0 && 'text-muted-foreground/50')}>{n}</span>
+                      <span className={cn('w-full rounded-t-md', n === perDayMax && n > 0 ? 'bg-primary' : 'bg-primary/30')} style={{ height: `${n === 0 ? 3 : Math.max(8, (n / perDayMax) * 72)}px` }} />
+                      <span className="text-[10.5px] font-bold uppercase text-muted-foreground">{DAY_KEYS[i]}</span>
+                    </div>
+                  ))}
                 </div>
-              ))}
+              </div>
+
+              {/* classes by group, and what has been shared */}
+              <div>
+                <h3 className="mb-3 text-[11px] font-bold uppercase tracking-wider text-muted-foreground">Classes by group</h3>
+                {classes.length > 0 ? (
+                  <>
+                    <div className="flex h-3 overflow-hidden rounded-full bg-secondary" role="img" aria-label={bands.map((b) => `${b.label} ${b.n}`).join(', ')}>
+                      {bands.map((b, i) => b.n > 0 && <span key={b.label} className={cn('h-full', i === 0 ? 'bg-primary' : i === 1 ? 'bg-primary/60' : i === 2 ? 'bg-primary/30' : 'bg-primary/15')} style={{ width: `${(b.n / classes.length) * 100}%` }} />)}
+                    </div>
+                    <ul className="mt-3 grid gap-1.5 text-[12.5px]">
+                      {bands.map((b, i) => (
+                        <li key={b.label} className="flex items-center gap-2">
+                          <i className={cn('inline-block h-2 w-2 rounded-full', i === 0 ? 'bg-primary' : i === 1 ? 'bg-primary/60' : i === 2 ? 'bg-primary/30' : 'bg-primary/15')} />
+                          <span className="flex-1 font-semibold">{b.label}</span>
+                          <span className="font-extrabold tabular-nums">{b.n}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </>
+                ) : <p className="text-[12.5px] text-muted-foreground">No classes yet.</p>}
+                <p className="mt-3 border-t border-border pt-2.5 text-[12px] text-muted-foreground"><b className="font-extrabold tabular-nums text-foreground">{allPosts.length}</b> posts sent from here, <b className="font-extrabold tabular-nums text-foreground">{postsMonth}</b> this month</p>
+              </div>
             </div>
           </section>
         </>
