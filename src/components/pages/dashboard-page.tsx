@@ -318,7 +318,7 @@ export function DashboardPage() {
                   <Comp
                     key={t.label}
                     {...(t.view ? { type: 'button', onClick: () => setView(t.view!) } : null)}
-                    className={cn('group min-w-0 text-left outline-none', i > 0 && 'lg:pl-6', t.view && 'focus-visible:rounded-lg focus-visible:ring-2 focus-visible:ring-ring')}
+                    className={cn('group flex min-w-0 flex-col items-start justify-start text-left outline-none', i > 0 && 'lg:pl-6', t.view && 'focus-visible:rounded-lg focus-visible:ring-2 focus-visible:ring-ring')}
                   >
                     <span className="block text-4xl font-extrabold leading-none tracking-tight tabular-nums text-primary">{t.value}</span>
                     <span className="mt-2 block text-[13px] font-bold group-hover:underline">{t.label}</span>
