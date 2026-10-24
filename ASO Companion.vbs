@@ -1,6 +1,6 @@
 Option Explicit
 ' ASO Companion: double-click this file (or the desktop icon it makes). No black window.
-Dim sh, fso, here, desk, tok, secret, ts, lnk, tries, edge, chrome
+Dim sh, fso, here, desk, lnk, tries, edge, chrome
 
 Set sh = CreateObject("WScript.Shell")
 Set fso = CreateObject("Scripting.FileSystemObject")
@@ -26,19 +26,8 @@ If Not Up() Then
   End If
 
   If Not fso.FileExists(here & "\.env.local") Then
-    tok = InputBox("First start. Paste the GitHub token here (LOCAL.md explains how to make it):", "ASO Companion")
-    If Trim(tok) = "" Then WScript.Quit
-    secret = LCase(Replace(Replace(Replace(CreateObject("Scriptlet.TypeLib").GUID, "{", ""), "}", ""), "-", ""))
-    secret = Left(secret, 32) & Left(LCase(Replace(Replace(Replace(CreateObject("Scriptlet.TypeLib").GUID, "{", ""), "}", ""), "-", "")), 32)
-    Set ts = fso.CreateTextFile(here & "\.env.local", True)
-    ts.WriteLine "ASO_LOCAL=1"
-    ts.WriteLine "ASO_SESSION_SECRET=" & secret
-    ts.WriteLine "GITHUB_PAT=" & Trim(tok)
-    ts.WriteLine "GITHUB_REPO=justkhalid/aso-companion"
-    ts.WriteLine "GITHUB_BRANCH=main"
-    ts.WriteLine "META_APP_ID="
-    ts.WriteLine "META_APP_SECRET="
-    ts.Close
+    MsgBox "The settings of this computer are missing. Run the ASO Companion setup file again.", 48, "ASO Companion"
+    WScript.Quit
   End If
 
   If fso.FileExists(here & "\aso-failed.txt") Then fso.DeleteFile here & "\aso-failed.txt"

@@ -5,7 +5,8 @@ cd /d "%~dp0"
 :prepare
 call :selfupdate
 set HEAD=
-where git >nul 2>nul && for /f %%i in ('git rev-parse HEAD 2^>nul') do set HEAD=%%i
+rem a copy that updates itself from Google Drive (.aso\release.json) is not a git folder: git must not be asked about it
+if not exist ".aso\release.json" where git >nul 2>nul && for /f %%i in ('git rev-parse HEAD 2^>nul') do set HEAD=%%i
 set BUILT=
 if exist ".next\aso-built.txt" set /p BUILT=<".next\aso-built.txt"
 if not exist "node_modules" goto install
@@ -45,6 +46,8 @@ exit /b 0
 
 :selfupdate
 rem pull the newest version quietly: with the GitHub token from .env.local, and never ask for a login
+rem once updates come from Google Drive (.aso\release.json exists) the app updates itself and git must not touch the files
+if exist ".aso\release.json" exit /b 0
 where git >nul 2>nul || exit /b 0
 set "GIT_TERMINAL_PROMPT=0"
 set "GCM_INTERACTIVE=never"
