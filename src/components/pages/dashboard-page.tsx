@@ -8,9 +8,9 @@ import {
 import { useStore } from '@/lib/store'
 import { DAY_KEYS } from '@/lib/constants'
 import { Chip } from '@/components/ui-bits'
-import { peopleOf, rolesOf, fmtAbsenceRange, isoOf, nextOccurrence, termStatus, classStatusOn, clubStatusOn, clubWhere, eventStatusOn, eventWhere, isOnceEvent, fmtTime, parseSlot } from '@/lib/app-utils'
+import { peopleOf, rolesOf, fmtAbsenceRange, isoOf, nextOccurrence, classStatusOn, clubStatusOn, clubWhere, eventStatusOn, eventWhere, isOnceEvent, fmtTime, parseSlot } from '@/lib/app-utils'
 import { isClubOver, isClassOver } from '@/lib/archive'
-import { closedHoliday, holidayItems } from '@/lib/holidays'
+import { closedHoliday } from '@/lib/holidays'
 import { UnifiedCalendar } from '@/components/unified-calendar'
 import type { CalTab } from '@/components/calendar-switch'
 import { postQueue } from '@/lib/post-queue'
@@ -94,16 +94,11 @@ export function DashboardPage() {
   const now = new Date()
   const today = isoOf(now)
   const dayKey = DAY_KEYS[(now.getDay() + 6) % 7]
-  const st = termStatus(state)
-  const total = state.levels.reduce((m, l) => Math.max(m, l.weeks.length), 0)
   const clubs = state.clubs.filter((c) => !isClubOver(c))
   const classes = state.classes.filter((c) => !isClassOver(c))
 
   /* ---- is the space open today? ---- */
   const closedToday = closedHoliday(today)
-  const nextClosed = holidayItems(now.getFullYear())
-    .filter((h) => !h.hidden && h.closed && h.date > today)
-    .sort((a, b) => a.date.localeCompare(b.date))[0]
 
   const away = (state.absences || []).filter((a) => !a.moved && a.from <= today && a.to >= today)
   const awayName = (a: (typeof away)[number]) =>
@@ -132,20 +127,6 @@ export function DashboardPage() {
   const running = sessions.find((s) => s.mins <= nowMins && s.endMins > nowMins && s.status.kind !== 'canceled')
   const remaining = sessions.filter((s) => s.mins >= nowMins && s.status.kind !== 'canceled').length
   const shown = focus ? sessions.filter((s) => s.person === focus) : sessions
-
-  /* ---- the next seven days ---- */
-  const week = Array.from({ length: 7 }, (_, i) => {
-    const d = new Date(now.getFullYear(), now.getMonth(), now.getDate() + i)
-    const key = DAY_KEYS[(d.getDay() + 6) % 7]
-    const iso = isoOf(d)
-    const closed = closedHoliday(iso)
-    const n =
-      classes.filter((c) => (c.days || []).includes(key)).length +
-      clubs.filter((c) => (c.days || []).includes(key) && (!c.from || c.from <= iso) && (!c.until || c.until >= iso)).length +
-      state.events.filter((e) => (isOnceEvent(e) ? e.date === iso : e.day === key)).length
-    return { iso, label: d.toLocaleDateString('en-GB', { weekday: 'short' }), dayNum: d.getDate(), n, today: i === 0, closed: closed?.name }
-  })
-  const busiest = Math.max(1, ...week.map((d) => d.n))
 
   /* ---- everyone with something today ---- */
   const onToday = Array.from(new Set(sessions.map((s) => s.person).filter(Boolean)))
@@ -176,17 +157,6 @@ export function DashboardPage() {
   if (noLead) actions.push({ id: 'leads', text: `${noLead} ${noLead === 1 ? 'club has' : 'clubs have'} no lead`, detail: 'Set one in Clubs', icon: Sparkles, urgent: false, go: () => setView('intern-clubs') })
   if (noPoster) actions.push({ id: 'posters', text: `${noPoster} ${noPoster === 1 ? 'club has' : 'clubs have'} no poster`, detail: 'The story falls back to a plain card', icon: Camera, urgent: false, go: () => setView('intern-clubs') })
 
-  /* ---- things that are quietly wrong ---- */
-  const nameCount = new Map<string, number>()
-  for (const c of state.clubs) nameCount.set(c.name.trim().toLowerCase(), (nameCount.get(c.name.trim().toLowerCase()) || 0) + 1)
-  const housekeeping = [
-    { n: [...nameCount.values()].filter((v) => v > 1).length, text: 'clubs share a name' },
-    { n: state.classes.filter((c) => c.until && c.until < today).length, text: 'classes are past their last day' },
-    { n: state.levels.filter((l) => !l.weeks.length).length, text: 'levels have no weeks' },
-    { n: state.library.filter((f) => !f.sk?.length).length, text: 'library folders have no skill tags' },
-    { n: state.team.filter((p) => !(p.roles?.length || p.role)).length, text: 'people have no role' },
-  ].filter((x) => x.n > 0)
-
   /* ---- ASO in numbers ---- */
   const people = peopleOf(state)
   const withRole = (re: RegExp) => people.filter((m) => rolesOf(m).some((r) => re.test(r))).length
@@ -199,8 +169,8 @@ export function DashboardPage() {
   const hero: { value: string; label: string; sub: string; view?: View }[] = [
     { value: memberTotal === null ? '-' : String(memberTotal), label: 'Members', sub: memberTotal === null ? 'Open on the director\'s computer' : `${lib!.summary!.thisMonth} joined this month${lib!.summary!.thisYear !== undefined ? `, ${lib!.summary!.thisYear} this year` : ''}`, view: 'members' },
     { value: String(people.length), label: 'On the team', sub: 'teachers, volunteers, interns and staff', view: 'team' },
-    { value: String(weeklySessions), label: 'Sessions a week', sub: `${classes.length} classes and ${clubs.length} clubs in ${roomsUsed} ${roomsUsed === 1 ? 'space' : 'spaces'}` },
-    { value: String(eventsComing), label: 'Events coming', sub: `${state.events.length} in the programme`, view: 'intern-events' },
+    { value: String(weeklySessions), label: 'Sessions a week', sub: 'classes and clubs, every week' },
+    { value: String(roomsUsed), label: roomsUsed === 1 ? 'Space in use' : 'Spaces in use', sub: 'rooms and places with something booked' },
   ]
   const roleBars = [
     { label: 'Teachers', n: withRole(/teacher/i) },
@@ -211,25 +181,18 @@ export function DashboardPage() {
   const perDay = DAY_KEYS.map((k) => classes.filter((c) => (c.days || []).includes(k)).length + clubs.filter((c) => (c.days || []).includes(k)).length)
   const perDayMax = Math.max(1, ...perDay)
   const band = (b: string) => classes.filter((c) => (c.level || '').split('·')[0].trim().toLowerCase() === b).length
-  const programme = [
-    { label: 'Kids classes', n: band('kids') },
-    { label: 'Teens classes', n: band('teens') },
-    { label: 'Adults classes', n: band('adults') },
-    { label: 'Clubs', n: clubs.length },
+  const classRows = [
+    { label: 'All classes', n: classes.length },
+    { label: 'Kids', n: band('kids') },
+    { label: 'Teens', n: band('teens') },
+    { label: 'Adults', n: band('adults') },
   ]
-  const postsMonth = allPosts.filter((p) => p.t.startsWith(monthKey)).length
-
-  const inTerm = st.mode === 's1' || st.mode === 's2'
-  const weekNo = inTerm ? (st.week ?? 0) : 0
-  const weekLabel =
-    inTerm ? `Week ${weekNo} of ${total}` :
-    st.mode === 'before' ? `Year starts in ${st.daysTo} days` :
-    st.mode === 'break' ? `Winter break · S2 in ${st.daysTo} days` : 'Year complete'
-  const pct = inTerm ? Math.min(100, Math.round((weekNo / Math.max(1, total)) * 100)) : 100
-
-  /* ---- the year in one line ---- */
-  const s1Weeks = Math.min(total || 16, Math.max(1, state.settings.s1Weeks || 16))
-  const yearCells = Array.from({ length: Math.max(1, total) }, (_, i) => ({ i, s1: i < s1Weeks, cur: inTerm && weekNo === i + 1 }))
+  const clubEventRows = [
+    { label: 'Clubs', n: clubs.length },
+    { label: 'Events', n: state.events.length },
+    { label: 'Events coming up', n: eventsComing },
+    { label: 'Posts this month', n: allPosts.filter((p) => p.t.startsWith(monthKey)).length },
+  ]
 
   const pulse = [
     closedToday ? `Closed for ${closedToday.name}` : sessions.length === 0 ? 'Nothing scheduled today' : `${sessions.length} ${sessions.length === 1 ? 'session' : 'sessions'} today`,
@@ -327,33 +290,6 @@ export function DashboardPage() {
         </div>
       </header>
 
-      {/* ---- where the year is: one strip, the weeks as cells ---- */}
-      {total > 0 && (
-        <section aria-label="The year" className="mb-4 rounded-2xl border border-border bg-card px-4 py-3">
-          <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1 text-[12px] font-bold">
-            <span>{weekLabel}{inTerm && <span className="ml-2 tabular-nums text-muted-foreground">{pct}%</span>}</span>
-            {nextClosed && (
-              <span className="font-semibold text-muted-foreground">
-                Next closed: {nextClosed.name} · {new Date(nextClosed.date).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })}
-              </span>
-            )}
-          </div>
-          <div className="mt-2 flex items-center gap-0.5" role="img" aria-label={`The year: ${total} weeks, now at week ${weekNo}`}>
-            {yearCells.map((c) => (
-              <span
-                key={c.i}
-                className={cn('h-2 flex-1 rounded-sm transition', c.cur ? 'bg-primary' : inTerm && c.i < weekNo ? 'bg-primary/55' : c.s1 ? 'bg-primary/25' : 'bg-primary/12', c.i === s1Weeks && 'ml-1.5')}
-                title={`Week ${c.i + 1}${c.s1 ? '' : ' · semester 2'}`}
-              />
-            ))}
-          </div>
-          <div className="mt-1 flex justify-between text-[10.5px] font-semibold text-muted-foreground">
-            <span>Semester 1 · {s1Weeks} weeks</span>
-            <span>Semester 2 · {Math.max(0, total - s1Weeks)} weeks</span>
-          </div>
-        </section>
-      )}
-
       {page === 'calendar' ? (
         <section aria-label="Calendar" className="rounded-2xl border border-border bg-card p-4">
           <UnifiedCalendar tab={calTab} onTab={setCalTab} />
@@ -370,6 +306,49 @@ export function DashboardPage() {
               <button type="button" onClick={() => setPage('calendar')} className="text-xs font-bold text-primary hover:underline">See the calendar</button>
             </div>
           )}
+
+          {/* ---- 5. ASO in numbers ---- */}
+          <section aria-label="ASO in numbers" className="mb-4 rounded-2xl border border-border bg-card p-5">
+            <h2 className="mb-4 flex items-center gap-2 text-sm font-extrabold tracking-tight"><BarChart3 className="h-4 w-4 text-primary" aria-hidden /> ASO in numbers</h2>
+
+            <div className="grid grid-cols-2 gap-x-6 gap-y-5 lg:grid-cols-4 lg:divide-x lg:divide-border">
+              {hero.map((t, i) => {
+                const Comp: React.ElementType = t.view ? 'button' : 'div'
+                return (
+                  <Comp
+                    key={t.label}
+                    {...(t.view ? { type: 'button', onClick: () => setView(t.view!) } : null)}
+                    className={cn('group flex min-w-0 flex-col items-start justify-start text-left outline-none', i > 0 && 'lg:pl-6', t.view && 'focus-visible:rounded-lg focus-visible:ring-2 focus-visible:ring-ring')}
+                  >
+                    <span className="block text-4xl font-extrabold leading-none tracking-tight tabular-nums text-primary">{t.value}</span>
+                    <span className="mt-2 block text-[13px] font-bold group-hover:underline">{t.label}</span>
+                    <span className="mt-0.5 line-clamp-2 block text-[11.5px] leading-snug text-muted-foreground">{t.sub}</span>
+                  </Comp>
+                )
+              })}
+            </div>
+
+            <div className="mt-6 grid gap-3 border-t border-border pt-5 md:grid-cols-3">
+              {([
+                { title: 'People', rows: roleBars, foot: 'One person can hold several roles.' },
+                { title: 'Classes', rows: classRows, foot: `${state.levels.length} levels, by age group` },
+                { title: 'Clubs and events', rows: clubEventRows, foot: `${allPosts.length} posts sent from this app` },
+              ]).map((panel) => (
+                <div key={panel.title} className="flex flex-col rounded-xl border border-border bg-background/60 p-4">
+                  <h3 className="mb-2 text-[11px] font-bold uppercase tracking-wider text-muted-foreground">{panel.title}</h3>
+                  <ul className="divide-y divide-border">
+                    {panel.rows.map((r) => (
+                      <li key={r.label} className="flex h-9 items-center justify-between text-[13px]">
+                        <span className="font-semibold">{r.label}</span>
+                        <span className="text-lg font-extrabold tabular-nums">{r.n}</span>
+                      </li>
+                    ))}
+                  </ul>
+                  <p className="mt-auto pt-3 text-[11.5px] text-muted-foreground">{panel.foot}</p>
+                </div>
+              ))}
+            </div>
+          </section>
 
           {/* ---- the day in four numbers ---- */}
           <div className="mb-4 grid grid-cols-2 gap-3 lg:grid-cols-4">
@@ -564,110 +543,21 @@ export function DashboardPage() {
                   </ul>
                 )}
               </section>
-
-            {/* ---- 3. the week ---- */}
-            <section className="rounded-2xl border border-border bg-card p-5">
-              <div className="mb-3 flex items-center justify-between gap-2">
-                <h2 className="flex items-center gap-2 text-sm font-extrabold tracking-tight"><CalendarDays className="h-4 w-4 text-primary" aria-hidden /> Next seven days</h2>
-                <button type="button" onClick={() => setPage('calendar')} className="text-xs font-bold text-primary hover:underline">Open the calendar</button>
-              </div>
-              <div className="grid grid-cols-7 gap-1 sm:gap-1.5">
-                {week.map((d) => (
-                  <button
-                    key={d.iso}
-                    type="button"
-                    onClick={() => setPage('calendar')}
-                    title={d.closed ? `${d.closed} — closed` : undefined}
-                    aria-label={`${d.label} ${d.dayNum}: ${d.closed ? `closed for ${d.closed}` : `${d.n} ${d.n === 1 ? 'session' : 'sessions'}`}`}
-                    className={cn('flex flex-col items-center gap-1.5 rounded-xl border p-2 outline-none transition focus-visible:ring-2 focus-visible:ring-ring', d.today ? 'border-primary bg-primary/5' : d.closed ? 'border-transparent bg-secondary/40' : 'border-transparent hover:bg-secondary')}
-                  >
-                    <span className={cn('text-[10.5px] font-bold uppercase tracking-wider', d.today ? 'text-primary' : 'text-muted-foreground')}>{d.label}</span>
-                    <span className="flex h-14 w-full items-end justify-center">
-                      {d.closed
-                        ? <CalendarOff className="mb-2 h-4 w-4 text-muted-foreground/60" aria-hidden />
-                        : <span className={cn('w-full max-w-7 rounded-t-md', d.today ? 'bg-primary' : 'bg-primary/25')} style={{ height: `${d.n === 0 ? 3 : Math.max(10, (d.n / busiest) * 56)}px` }} />}
-                    </span>
-                    <span className={cn('text-xs font-extrabold tabular-nums', (d.n === 0 || d.closed) && 'text-muted-foreground/50')}>{d.closed ? 'closed' : d.n}</span>
-                  </button>
-                ))}
-              </div>
-            </section>
             </div>
           </div>
 
-          {/* ---- 4. housekeeping ---- */}
-          {housekeeping.length > 0 && (
-            <details className="mt-4 rounded-2xl border border-border bg-card px-5 py-3">
-              <summary className="flex cursor-pointer items-center gap-2 text-sm font-extrabold tracking-tight outline-none">
-                <AlertTriangle className="h-4 w-4 text-muted-foreground" aria-hidden />
-                Housekeeping
-                <span className="rounded-full bg-secondary px-2 py-0.5 text-[11px] font-extrabold text-muted-foreground tabular-nums">{housekeeping.length}</span>
-              </summary>
-              <ul className="mt-3 flex flex-col gap-1.5 text-[13px]">
-                {housekeeping.map((h) => (
-                  <li key={h.text} className="flex items-baseline gap-2">
-                    <span className="font-extrabold tabular-nums">{h.n}</span>
-                    <span className="text-muted-foreground">{h.text}</span>
-                  </li>
-                ))}
-              </ul>
-            </details>
-          )}
-
-          {/* ---- 5. ASO in numbers ---- */}
-          <section aria-label="ASO in numbers" className="mt-4 rounded-2xl border border-border bg-card p-5">
-            <h2 className="mb-4 flex items-center gap-2 text-sm font-extrabold tracking-tight"><BarChart3 className="h-4 w-4 text-primary" aria-hidden /> ASO in numbers</h2>
-
-            <div className="grid grid-cols-2 gap-x-6 gap-y-5 lg:grid-cols-4 lg:divide-x lg:divide-border">
-              {hero.map((t, i) => {
-                const Comp: React.ElementType = t.view ? 'button' : 'div'
-                return (
-                  <Comp
-                    key={t.label}
-                    {...(t.view ? { type: 'button', onClick: () => setView(t.view!) } : null)}
-                    className={cn('group min-w-0 text-left outline-none', i > 0 && 'lg:pl-6', t.view && 'focus-visible:rounded-lg focus-visible:ring-2 focus-visible:ring-ring')}
-                  >
-                    <span className="block text-4xl font-extrabold leading-none tracking-tight tabular-nums text-primary">{t.value}</span>
-                    <span className="mt-2 block text-[13px] font-bold group-hover:underline">{t.label}</span>
-                    <span className="mt-0.5 line-clamp-2 block text-[11.5px] leading-snug text-muted-foreground">{t.sub}</span>
-                  </Comp>
-                )
-              })}
-            </div>
-
-            <div className="mt-6 grid gap-3 border-t border-border pt-5 md:grid-cols-3">
-              {([
-                { title: 'People', rows: roleBars, foot: 'One person can hold several roles.' },
-                { title: 'Programme', rows: programme, foot: `${allPosts.length} posts sent from here, ${postsMonth} this month` },
-              ]).map((panel) => (
-                <div key={panel.title} className="flex flex-col rounded-xl border border-border bg-background/60 p-4">
-                  <h3 className="mb-2 text-[11px] font-bold uppercase tracking-wider text-muted-foreground">{panel.title}</h3>
-                  <ul className="divide-y divide-border">
-                    {panel.rows.map((r) => (
-                      <li key={r.label} className="flex h-9 items-center justify-between text-[13px]">
-                        <span className="font-semibold">{r.label}</span>
-                        <span className="text-lg font-extrabold tabular-nums">{r.n}</span>
-                      </li>
-                    ))}
-                  </ul>
-                  <p className="mt-auto pt-3 text-[11.5px] text-muted-foreground">{panel.foot}</p>
+          <section aria-label="Sessions by weekday" className="mt-4 rounded-2xl border border-border bg-card p-5">
+            <h3 className="mb-3 flex items-center gap-2 text-sm font-extrabold normal-case tracking-tight text-foreground">Sessions by weekday</h3>
+            <div className="flex h-36 items-end gap-1.5" role="img" aria-label={`Sessions per weekday: ${DAY_KEYS.map((k, i) => `${k} ${perDay[i]}`).join(', ')}`}>
+              {perDay.map((n, i) => (
+                <div key={DAY_KEYS[i]} className="flex h-full min-w-0 flex-1 flex-col items-center justify-end gap-1">
+                  <span className={cn('text-[12px] font-extrabold tabular-nums', n === 0 && 'text-muted-foreground/50')}>{n}</span>
+                  <span className={cn('w-full rounded-t-md', n === perDayMax && n > 0 ? 'bg-primary' : 'bg-primary/30')} style={{ height: `${n === 0 ? 3 : Math.max(8, (n / perDayMax) * 84)}px` }} />
+                  <span className="text-[10.5px] font-bold uppercase text-muted-foreground">{DAY_KEYS[i]}</span>
                 </div>
               ))}
-
-              <div className="flex flex-col rounded-xl border border-border bg-background/60 p-4">
-                <h3 className="mb-2 text-[11px] font-bold uppercase tracking-wider text-muted-foreground">Sessions by weekday</h3>
-                <div className="flex h-36 items-end gap-1.5" role="img" aria-label={`Sessions per weekday: ${DAY_KEYS.map((k, i) => `${k} ${perDay[i]}`).join(', ')}`}>
-                  {perDay.map((n, i) => (
-                    <div key={DAY_KEYS[i]} className="flex h-full min-w-0 flex-1 flex-col items-center justify-end gap-1">
-                      <span className={cn('text-[12px] font-extrabold tabular-nums', n === 0 && 'text-muted-foreground/50')}>{n}</span>
-                      <span className={cn('w-full rounded-t-md', n === perDayMax && n > 0 ? 'bg-primary' : 'bg-primary/30')} style={{ height: `${n === 0 ? 3 : Math.max(8, (n / perDayMax) * 84)}px` }} />
-                      <span className="text-[10.5px] font-bold uppercase text-muted-foreground">{DAY_KEYS[i]}</span>
-                    </div>
-                  ))}
-                </div>
-                <p className="mt-auto pt-3 text-[11.5px] text-muted-foreground">Busiest: {DAY_KEYS.filter((_, i) => perDay[i] === perDayMax && perDayMax > 0).join(' and ') || 'none'}</p>
-              </div>
             </div>
+            <p className="mt-3 text-[11.5px] text-muted-foreground">Busiest: {DAY_KEYS.filter((_, i) => perDay[i] === perDayMax && perDayMax > 0).join(' and ') || 'none'}</p>
           </section>
         </>
       )}
