@@ -67,8 +67,8 @@ export function spaced(ctx: Ctx, t: string, cx: number, base: number, tr: number
   for (const ch of t) { ctx.fillText(ch, x, base); x += ctx.measureText(ch).width + tr; }
 }
 const capOf = (ctx: Ctx, size: number, weight: number) => { ctx.font = `italic ${weight} ${size}px Bodoni`; return ctx.measureText("H").actualBoundingBoxAscent; };
-const grad = (ctx: Ctx, x0: number, x1: number, c1: RGB, c2: RGB) => { const g = ctx.createLinearGradient(x0, 0, x1, 0); g.addColorStop(0, rg(c1)); g.addColorStop(1, rg(c2)); return g; };
-function gradTitle(ctx: Ctx, t: string, cx: number, base: number, size: number, tr: number, weight: number, c1: RGB, c2: RGB) {
+export const grad = (ctx: Ctx, x0: number, x1: number, c1: RGB, c2: RGB) => { const g = ctx.createLinearGradient(x0, 0, x1, 0); g.addColorStop(0, rg(c1)); g.addColorStop(1, rg(c2)); return g; };
+export function gradTitle(ctx: Ctx, t: string, cx: number, base: number, size: number, tr: number, weight: number, c1: RGB, c2: RGB) {
   ctx.font = `italic ${weight} ${size}px Bodoni`;
   const w = measure(ctx, t, tr);
   ctx.save(); ctx.shadowColor = "rgba(40,30,60,.28)"; ctx.shadowBlur = 24; ctx.shadowOffsetY = 12;
@@ -76,7 +76,7 @@ function gradTitle(ctx: Ctx, t: string, cx: number, base: number, size: number, 
 }
 function rr(ctx: Ctx, x: number, y: number, w: number, h: number, r: number) { ctx.beginPath(); ctx.roundRect(x, y, w, h, r); }
 export async function svgLayer(body: string) { return get("data:image/svg+xml;charset=utf-8," + encodeURIComponent(`<svg xmlns="http://www.w3.org/2000/svg" width="1080" height="1920" viewBox="0 0 1080 1920">${body}</svg>`)); }
-function glow(ctx: Ctx, cx: number, cy: number, c2: RGB) {
+export function glow(ctx: Ctx, cx: number, cy: number, c2: RGB) {
   ctx.save(); ctx.translate(cx, cy); ctx.scale(720, 620);
   const g = ctx.createRadialGradient(0, 0, 0, 0, 0, 1);
   for (let i = 0; i <= 10; i++) { const t = i / 10; g.addColorStop(t, rg(c2, Math.pow(1 - t, 1.6) * 0.15)); }
@@ -124,7 +124,7 @@ async function drawIconFit(ctx: Ctx, key: string, cx: number, cy: number, maxW: 
   ctx.drawImage(c, x0, y0, bw, bh, cx - bw * k / 2, cy - bh * k / 2, bw * k, bh * k); ctx.restore();
 }
 export function fitCover(ctx: Ctx, im: CanvasImageSource & { width: number; height: number }, x: number, y: number, w: number, h: number) { const s = Math.max(w / im.width, h / im.height), dw = im.width * s, dh = im.height * s; ctx.drawImage(im, x + (w - dw) / 2, y + (h - dh) / 2, dw, dh); }
-const dim = (c: RGB, k: number): RGB => c.map(v => Math.round(v * k)) as RGB;
+export const dim = (c: RGB, k: number): RGB => c.map(v => Math.round(v * k)) as RGB;
 
 // ---------- the three outputs ----------
 /* story background: stripes and corner circles sit in some corners, so those looks use a variant whose waves are in the other corners */
@@ -180,7 +180,7 @@ function washOf(t: KitTheme): [RGB, number] | null {
   if (t.ground === "look") return [[0, 1, 2].map(i => Math.round(t.c1[i] * .35 + t.c2[i] * .15 + 255 * .5)) as RGB, .9]
   return g[1] ? [g[1], Math.min(1, g[2] + .1)] : null
 }
-function wash(x: Ctx, t: KitTheme, w: number, h: number) {
+export function wash(x: Ctx, t: KitTheme, w: number, h: number) {
   const k = washOf(t); if (!k) return
   x.save(); x.globalCompositeOperation = "multiply"; x.globalAlpha = k[1]; x.fillStyle = rg(k[0]); x.fillRect(0, 0, w, h); x.restore()
 }
@@ -224,7 +224,7 @@ export async function makeStoryAnim(p: KitParams, t: KitTheme, loop = 10) {
 
 /* a QR code of a link in the theme colours: square modules in a gradient, four corner brackets round it, no card behind it.
    The colours are darkened enough for the code to stay easy to scan. */
-function drawQR(x: Ctx, url: string, cx: number, cy: number, size: number, c1: RGB, c2: RGB, b1: RGB = c1, b2: RGB = c2) {
+export function drawQR(x: Ctx, url: string, cx: number, cy: number, size: number, c1: RGB, c2: RGB, b1: RGB = c1, b2: RGB = c2) {
   const q = qrcode(0, "M"); q.addData(url); q.make();
   const n = q.getModuleCount(), cell = size / n, left = cx - size / 2, top = cy - size / 2;
   const lum = (c: RGB) => 0.299 * c[0] + 0.587 * c[1] + 0.114 * c[2], safe = (c: RGB): RGB => { const k = lum(c) > 105 ? 105 / lum(c) : 1; return c.map((v) => Math.round(v * k)) as RGB; };
@@ -447,7 +447,7 @@ export async function makeHighlight(p: KitParams, t: KitTheme) {
   grain(x, 1080, 1920); return c;
 }
 
-const WA_GREEN: [RGB, RGB] = [[37, 211, 102], [14, 140, 110]]
+export const WA_GREEN: [RGB, RGB] = [[37, 211, 102], [14, 140, 110]]
 /* the "Links" highlight story: the ASO community with the WhatsApp icon and a big QR code, all on the centre line */
 export async function makeLinksStory(url: string, t: KitTheme) {
   const c = cv(1080, 1920), x = c.getContext("2d")!, CX = 540;

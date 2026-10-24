@@ -295,6 +295,7 @@ export type View =
   | 'members'
   | 'inventory'
   | 'submissions'
+  | 'documents'
 
 export type Side = 'elt' | 'intern'
 
