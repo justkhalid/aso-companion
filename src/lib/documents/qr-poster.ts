@@ -31,7 +31,7 @@ export function defaultQrPoster(igHandle = IG_HANDLE): QrPosterFields {
     footer: 'American Space Oujda',
     items: [
       { id: 'instagram', on: true, label: 'INSTAGRAM', caption: `@${igHandle}`, url: `https://www.instagram.com/${igHandle}/` },
-      { id: 'facebook', on: true, label: 'FACEBOOK', caption: 'American Space Oujda', url: '' },
+      { id: 'facebook', on: true, label: 'FACEBOOK', caption: 'American Space Oujda', url: 'https://www.facebook.com/AmericanSpaceOujda' },
       { id: 'whatsapp', on: true, label: 'WHATSAPP', caption: 'Join the ASO Community', url: ASO_COMMUNITY_URL },
     ],
     icons: true,
