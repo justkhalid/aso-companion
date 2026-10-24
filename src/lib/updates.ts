@@ -1,9 +1,12 @@
 /* Version information and the in-app updater (server only). The installed version is the git commit of the folder the app runs from;
    the latest is the main branch of the GitHub repository. Updating pulls the new code; the start file then rebuilds and restarts. */
 import { execFile } from 'node:child_process'
-import { readFile } from 'node:fs/promises'
+import { createHash } from 'node:crypto'
+import { cp, mkdir, mkdtemp, readFile, rm, unlink, writeFile } from 'node:fs/promises'
+import { tmpdir } from 'node:os'
 import path from 'node:path'
 import { isLocal } from './mode'
+import { driveDelete, driveGet, driveNames, drivePut, googleActive } from './google'
 
 const run = (cmd: string, args: string[], noShell = false) =>
   new Promise<{ ok: boolean; out: string }>((resolve) => {
@@ -20,7 +23,158 @@ export interface UpdateStatus {
   dirty: boolean
   canUpdate: boolean
   log: LogItem[]
+  source?: 'drive' | 'github'
+  canPublish?: boolean
   error?: string
+}
+
+/* ---- updates through the space's Google Drive ----
+   A release is one source package (about 5 MB) plus a small manifest in the "ASO Companion" folder, put there by .github/scripts/publish-release.mjs
+   after a merge. The installed app compares the version, downloads the package, checks it, copies the files over the app folder (never data,
+   settings or installed libraries) and restarts; the start file then rebuilds. Nothing about GitHub is needed on the computer. */
+export interface Manifest { version: string; sha: string; date: string; file: string; sha256: string; size: number; files: string[]; log: LogItem[] }
+interface Installed { version: string; sha: string; date: string; files: string[] }
+const KEPT = /^(data|\.env|\.aso|\.git|\.next|node_modules|\.test-state)(\/|\.|$)|^aso\.log$|^server\.log$|^dev\.log$/
+const safeRel = (f: string) => !!f && !f.startsWith('/') && !/(^|\/)\.\.(\/|$)/.test(f) && !/^[a-zA-Z]:/.test(f) && !KEPT.test(f)
+const vparts = (v: string) => (v.match(/^(\d+)\.(\d+)\.(\d+)/) || []).slice(1).map(Number)
+export function newer(a: string, b: string): boolean {
+  const x = vparts(a), y = vparts(b)
+  if (x.length < 3 || y.length < 3) return false
+  for (let i = 0; i < 3; i++) if (x[i] !== y[i]) return x[i] > y[i]
+  return false
+}
+
+export async function driveManifest(): Promise<Manifest | null> {
+  if (!googleActive()) return null
+  try {
+    const f = await driveGet('release__latest.json')
+    if (!f) return null
+    const m = JSON.parse(f.bytes.toString('utf8')) as Manifest
+    return m && typeof m.version === 'string' && typeof m.file === 'string' && /^[0-9a-f]{64}$/.test(m.sha256 || '') && Array.isArray(m.files) ? m : null
+  } catch { return null }
+}
+
+async function readInstalled(root: string): Promise<Installed | null> {
+  try {
+    const j = JSON.parse(await readFile(path.join(root, '.aso', 'release.json'), 'utf8')) as Installed
+    return j && typeof j.version === 'string' ? j : null
+  } catch { return null }
+}
+async function pkgVersion(root: string): Promise<string> {
+  try { return cleanV(JSON.parse(await readFile(path.join(root, 'package.json'), 'utf8')).version) } catch { return '' }
+}
+
+/** download, check and copy a release over the app folder. Returns the files that were removed because the new version no longer has them. */
+export async function applyRelease(m: Manifest, bytes: Buffer, root = process.cwd()): Promise<{ ok: boolean; out: string }> {
+  if (bytes.length !== m.size || createHash('sha256').update(bytes).digest('hex') !== m.sha256) return { ok: false, out: 'The downloaded update is damaged, so it was not installed. Try again.' }
+  const work = path.join(root, '.aso', 'updates')
+  await rm(work, { recursive: true, force: true })
+  await mkdir(path.join(work, 'x'), { recursive: true })
+  await writeFile(path.join(work, 'r.tar.gz'), bytes)
+  const t = await new Promise<{ ok: boolean; out: string }>((resolve) =>
+    execFile('tar', ['-xzf', 'r.tar.gz', '-C', 'x'], { cwd: work, timeout: 120_000, windowsHide: true }, (err, so, se) => resolve({ ok: !err, out: (String(so) + String(se)).trim() })))
+  if (!t.ok) { await rm(work, { recursive: true, force: true }); return { ok: false, out: 'The update could not be unpacked: ' + t.out.slice(0, 300) } }
+  try {
+    const files = m.files.filter(safeRel)
+    for (const f of files) {
+      const dest = path.join(root, f)
+      await mkdir(path.dirname(dest), { recursive: true })
+      await cp(path.join(work, 'x', f), dest, { force: true })
+    }
+    /* files the new version dropped: remove them, so nothing old can break the build */
+    const prev = await readInstalled(root)
+    let before: string[] = prev?.files || []
+    if (!before.length) {
+      const ls = await run('git', ['ls-files'])
+      if (ls.ok) before = ls.out.split('\n').map((l) => l.trim()).filter(Boolean)
+    }
+    const keep = new Set(files)
+    for (const f of before) if (safeRel(f) && !keep.has(f)) await unlink(path.join(root, f)).catch(() => undefined)
+    await mkdir(path.join(root, '.aso'), { recursive: true })
+    await writeFile(path.join(root, '.aso', 'release.json'), JSON.stringify({ version: m.version, sha: m.sha, date: m.date, files } satisfies Installed))
+    /* the start file rebuilds when the build is missing */
+    await rm(path.join(root, '.next', 'BUILD_ID'), { force: true })
+    await rm(path.join(root, '.next', 'aso-built.txt'), { force: true })
+    return { ok: true, out: `Updated to v${m.version}.` }
+  } catch (e) {
+    return { ok: false, out: 'The update could not be installed: ' + String((e as Error).message || e).slice(0, 300) }
+  } finally {
+    await rm(work, { recursive: true, force: true })
+  }
+}
+
+const gitAuth = () => {
+  const pat = process.env.GITHUB_PAT
+  return pat ? ['-c', 'credential.helper=', '-c', 'http.https://github.com/.extraheader=AUTHORIZATION: basic ' + Buffer.from('x-access-token:' + pat).toString('base64')] : []
+}
+const EXCLUDE = ['--', '.', ':!data', ':!.github', ':!handoff']
+const KEEP_RELEASES = 3
+export const canPublish = () => isLocal() && process.env.ASO_PUBLISH === '1' && googleActive()
+
+/** the "Publish update" button (developer's computer only): takes the newest main from GitHub and puts it into Drive as a release.
+    Installed copies find it there. Needs git and the GitHub token on this computer; nothing is stored in GitHub. */
+export async function publishRelease(): Promise<{ ok: boolean; out: string }> {
+  if (!canPublish()) return { ok: false, out: 'Publishing is switched off on this computer.' }
+  const f = await run('git', [...gitAuth(), 'fetch', '--quiet', 'origin', '+' + BRANCH() + ':refs/aso/release'], true)
+  if (!f.ok) return { ok: false, out: 'The newest code could not be fetched from GitHub: ' + f.out.replace(/AUTHORIZATION: basic \S+/g, '***').slice(0, 300) }
+  const ref = 'refs/aso/release'
+  const sha = (await run('git', ['rev-parse', ref])).out
+  const pj = await run('git', ['show', `${ref}:package.json`])
+  let version = ''
+  try { version = cleanV(JSON.parse(pj.out).version) } catch { /* below */ }
+  if (!/^[0-9a-f]{40}$/.test(sha) || !version) return { ok: false, out: 'The newest version could not be read.' }
+  const prev = await driveManifest()
+  if (prev && prev.sha === sha) return { ok: true, out: `v${version} is already in Drive.` }
+  if (prev && newer(prev.version, version)) return { ok: false, out: `Drive already has v${prev.version}, which is newer than v${version}.` }
+  const date = (await run('git', ['log', '-1', '--format=%cI', ref])).out
+  const files = (await run('git', ['ls-tree', '-r', '--name-only', ref])).out.split('\n').map((l) => l.trim()).filter((l) => l && !/^(data|\.github|handoff)\//.test(l))
+
+  const dir = await mkdtemp(path.join(tmpdir(), 'aso-rel-'))
+  try {
+    const tgz = path.join(dir, 'release.tar.gz')
+    const a = await run('git', ['archive', '--format=tar.gz', '-o', tgz, ref, ...EXCLUDE], true)
+    if (!a.ok) return { ok: false, out: 'The package could not be made: ' + a.out.slice(0, 300) }
+    const bytes = await readFile(tgz)
+    const name = `release__${version}.tar.gz`
+    const put = await drivePut(name, bytes, 'application/gzip')
+    if (!put.ok) return { ok: false, out: put.msg }
+    const raw = (await run('git', ['log', '-n', '60', '--format=%H%x1f%cI%x1f%B%x1e', prev && /^[0-9a-f]{40}$/.test(prev.sha) ? `${prev.sha}..${ref}` : ref])).out
+    const fresh: LogItem[] = []
+    for (const c of raw.split('\x1e')) {
+      const [h, d, msg] = c.trim().split('\x1f')
+      if (!h || !msg) continue
+      const [first, ...rest] = msg.split('\n')
+      if (/^aso-companion:/i.test(first) || /^chore\(version\)/i.test(first) || /^Merge (origin|remote-tracking|branch)/i.test(first)) continue
+      const lines = rest.map((l) => l.trim()).filter(Boolean)
+      const isPr = /^Merge pull request/i.test(first)
+      fresh.push({ sha: h.slice(0, 7), date: d, title: isPr ? lines[0] || first : first, note: isPr ? '' : lines.filter((l) => !/^(Co-Authored-By|Claude-Session)/i.test(l)).slice(0, 4).join('\n') })
+    }
+    const manifest: Manifest = { version, sha, date, file: name, sha256: createHash('sha256').update(bytes).digest('hex'), size: bytes.length, files, log: [...fresh, ...(prev?.log || [])].slice(0, 40) }
+    const m = await drivePut('release__latest.json', JSON.stringify(manifest))
+    if (!m.ok) return { ok: false, out: m.msg }
+    /* keep only the newest releases so Drive never fills up */
+    const key = (n: string) => (n.match(/^release__(\d+)\.(\d+)\.(\d+)\.tar\.gz$/) || []).slice(1).map(Number)
+    const old = (await driveNames('release__')).filter((n) => key(n).length === 3 && n !== name).sort((x, y) => { const a2 = key(x), b2 = key(y); return b2[0] - a2[0] || b2[1] - a2[1] || b2[2] - a2[2] })
+    for (const n of old.slice(KEEP_RELEASES - 1)) await driveDelete(n)
+    return { ok: true, out: `Published v${version} to Drive (${(bytes.length / 1048576).toFixed(1)} MB). Installed copies will offer it as an update.` }
+  } finally {
+    await rm(dir, { recursive: true, force: true })
+  }
+}
+
+export async function driveUpdateStatus(m: Manifest, root = process.cwd()): Promise<UpdateStatus> {
+  const rel = await readInstalled(root)
+  const version = rel?.version || (await pkgVersion(root))
+  let sha = rel?.sha || ''
+  let date = rel?.date || ''
+  if (!sha) { const h = await run('git', ['rev-parse', 'HEAD']); if (h.ok && /^[0-9a-f]{40}$/.test(h.out)) { sha = h.out; date = (await run('git', ['log', '-1', '--format=%cI'])).out } }
+  const installed = { sha, date, version }
+  const fresh = newer(m.version, version)
+  const waiting = fresh ? m.log.filter((l) => !date || !l.date || l.date > date) : []
+  return {
+    local: true, installed, latest: { sha: m.sha, date: m.date, version: m.version }, behind: fresh ? Math.max(1, waiting.length) : 0,
+    changes: fresh ? waiting.length : 0, dirty: false, canUpdate: fresh, canPublish: canPublish(), log: (fresh && waiting.length ? waiting : m.log).slice(0, 40), source: 'drive',
+  }
 }
 
 const REPO = () => process.env.GITHUB_REPO || 'justkhalid/aso-companion'
@@ -60,6 +214,7 @@ function toLog(commits: Commit[]): LogItem[] {
 
 export async function updateStatus(): Promise<UpdateStatus> {
   const local = isLocal()
+  if (local) { const m = await driveManifest(); if (m) return driveUpdateStatus(m) }
   let installed: UpdateStatus['installed'] = null
   let dirty = false
   if (local) {
@@ -88,6 +243,15 @@ export async function updateStatus(): Promise<UpdateStatus> {
 /** pull the new code (fast-forward only, so nothing local is ever overwritten) */
 export async function pullUpdate(): Promise<{ ok: boolean; out: string }> {
   if (!isLocal()) return { ok: false, out: 'Updating only works on the director\'s computer.' }
+  const m = await driveManifest()
+  if (m) {
+    const root = process.cwd()
+    const rel = await readInstalled(root)
+    if (!newer(m.version, rel?.version || (await pkgVersion(root)))) return { ok: true, out: 'Already the latest version.' }
+    const f = await driveGet(m.file)
+    if (!f) return { ok: false, out: 'The update file is not in Google Drive yet. Try again in a few minutes.' }
+    return applyRelease(m, f.bytes)
+  }
   const st = await run('git', ['status', '--porcelain', '--untracked-files=no'])
   if (st.out) return { ok: false, out: 'This copy has changes of its own, so it was not updated:\n' + st.out }
   /* with the saved GitHub token the pull never asks for a login */
