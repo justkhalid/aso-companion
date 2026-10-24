@@ -3,12 +3,12 @@
 import * as React from 'react'
 import {
   Send, AlertTriangle, Sparkles, UserX, Ban, UserCheck, CalendarDays, Sun, GraduationCap,
-  Camera, CheckCircle2, ChevronRight, MoreHorizontal, Copy, CalendarOff, Pencil, Users,
+  Camera, CheckCircle2, ChevronRight, MoreHorizontal, Copy, CalendarOff, Pencil, Users, BarChart3,
 } from 'lucide-react'
 import { useStore } from '@/lib/store'
 import { DAY_KEYS } from '@/lib/constants'
 import { Chip } from '@/components/ui-bits'
-import { peopleOf, fmtAbsenceRange, isoOf, nextOccurrence, termStatus, classStatusOn, clubStatusOn, clubWhere, eventStatusOn, eventWhere, isOnceEvent, fmtTime, parseSlot } from '@/lib/app-utils'
+import { peopleOf, rolesOf, fmtAbsenceRange, isoOf, nextOccurrence, termStatus, classStatusOn, clubStatusOn, clubWhere, eventStatusOn, eventWhere, isOnceEvent, fmtTime, parseSlot } from '@/lib/app-utils'
 import { isClubOver, isClassOver } from '@/lib/archive'
 import { closedHoliday, holidayItems } from '@/lib/holidays'
 import { UnifiedCalendar } from '@/components/unified-calendar'
@@ -78,7 +78,7 @@ export function DashboardPage() {
   const [calTab, setCalTab] = React.useState<CalTab>('cluev')
   const page = useStore((s) => s.homeTab)
   const setPage = (k: 'overview' | 'calendar') => useStore.setState({ homeTab: k })
-  const [lib, setLib] = React.useState<{ available: boolean; connected: boolean; summary?: { total: number; thisMonth: number; cardsToPrint: number; noPhoto: number } } | null>(null)
+  const [lib, setLib] = React.useState<{ available: boolean; connected: boolean; summary?: { total: number; thisMonth: number; thisYear?: number; cardsToPrint: number; noPhoto: number } } | null>(null)
   React.useEffect(() => {
     fetch('/api/members?summary=1', { cache: 'no-store' }).then((r) => (r.ok ? r.json() : null)).then(setLib).catch(() => setLib(null))
   }, [])
@@ -187,13 +187,37 @@ export function DashboardPage() {
     { n: state.team.filter((p) => !(p.roles?.length || p.role)).length, text: 'people have no role' },
   ].filter((x) => x.n > 0)
 
-  const glance = [
-    { value: classes.length, label: classes.length === 1 ? 'class' : 'classes', view: 'classes' as View },
-    { value: clubs.length, label: clubs.length === 1 ? 'club' : 'clubs', view: 'intern-clubs' as View },
-    { value: state.events.filter((e) => nextOccurrence(e)).length, label: 'events coming', view: 'intern-events' as View },
-    { value: peopleOf(state).length, label: 'people', view: 'team' as View },
-    ...(lib?.connected && lib.summary ? [{ value: lib.summary.total, label: 'members', view: 'members' as View }] : []),
+  /* ---- ASO in numbers ---- */
+  const people = peopleOf(state)
+  const withRole = (re: RegExp) => people.filter((m) => rolesOf(m).some((r) => re.test(r))).length
+  const eventsComing = state.events.filter((e) => nextOccurrence(e)).length
+  const weeklySessions = classes.reduce((n, c) => n + (c.days || []).length, 0) + clubs.reduce((n, c) => n + (c.days || []).length, 0)
+  const roomsUsed = new Set([...classes.map((c) => c.room), ...clubs.map((c) => c.room), ...state.events.map((e) => e.place)].map((r) => (r || '').trim()).filter(Boolean)).size
+  const monthKey = today.slice(0, 7)
+  const allPosts = [...state.clubs, ...state.events].flatMap((x) => x.kit?.posts || [])
+  const memberTotal = lib?.connected && lib.summary ? lib.summary.total : null
+  const hero: { value: string; label: string; sub: string; view?: View }[] = [
+    { value: memberTotal === null ? '-' : String(memberTotal), label: 'Members', sub: memberTotal === null ? 'Open on the director\'s computer' : `${lib!.summary!.thisMonth} joined this month${lib!.summary!.thisYear !== undefined ? `, ${lib!.summary!.thisYear} this year` : ''}`, view: 'members' },
+    { value: String(people.length), label: 'On the team', sub: 'teachers, volunteers, interns and staff', view: 'team' },
+    { value: String(weeklySessions), label: 'Sessions a week', sub: `${classes.length} classes and ${clubs.length} clubs in ${roomsUsed} ${roomsUsed === 1 ? 'space' : 'spaces'}` },
+    { value: String(eventsComing), label: 'Events coming', sub: `${state.events.length} in the programme`, view: 'intern-events' },
   ]
+  const roleBars = [
+    { label: 'Teachers', n: withRole(/teacher/i) },
+    { label: 'Volunteers', n: withRole(/volunteer/i) },
+    { label: 'Interns', n: withRole(/intern/i) },
+    { label: 'Coordinators and staff', n: withRole(/coordinator|administrator|director|manager/i) },
+  ]
+  const perDay = DAY_KEYS.map((k) => classes.filter((c) => (c.days || []).includes(k)).length + clubs.filter((c) => (c.days || []).includes(k)).length)
+  const perDayMax = Math.max(1, ...perDay)
+  const band = (b: string) => classes.filter((c) => (c.level || '').split('·')[0].trim().toLowerCase() === b).length
+  const programme = [
+    { label: 'Kids classes', n: band('kids') },
+    { label: 'Teens classes', n: band('teens') },
+    { label: 'Adults classes', n: band('adults') },
+    { label: 'Clubs', n: clubs.length },
+  ]
+  const postsMonth = allPosts.filter((p) => p.t.startsWith(monthKey)).length
 
   const inTerm = st.mode === 's1' || st.mode === 's2'
   const weekNo = inTerm ? (st.week ?? 0) : 0
@@ -288,37 +312,47 @@ export function DashboardPage() {
           <p className="mt-1 text-sm text-muted-foreground">{pulse}</p>
         </div>
 
-        <div className="flex flex-col items-start gap-3 sm:items-end">
-          <div className="w-60">
-            <div className="flex items-baseline justify-between gap-2 text-[11px] font-bold">
-              <span className="text-muted-foreground">{weekLabel}</span>
-              {inTerm && <span className="tabular-nums text-muted-foreground">{pct}%</span>}
-            </div>
-            <div className="mt-1 h-1.5 overflow-hidden rounded-full bg-secondary" role="img" aria-label={weekLabel}>
-              <div className="h-full rounded-full bg-primary transition-all" style={{ width: `${pct}%` }} />
-            </div>
-            {nextClosed && (
-              <p className="mt-1 text-[11px] text-muted-foreground">
-                Next closed: {nextClosed.name} · {new Date(nextClosed.date).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })}
-              </p>
-            )}
-          </div>
-
-          <div className="inline-flex rounded-full border border-border bg-card p-1" role="group" aria-label="Home sections">
-            {([['overview', 'Today'], ['calendar', 'Calendar']] as const).map(([k, l]) => (
-              <button
-                key={k}
-                type="button"
-                onClick={() => setPage(k)}
-                aria-pressed={page === k}
-                className={cn('rounded-full px-4 py-1 text-[12.5px] font-bold transition outline-none focus-visible:ring-2 focus-visible:ring-ring', page === k ? 'aso-nav-pill' : 'text-foreground/70 hover:bg-secondary')}
-              >
-                {l}
-              </button>
-            ))}
-          </div>
+        <div className="inline-flex rounded-full border border-border bg-card p-1" role="group" aria-label="Home sections">
+          {([['overview', 'Today'], ['calendar', 'Calendar']] as const).map(([k, l]) => (
+            <button
+              key={k}
+              type="button"
+              onClick={() => setPage(k)}
+              aria-pressed={page === k}
+              className={cn('rounded-full px-4 py-1 text-[12.5px] font-bold transition outline-none focus-visible:ring-2 focus-visible:ring-ring', page === k ? 'aso-nav-pill' : 'text-foreground/70 hover:bg-secondary')}
+            >
+              {l}
+            </button>
+          ))}
         </div>
       </header>
+
+      {/* ---- where the year is: one strip, the weeks as cells ---- */}
+      {total > 0 && (
+        <section aria-label="The year" className="mb-4 rounded-2xl border border-border bg-card px-4 py-3">
+          <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1 text-[12px] font-bold">
+            <span>{weekLabel}{inTerm && <span className="ml-2 tabular-nums text-muted-foreground">{pct}%</span>}</span>
+            {nextClosed && (
+              <span className="font-semibold text-muted-foreground">
+                Next closed: {nextClosed.name} · {new Date(nextClosed.date).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })}
+              </span>
+            )}
+          </div>
+          <div className="mt-2 flex items-center gap-0.5" role="img" aria-label={`The year: ${total} weeks, now at week ${weekNo}`}>
+            {yearCells.map((c) => (
+              <span
+                key={c.i}
+                className={cn('h-2 flex-1 rounded-sm transition', c.cur ? 'bg-primary' : inTerm && c.i < weekNo ? 'bg-primary/55' : c.s1 ? 'bg-primary/25' : 'bg-primary/12', c.i === s1Weeks && 'ml-1.5')}
+                title={`Week ${c.i + 1}${c.s1 ? '' : ' · semester 2'}`}
+              />
+            ))}
+          </div>
+          <div className="mt-1 flex justify-between text-[10.5px] font-semibold text-muted-foreground">
+            <span>Semester 1 · {s1Weeks} weeks</span>
+            <span>Semester 2 · {Math.max(0, total - s1Weeks)} weeks</span>
+          </div>
+        </section>
+      )}
 
       {page === 'calendar' ? (
         <section aria-label="Calendar" className="rounded-2xl border border-border bg-card p-4">
@@ -336,6 +370,29 @@ export function DashboardPage() {
               <button type="button" onClick={() => setPage('calendar')} className="text-xs font-bold text-primary hover:underline">See the calendar</button>
             </div>
           )}
+
+          {/* ---- the day in four numbers ---- */}
+          <div className="mb-4 grid grid-cols-2 gap-3 lg:grid-cols-4">
+            {([
+              { label: 'Today', value: closedToday ? 'Closed' : String(sessions.length), sub: closedToday ? closedToday.name : remaining > 0 ? `${remaining} still to come` : sessions.length ? 'All done' : 'Nothing scheduled', go: undefined as undefined | (() => void) },
+              { label: running ? 'Running now' : 'Up next', value: (running || sessions[nextIdx])?.title || 'Nothing', sub: (running || sessions[nextIdx]) ? [fmtTime((running || sessions[nextIdx])!.time), (running || sessions[nextIdx])!.room].filter(Boolean).join(' · ') : 'The day is clear', go: undefined },
+              { label: 'To post', value: String(queue.length), sub: queue.length ? 'Clubs and events without a fresh post' : 'Everything is posted', go: () => openSocial('todo') },
+              { label: 'Away today', value: String(away.length), sub: away.length ? (uncovered ? `${uncovered} without cover` : 'All covered') : 'Nobody is away', go: () => setView('absences') },
+            ]).map((t) => {
+              const Comp: React.ElementType = t.go ? 'button' : 'div'
+              return (
+                <Comp
+                  key={t.label}
+                  {...(t.go ? { type: 'button', onClick: t.go } : null)}
+                  className={cn('min-w-0 rounded-2xl border border-border bg-card px-4 py-3 text-left outline-none', t.go && 'transition hover:border-primary/40 hover:bg-secondary/60 focus-visible:ring-2 focus-visible:ring-ring')}
+                >
+                  <span className="block text-[11px] font-bold uppercase tracking-wider text-muted-foreground">{t.label}</span>
+                  <span className="mt-0.5 block truncate text-xl font-extrabold leading-tight tracking-tight tabular-nums" dir="auto">{t.value}</span>
+                  <span className="mt-0.5 line-clamp-2 block text-xs text-muted-foreground">{t.sub}</span>
+                </Comp>
+              )
+            })}
+          </div>
 
           <div className="grid gap-4 lg:grid-cols-[minmax(0,6fr)_minmax(0,5fr)] lg:items-start">
             {/* ---- 1. the day ---- */}
@@ -470,90 +527,73 @@ export function DashboardPage() {
               )}
             </section>
 
-            {/* ---- 2. what needs her ---- */}
+            <div className="flex flex-col gap-4">
+              {/* ---- 2. what needs her ---- */}
+              <section className="rounded-2xl border border-border bg-card p-5">
+                <div className="mb-3 flex items-center justify-between gap-2">
+                  <h2 className="flex items-center gap-2 text-sm font-extrabold tracking-tight">
+                    <AlertTriangle className={cn('h-4 w-4', actions.length ? 'text-[var(--aso-gold)]' : 'text-muted-foreground')} aria-hidden /> Needs you
+                  </h2>
+                  {actions.length > 0 && <span className="rounded-full bg-[var(--aso-gold-tint)] px-2 py-0.5 text-[11px] font-extrabold text-[var(--aso-gold)] tabular-nums">{actions.length}</span>}
+                </div>
+
+                {actions.length === 0 ? (
+                  <p className="flex items-start gap-2 rounded-xl bg-[var(--aso-ok-tint)] p-3 text-[13px] font-semibold text-[var(--aso-ok)]">
+                    <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0" aria-hidden /> Everything is set: nothing to post, nobody away, every club and class complete.
+                  </p>
+                ) : (
+                  <ul className="-mx-2 flex flex-col">
+                    {actions.map((a) => (
+                      <li key={a.id}>
+                        <button
+                          type="button"
+                          onClick={a.go}
+                          className="group flex w-full items-center gap-3 rounded-xl px-2 py-2 text-left outline-none transition hover:bg-secondary focus-visible:ring-2 focus-visible:ring-ring"
+                        >
+                          <span className={cn('grid h-8 w-8 shrink-0 place-items-center rounded-full', a.urgent ? 'bg-primary/10 text-primary' : 'bg-secondary text-muted-foreground')}>
+                            <a.icon className="h-4 w-4" aria-hidden />
+                          </span>
+                          <span className="min-w-0 flex-1">
+                            <span className="block truncate text-[13px] font-bold leading-tight">{a.text}</span>
+                            <span className="block text-[11px] leading-tight text-muted-foreground">{a.detail}</span>
+                          </span>
+                          <ChevronRight className="h-4 w-4 shrink-0 text-muted-foreground opacity-0 transition group-hover:opacity-100" aria-hidden />
+                        </button>
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </section>
+
+            {/* ---- 3. the week ---- */}
             <section className="rounded-2xl border border-border bg-card p-5">
               <div className="mb-3 flex items-center justify-between gap-2">
-                <h2 className="flex items-center gap-2 text-sm font-extrabold tracking-tight">
-                  <AlertTriangle className={cn('h-4 w-4', actions.length ? 'text-[var(--aso-gold)]' : 'text-muted-foreground')} aria-hidden /> Needs you
-                </h2>
-                {actions.length > 0 && <span className="rounded-full bg-[var(--aso-gold-tint)] px-2 py-0.5 text-[11px] font-extrabold text-[var(--aso-gold)] tabular-nums">{actions.length}</span>}
+                <h2 className="flex items-center gap-2 text-sm font-extrabold tracking-tight"><CalendarDays className="h-4 w-4 text-primary" aria-hidden /> Next seven days</h2>
+                <button type="button" onClick={() => setPage('calendar')} className="text-xs font-bold text-primary hover:underline">Open the calendar</button>
               </div>
-
-              {actions.length === 0 ? (
-                <p className="flex items-start gap-2 rounded-xl bg-[var(--aso-ok-tint)] p-3 text-[13px] font-semibold text-[var(--aso-ok)]">
-                  <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0" aria-hidden /> Everything is set: nothing to post, nobody away, every club and class complete.
-                </p>
-              ) : (
-                <ul className="-mx-2 flex flex-col">
-                  {actions.map((a) => (
-                    <li key={a.id}>
-                      <button
-                        type="button"
-                        onClick={a.go}
-                        className="group flex w-full items-center gap-3 rounded-xl px-2 py-2 text-left outline-none transition hover:bg-secondary focus-visible:ring-2 focus-visible:ring-ring"
-                      >
-                        <span className={cn('grid h-8 w-8 shrink-0 place-items-center rounded-full', a.urgent ? 'bg-primary/10 text-primary' : 'bg-secondary text-muted-foreground')}>
-                          <a.icon className="h-4 w-4" aria-hidden />
-                        </span>
-                        <span className="min-w-0 flex-1">
-                          <span className="block truncate text-[13px] font-bold leading-tight">{a.text}</span>
-                          <span className="block text-[11px] leading-tight text-muted-foreground">{a.detail}</span>
-                        </span>
-                        <ChevronRight className="h-4 w-4 shrink-0 text-muted-foreground opacity-0 transition group-hover:opacity-100" aria-hidden />
-                      </button>
-                    </li>
-                  ))}
-                </ul>
-              )}
+              <div className="grid grid-cols-7 gap-1 sm:gap-1.5">
+                {week.map((d) => (
+                  <button
+                    key={d.iso}
+                    type="button"
+                    onClick={() => setPage('calendar')}
+                    title={d.closed ? `${d.closed} — closed` : undefined}
+                    aria-label={`${d.label} ${d.dayNum}: ${d.closed ? `closed for ${d.closed}` : `${d.n} ${d.n === 1 ? 'session' : 'sessions'}`}`}
+                    className={cn('flex flex-col items-center gap-1.5 rounded-xl border p-2 outline-none transition focus-visible:ring-2 focus-visible:ring-ring', d.today ? 'border-primary bg-primary/5' : d.closed ? 'border-transparent bg-secondary/40' : 'border-transparent hover:bg-secondary')}
+                  >
+                    <span className={cn('text-[10.5px] font-bold uppercase tracking-wider', d.today ? 'text-primary' : 'text-muted-foreground')}>{d.label}</span>
+                    <span className="flex h-14 w-full items-end justify-center">
+                      {d.closed
+                        ? <CalendarOff className="mb-2 h-4 w-4 text-muted-foreground/60" aria-hidden />
+                        : <span className={cn('w-full max-w-7 rounded-t-md', d.today ? 'bg-primary' : 'bg-primary/25')} style={{ height: `${d.n === 0 ? 3 : Math.max(10, (d.n / busiest) * 56)}px` }} />}
+                    </span>
+                    <span className={cn('text-xs font-extrabold tabular-nums', (d.n === 0 || d.closed) && 'text-muted-foreground/50')}>{d.closed ? 'closed' : d.n}</span>
+                  </button>
+                ))}
+              </div>
             </section>
+            </div>
           </div>
-
-          {/* ---- 3. the week ---- */}
-          <section className="mt-4 rounded-2xl border border-border bg-card p-5">
-            <div className="mb-3 flex items-center justify-between gap-2">
-              <h2 className="flex items-center gap-2 text-sm font-extrabold tracking-tight"><CalendarDays className="h-4 w-4 text-primary" aria-hidden /> Next seven days</h2>
-              <button type="button" onClick={() => setPage('calendar')} className="text-xs font-bold text-primary hover:underline">Open the calendar</button>
-            </div>
-            <div className="grid grid-cols-7 gap-1.5 sm:gap-2">
-              {week.map((d) => (
-                <button
-                  key={d.iso}
-                  type="button"
-                  onClick={() => setPage('calendar')}
-                  title={d.closed ? `${d.closed} — closed` : undefined}
-                  aria-label={`${d.label} ${d.dayNum}: ${d.closed ? `closed for ${d.closed}` : `${d.n} ${d.n === 1 ? 'session' : 'sessions'}`}`}
-                  className={cn('flex flex-col items-center gap-1.5 rounded-xl border p-2 outline-none transition focus-visible:ring-2 focus-visible:ring-ring', d.today ? 'border-primary bg-primary/5' : d.closed ? 'border-transparent bg-secondary/40' : 'border-transparent hover:bg-secondary')}
-                >
-                  <span className={cn('text-[10.5px] font-bold uppercase tracking-wider', d.today ? 'text-primary' : 'text-muted-foreground')}>{d.label}</span>
-                  <span className="flex h-14 w-full items-end justify-center">
-                    {d.closed
-                      ? <CalendarOff className="mb-2 h-4 w-4 text-muted-foreground/60" aria-hidden />
-                      : <span className={cn('w-full max-w-7 rounded-t-md', d.today ? 'bg-primary' : 'bg-primary/25')} style={{ height: `${d.n === 0 ? 3 : Math.max(10, (d.n / busiest) * 56)}px` }} />}
-                  </span>
-                  <span className={cn('text-xs font-extrabold tabular-nums', (d.n === 0 || d.closed) && 'text-muted-foreground/50')}>{d.closed ? 'closed' : d.n}</span>
-                </button>
-              ))}
-            </div>
-
-            {/* the year, in one line: where week 7 of 32 actually is */}
-            {total > 0 && (
-              <div className="mt-4">
-                <div className="flex items-center gap-0.5" role="img" aria-label={`The year: ${total} weeks, now at week ${weekNo}`}>
-                  {yearCells.map((c) => (
-                    <span
-                      key={c.i}
-                      className={cn('h-1.5 flex-1 rounded-sm transition', c.cur ? 'bg-primary' : c.s1 ? 'bg-primary/35' : 'bg-primary/15', c.i === s1Weeks && 'ml-1.5')}
-                      title={`Week ${c.i + 1}${c.s1 ? '' : ' · semester 2'}`}
-                    />
-                  ))}
-                </div>
-                <div className="mt-1 flex justify-between text-[10.5px] font-semibold text-muted-foreground">
-                  <span>Semester 1 · {s1Weeks} weeks</span>
-                  <span>Semester 2 · {Math.max(0, total - s1Weeks)} weeks</span>
-                </div>
-              </div>
-            )}
-          </section>
 
           {/* ---- 4. housekeeping ---- */}
           {housekeeping.length > 0 && (
@@ -574,23 +614,61 @@ export function DashboardPage() {
             </details>
           )}
 
-          {/* ---- 5. the numbers, small ---- */}
-          <nav aria-label="At a glance" className="mt-4 flex flex-wrap items-center gap-x-2 gap-y-2">
-            {glance.map((g) => (
-              <button
-                key={g.label}
-                type="button"
-                onClick={() => setView(g.view)}
-                className="inline-flex items-baseline gap-1.5 rounded-full border border-border bg-card px-3 py-1 text-[12px] outline-none transition hover:border-primary/40 hover:bg-secondary focus-visible:ring-2 focus-visible:ring-ring"
-              >
-                <span className="font-extrabold tabular-nums">{g.value}</span>
-                <span className="font-semibold text-muted-foreground">{g.label}</span>
-              </button>
-            ))}
-            {!lib?.available && lib !== null && (
-              <span className="text-[11px] text-muted-foreground">Members open in the app on the director&apos;s computer.</span>
-            )}
-          </nav>
+          {/* ---- 5. ASO in numbers ---- */}
+          <section aria-label="ASO in numbers" className="mt-4 rounded-2xl border border-border bg-card p-5">
+            <h2 className="mb-4 flex items-center gap-2 text-sm font-extrabold tracking-tight"><BarChart3 className="h-4 w-4 text-primary" aria-hidden /> ASO in numbers</h2>
+
+            <div className="grid grid-cols-2 gap-x-6 gap-y-5 lg:grid-cols-4 lg:divide-x lg:divide-border">
+              {hero.map((t, i) => {
+                const Comp: React.ElementType = t.view ? 'button' : 'div'
+                return (
+                  <Comp
+                    key={t.label}
+                    {...(t.view ? { type: 'button', onClick: () => setView(t.view!) } : null)}
+                    className={cn('group min-w-0 text-left outline-none', i > 0 && 'lg:pl-6', t.view && 'focus-visible:rounded-lg focus-visible:ring-2 focus-visible:ring-ring')}
+                  >
+                    <span className="block text-4xl font-extrabold leading-none tracking-tight tabular-nums text-primary">{t.value}</span>
+                    <span className="mt-2 block text-[13px] font-bold group-hover:underline">{t.label}</span>
+                    <span className="mt-0.5 line-clamp-2 block text-[11.5px] leading-snug text-muted-foreground">{t.sub}</span>
+                  </Comp>
+                )
+              })}
+            </div>
+
+            <div className="mt-6 grid gap-3 border-t border-border pt-5 md:grid-cols-3">
+              {([
+                { title: 'People', rows: roleBars, foot: 'One person can hold several roles.' },
+                { title: 'Programme', rows: programme, foot: `${allPosts.length} posts sent from here, ${postsMonth} this month` },
+              ]).map((panel) => (
+                <div key={panel.title} className="flex flex-col rounded-xl border border-border bg-background/60 p-4">
+                  <h3 className="mb-2 text-[11px] font-bold uppercase tracking-wider text-muted-foreground">{panel.title}</h3>
+                  <ul className="divide-y divide-border">
+                    {panel.rows.map((r) => (
+                      <li key={r.label} className="flex h-9 items-center justify-between text-[13px]">
+                        <span className="font-semibold">{r.label}</span>
+                        <span className="text-lg font-extrabold tabular-nums">{r.n}</span>
+                      </li>
+                    ))}
+                  </ul>
+                  <p className="mt-auto pt-3 text-[11.5px] text-muted-foreground">{panel.foot}</p>
+                </div>
+              ))}
+
+              <div className="flex flex-col rounded-xl border border-border bg-background/60 p-4">
+                <h3 className="mb-2 text-[11px] font-bold uppercase tracking-wider text-muted-foreground">Sessions by weekday</h3>
+                <div className="flex h-36 items-end gap-1.5" role="img" aria-label={`Sessions per weekday: ${DAY_KEYS.map((k, i) => `${k} ${perDay[i]}`).join(', ')}`}>
+                  {perDay.map((n, i) => (
+                    <div key={DAY_KEYS[i]} className="flex h-full min-w-0 flex-1 flex-col items-center justify-end gap-1">
+                      <span className={cn('text-[12px] font-extrabold tabular-nums', n === 0 && 'text-muted-foreground/50')}>{n}</span>
+                      <span className={cn('w-full rounded-t-md', n === perDayMax && n > 0 ? 'bg-primary' : 'bg-primary/30')} style={{ height: `${n === 0 ? 3 : Math.max(8, (n / perDayMax) * 84)}px` }} />
+                      <span className="text-[10.5px] font-bold uppercase text-muted-foreground">{DAY_KEYS[i]}</span>
+                    </div>
+                  ))}
+                </div>
+                <p className="mt-auto pt-3 text-[11.5px] text-muted-foreground">Busiest: {DAY_KEYS.filter((_, i) => perDay[i] === perDayMax && perDayMax > 0).join(' and ') || 'none'}</p>
+              </div>
+            </div>
+          </section>
         </>
       )}
 

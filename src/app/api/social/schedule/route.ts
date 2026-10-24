@@ -2,6 +2,11 @@ import { NextRequest, NextResponse } from 'next/server'
 import { isAdmin } from '@/lib/auth'
 import { cancelJob, createJob, listJobs } from '@/lib/social-schedule'
 
+/* the tagged Instagram accounts sent with the form: a JSON list of usernames */
+const tagsOf = (v: FormDataEntryValue | null): string[] => {
+  try { const a = JSON.parse(String(v || '[]')); return Array.isArray(a) ? a.map(String).slice(0, 10) : [] } catch { return [] }
+}
+
 export const maxDuration = 60
 
 const no = () => NextResponse.json({ ok: false, msg: 'Sign in as admin' }, { status: 401 })
@@ -39,6 +44,7 @@ export async function POST(req: NextRequest) {
       poster: file('poster'),
       poster45: file('poster45'),
       video: file('video'),
+      tags: tagsOf(f.get('tags')),
     })
     return NextResponse.json(r, { status: r.ok ? 200 : 500 })
   } catch (e) {
